@@ -1,0 +1,27 @@
+# Byte-compiled / optimized files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Packaging / build artifacts
+*.egg-info/
+build/
+dist/
+sdist/
+
+# Test / coverage artifacts
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# macOS
+.DS_Store
+
+# Generated reference database and its review snapshots -- reproducible
+# via scripts/build_prototype_db.py from files outside this repo (Paul's
+# master workbooks, the sibling gaussian_step/psi4_step CSVs). Not source,
+# so not tracked here; revisit once there's a real release process that
+# ships a prebuilt data/thermochemistry.db.
+seamm_thermochemistry/data/thermochemistry.db
+seamm_thermochemistry/data/*_snapshot.csv

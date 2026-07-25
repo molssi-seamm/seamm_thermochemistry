@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "seamm_thermochemistry"
+description = "Shared atomic reference-energy database and formation-energy arithmetic for SEAMM"
+version = "0.1.0.dev0"
+readme = "README.md"
+authors = [
+    { name = "Paul Saxe", email = "psaxe@molssi.org" }
+]
+license = { text = "BSD-3-Clause" }
+classifiers = [
+    "License :: OSI Approved :: BSD License",
+    "Programming Language :: Python :: 3",
+]
+requires-python = ">=3.9"
+dependencies = [
+    "seamm-util",
+]
+
+[project.urls]
+"Source" = "https://github.com/molssi-seamm/seamm_thermochemistry/"
+"Documentation" = "https://molssi-seamm.github.io/"
+
+[project.optional-dependencies]
+test = [
+    "pytest>=6.1.2",
+]
+# Only needed by seamm_thermochemistry.importers, for reading the legacy
+# Excel/CSV master files. Core db.py / formation.py have no such dependency.
+import = [
+    "pandas",
+    "openpyxl",
+]
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["seamm_thermochemistry*"]
+
+[tool.setuptools.package-data]
+seamm_thermochemistry = ["data/*.csv"]
