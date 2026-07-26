@@ -24,6 +24,9 @@ dependencies = [
 "Source" = "https://github.com/molssi-seamm/seamm_thermochemistry/"
 "Documentation" = "https://molssi-seamm.github.io/"
 
+[project.scripts]
+seamm-thermochemistry-installer = "seamm_thermochemistry.__main__:run"
+
 [project.optional-dependencies]
 test = [
     "pytest>=6.1.2",
@@ -33,6 +36,12 @@ test = [
 import = [
     "pandas",
     "openpyxl",
+]
+# Only needed by seamm_thermochemistry.installer -- the shared library
+# (db.py/formation.py) has no seamm_installer dependency, so anyone just
+# consuming ThermoDB/formation_energy doesn't need to pull it in.
+installer = [
+    "seamm-installer",
 ]
 
 [tool.setuptools]
