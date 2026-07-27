@@ -231,7 +231,13 @@ def import_vasp_workbook(
 
 
 def import_wide_method_csv(
-    db, path, code, *, methods=None, ref_type="atom", reference_note=None,
+    db,
+    path,
+    code,
+    *,
+    methods=None,
+    ref_type="atom",
+    reference_note=None,
     import_elements=True,
 ):
     """Load one of the wide per-code CSVs (gaussian_step/psi4_step style).
@@ -261,39 +267,43 @@ def import_wide_method_csv(
 
     elements = []
     n_energies = 0
-    for row in rows:
-        if len(row) < 12 or not row[1]:
-            continue
-        symbol = None
-        if import_elements:
-            symbol = _add_element_row(db, row[:12], reference_note=reference_note)
-        else:
-            symbol = row[1]
-        if symbol is None:
-            continue
-        elements.append(symbol)
-
-        for method in method_columns:
-            i = col_index[method]
-            if i >= len(row) or not row[i]:
+    # db.batch(): this can be hundreds of thousands of add_atom_energy calls
+    # for the full composite-method grid -- one commit (fsync) per call
+    # would make that prohibitively slow.
+    with db.batch():
+        for row in rows:
+            if len(row) < 12 or not row[1]:
                 continue
-            energy = float(row[i])
-            correction = None
-            corr_name = method + " correction"
-            if corr_name in col_index:
-                j = col_index[corr_name]
-                if j < len(row) and row[j]:
-                    correction = float(row[j])
-            db.add_atom_energy(
-                symbol,
-                code,
-                method,
-                energy,
-                ref_type=ref_type,
-                units="kJ/mol",
-                correction=correction,
-                source=str(path),
-            )
-            n_energies += 1
+            symbol = None
+            if import_elements:
+                symbol = _add_element_row(db, row[:12], reference_note=reference_note)
+            else:
+                symbol = row[1]
+            if symbol is None:
+                continue
+            elements.append(symbol)
+
+            for method in method_columns:
+                i = col_index[method]
+                if i >= len(row) or not row[i]:
+                    continue
+                energy = float(row[i])
+                correction = None
+                corr_name = method + " correction"
+                if corr_name in col_index:
+                    j = col_index[corr_name]
+                    if j < len(row) and row[j]:
+                        correction = float(row[j])
+                db.add_atom_energy(
+                    symbol,
+                    code,
+                    method,
+                    energy,
+                    ref_type=ref_type,
+                    units="kJ/mol",
+                    correction=correction,
+                    source=str(path),
+                )
+                n_energies += 1
 
     return {"elements": elements, "methods": method_columns, "n_energies": n_energies}

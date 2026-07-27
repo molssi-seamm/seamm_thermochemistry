@@ -93,10 +93,18 @@ def test_atom_energy_correction_is_applied(db):
 
 
 def test_ref_type_distinguishes_atom_vs_element_phase(db):
-    db.add_atom_energy("H", "vasp", "PBE", -55.0, ref_type="atom", settings="encut=700eV")
-    db.add_atom_energy("H", "vasp", "PBE", -60.0, ref_type="element_phase", settings="encut=700eV")
-    atom = db.get_atom_energy("H", "vasp", "PBE", ref_type="atom", settings="encut=700eV")
-    phase = db.get_atom_energy("H", "vasp", "PBE", ref_type="element_phase", settings="encut=700eV")
+    db.add_atom_energy(
+        "H", "vasp", "PBE", -55.0, ref_type="atom", settings="encut=700eV"
+    )
+    db.add_atom_energy(
+        "H", "vasp", "PBE", -60.0, ref_type="element_phase", settings="encut=700eV"
+    )
+    atom = db.get_atom_energy(
+        "H", "vasp", "PBE", ref_type="atom", settings="encut=700eV"
+    )
+    phase = db.get_atom_energy(
+        "H", "vasp", "PBE", ref_type="element_phase", settings="encut=700eV"
+    )
     assert atom == pytest.approx(-55.0)
     assert phase == pytest.approx(-60.0)
 
@@ -142,3 +150,23 @@ def test_dump_atom_energies_csv(db, tmp_path):
 def test_read_only_rejects_missing_file(tmp_path):
     with pytest.raises(FileNotFoundError):
         ThermoDB(tmp_path / "nope.db", read_only=True)
+
+
+def test_batch_commits_once_at_the_end(db):
+    with db.batch():
+        db.add_atom_energy("H", "gaussian", "CBS-QB3", -1312.0)
+        # Uncommitted writes are still visible on the same connection...
+        assert db.get_atom_energy("H", "gaussian", "CBS-QB3") == pytest.approx(-1312.0)
+    # ...and still there (committed) after the block exits.
+    assert db.get_atom_energy("H", "gaussian", "CBS-QB3") == pytest.approx(-1312.0)
+
+
+def test_batch_restores_autocommit_after_exception(db):
+    with pytest.raises(RuntimeError):
+        with db.batch():
+            db.add_atom_energy("H", "gaussian", "CBS-QB3", -1312.0)
+            raise RuntimeError("boom")
+    assert db._autocommit is True
+    # add_atom_energy after the failed batch commits immediately again.
+    db.add_atom_energy("O", "gaussian", "CBS-QB3", -98700.0)
+    assert db.get_atom_energy("O", "gaussian", "CBS-QB3") == pytest.approx(-98700.0)

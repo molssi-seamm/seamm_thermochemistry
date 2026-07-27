@@ -33,12 +33,11 @@ logger = logging.getLogger(__name__)
 class Installer(seamm_installer.InstallerBase):
     """Install/update/remove the seamm_thermochemistry reference database."""
 
-    # TODO: set once the seamm_thermochemistry Zenodo record exists and its
-    # first version is published (see the "release seamm_thermochemistry"
-    # step in the reference-energy design doc). get_latest_public_record
-    # accepts either the concept id or any one version's id, so whichever
-    # is easiest to grab from the Zenodo page will do.
-    zenodo_concept_id = None
+    # https://zenodo.org/records/21612188 (DOI 10.5281/zenodo.21612188),
+    # concept DOI 10.5281/zenodo.21612187 -- this id resolves to whichever
+    # version is newest via get_latest_public_record, so it never needs to
+    # change when a new version of thermochemistry.db is published.
+    zenodo_concept_id = 21612187
 
     database_filename = "thermochemistry.db"
 
@@ -106,6 +105,8 @@ class Installer(seamm_installer.InstallerBase):
 
         print(f"Done! Installed to {path}.")
 
+        if not self.configuration.section_exists(self.section):
+            self.configuration.add_section(self.section)
         self.configuration.set_value(self.section, "database-path", str(path))
         self.configuration.save()
 

@@ -91,7 +91,8 @@ def atomization_energy(
     missing = sorted(el for el in composition if el not in ref_energies)
     if missing:
         raise MissingReferenceData(
-            f"No {code}/{method} ({ref_type}) reference energy for: {', '.join(missing)}"
+            f"No {code}/{method} ({ref_type}) reference energy for: "
+            f"{', '.join(missing)}"
         )
     reference_sum = sum(n * ref_energies[el] for el, n in composition.items())
     return reference_sum - system_energy
@@ -165,7 +166,8 @@ def formation_energy(
     if missing:
         anchor_label = "0 K" if anchor_at_0K else "298 K"
         raise MissingReferenceData(
-            f"No experimental {anchor_label} heat of formation for: {', '.join(sorted(missing))}"
+            f"No experimental {anchor_label} heat of formation for: "
+            f"{', '.join(sorted(missing))}"
         )
 
     return total_anchor - atomization

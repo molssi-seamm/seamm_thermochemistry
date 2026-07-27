@@ -36,7 +36,9 @@ SYSTEM_ENERGY = -100.0  # kJ/mol, arbitrary ZPE-free electronic energy
 
 def test_atomization_energy(db):
     # sum(n * E_ref) - E(system) = (2*-10 + -70) - (-100) = 10.0
-    assert atomization_energy(H2O, SYSTEM_ENERGY, db, "test", "M") == pytest.approx(10.0)
+    assert atomization_energy(H2O, SYSTEM_ENERGY, db, "test", "M") == pytest.approx(
+        10.0
+    )
 
 
 def test_atomization_energy_positive_for_bound_system(db):
