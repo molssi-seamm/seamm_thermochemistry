@@ -26,6 +26,7 @@ Two reference conventions are both first-class (`ref_type`):
 See ``formation.py`` for the arithmetic that consumes this store.
 """
 
+import configparser
 import csv
 from contextlib import contextmanager
 import sqlite3
@@ -80,7 +81,31 @@ CREATE INDEX IF NOT EXISTS idx_atom_energy_lookup
     ON atom_energy (code, method, ref_type, settings);
 """
 
-DEFAULT_DB_PATH = Path(__file__).parent / "data" / "thermochemistry.db"
+_BUNDLED_DB_PATH = Path(__file__).parent / "data" / "thermochemistry.db"
+_SEAMM_INI_PATH = Path("~/.seamm.d/seamm.ini").expanduser()
+
+
+def _resolve_default_db_path():
+    """The installer-managed database path from seamm.ini's
+    [thermochemistry] section, if set, else the bundled package path.
+
+    Reads seamm.ini directly with the stdlib configparser rather than
+    importing seamm_installer, so this core module keeps its only real
+    dependency (seamm_util). seamm_installer (the `installer` extra) is
+    only needed to *populate* database-path in the first place -- see
+    installer.py -- not to read it back here.
+    """
+    if _SEAMM_INI_PATH.exists():
+        parser = configparser.ConfigParser(interpolation=None)
+        parser.read(_SEAMM_INI_PATH)
+        if parser.has_section("thermochemistry"):
+            value = parser.get("thermochemistry", "database-path", fallback="")
+            if value:
+                return Path(value).expanduser().resolve()
+    return _BUNDLED_DB_PATH
+
+
+DEFAULT_DB_PATH = _resolve_default_db_path()
 
 # kJ/mol per unit of energy, for the handful of units this data actually
 # shows up in. Kept local (rather than pulling in seamm_util.Q_ for every
@@ -111,10 +136,13 @@ class ThermoDB:
     Parameters
     ----------
     path : str or Path, optional
-        Database file. Defaults to the bundled ``data/thermochemistry.db``
-        shipped with the package. Pass ``~/.seamm.d/data/thermochemistry.db``
-        or similar for a personal/site override, mirroring the existing
-        ``~/.seamm.d/data/atom_energies.csv`` convention.
+        Database file. Defaults to ``DEFAULT_DB_PATH``: the installer-
+        managed location registered in ``~/.seamm.d/seamm.ini``'s
+        ``[thermochemistry]`` section (``database-path``, normally
+        ``~/SEAMM/Parameters/thermochemistry/thermochemistry.db`` -- see
+        ``installer.py``) if the installer has been run, else the bundled
+        ``data/thermochemistry.db`` shipped with the package (a stale
+        prototype snapshot, useful only before the installer has run).
     read_only : bool
         Open without creating/migrating the schema, and without permission
         to write. Use for a package-installed, already-built database.
