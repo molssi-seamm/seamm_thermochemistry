@@ -1,0 +1,7 @@
+seamm_thermochemistry
+=====================
+
+.. toctree::
+   :maxdepth: 4
+
+   seamm_thermochemistry

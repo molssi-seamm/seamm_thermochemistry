@@ -1,0 +1,61 @@
+seamm\_thermochemistry package
+==============================
+
+Submodules
+----------
+
+seamm\_thermochemistry.db module
+--------------------------------
+
+.. automodule:: seamm_thermochemistry.db
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+seamm\_thermochemistry.derive module
+------------------------------------
+
+.. automodule:: seamm_thermochemistry.derive
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+seamm\_thermochemistry.formation module
+---------------------------------------
+
+.. automodule:: seamm_thermochemistry.formation
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+seamm\_thermochemistry.import\_orca\_cli module
+-----------------------------------------------
+
+.. automodule:: seamm_thermochemistry.import_orca_cli
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+seamm\_thermochemistry.importers module
+---------------------------------------
+
+.. automodule:: seamm_thermochemistry.importers
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+seamm\_thermochemistry.installer module
+---------------------------------------
+
+.. automodule:: seamm_thermochemistry.installer
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Module contents
+---------------
+
+.. automodule:: seamm_thermochemistry
+   :members:
+   :show-inheritance:
+   :undoc-members:

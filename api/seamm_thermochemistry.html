@@ -1,0 +1,1447 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>seamm_thermochemistry package &#8212; SEAMM thermochemistry Plug-in 2026.7.30 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/custom.css" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+
+    <script src="../_static/documentation_options.js?v=5e20fa5c"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'api/seamm_thermochemistry';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="seamm_thermochemistry" href="modules.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="2026.7.30" />
+  
+    
+    <script src="../_static/searchtools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script src="../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/SEAMM logo.png" class="logo__image only-light" alt=""/>
+    <img src="../_static/SEAMM Inverted 288x181.png" class="logo__image only-dark pst-js-only" alt=""/>
+  
+  
+    <p class="title logo__title">SEAMM-THERMOCHEMISTRY</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../api.html">
+    API Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-external" href="https://molssi-seamm.github.io">
+    SEAMM Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-external" href="https://molssi.org">
+    MolSSI
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/molssi-seamm/seamm_thermochemistry" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/MolSSI_NSF" title="Twitter" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-twitter fa-lg" aria-hidden="true"></i><span class="visually-hidden">Twitter</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../api.html">
+    API Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-external" href="https://molssi-seamm.github.io">
+    SEAMM Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-external" href="https://molssi.org">
+    MolSSI
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/molssi-seamm/seamm_thermochemistry" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/MolSSI_NSF" title="Twitter" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-twitter fa-lg" aria-hidden="true"></i><span class="visually-hidden">Twitter</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="modules.html">seamm_thermochemistry</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 current active"><a class="current reference internal" href="#">seamm_thermochemistry package</a></li>
+</ul>
+</details></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../api.html" class="nav-link">API Documentation</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="modules.html" class="nav-link">seamm_thermochemistry</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">seamm_thermochemistry package</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="seamm-thermochemistry-package">
+<h1>seamm_thermochemistry package<a class="headerlink" href="#seamm-thermochemistry-package" title="Link to this heading">#</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">#</a></h2>
+</section>
+<section id="module-seamm_thermochemistry.db">
+<span id="seamm-thermochemistry-db-module"></span><h2>seamm_thermochemistry.db module<a class="headerlink" href="#module-seamm_thermochemistry.db" title="Link to this heading">#</a></h2>
+<p>SQLite-backed store for atomic reference energies.</p>
+<p>Every SEAMM code that reports a formation-referenced energy (Gaussian, Psi4,
+ORCA, VASP, …) needs the same two pieces of data per element: an
+experimental reference (heat of formation, entropy, standard-state
+description) and one or more <em>computed</em> atomic reference energies (one per
+code/method/settings combination). Today each plugin carries its own copy of
+both as a wide, mostly-empty CSV. This module replaces that with a single,
+shared, relational store – one <cite>element</cite> row per element, one <cite>atom_energy</cite>
+row per (element, code, method, ref_type, settings) combination – with room
+for the provenance a shared reference dataset needs (who computed it, when,
+with what).</p>
+<p>Two reference conventions are both first-class (<cite>ref_type</cite>):</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;atom&quot;</span></code>: energy of the isolated, gas-phase atom. This is the
+Gaussian/Psi4/ORCA convention, and the one to use for a physically
+anchored, cross-code-comparable energy of formation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;element_phase&quot;</span></code>: energy per atom of the element’s standard-state phase
+(bulk metal, graphite, O2(g), …). This is VASP’s existing convention
+(<code class="docutils literal notranslate"><span class="pre">element_energies.csv</span></code>) – no experimental anchor needed, but the
+result is referenced to the computed elemental phases, not real formation
+energies. It also serves as a fallback for elements (e.g. Mn) where the
+free atom is a poor DFT reference.</p></li>
+</ul>
+<p>See <code class="docutils literal notranslate"><span class="pre">formation.py</span></code> for the arithmetic that consumes this store.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="seamm_thermochemistry.db.ThermoDB">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.db.</span></span><span class="sig-name descname"><span class="pre">ThermoDB</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/db.html#ThermoDB"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.db.ThermoDB" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Helper around the shared atomic reference-energy SQLite database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<em>str</em><em> or </em><em>Path</em><em>, </em><em>optional</em>) – Database file. Defaults to <code class="docutils literal notranslate"><span class="pre">DEFAULT_DB_PATH</span></code>: the installer-
+managed location registered in <code class="docutils literal notranslate"><span class="pre">~/.seamm.d/seamm.ini</span></code>’s
+<code class="docutils literal notranslate"><span class="pre">[thermochemistry]</span></code> section (<code class="docutils literal notranslate"><span class="pre">database-path</span></code>, normally
+<code class="docutils literal notranslate"><span class="pre">~/SEAMM/Parameters/thermochemistry/thermochemistry.db</span></code> – see
+<code class="docutils literal notranslate"><span class="pre">installer.py</span></code>) if the installer has been run, else the bundled
+<code class="docutils literal notranslate"><span class="pre">data/thermochemistry.db</span></code> shipped with the package (a stale
+prototype snapshot, useful only before the installer has run).</p></li>
+<li><p><strong>read_only</strong> (<em>bool</em>) – Open without creating/migrating the schema, and without permission
+to write. Use for a package-installed, already-built database.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.db.ThermoDB.add_atom_energy">
+<span class="sig-name descname"><span class="pre">add_atom_energy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">symbol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">code</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energy</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'atom'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'kJ/mol'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">correction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin_multiplicity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">computed_date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">code_version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">notes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/db.html#ThermoDB.add_atom_energy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.db.ThermoDB.add_atom_energy" title="Link to this definition">#</a></dt>
+<dd><p>Insert or update one computed atomic reference energy.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>symbol</strong> (<em>str</em>) – Element symbol, e.g. “O”. Must already exist via <cite>add_element</cite>.</p></li>
+<li><p><strong>code</strong> (<em>str</em>) – Originating code: “gaussian”, “psi4”, “orca”, “vasp”, …</p></li>
+<li><p><strong>method</strong> (<em>str</em>) – Method/functional label, e.g. “CBS-QB3”, “PBE-D3BJ”. Where the
+basis is folded into the label (as in the legacy Gaussian/Psi4
+tables, e.g. “CCD-FC/6-31++G(2d,2p)”), pass the full label.</p></li>
+<li><p><strong>energy</strong> (<em>float</em>) – The atom’s energy, in <cite>units</cite> (converted to kJ/mol on storage).</p></li>
+<li><p><strong>ref_type</strong> (<em>{&quot;atom&quot;</em><em>, </em><em>&quot;element_phase&quot;}</em>) – “atom” = isolated gas-phase atom. “element_phase” = energy per
+atom of the standard-state phase (VASP’s existing convention).</p></li>
+<li><p><strong>settings</strong> (<em>str</em>) – Free-form disambiguator that is part of the identity key, e.g.
+“encut=700eV”. Defaults to “” (not NULL, so the UNIQUE
+constraint dedups consistently).</p></li>
+<li><p><strong>units</strong> (<em>str</em>) – Units of <cite>energy</cite> and <cite>correction</cite>: one of “kJ/mol”, “kcal/mol”,
+“eV”, “hartree”/”E_h”.</p></li>
+<li><p><strong>correction</strong> (<em>float</em><em>, </em><em>optional</em>) – Additive correction (e.g. Gaussian’s “&lt;method&gt; correction”
+column), same units as <cite>energy</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.db.ThermoDB.add_element">
+<span class="sig-name descname"><span class="pre">add_element</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atomic_number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symbol</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">multiplicity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">term_symbol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">standard_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dfH0_0K</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dfH0_298K</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dfH0_298K_stderr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h298_minus_h0_atom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h298_minus_h0_std_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s298_gas</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s298_gas_stderr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reference</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reference_note</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/db.html#ThermoDB.add_element"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.db.ThermoDB.add_element" title="Link to this definition">#</a></dt>
+<dd><p>Insert or update the experimental reference row for one element.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.db.ThermoDB.batch">
+<span class="sig-name descname"><span class="pre">batch</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/db.html#ThermoDB.batch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.db.ThermoDB.batch" title="Link to this definition">#</a></dt>
+<dd><p>Defer commits until the end of the block, for bulk imports.</p>
+<p><cite>add_element</cite>/<cite>add_atom_energy</cite> normally commit immediately –
+the right default for interactive use, but one fsync per row makes
+a bulk import of hundreds of thousands of rows (e.g. the full
+Gaussian/Psi4 composite-method grids) prohibitively slow. Wrap
+those calls in <code class="docutils literal notranslate"><span class="pre">with</span> <span class="pre">db.batch():</span></code> to commit once at the end
+instead.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.db.ThermoDB.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/db.html#ThermoDB.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.db.ThermoDB.close" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.db.ThermoDB.coverage">
+<span class="sig-name descname"><span class="pre">coverage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'atom'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/db.html#ThermoDB.coverage"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.db.ThermoDB.coverage" title="Link to this definition">#</a></dt>
+<dd><p>Return (n_elements_present, max_atomic_number) for one (code, method).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.db.ThermoDB.dfH0">
+<span class="sig-name descname"><span class="pre">dfH0</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">symbol</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">at_0K</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/db.html#ThermoDB.dfH0"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.db.ThermoDB.dfH0" title="Link to this definition">#</a></dt>
+<dd><p>Experimental atomic heat of formation, kJ/mol.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>at_0K</strong> (<em>bool</em>) – If True (default, and the recommended anchor for an “energy of
+formation” – see the design doc), return DfH(X, 0K). If False,
+return the 298 K gas-phase value used by the existing
+enthalpy-of-formation code paths.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.db.ThermoDB.dump_atom_energies_csv">
+<span class="sig-name descname"><span class="pre">dump_atom_energies_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/db.html#ThermoDB.dump_atom_energies_csv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.db.ThermoDB.dump_atom_energies_csv" title="Link to this definition">#</a></dt>
+<dd><p>Write the <cite>atom_energy</cite> table (joined to element symbols) to CSV.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.db.ThermoDB.dump_elements_csv">
+<span class="sig-name descname"><span class="pre">dump_elements_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/db.html#ThermoDB.dump_elements_csv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.db.ThermoDB.dump_elements_csv" title="Link to this definition">#</a></dt>
+<dd><p>Write the <cite>element</cite> table to CSV, ordered by atomic number.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.db.ThermoDB.elements">
+<span class="sig-name descname"><span class="pre">elements</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/db.html#ThermoDB.elements"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.db.ThermoDB.elements" title="Link to this definition">#</a></dt>
+<dd><p>Return all element rows, ordered by atomic number.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.db.ThermoDB.get_atom_energy">
+<span class="sig-name descname"><span class="pre">get_atom_energy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">symbol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">code</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'atom'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'kJ/mol'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/db.html#ThermoDB.get_atom_energy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.db.ThermoDB.get_atom_energy" title="Link to this definition">#</a></dt>
+<dd><p>Return one atomic reference energy (including its correction), or None.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.db.ThermoDB.get_element">
+<span class="sig-name descname"><span class="pre">get_element</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">symbol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atomic_number</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/db.html#ThermoDB.get_element"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.db.ThermoDB.get_element" title="Link to this definition">#</a></dt>
+<dd><p>Return the experimental reference row for one element as a dict, or None.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.db.ThermoDB.get_reference_energies">
+<span class="sig-name descname"><span class="pre">get_reference_energies</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'atom'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'kJ/mol'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/db.html#ThermoDB.get_reference_energies"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.db.ThermoDB.get_reference_energies" title="Link to this definition">#</a></dt>
+<dd><p>Return <code class="docutils literal notranslate"><span class="pre">{symbol:</span> <span class="pre">energy}</span></code> for every element tabulated for this
+(code, method, ref_type, settings) combination.</p>
+<p>This is the lookup table <cite>formation.formation_energy</cite> needs.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.db.ThermoDB.list_methods">
+<span class="sig-name descname"><span class="pre">list_methods</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/db.html#ThermoDB.list_methods"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.db.ThermoDB.list_methods" title="Link to this definition">#</a></dt>
+<dd><p>Return distinct (code, method, ref_type, settings) tuples present.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.db.ThermoDB.missing">
+<span class="sig-name descname"><span class="pre">missing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symbols</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'atom'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/db.html#ThermoDB.missing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.db.ThermoDB.missing" title="Link to this definition">#</a></dt>
+<dd><p>Return the subset of <cite>symbols</cite> with no tabulated (code, method) energy.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-seamm_thermochemistry.derive">
+<span id="seamm-thermochemistry-derive-module"></span><h2>seamm_thermochemistry.derive module<a class="headerlink" href="#module-seamm_thermochemistry.derive" title="Link to this heading">#</a></h2>
+<p>Derive DfH(X, 0K) from the 298 K experimental data already in the store.</p>
+<p>The master reference sheet only has ΔfH°(0K) filled in for H and He; every
+other element has ΔfH°(298K) plus the two H(298K)-H(0K) corrections needed
+to convert it, via the standard thermochemical identity:</p>
+<blockquote>
+<div><p>DfH(X, 0K) = DfH(X, 298K) - [H298-H0]_atom + [H298-H0]_standard_state</p>
+</div></blockquote>
+<p><cite>h298_minus_h0_std_state</cite> is tabulated <em>per formula unit of the standard
+state</em>, not per atom – for a diatomic standard state (H2, N2, O2, F2, Cl2,
+Br2) it must be divided by 2 to get a per-atom contribution; for the
+monatomic/solid standard states used by every other element in range, no
+division is needed. Verified against the two elements the master sheet
+already gives directly: H (218 - 6.197 + 8.468/2 = 216.03, matches
+216.034) and He (0 - 6.197 + 6.197 = 0, matches 0), both to within the
+sheet’s own rounding.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="seamm_thermochemistry.derive.derive_dfH0_0K">
+<span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.derive.</span></span><span class="sig-name descname"><span class="pre">derive_dfH0_0K</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/derive.html#derive_dfH0_0K"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.derive.derive_dfH0_0K" title="Link to this definition">#</a></dt>
+<dd><p>Fill in <cite>element.dfH0_0K</cite> for every element where it’s derivable.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>db</strong> (<a class="reference internal" href="#seamm_thermochemistry.db.ThermoDB" title="seamm_thermochemistry.db.ThermoDB"><em>ThermoDB</em></a>)</p></li>
+<li><p><strong>overwrite</strong> (<em>bool</em>) – If False (default), skip elements that already have <cite>dfH0_0K</cite> –
+the master sheet’s own H/He values are treated as authoritative
+over a re-derivation (though the derivation reproduces them to
+within rounding; see module docstring).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Symbols of the elements filled in.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of str</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-seamm_thermochemistry.formation">
+<span id="seamm-thermochemistry-formation-module"></span><h2>seamm_thermochemistry.formation module<a class="headerlink" href="#module-seamm_thermochemistry.formation" title="Link to this heading">#</a></h2>
+<p>The shared arithmetic: atomization and formation energies from a ThermoDB.</p>
+<p>Every code (Gaussian, Psi4, ORCA, VASP, …) that reports a formation energy
+is doing the same subtraction:</p>
+<blockquote>
+<div><p>atomization = sum(n_X * E_ref(X)) - E(system)</p>
+</div></blockquote>
+<p>and, when an experimental anchor is available,</p>
+<blockquote>
+<div><p>formation = sum(n_X * DfH(X)) - atomization</p>
+</div></blockquote>
+<p>They differ only in the choice of E_ref (an isolated gas atom, or an atom of
+the element’s standard-state phase – <cite>ref_type</cite> on ThermoDB) and whether an
+experimental anchor is added at all. See
+<code class="docutils literal notranslate"><span class="pre">~/Sites/reference-energy/2026-07-24_reference-energy/</span></code> for the full
+design rationale, including why the arbitrary code-dependent zero of a raw
+total energy is the problem this solves, and the “no thermochemistry -&gt;
+energy of formation, not enthalpy” case this module is aimed at.</p>
+<p>Sign convention, checked against the existing gaussian_step / psi4_step /
+vasp_step implementations:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">atomization_energy</span></code> matches Gaussian/Psi4’s “E atomization” (&gt;0 for a
+bound system: separated atoms sit higher in energy than the molecule).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">formation_energy(...,</span> <span class="pre">anchor=True)</span></code> matches the existing
+<code class="docutils literal notranslate"><span class="pre">DfH_at</span> <span class="pre">-</span> <span class="pre">H_atomization</span></code> construction (Gaussian/Psi4’s enthalpy of
+formation), generalized to also give a ZPE-free “energy of formation”
+when the 0 K anchor is used and <cite>system_energy</cite> excludes ZPE.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">formation_energy(...,</span> <span class="pre">anchor=False)</span></code> matches VASP’s existing
+<code class="docutils literal notranslate"><span class="pre">DfE0</span> <span class="pre">=</span> <span class="pre">E(system)</span> <span class="pre">-</span> <span class="pre">sum(n_X</span> <span class="pre">*</span> <span class="pre">mu_X)</span></code> (materials formation-energy
+convention, no experimental data required) – note this is
+<code class="docutils literal notranslate"><span class="pre">-atomization_energy</span></code>, not <cite>atomization_energy</cite> itself; the two
+conventions report the quantity with opposite sign, which is why they
+are two functions rather than one flag.</p></li>
+</ul>
+<dl class="py exception">
+<dt class="sig sig-object py" id="seamm_thermochemistry.formation.MissingReferenceData">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.formation.</span></span><span class="sig-name descname"><span class="pre">MissingReferenceData</span></span><a class="reference internal" href="../_modules/seamm_thermochemistry/formation.html#MissingReferenceData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.formation.MissingReferenceData" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">KeyError</span></code></p>
+<p>Raised when a composition needs reference data the ThermoDB doesn’t have.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="seamm_thermochemistry.formation.atomization_energy">
+<span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.formation.</span></span><span class="sig-name descname"><span class="pre">atomization_energy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">composition</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">system_energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">db</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">code</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'atom'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'kJ/mol'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/formation.html#atomization_energy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.formation.atomization_energy" title="Link to this definition">#</a></dt>
+<dd><p>sum(n_X * E_ref(X)) - E(system): the energy to separate all atoms.</p>
+<p>This is exactly Gaussian/Psi4’s “Atomization Energy” (electronic-only,
+no ZPE, if <cite>system_energy</cite> is itself ZPE-free) and VASP’s “cohesive
+energy”. Positive for a bound system.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>composition</strong> (<em>dict</em><em> or </em><em>collections.Counter</em>) – {element_symbol: count}, e.g. {“C”: 2, “H”: 6}.</p></li>
+<li><p><strong>system_energy</strong> (<em>float</em>) – The system’s electronic energy, in <cite>units</cite>.</p></li>
+<li><p><strong>db</strong> (<a class="reference internal" href="#seamm_thermochemistry.db.ThermoDB" title="seamm_thermochemistry.db.ThermoDB"><em>ThermoDB</em></a>) – Open reference-energy database.</p></li>
+<li><p><strong>code</strong> (<em>str</em>) – Identify which tabulated atom energies to use.</p></li>
+<li><p><strong>method</strong> (<em>str</em>) – Identify which tabulated atom energies to use.</p></li>
+<li><p><strong>ref_type</strong> (<em>{&quot;atom&quot;</em><em>, </em><em>&quot;element_phase&quot;}</em>) – See <code class="docutils literal notranslate"><span class="pre">ThermoDB.add_atom_energy</span></code>.</p></li>
+<li><p><strong>settings</strong> (<em>str</em>) – Must match the <cite>settings</cite> used when the atom energies were stored.</p></li>
+<li><p><strong>units</strong> (<em>str</em>) – A pint-parseable unit string for <cite>system_energy</cite> and the return
+value, e.g. “kJ/mol”, “eV”, “E_h”.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="seamm_thermochemistry.formation.formation_energy">
+<span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.formation.</span></span><span class="sig-name descname"><span class="pre">formation_energy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">composition</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">system_energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">db</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">code</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'atom'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anchor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anchor_at_0K</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'kJ/mol'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/formation.html#formation_energy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.formation.formation_energy" title="Link to this definition">#</a></dt>
+<dd><p>The formation-referenced energy of a system.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>composition</strong> – As in <cite>atomization_energy</cite>.</p></li>
+<li><p><strong>system_energy</strong> – As in <cite>atomization_energy</cite>.</p></li>
+<li><p><strong>db</strong> – As in <cite>atomization_energy</cite>.</p></li>
+<li><p><strong>code</strong> – As in <cite>atomization_energy</cite>.</p></li>
+<li><p><strong>method</strong> – As in <cite>atomization_energy</cite>.</p></li>
+<li><p><strong>ref_type</strong> – As in <cite>atomization_energy</cite>.</p></li>
+<li><p><strong>settings</strong> – As in <cite>atomization_energy</cite>.</p></li>
+<li><p><strong>units</strong> – As in <cite>atomization_energy</cite>.</p></li>
+<li><p><strong>anchor</strong> (<em>bool</em>) – If True (default), add the experimental atomic heat of formation so
+the result is a true energy/enthalpy of formation – the physically
+meaningful, cross-code-comparable quantity this package exists for.
+If False, return the bare, no-experimental-data-needed quantity:
+VASP’s existing <code class="docutils literal notranslate"><span class="pre">DfE0</span></code> convention (<code class="docutils literal notranslate"><span class="pre">ref_type=&quot;element_phase&quot;</span></code>
+is the natural pairing, but any ref_type is accepted).</p></li>
+<li><p><strong>anchor_at_0K</strong> (<em>bool</em>) – Use the 0 K experimental anchor (recommended: pairs with a
+ZPE-free <cite>system_energy</cite> to give an “energy of formation”, degrades
+gracefully to DfH(0K) if ZPE is added back in, and to DfH(298K) if
+the molecule’s thermal correction is added) or the 298 K anchor
+(matches the existing enthalpy-of-formation code paths directly).
+Ignored if <cite>anchor</cite> is False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Energy/enthalpy of formation (<cite>anchor=True</cite>) or the bare
+atomization-referenced energy in VASP’s DfE0 sign convention
+(<cite>anchor=False</cite>), in <cite>units</cite>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-seamm_thermochemistry.import_orca_cli">
+<span id="seamm-thermochemistry-import-orca-cli-module"></span><h2>seamm_thermochemistry.import_orca_cli module<a class="headerlink" href="#module-seamm_thermochemistry.import_orca_cli" title="Link to this heading">#</a></h2>
+<p>Import one or more ORCA atom-energy results CSVs into thermochemistry.db.</p>
+<p>Installed as the <code class="docutils literal notranslate"><span class="pre">seamm-thermochemistry-import-orca</span></code> console script.</p>
+<section id="usage">
+<h3>Usage<a class="headerlink" href="#usage" title="Link to this heading">#</a></h3>
+<blockquote>
+<div><p>seamm-thermochemistry-import-orca results1.csv results2.csv …
+seamm-thermochemistry-import-orca –dry-run results.csv
+seamm-thermochemistry-import-orca –force results.csv   # overwrite every conflict
+seamm-thermochemistry-import-orca –prefer-lower-energy results.csv  # keep lower</p>
+</div></blockquote>
+<p>See <cite>seamm_thermochemistry.importers.import_orca_atom_results</cite> for the CSV
+shape expected and the vetting/duplicate-handling rules – this module is
+just the CLI + pretty-printing around that function.</p>
+</section>
+<dl class="py function">
+<dt class="sig sig-object py" id="seamm_thermochemistry.import_orca_cli.main">
+<span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.import_orca_cli.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/import_orca_cli.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.import_orca_cli.main" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="seamm_thermochemistry.import_orca_cli.report">
+<span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.import_orca_cli.</span></span><span class="sig-name descname"><span class="pre">report</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">csv_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">summary</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/import_orca_cli.html#report"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.import_orca_cli.report" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-seamm_thermochemistry.importers">
+<span id="seamm-thermochemistry-importers-module"></span><h2>seamm_thermochemistry.importers module<a class="headerlink" href="#module-seamm_thermochemistry.importers" title="Link to this heading">#</a></h2>
+<p>Importers from the legacy master files into a ThermoDB.</p>
+<p>Requires the <code class="docutils literal notranslate"><span class="pre">import</span></code> extra (<code class="docutils literal notranslate"><span class="pre">pandas</span></code>, <code class="docutils literal notranslate"><span class="pre">openpyxl</span></code>) – the core
+<code class="docutils literal notranslate"><span class="pre">db</span></code>/<code class="docutils literal notranslate"><span class="pre">formation</span></code> modules do not need either.</p>
+<p>Three legacy sources exist today, all sharing the same 12-column
+experimental-reference block (by <em>position</em>; header text drifts slightly
+between them – “ΔfH°(0)” vs “ΔfH°gas(0)” vs “DfH0(0)” for the same column):</p>
+<ul class="simple">
+<li><p>Paul’s master workbook, “Atom Reference Energies and States.xlsx” –
+the clean experimental block only, one row per element.</p></li>
+<li><p>“VASP element_energies.xlsx” (sheet “element_energies”) – the same
+experimental block, plus paired <code class="docutils literal notranslate"><span class="pre">&quot;&lt;method&gt;&#64;&lt;encut&gt;</span> <span class="pre">atom</span> <span class="pre">energy&quot;</span></code>
+(isolated atom, ref_type=”atom”) and <code class="docutils literal notranslate"><span class="pre">&quot;&lt;method&gt;&#64;&lt;encut&gt;&quot;</span></code> (per-atom
+standard-state energy, ref_type=”element_phase”) columns.</p></li>
+<li><p>Each of gaussian_step / psi4_step’s <code class="docutils literal notranslate"><span class="pre">data/atom_energies.csv</span></code> – the
+same experimental block, plus one column per method (isolated atom,
+kJ/mol) and an optional <code class="docutils literal notranslate"><span class="pre">&quot;&lt;method&gt;</span> <span class="pre">correction&quot;</span></code> column.</p></li>
+</ul>
+<p>A fourth, ongoing source needs no xlsx/openpyxl at all:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">import_orca_atom_results</span></code> reads a per-job ORCA atom-energy results
+CSV (one row per element, one <code class="docutils literal notranslate"><span class="pre">E</span> <span class="pre">DFT&#64;&lt;method&gt;/&lt;basis&gt;</span> <span class="pre">(kJ/mol)</span></code> /
+<code class="docutils literal notranslate"><span class="pre">S^2</span> <span class="pre">DFT&#64;&lt;method&gt;/&lt;basis&gt;</span></code> column pair per method+basis run) and
+vets each cell against its expected spin before adding it – see that
+function’s docstring.</p></li>
+</ul>
+<dl class="py function">
+<dt class="sig sig-object py" id="seamm_thermochemistry.importers.import_orca_atom_results">
+<span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.importers.</span></span><span class="sig-name descname"><span class="pre">import_orca_atom_results</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">csv_path</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'orca'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'atom'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warn_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.02</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reject_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energy_rel_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-06</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energy_abs_tol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prefer_lower_energy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dry_run</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/importers.html#import_orca_atom_results"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.importers.import_orca_atom_results" title="Link to this definition">#</a></dt>
+<dd><p>Import ORCA atom-energy results from a per-job results CSV.</p>
+<p>Expects the shape produced by the atom-energy scan flowchart: one row
+per element (<code class="docutils literal notranslate"><span class="pre">Atomic</span> <span class="pre">Number</span></code>, <code class="docutils literal notranslate"><span class="pre">Element</span></code>, <code class="docutils literal notranslate"><span class="pre">Multiplicity</span></code>), and one
+<code class="docutils literal notranslate"><span class="pre">&quot;E</span> <span class="pre">DFT&#64;&lt;method&gt;/&lt;basis&gt;</span> <span class="pre">(kJ/mol)&quot;</span></code> / <code class="docutils literal notranslate"><span class="pre">&quot;S^2</span> <span class="pre">DFT&#64;&lt;method&gt;/&lt;basis&gt;&quot;</span></code>
+column pair per method+basis combination that has been run so far
+(blank cells are jobs not finished/reached yet, not errors). <code class="docutils literal notranslate"><span class="pre">method</span></code>
+and <code class="docutils literal notranslate"><span class="pre">basis</span></code> are stored separately – <code class="docutils literal notranslate"><span class="pre">method</span></code> as the ThermoDB
+<code class="docutils literal notranslate"><span class="pre">method</span></code>, <code class="docutils literal notranslate"><span class="pre">basis</span></code> as <code class="docutils literal notranslate"><span class="pre">settings</span></code> – since ORCA (unlike Gaussian’s
+composite-method columns) always keeps them as independent axes.</p>
+<p>Vetting, since a bad SCF root (wrong occupation, not just unconverged)
+is the actual failure mode seen for hard atoms (lanthanides etc.), not
+just a missing value:</p>
+<ul class="simple">
+<li><p>A computed S^2 is compared to the multiplicity’s expected S(S+1).
+Within <cite>warn_threshold</cite> (relative) it’s added silently; beyond that
+but within <cite>reject_threshold</cite> it’s added but flagged in
+<cite>“spin_warnings”</cite> for manual review; beyond <cite>reject_threshold</cite> it’s
+not added at all (<cite>“rejected”</cite>).</p></li>
+<li><p>A missing S^2 is fine for a singlet (trivially 0, commonly not
+reported) but rejected for any open-shell multiplicity – no way to
+vet it.</p></li>
+<li><p>If the CSV’s own multiplicity for an element disagrees with what’s
+already in the <cite>element</cite> table (when known), that’s noted in
+<cite>“multiplicity_mismatches”</cite> but does not block the import – it may
+just mean the reference table’s own value needs a look.</p></li>
+</ul>
+<p>Duplicate handling, since re-running elements/methods is expected
+across “hundreds of these”: an existing (element, code, method,
+ref_type, settings) value that’s already in the database is left
+alone if the new value is close (<cite>“unchanged”</cite>); if it differs by more
+than <cite>energy_rel_tol</cite>/<cite>energy_abs_tol</cite> it is a conflict, resolved one
+of three ways (<cite>force</cite> and <cite>prefer_lower_energy</cite> are mutually
+exclusive – pick one):</p>
+<ul class="simple">
+<li><p>Neither set (default): reported in <cite>“conflicts”</cite>, <em>not</em> overwritten.
+Safest, but needs a human to look at every conflict.</p></li>
+<li><p><cite>force=True</cite>: always overwritten with the new value, listed in
+<cite>“updated”</cite>. Only right when you’re confident the new run is simply
+better across the board – a blanket “latest wins” that can silently
+make things worse (see <cite>prefer_lower_energy</cite>).</p></li>
+<li><p><cite>prefer_lower_energy=True</cite>: for hard atoms (partially-filled d/f
+shells – lanthanides, some transition metals) two independently
+converged runs of the <em>same</em> nominal state can land on genuinely
+different self-consistent solutions, invisible to the S^2 gate
+since both have the right total spin. The tell is a conflict whose
+delta is nearly constant across several basis sets for the same
+element – not a basis-incompleteness effect, a different orbital
+occupation. There’s no rigorous variational principle for DFT, but
+“prefer whichever energy is lower” is the standard practical
+criterion for picking between competing self-consistent solutions
+of the same state. If the new value is lower it’s written and
+listed in <cite>“updated”</cite>; if the existing value is already lower it is
+<em>kept</em> and listed in <cite>“kept_existing”</cite> – so a blanket rerun can’t
+silently make a good stored value worse. Still reported either way,
+never silent.</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>db</strong> (<a class="reference internal" href="#seamm_thermochemistry.db.ThermoDB" title="seamm_thermochemistry.db.ThermoDB"><em>ThermoDB</em></a>)</p></li>
+<li><p><strong>csv_path</strong> (<em>str</em><em> or </em><em>Path</em>)</p></li>
+<li><p><strong>code</strong> (<em>str</em>) – Defaults to “orca”; parameterized in case this CSV shape is ever
+reused for another code.</p></li>
+<li><p><strong>ref_type</strong> (<em>str</em>) – Defaults to “atom” (isolated gas-phase atom energies – the only
+thing this scan computes).</p></li>
+<li><p><strong>warn_threshold</strong> (<em>float</em>) – Relative S^2 deviation thresholds (see above). Tune per how
+strict you want the gate; there’s no universally “right” value,
+the deviations here are your own to judge (e.g. an ~20%-high S^2
+on some lanthanides is real but was still accepted on review in
+this project).</p></li>
+<li><p><strong>reject_threshold</strong> (<em>float</em>) – Relative S^2 deviation thresholds (see above). Tune per how
+strict you want the gate; there’s no universally “right” value,
+the deviations here are your own to judge (e.g. an ~20%-high S^2
+on some lanthanides is real but was still accepted on review in
+this project).</p></li>
+<li><p><strong>energy_rel_tol</strong> (<em>float</em>) – <cite>math.isclose</cite> tolerances for treating a duplicate energy value
+as “the same result” rather than a conflict.</p></li>
+<li><p><strong>energy_abs_tol</strong> (<em>float</em>) – <cite>math.isclose</cite> tolerances for treating a duplicate energy value
+as “the same result” rather than a conflict.</p></li>
+<li><p><strong>force</strong> (<em>bool</em>) – Overwrite every conflicting existing value unconditionally.</p></li>
+<li><p><strong>prefer_lower_energy</strong> (<em>bool</em>) – Resolve conflicts by keeping whichever energy is lower (see
+above). Mutually exclusive with <cite>force</cite>.</p></li>
+<li><p><strong>dry_run</strong> (<em>bool</em>) – Classify and report everything, but never call
+<cite>db.add_atom_energy</cite> – preview a CSV before committing it.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>dict with keys “added”, “updated”, “unchanged”, “conflicts”,</em></p></li>
+<li><p><em>”kept_existing”, “rejected”, “spin_warnings”,</em></p></li>
+<li><p><em>”multiplicity_mismatches” – each a list of small dicts describing</em></p></li>
+<li><p><em>what happened, for the caller to report.</em></p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="seamm_thermochemistry.importers.import_reference_xlsx">
+<span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.importers.</span></span><span class="sig-name descname"><span class="pre">import_reference_xlsx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sheet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Reference</span> <span class="pre">Data'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reference_note</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'JANAF'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/importers.html#import_reference_xlsx"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.importers.import_reference_xlsx" title="Link to this definition">#</a></dt>
+<dd><p>Load the experimental block from Paul’s master workbook.</p>
+<p>Returns the list of element symbols imported.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="seamm_thermochemistry.importers.import_vasp_workbook">
+<span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.importers.</span></span><span class="sig-name descname"><span class="pre">import_vasp_workbook</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sheet</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'element_energies'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reference_note</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'JANAF'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">import_elements</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/importers.html#import_vasp_workbook"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.importers.import_vasp_workbook" title="Link to this definition">#</a></dt>
+<dd><p>Load the VASP element/atom energy workbook.</p>
+<p>Imports the shared experimental block (optional, <cite>import_elements</cite>) plus
+every <code class="docutils literal notranslate"><span class="pre">&quot;&lt;method&gt;&#64;&lt;encut&gt;</span> <span class="pre">atom</span> <span class="pre">energy&quot;</span></code> column as <cite>ref_type=”atom”</cite> and
+every matching <code class="docutils literal notranslate"><span class="pre">&quot;&lt;method&gt;&#64;&lt;encut&gt;&quot;</span></code> column as <cite>ref_type=”element_phase”</cite>,
+with <code class="docutils literal notranslate"><span class="pre">settings=f&quot;encut={encut}eV&quot;</span></code>. Both column families are already
+in kJ/mol in this workbook (checked against its own “Testing” sheet,
+which carries the raw VASP eV values alongside their kJ/mol conversion)
+– not eV, despite the encut being in eV.</p>
+<p>Returns a dict {“elements”: […], “atom_energy”: n, “element_phase”: n}.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="seamm_thermochemistry.importers.import_wide_method_csv">
+<span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.importers.</span></span><span class="sig-name descname"><span class="pre">import_wide_method_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">code</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">methods</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'atom'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reference_note</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">import_elements</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/importers.html#import_wide_method_csv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.importers.import_wide_method_csv" title="Link to this definition">#</a></dt>
+<dd><p>Load one of the wide per-code CSVs (gaussian_step/psi4_step style).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>code</strong> (<em>str</em>) – “gaussian” or “psi4” (or whatever this file belongs to).</p></li>
+<li><p><strong>methods</strong> (<em>list</em><em> of </em><em>str</em><em>, </em><em>optional</em>) – Restrict to these method columns (by exact header text). If None,
+import every non-empty method column found – can be thousands of
+columns for the full Gaussian composite-method grid; pass an
+explicit list for anything but a one-off full import.</p></li>
+<li><p><strong>{&quot;elements&quot;</strong> (<em>Returns a dict</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-seamm_thermochemistry.installer">
+<span id="seamm-thermochemistry-installer-module"></span><h2>seamm_thermochemistry.installer module<a class="headerlink" href="#module-seamm_thermochemistry.installer" title="Link to this heading">#</a></h2>
+<p>Installer for seamm_thermochemistry: fetches the shared atomic
+reference-energy database from its Zenodo record.</p>
+<p>This package has no external executable and no conda environment – the
+only “installation” step is downloading <cite>thermochemistry.db</cite>, which is not
+shipped in the pip package (see the design doc at
+~/Sites/reference-energy/2026-07-24_reference-energy/: the database is
+regenerated from external master files and will keep growing). It lives
+outside the package instead, in a configured SEAMM-root directory –
+the same pattern used for DFTB+’s Slater-Koster parameter sets
+(~/SEAMM/Parameters/slako) – registered in seamm.ini’s [thermochemistry]
+section as <cite>database-path</cite>.</p>
+<p>Because there is no executable/environment to manage, this installer does
+NOT call <cite>super().check()</cite> / <cite>super().install()</cite> – those are entirely
+about the executables/conda-environment machinery <cite>InstallerBase</cite> provides
+for a typical plug-in, which doesn’t apply here. <cite>check</cite>/<cite>install</cite>/
+<cite>update</cite>/<cite>uninstall</cite> are implemented directly instead.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="seamm_thermochemistry.installer.Installer">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.installer.</span></span><span class="sig-name descname"><span class="pre">Installer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;Logger</span> <span class="pre">seamm_thermochemistry.installer</span> <span class="pre">(WARNING)&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/installer.html#Installer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.installer.Installer" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">InstallerBase</span></code></p>
+<p>Install/update/remove the seamm_thermochemistry reference database.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.installer.Installer.check">
+<span class="sig-name descname"><span class="pre">check</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/installer.html#Installer.check"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.installer.Installer.check" title="Link to this definition">#</a></dt>
+<dd><p>Check that the reference database is installed, offering to
+install it if not.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True if the database is present (installing it first if asked
+and needed), False if it’s missing and installation was
+declined.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="seamm_thermochemistry.installer.Installer.database_filename">
+<span class="sig-name descname"><span class="pre">database_filename</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'thermochemistry.db'</span></span><a class="headerlink" href="#seamm_thermochemistry.installer.Installer.database_filename" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.installer.Installer.install">
+<span class="sig-name descname"><span class="pre">install</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/installer.html#Installer.install"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.installer.Installer.install" title="Link to this definition">#</a></dt>
+<dd><p>Download the reference database from Zenodo and register its
+location in seamm.ini’s [thermochemistry] section.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.installer.Installer.uninstall">
+<span class="sig-name descname"><span class="pre">uninstall</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/installer.html#Installer.uninstall"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.installer.Installer.uninstall" title="Link to this definition">#</a></dt>
+<dd><p>Remove the installed reference database and clear the config.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.installer.Installer.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/installer.html#Installer.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.installer.Installer.update" title="Link to this definition">#</a></dt>
+<dd><p>Re-download the reference database (a newer Zenodo version may
+be out – get_latest_public_record always resolves to the current
+one, so this is just install() again).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="seamm_thermochemistry.installer.Installer.zenodo_concept_id">
+<span class="sig-name descname"><span class="pre">zenodo_concept_id</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">21612187</span></span><a class="headerlink" href="#seamm_thermochemistry.installer.Installer.zenodo_concept_id" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-seamm_thermochemistry">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-seamm_thermochemistry" title="Link to this heading">#</a></h2>
+<p>Shared atomic reference-energy database and formation-energy arithmetic for SEAMM.</p>
+<p>See <code class="docutils literal notranslate"><span class="pre">~/Sites/reference-energy/2026-07-24_reference-energy/</span></code> for the design
+rationale. In short: a raw total energy from Gaussian/ORCA/Psi4/VASP has an
+arbitrary, code-dependent zero that means nothing to a non-expert user and
+cannot be compared across codes. This package holds the one shared table of
+atomic reference energies, and the arithmetic to turn a system’s electronic
+energy into a physically meaningful energy or enthalpy of formation.</p>
+<dl class="py exception">
+<dt class="sig sig-object py" id="seamm_thermochemistry.MissingReferenceData">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.</span></span><span class="sig-name descname"><span class="pre">MissingReferenceData</span></span><a class="reference internal" href="../_modules/seamm_thermochemistry/formation.html#MissingReferenceData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.MissingReferenceData" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">KeyError</span></code></p>
+<p>Raised when a composition needs reference data the ThermoDB doesn’t have.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="seamm_thermochemistry.ThermoDB">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.</span></span><span class="sig-name descname"><span class="pre">ThermoDB</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/db.html#ThermoDB"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.ThermoDB" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Helper around the shared atomic reference-energy SQLite database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<em>str</em><em> or </em><em>Path</em><em>, </em><em>optional</em>) – Database file. Defaults to <code class="docutils literal notranslate"><span class="pre">DEFAULT_DB_PATH</span></code>: the installer-
+managed location registered in <code class="docutils literal notranslate"><span class="pre">~/.seamm.d/seamm.ini</span></code>’s
+<code class="docutils literal notranslate"><span class="pre">[thermochemistry]</span></code> section (<code class="docutils literal notranslate"><span class="pre">database-path</span></code>, normally
+<code class="docutils literal notranslate"><span class="pre">~/SEAMM/Parameters/thermochemistry/thermochemistry.db</span></code> – see
+<code class="docutils literal notranslate"><span class="pre">installer.py</span></code>) if the installer has been run, else the bundled
+<code class="docutils literal notranslate"><span class="pre">data/thermochemistry.db</span></code> shipped with the package (a stale
+prototype snapshot, useful only before the installer has run).</p></li>
+<li><p><strong>read_only</strong> (<em>bool</em>) – Open without creating/migrating the schema, and without permission
+to write. Use for a package-installed, already-built database.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.ThermoDB.add_atom_energy">
+<span class="sig-name descname"><span class="pre">add_atom_energy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">symbol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">code</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energy</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'atom'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'kJ/mol'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">correction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spin_multiplicity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">computed_date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">code_version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">notes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/db.html#ThermoDB.add_atom_energy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.ThermoDB.add_atom_energy" title="Link to this definition">#</a></dt>
+<dd><p>Insert or update one computed atomic reference energy.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>symbol</strong> (<em>str</em>) – Element symbol, e.g. “O”. Must already exist via <cite>add_element</cite>.</p></li>
+<li><p><strong>code</strong> (<em>str</em>) – Originating code: “gaussian”, “psi4”, “orca”, “vasp”, …</p></li>
+<li><p><strong>method</strong> (<em>str</em>) – Method/functional label, e.g. “CBS-QB3”, “PBE-D3BJ”. Where the
+basis is folded into the label (as in the legacy Gaussian/Psi4
+tables, e.g. “CCD-FC/6-31++G(2d,2p)”), pass the full label.</p></li>
+<li><p><strong>energy</strong> (<em>float</em>) – The atom’s energy, in <cite>units</cite> (converted to kJ/mol on storage).</p></li>
+<li><p><strong>ref_type</strong> (<em>{&quot;atom&quot;</em><em>, </em><em>&quot;element_phase&quot;}</em>) – “atom” = isolated gas-phase atom. “element_phase” = energy per
+atom of the standard-state phase (VASP’s existing convention).</p></li>
+<li><p><strong>settings</strong> (<em>str</em>) – Free-form disambiguator that is part of the identity key, e.g.
+“encut=700eV”. Defaults to “” (not NULL, so the UNIQUE
+constraint dedups consistently).</p></li>
+<li><p><strong>units</strong> (<em>str</em>) – Units of <cite>energy</cite> and <cite>correction</cite>: one of “kJ/mol”, “kcal/mol”,
+“eV”, “hartree”/”E_h”.</p></li>
+<li><p><strong>correction</strong> (<em>float</em><em>, </em><em>optional</em>) – Additive correction (e.g. Gaussian’s “&lt;method&gt; correction”
+column), same units as <cite>energy</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.ThermoDB.add_element">
+<span class="sig-name descname"><span class="pre">add_element</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atomic_number</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symbol</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">multiplicity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">term_symbol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">standard_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dfH0_0K</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dfH0_298K</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dfH0_298K_stderr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h298_minus_h0_atom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h298_minus_h0_std_state</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s298_gas</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">s298_gas_stderr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reference</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reference_note</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/db.html#ThermoDB.add_element"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.ThermoDB.add_element" title="Link to this definition">#</a></dt>
+<dd><p>Insert or update the experimental reference row for one element.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.ThermoDB.batch">
+<span class="sig-name descname"><span class="pre">batch</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/db.html#ThermoDB.batch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.ThermoDB.batch" title="Link to this definition">#</a></dt>
+<dd><p>Defer commits until the end of the block, for bulk imports.</p>
+<p><cite>add_element</cite>/<cite>add_atom_energy</cite> normally commit immediately –
+the right default for interactive use, but one fsync per row makes
+a bulk import of hundreds of thousands of rows (e.g. the full
+Gaussian/Psi4 composite-method grids) prohibitively slow. Wrap
+those calls in <code class="docutils literal notranslate"><span class="pre">with</span> <span class="pre">db.batch():</span></code> to commit once at the end
+instead.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.ThermoDB.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/db.html#ThermoDB.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.ThermoDB.close" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.ThermoDB.coverage">
+<span class="sig-name descname"><span class="pre">coverage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'atom'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/db.html#ThermoDB.coverage"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.ThermoDB.coverage" title="Link to this definition">#</a></dt>
+<dd><p>Return (n_elements_present, max_atomic_number) for one (code, method).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.ThermoDB.dfH0">
+<span class="sig-name descname"><span class="pre">dfH0</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">symbol</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">at_0K</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/db.html#ThermoDB.dfH0"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.ThermoDB.dfH0" title="Link to this definition">#</a></dt>
+<dd><p>Experimental atomic heat of formation, kJ/mol.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>at_0K</strong> (<em>bool</em>) – If True (default, and the recommended anchor for an “energy of
+formation” – see the design doc), return DfH(X, 0K). If False,
+return the 298 K gas-phase value used by the existing
+enthalpy-of-formation code paths.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.ThermoDB.dump_atom_energies_csv">
+<span class="sig-name descname"><span class="pre">dump_atom_energies_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/db.html#ThermoDB.dump_atom_energies_csv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.ThermoDB.dump_atom_energies_csv" title="Link to this definition">#</a></dt>
+<dd><p>Write the <cite>atom_energy</cite> table (joined to element symbols) to CSV.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.ThermoDB.dump_elements_csv">
+<span class="sig-name descname"><span class="pre">dump_elements_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/db.html#ThermoDB.dump_elements_csv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.ThermoDB.dump_elements_csv" title="Link to this definition">#</a></dt>
+<dd><p>Write the <cite>element</cite> table to CSV, ordered by atomic number.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.ThermoDB.elements">
+<span class="sig-name descname"><span class="pre">elements</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/db.html#ThermoDB.elements"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.ThermoDB.elements" title="Link to this definition">#</a></dt>
+<dd><p>Return all element rows, ordered by atomic number.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.ThermoDB.get_atom_energy">
+<span class="sig-name descname"><span class="pre">get_atom_energy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">symbol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">code</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'atom'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'kJ/mol'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/db.html#ThermoDB.get_atom_energy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.ThermoDB.get_atom_energy" title="Link to this definition">#</a></dt>
+<dd><p>Return one atomic reference energy (including its correction), or None.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.ThermoDB.get_element">
+<span class="sig-name descname"><span class="pre">get_element</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">symbol</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atomic_number</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/db.html#ThermoDB.get_element"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.ThermoDB.get_element" title="Link to this definition">#</a></dt>
+<dd><p>Return the experimental reference row for one element as a dict, or None.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.ThermoDB.get_reference_energies">
+<span class="sig-name descname"><span class="pre">get_reference_energies</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'atom'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'kJ/mol'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/db.html#ThermoDB.get_reference_energies"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.ThermoDB.get_reference_energies" title="Link to this definition">#</a></dt>
+<dd><p>Return <code class="docutils literal notranslate"><span class="pre">{symbol:</span> <span class="pre">energy}</span></code> for every element tabulated for this
+(code, method, ref_type, settings) combination.</p>
+<p>This is the lookup table <cite>formation.formation_energy</cite> needs.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.ThermoDB.list_methods">
+<span class="sig-name descname"><span class="pre">list_methods</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/db.html#ThermoDB.list_methods"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.ThermoDB.list_methods" title="Link to this definition">#</a></dt>
+<dd><p>Return distinct (code, method, ref_type, settings) tuples present.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.ThermoDB.missing">
+<span class="sig-name descname"><span class="pre">missing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">code</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symbols</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'atom'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/db.html#ThermoDB.missing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.ThermoDB.missing" title="Link to this definition">#</a></dt>
+<dd><p>Return the subset of <cite>symbols</cite> with no tabulated (code, method) energy.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="seamm_thermochemistry.atomization_energy">
+<span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.</span></span><span class="sig-name descname"><span class="pre">atomization_energy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">composition</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">system_energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">db</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">code</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'atom'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'kJ/mol'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/formation.html#atomization_energy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.atomization_energy" title="Link to this definition">#</a></dt>
+<dd><p>sum(n_X * E_ref(X)) - E(system): the energy to separate all atoms.</p>
+<p>This is exactly Gaussian/Psi4’s “Atomization Energy” (electronic-only,
+no ZPE, if <cite>system_energy</cite> is itself ZPE-free) and VASP’s “cohesive
+energy”. Positive for a bound system.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>composition</strong> (<em>dict</em><em> or </em><em>collections.Counter</em>) – {element_symbol: count}, e.g. {“C”: 2, “H”: 6}.</p></li>
+<li><p><strong>system_energy</strong> (<em>float</em>) – The system’s electronic energy, in <cite>units</cite>.</p></li>
+<li><p><strong>db</strong> (<a class="reference internal" href="#seamm_thermochemistry.ThermoDB" title="seamm_thermochemistry.ThermoDB"><em>ThermoDB</em></a>) – Open reference-energy database.</p></li>
+<li><p><strong>code</strong> (<em>str</em>) – Identify which tabulated atom energies to use.</p></li>
+<li><p><strong>method</strong> (<em>str</em>) – Identify which tabulated atom energies to use.</p></li>
+<li><p><strong>ref_type</strong> (<em>{&quot;atom&quot;</em><em>, </em><em>&quot;element_phase&quot;}</em>) – See <code class="docutils literal notranslate"><span class="pre">ThermoDB.add_atom_energy</span></code>.</p></li>
+<li><p><strong>settings</strong> (<em>str</em>) – Must match the <cite>settings</cite> used when the atom energies were stored.</p></li>
+<li><p><strong>units</strong> (<em>str</em>) – A pint-parseable unit string for <cite>system_energy</cite> and the return
+value, e.g. “kJ/mol”, “eV”, “E_h”.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="seamm_thermochemistry.derive_dfH0_0K">
+<span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.</span></span><span class="sig-name descname"><span class="pre">derive_dfH0_0K</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">overwrite</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/derive.html#derive_dfH0_0K"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.derive_dfH0_0K" title="Link to this definition">#</a></dt>
+<dd><p>Fill in <cite>element.dfH0_0K</cite> for every element where it’s derivable.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>db</strong> (<a class="reference internal" href="#seamm_thermochemistry.ThermoDB" title="seamm_thermochemistry.ThermoDB"><em>ThermoDB</em></a>)</p></li>
+<li><p><strong>overwrite</strong> (<em>bool</em>) – If False (default), skip elements that already have <cite>dfH0_0K</cite> –
+the master sheet’s own H/He values are treated as authoritative
+over a re-derivation (though the derivation reproduces them to
+within rounding; see module docstring).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Symbols of the elements filled in.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="seamm_thermochemistry.formation_energy">
+<span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.</span></span><span class="sig-name descname"><span class="pre">formation_energy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">composition</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">system_energy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">db</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">code</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'atom'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">settings</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anchor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anchor_at_0K</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'kJ/mol'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/formation.html#formation_energy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.formation_energy" title="Link to this definition">#</a></dt>
+<dd><p>The formation-referenced energy of a system.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>composition</strong> – As in <cite>atomization_energy</cite>.</p></li>
+<li><p><strong>system_energy</strong> – As in <cite>atomization_energy</cite>.</p></li>
+<li><p><strong>db</strong> – As in <cite>atomization_energy</cite>.</p></li>
+<li><p><strong>code</strong> – As in <cite>atomization_energy</cite>.</p></li>
+<li><p><strong>method</strong> – As in <cite>atomization_energy</cite>.</p></li>
+<li><p><strong>ref_type</strong> – As in <cite>atomization_energy</cite>.</p></li>
+<li><p><strong>settings</strong> – As in <cite>atomization_energy</cite>.</p></li>
+<li><p><strong>units</strong> – As in <cite>atomization_energy</cite>.</p></li>
+<li><p><strong>anchor</strong> (<em>bool</em>) – If True (default), add the experimental atomic heat of formation so
+the result is a true energy/enthalpy of formation – the physically
+meaningful, cross-code-comparable quantity this package exists for.
+If False, return the bare, no-experimental-data-needed quantity:
+VASP’s existing <code class="docutils literal notranslate"><span class="pre">DfE0</span></code> convention (<code class="docutils literal notranslate"><span class="pre">ref_type=&quot;element_phase&quot;</span></code>
+is the natural pairing, but any ref_type is accepted).</p></li>
+<li><p><strong>anchor_at_0K</strong> (<em>bool</em>) – Use the 0 K experimental anchor (recommended: pairs with a
+ZPE-free <cite>system_energy</cite> to give an “energy of formation”, degrades
+gracefully to DfH(0K) if ZPE is added back in, and to DfH(298K) if
+the molecule’s thermal correction is added) or the 298 K anchor
+(matches the existing enthalpy-of-formation code paths directly).
+Ignored if <cite>anchor</cite> is False.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Energy/enthalpy of formation (<cite>anchor=True</cite>) or the bare
+atomization-referenced energy in VASP’s DfE0 sign convention
+(<cite>anchor=False</cite>), in <cite>units</cite>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="modules.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">seamm_thermochemistry</p>
+      </div>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submodules">Submodules</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-seamm_thermochemistry.db">seamm_thermochemistry.db module</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.db.ThermoDB"><code class="docutils literal notranslate"><span class="pre">ThermoDB</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.db.ThermoDB.add_atom_energy"><code class="docutils literal notranslate"><span class="pre">ThermoDB.add_atom_energy()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.db.ThermoDB.add_element"><code class="docutils literal notranslate"><span class="pre">ThermoDB.add_element()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.db.ThermoDB.batch"><code class="docutils literal notranslate"><span class="pre">ThermoDB.batch()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.db.ThermoDB.close"><code class="docutils literal notranslate"><span class="pre">ThermoDB.close()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.db.ThermoDB.coverage"><code class="docutils literal notranslate"><span class="pre">ThermoDB.coverage()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.db.ThermoDB.dfH0"><code class="docutils literal notranslate"><span class="pre">ThermoDB.dfH0()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.db.ThermoDB.dump_atom_energies_csv"><code class="docutils literal notranslate"><span class="pre">ThermoDB.dump_atom_energies_csv()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.db.ThermoDB.dump_elements_csv"><code class="docutils literal notranslate"><span class="pre">ThermoDB.dump_elements_csv()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.db.ThermoDB.elements"><code class="docutils literal notranslate"><span class="pre">ThermoDB.elements()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.db.ThermoDB.get_atom_energy"><code class="docutils literal notranslate"><span class="pre">ThermoDB.get_atom_energy()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.db.ThermoDB.get_element"><code class="docutils literal notranslate"><span class="pre">ThermoDB.get_element()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.db.ThermoDB.get_reference_energies"><code class="docutils literal notranslate"><span class="pre">ThermoDB.get_reference_energies()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.db.ThermoDB.list_methods"><code class="docutils literal notranslate"><span class="pre">ThermoDB.list_methods()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.db.ThermoDB.missing"><code class="docutils literal notranslate"><span class="pre">ThermoDB.missing()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-seamm_thermochemistry.derive">seamm_thermochemistry.derive module</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.derive.derive_dfH0_0K"><code class="docutils literal notranslate"><span class="pre">derive_dfH0_0K()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-seamm_thermochemistry.formation">seamm_thermochemistry.formation module</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.formation.MissingReferenceData"><code class="docutils literal notranslate"><span class="pre">MissingReferenceData</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.formation.atomization_energy"><code class="docutils literal notranslate"><span class="pre">atomization_energy()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.formation.formation_energy"><code class="docutils literal notranslate"><span class="pre">formation_energy()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-seamm_thermochemistry.import_orca_cli">seamm_thermochemistry.import_orca_cli module</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#usage">Usage</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.import_orca_cli.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.import_orca_cli.report"><code class="docutils literal notranslate"><span class="pre">report()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-seamm_thermochemistry.importers">seamm_thermochemistry.importers module</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.importers.import_orca_atom_results"><code class="docutils literal notranslate"><span class="pre">import_orca_atom_results()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.importers.import_reference_xlsx"><code class="docutils literal notranslate"><span class="pre">import_reference_xlsx()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.importers.import_vasp_workbook"><code class="docutils literal notranslate"><span class="pre">import_vasp_workbook()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.importers.import_wide_method_csv"><code class="docutils literal notranslate"><span class="pre">import_wide_method_csv()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-seamm_thermochemistry.installer">seamm_thermochemistry.installer module</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.installer.Installer"><code class="docutils literal notranslate"><span class="pre">Installer</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.installer.Installer.check"><code class="docutils literal notranslate"><span class="pre">Installer.check()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.installer.Installer.database_filename"><code class="docutils literal notranslate"><span class="pre">Installer.database_filename</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.installer.Installer.install"><code class="docutils literal notranslate"><span class="pre">Installer.install()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.installer.Installer.uninstall"><code class="docutils literal notranslate"><span class="pre">Installer.uninstall()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.installer.Installer.update"><code class="docutils literal notranslate"><span class="pre">Installer.update()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.installer.Installer.zenodo_concept_id"><code class="docutils literal notranslate"><span class="pre">Installer.zenodo_concept_id</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-seamm_thermochemistry">Module contents</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.MissingReferenceData"><code class="docutils literal notranslate"><span class="pre">MissingReferenceData</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.ThermoDB"><code class="docutils literal notranslate"><span class="pre">ThermoDB</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.ThermoDB.add_atom_energy"><code class="docutils literal notranslate"><span class="pre">ThermoDB.add_atom_energy()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.ThermoDB.add_element"><code class="docutils literal notranslate"><span class="pre">ThermoDB.add_element()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.ThermoDB.batch"><code class="docutils literal notranslate"><span class="pre">ThermoDB.batch()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.ThermoDB.close"><code class="docutils literal notranslate"><span class="pre">ThermoDB.close()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.ThermoDB.coverage"><code class="docutils literal notranslate"><span class="pre">ThermoDB.coverage()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.ThermoDB.dfH0"><code class="docutils literal notranslate"><span class="pre">ThermoDB.dfH0()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.ThermoDB.dump_atom_energies_csv"><code class="docutils literal notranslate"><span class="pre">ThermoDB.dump_atom_energies_csv()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.ThermoDB.dump_elements_csv"><code class="docutils literal notranslate"><span class="pre">ThermoDB.dump_elements_csv()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.ThermoDB.elements"><code class="docutils literal notranslate"><span class="pre">ThermoDB.elements()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.ThermoDB.get_atom_energy"><code class="docutils literal notranslate"><span class="pre">ThermoDB.get_atom_energy()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.ThermoDB.get_element"><code class="docutils literal notranslate"><span class="pre">ThermoDB.get_element()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.ThermoDB.get_reference_energies"><code class="docutils literal notranslate"><span class="pre">ThermoDB.get_reference_energies()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.ThermoDB.list_methods"><code class="docutils literal notranslate"><span class="pre">ThermoDB.list_methods()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.ThermoDB.missing"><code class="docutils literal notranslate"><span class="pre">ThermoDB.missing()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.atomization_energy"><code class="docutils literal notranslate"><span class="pre">atomization_energy()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.derive_dfH0_0K"><code class="docutils literal notranslate"><span class="pre">derive_dfH0_0K()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.formation_energy"><code class="docutils literal notranslate"><span class="pre">formation_energy()</span></code></a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../_sources/api/seamm_thermochemistry.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.20.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

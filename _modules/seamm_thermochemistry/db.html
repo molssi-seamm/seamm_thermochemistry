@@ -1,0 +1,1014 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>seamm_thermochemistry.db &#8212; SEAMM thermochemistry Plug-in 2026.7.30 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../_static/css/custom.css" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+
+    <script src="../../_static/documentation_options.js?v=5e20fa5c"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/seamm_thermochemistry/db';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="2026.7.30" />
+  
+    
+    <script src="../../_static/searchtools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/SEAMM logo.png" class="logo__image only-light" alt=""/>
+    <img src="../../_static/SEAMM Inverted 288x181.png" class="logo__image only-dark pst-js-only" alt=""/>
+  
+  
+    <p class="title logo__title">SEAMM-THERMOCHEMISTRY</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api.html">
+    API Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-external" href="https://molssi-seamm.github.io">
+    SEAMM Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-external" href="https://molssi.org">
+    MolSSI
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/molssi-seamm/seamm_thermochemistry" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/MolSSI_NSF" title="Twitter" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-twitter fa-lg" aria-hidden="true"></i><span class="visually-hidden">Twitter</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api.html">
+    API Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-external" href="https://molssi-seamm.github.io">
+    SEAMM Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-external" href="https://molssi.org">
+    MolSSI
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg fa-fw" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg fa-fw" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg fa-fw" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg fa-fw me-1"></i>System Settings</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg fa-fw me-1"></i>Light</button></li>
+    <li><button class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg fa-fw me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/molssi-seamm/seamm_thermochemistry" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/MolSSI_NSF" title="Twitter" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-twitter fa-lg" aria-hidden="true"></i><span class="visually-hidden">Twitter</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">seamm_thermochemistry.db</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for seamm_thermochemistry.db</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;SQLite-backed store for atomic reference energies.</span>
+
+<span class="sd">Every SEAMM code that reports a formation-referenced energy (Gaussian, Psi4,</span>
+<span class="sd">ORCA, VASP, ...) needs the same two pieces of data per element: an</span>
+<span class="sd">experimental reference (heat of formation, entropy, standard-state</span>
+<span class="sd">description) and one or more *computed* atomic reference energies (one per</span>
+<span class="sd">code/method/settings combination). Today each plugin carries its own copy of</span>
+<span class="sd">both as a wide, mostly-empty CSV. This module replaces that with a single,</span>
+<span class="sd">shared, relational store -- one `element` row per element, one `atom_energy`</span>
+<span class="sd">row per (element, code, method, ref_type, settings) combination -- with room</span>
+<span class="sd">for the provenance a shared reference dataset needs (who computed it, when,</span>
+<span class="sd">with what).</span>
+
+<span class="sd">Two reference conventions are both first-class (`ref_type`):</span>
+
+<span class="sd">- ``&quot;atom&quot;``: energy of the isolated, gas-phase atom. This is the</span>
+<span class="sd">  Gaussian/Psi4/ORCA convention, and the one to use for a physically</span>
+<span class="sd">  anchored, cross-code-comparable energy of formation.</span>
+<span class="sd">- ``&quot;element_phase&quot;``: energy per atom of the element&#39;s standard-state phase</span>
+<span class="sd">  (bulk metal, graphite, O2(g), ...). This is VASP&#39;s existing convention</span>
+<span class="sd">  (``element_energies.csv``) -- no experimental anchor needed, but the</span>
+<span class="sd">  result is referenced to the computed elemental phases, not real formation</span>
+<span class="sd">  energies. It also serves as a fallback for elements (e.g. Mn) where the</span>
+<span class="sd">  free atom is a poor DFT reference.</span>
+
+<span class="sd">See ``formation.py`` for the arithmetic that consumes this store.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">configparser</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">csv</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">contextlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">contextmanager</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sqlite3</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;ThermoDB&quot;</span><span class="p">,</span> <span class="s2">&quot;DEFAULT_DB_PATH&quot;</span><span class="p">]</span>
+
+<span class="n">_SCHEMA_VERSION</span> <span class="o">=</span> <span class="mi">1</span>
+
+<span class="n">_SCHEMA_SQL</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">CREATE TABLE IF NOT EXISTS schema_info (</span>
+<span class="s2">    key   TEXT PRIMARY KEY,</span>
+<span class="s2">    value TEXT</span>
+<span class="s2">);</span>
+
+<span class="s2">CREATE TABLE IF NOT EXISTS element (</span>
+<span class="s2">    atomic_number            INTEGER PRIMARY KEY,</span>
+<span class="s2">    symbol                   TEXT NOT NULL UNIQUE,</span>
+<span class="s2">    multiplicity             INTEGER,</span>
+<span class="s2">    term_symbol               TEXT,</span>
+<span class="s2">    standard_state            TEXT,      -- e.g. &quot;1/2 H2(g)&quot;, &quot;C(s,gr)&quot;</span>
+<span class="s2">    dfH0_0K                   REAL,      -- experimental DfH(X, 0 K), kJ/mol</span>
+<span class="s2">    dfH0_298K                 REAL,      -- experimental DfH(X, 298 K, gas), kJ/mol</span>
+<span class="s2">    dfH0_298K_stderr          REAL,</span>
+<span class="s2">    h298_minus_h0_atom        REAL,      -- kJ/mol, gas atom H(298K) - H(0K)</span>
+<span class="s2">    h298_minus_h0_std_state   REAL,      -- kJ/mol, standard-state phase, per atom</span>
+<span class="s2">    s298_gas                  REAL,      -- J/(mol K), gas atom</span>
+<span class="s2">    s298_gas_stderr           REAL,</span>
+<span class="s2">    reference                 TEXT,      -- source URL</span>
+<span class="s2">    reference_note             TEXT      -- e.g. &quot;JANAF&quot;</span>
+<span class="s2">);</span>
+
+<span class="s2">CREATE TABLE IF NOT EXISTS atom_energy (</span>
+<span class="s2">    id                 INTEGER PRIMARY KEY AUTOINCREMENT,</span>
+<span class="s2">    atomic_number      INTEGER NOT NULL REFERENCES element(atomic_number),</span>
+<span class="s2">    code               TEXT NOT NULL,               -- &quot;gaussian&quot;, &quot;psi4&quot;, &quot;vasp&quot;, ...</span>
+<span class="s2">    method             TEXT NOT NULL,                -- e.g. &quot;CBS-QB3&quot;, &quot;PBE-D3BJ&quot;</span>
+<span class="s2">    ref_type           TEXT NOT NULL DEFAULT &#39;atom&#39;  -- &quot;atom&quot; | &quot;element_phase&quot;</span>
+<span class="s2">                           CHECK (ref_type IN (&#39;atom&#39;, &#39;element_phase&#39;)),</span>
+<span class="s2">    settings           TEXT NOT NULL DEFAULT &#39;&#39;,     -- e.g. &quot;encut=700eV&quot;</span>
+<span class="s2">    energy             REAL NOT NULL,                -- kJ/mol, canonical unit</span>
+<span class="s2">    correction         REAL,                          -- optional correction, kJ/mol</span>
+<span class="s2">    spin_multiplicity  INTEGER,</span>
+<span class="s2">    source             TEXT,                          -- file / job path</span>
+<span class="s2">    computed_date      TEXT,                          -- ISO 8601, e.g. &quot;2026-07-24&quot;</span>
+<span class="s2">    code_version       TEXT,</span>
+<span class="s2">    notes              TEXT,</span>
+<span class="s2">    UNIQUE (atomic_number, code, method, ref_type, settings)</span>
+<span class="s2">);</span>
+
+<span class="s2">CREATE INDEX IF NOT EXISTS idx_atom_energy_lookup</span>
+<span class="s2">    ON atom_energy (code, method, ref_type, settings);</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+<span class="n">_BUNDLED_DB_PATH</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">&quot;data&quot;</span> <span class="o">/</span> <span class="s2">&quot;thermochemistry.db&quot;</span>
+<span class="n">_SEAMM_INI_PATH</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;~/.seamm.d/seamm.ini&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_resolve_default_db_path</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The installer-managed database path from seamm.ini&#39;s</span>
+<span class="sd">    [thermochemistry] section, if set, else the bundled package path.</span>
+
+<span class="sd">    Reads seamm.ini directly with the stdlib configparser rather than</span>
+<span class="sd">    importing seamm_installer, so this core module keeps its only real</span>
+<span class="sd">    dependency (seamm_util). seamm_installer (the `installer` extra) is</span>
+<span class="sd">    only needed to *populate* database-path in the first place -- see</span>
+<span class="sd">    installer.py -- not to read it back here.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">_SEAMM_INI_PATH</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="n">parser</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">(</span><span class="n">interpolation</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">_SEAMM_INI_PATH</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">parser</span><span class="o">.</span><span class="n">has_section</span><span class="p">(</span><span class="s2">&quot;thermochemistry&quot;</span><span class="p">):</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;thermochemistry&quot;</span><span class="p">,</span> <span class="s2">&quot;database-path&quot;</span><span class="p">,</span> <span class="n">fallback</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">value</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">_BUNDLED_DB_PATH</span>
+
+
+<span class="n">DEFAULT_DB_PATH</span> <span class="o">=</span> <span class="n">_resolve_default_db_path</span><span class="p">()</span>
+
+<span class="c1"># kJ/mol per unit of energy, for the handful of units this data actually</span>
+<span class="c1"># shows up in. Kept local (rather than pulling in seamm_util.Q_ for every</span>
+<span class="c1"># call) since this is a tight, fixed set; formation.py uses Q_ for the more</span>
+<span class="c1"># open-ended unit handling it needs.</span>
+<span class="n">_TO_KJ_PER_MOL</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;kJ/mol&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
+    <span class="s2">&quot;kcal/mol&quot;</span><span class="p">:</span> <span class="mf">4.184</span><span class="p">,</span>
+    <span class="s2">&quot;eV&quot;</span><span class="p">:</span> <span class="mf">96.485332</span><span class="p">,</span>
+    <span class="s2">&quot;hartree&quot;</span><span class="p">:</span> <span class="mf">2625.499639</span><span class="p">,</span>
+    <span class="s2">&quot;E_h&quot;</span><span class="p">:</span> <span class="mf">2625.499639</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_convert</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">from_units</span><span class="p">,</span> <span class="n">to_kJ</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">factor</span> <span class="o">=</span> <span class="n">_TO_KJ_PER_MOL</span><span class="p">[</span><span class="n">from_units</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Unknown units </span><span class="si">{</span><span class="n">from_units</span><span class="si">!r}</span><span class="s2">; known: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">_TO_KJ_PER_MOL</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">value</span> <span class="o">*</span> <span class="n">factor</span> <span class="k">if</span> <span class="n">to_kJ</span> <span class="k">else</span> <span class="n">value</span> <span class="o">/</span> <span class="n">factor</span>
+
+
+<div class="viewcode-block" id="ThermoDB">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.db.ThermoDB">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ThermoDB</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Helper around the shared atomic reference-energy SQLite database.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    path : str or Path, optional</span>
+<span class="sd">        Database file. Defaults to ``DEFAULT_DB_PATH``: the installer-</span>
+<span class="sd">        managed location registered in ``~/.seamm.d/seamm.ini``&#39;s</span>
+<span class="sd">        ``[thermochemistry]`` section (``database-path``, normally</span>
+<span class="sd">        ``~/SEAMM/Parameters/thermochemistry/thermochemistry.db`` -- see</span>
+<span class="sd">        ``installer.py``) if the installer has been run, else the bundled</span>
+<span class="sd">        ``data/thermochemistry.db`` shipped with the package (a stale</span>
+<span class="sd">        prototype snapshot, useful only before the installer has run).</span>
+<span class="sd">    read_only : bool</span>
+<span class="sd">        Open without creating/migrating the schema, and without permission</span>
+<span class="sd">        to write. Use for a package-installed, already-built database.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">read_only</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">DEFAULT_DB_PATH</span>
+        <span class="k">if</span> <span class="n">read_only</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_db</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;file:</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">?mode=ro&quot;</span><span class="p">,</span> <span class="n">uri</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mf">10.0</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_db</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">),</span> <span class="n">timeout</span><span class="o">=</span><span class="mf">10.0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="o">.</span><span class="n">row_factory</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Row</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;PRAGMA foreign_keys = ON&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_autocommit</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">read_only</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_create_schema</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc</span><span class="p">,</span> <span class="n">tb</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+<div class="viewcode-block" id="ThermoDB.close">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.db.ThermoDB.close">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_maybe_commit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_autocommit</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+<div class="viewcode-block" id="ThermoDB.batch">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.db.ThermoDB.batch">[docs]</a>
+    <span class="nd">@contextmanager</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">batch</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Defer commits until the end of the block, for bulk imports.</span>
+
+<span class="sd">        `add_element`/`add_atom_energy` normally commit immediately --</span>
+<span class="sd">        the right default for interactive use, but one fsync per row makes</span>
+<span class="sd">        a bulk import of hundreds of thousands of rows (e.g. the full</span>
+<span class="sd">        Gaussian/Psi4 composite-method grids) prohibitively slow. Wrap</span>
+<span class="sd">        those calls in ``with db.batch():`` to commit once at the end</span>
+<span class="sd">        instead.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">previous</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_autocommit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_autocommit</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="bp">self</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_autocommit</span> <span class="o">=</span> <span class="n">previous</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_create_schema</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="o">.</span><span class="n">executescript</span><span class="p">(</span><span class="n">_SCHEMA_SQL</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+            <span class="s2">&quot;INSERT OR IGNORE INTO schema_info (key, value) VALUES (&#39;version&#39;, ?)&quot;</span><span class="p">,</span>
+            <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">_SCHEMA_VERSION</span><span class="p">),),</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="c1"># element (experimental reference) table</span>
+    <span class="c1"># ------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="ThermoDB.add_element">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.db.ThermoDB.add_element">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_element</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">atomic_number</span><span class="p">,</span>
+        <span class="n">symbol</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">multiplicity</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">term_symbol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">standard_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">dfH0_0K</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">dfH0_298K</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">dfH0_298K_stderr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">h298_minus_h0_atom</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">h298_minus_h0_std_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">s298_gas</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">s298_gas_stderr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">reference</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">reference_note</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Insert or update the experimental reference row for one element.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            INSERT INTO element (</span>
+<span class="sd">                atomic_number, symbol, multiplicity, term_symbol, standard_state,</span>
+<span class="sd">                dfH0_0K, dfH0_298K, dfH0_298K_stderr, h298_minus_h0_atom,</span>
+<span class="sd">                h298_minus_h0_std_state, s298_gas, s298_gas_stderr,</span>
+<span class="sd">                reference, reference_note</span>
+<span class="sd">            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)</span>
+<span class="sd">            ON CONFLICT(atomic_number) DO UPDATE SET</span>
+<span class="sd">                symbol=excluded.symbol,</span>
+<span class="sd">                multiplicity=excluded.multiplicity,</span>
+<span class="sd">                term_symbol=excluded.term_symbol,</span>
+<span class="sd">                standard_state=excluded.standard_state,</span>
+<span class="sd">                dfH0_0K=excluded.dfH0_0K,</span>
+<span class="sd">                dfH0_298K=excluded.dfH0_298K,</span>
+<span class="sd">                dfH0_298K_stderr=excluded.dfH0_298K_stderr,</span>
+<span class="sd">                h298_minus_h0_atom=excluded.h298_minus_h0_atom,</span>
+<span class="sd">                h298_minus_h0_std_state=excluded.h298_minus_h0_std_state,</span>
+<span class="sd">                s298_gas=excluded.s298_gas,</span>
+<span class="sd">                s298_gas_stderr=excluded.s298_gas_stderr,</span>
+<span class="sd">                reference=excluded.reference,</span>
+<span class="sd">                reference_note=excluded.reference_note</span>
+<span class="sd">            &quot;&quot;&quot;</span><span class="p">,</span>
+            <span class="p">(</span>
+                <span class="n">atomic_number</span><span class="p">,</span>
+                <span class="n">symbol</span><span class="p">,</span>
+                <span class="n">multiplicity</span><span class="p">,</span>
+                <span class="n">term_symbol</span><span class="p">,</span>
+                <span class="n">standard_state</span><span class="p">,</span>
+                <span class="n">dfH0_0K</span><span class="p">,</span>
+                <span class="n">dfH0_298K</span><span class="p">,</span>
+                <span class="n">dfH0_298K_stderr</span><span class="p">,</span>
+                <span class="n">h298_minus_h0_atom</span><span class="p">,</span>
+                <span class="n">h298_minus_h0_std_state</span><span class="p">,</span>
+                <span class="n">s298_gas</span><span class="p">,</span>
+                <span class="n">s298_gas_stderr</span><span class="p">,</span>
+                <span class="n">reference</span><span class="p">,</span>
+                <span class="n">reference_note</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_maybe_commit</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="ThermoDB.get_element">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.db.ThermoDB.get_element">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_element</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symbol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">atomic_number</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the experimental reference row for one element as a dict, or None.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">symbol</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT * FROM element WHERE symbol = ?&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">symbol</span><span class="p">,))</span>
+        <span class="k">elif</span> <span class="n">atomic_number</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                <span class="s2">&quot;SELECT * FROM element WHERE atomic_number = ?&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">atomic_number</span><span class="p">,)</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Give either symbol or atomic_number&quot;</span><span class="p">)</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="k">if</span> <span class="n">row</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="ThermoDB.dfH0">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.db.ThermoDB.dfH0">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">dfH0</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symbol</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">at_0K</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Experimental atomic heat of formation, kJ/mol.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        at_0K : bool</span>
+<span class="sd">            If True (default, and the recommended anchor for an &quot;energy of</span>
+<span class="sd">            formation&quot; -- see the design doc), return DfH(X, 0K). If False,</span>
+<span class="sd">            return the 298 K gas-phase value used by the existing</span>
+<span class="sd">            enthalpy-of-formation code paths.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">el</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_element</span><span class="p">(</span><span class="n">symbol</span><span class="o">=</span><span class="n">symbol</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">el</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">el</span><span class="p">[</span><span class="s2">&quot;dfH0_0K&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="n">at_0K</span> <span class="k">else</span> <span class="n">el</span><span class="p">[</span><span class="s2">&quot;dfH0_298K&quot;</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="ThermoDB.elements">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.db.ThermoDB.elements">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">elements</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return all element rows, ordered by atomic number.&quot;&quot;&quot;</span>
+        <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT * FROM element ORDER BY atomic_number&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="nb">dict</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()]</span></div>
+
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="c1"># atom_energy (computed reference) table</span>
+    <span class="c1"># ------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="ThermoDB.add_atom_energy">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.db.ThermoDB.add_atom_energy">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_atom_energy</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">symbol</span><span class="p">,</span>
+        <span class="n">code</span><span class="p">,</span>
+        <span class="n">method</span><span class="p">,</span>
+        <span class="n">energy</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">ref_type</span><span class="o">=</span><span class="s2">&quot;atom&quot;</span><span class="p">,</span>
+        <span class="n">settings</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">units</span><span class="o">=</span><span class="s2">&quot;kJ/mol&quot;</span><span class="p">,</span>
+        <span class="n">correction</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">spin_multiplicity</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">source</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">computed_date</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">code_version</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">notes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Insert or update one computed atomic reference energy.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        symbol : str</span>
+<span class="sd">            Element symbol, e.g. &quot;O&quot;. Must already exist via `add_element`.</span>
+<span class="sd">        code : str</span>
+<span class="sd">            Originating code: &quot;gaussian&quot;, &quot;psi4&quot;, &quot;orca&quot;, &quot;vasp&quot;, ...</span>
+<span class="sd">        method : str</span>
+<span class="sd">            Method/functional label, e.g. &quot;CBS-QB3&quot;, &quot;PBE-D3BJ&quot;. Where the</span>
+<span class="sd">            basis is folded into the label (as in the legacy Gaussian/Psi4</span>
+<span class="sd">            tables, e.g. &quot;CCD-FC/6-31++G(2d,2p)&quot;), pass the full label.</span>
+<span class="sd">        energy : float</span>
+<span class="sd">            The atom&#39;s energy, in `units` (converted to kJ/mol on storage).</span>
+<span class="sd">        ref_type : {&quot;atom&quot;, &quot;element_phase&quot;}</span>
+<span class="sd">            &quot;atom&quot; = isolated gas-phase atom. &quot;element_phase&quot; = energy per</span>
+<span class="sd">            atom of the standard-state phase (VASP&#39;s existing convention).</span>
+<span class="sd">        settings : str</span>
+<span class="sd">            Free-form disambiguator that is part of the identity key, e.g.</span>
+<span class="sd">            &quot;encut=700eV&quot;. Defaults to &quot;&quot; (not NULL, so the UNIQUE</span>
+<span class="sd">            constraint dedups consistently).</span>
+<span class="sd">        units : str</span>
+<span class="sd">            Units of `energy` and `correction`: one of &quot;kJ/mol&quot;, &quot;kcal/mol&quot;,</span>
+<span class="sd">            &quot;eV&quot;, &quot;hartree&quot;/&quot;E_h&quot;.</span>
+<span class="sd">        correction : float, optional</span>
+<span class="sd">            Additive correction (e.g. Gaussian&#39;s &quot;&lt;method&gt; correction&quot;</span>
+<span class="sd">            column), same units as `energy`.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">atno</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_require_atomic_number</span><span class="p">(</span><span class="n">symbol</span><span class="p">)</span>
+        <span class="n">energy_kJ</span> <span class="o">=</span> <span class="n">_convert</span><span class="p">(</span><span class="n">energy</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span>
+        <span class="n">correction_kJ</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">correction</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_convert</span><span class="p">(</span><span class="n">correction</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            INSERT INTO atom_energy (</span>
+<span class="sd">                atomic_number, code, method, ref_type, settings, energy,</span>
+<span class="sd">                correction, spin_multiplicity, source, computed_date,</span>
+<span class="sd">                code_version, notes</span>
+<span class="sd">            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)</span>
+<span class="sd">            ON CONFLICT(atomic_number, code, method, ref_type, settings) DO UPDATE SET</span>
+<span class="sd">                energy=excluded.energy,</span>
+<span class="sd">                correction=excluded.correction,</span>
+<span class="sd">                spin_multiplicity=excluded.spin_multiplicity,</span>
+<span class="sd">                source=excluded.source,</span>
+<span class="sd">                computed_date=excluded.computed_date,</span>
+<span class="sd">                code_version=excluded.code_version,</span>
+<span class="sd">                notes=excluded.notes</span>
+<span class="sd">            &quot;&quot;&quot;</span><span class="p">,</span>
+            <span class="p">(</span>
+                <span class="n">atno</span><span class="p">,</span>
+                <span class="n">code</span><span class="p">,</span>
+                <span class="n">method</span><span class="p">,</span>
+                <span class="n">ref_type</span><span class="p">,</span>
+                <span class="n">settings</span><span class="p">,</span>
+                <span class="n">energy_kJ</span><span class="p">,</span>
+                <span class="n">correction_kJ</span><span class="p">,</span>
+                <span class="n">spin_multiplicity</span><span class="p">,</span>
+                <span class="n">source</span><span class="p">,</span>
+                <span class="n">computed_date</span><span class="p">,</span>
+                <span class="n">code_version</span><span class="p">,</span>
+                <span class="n">notes</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_maybe_commit</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="ThermoDB.get_atom_energy">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.db.ThermoDB.get_atom_energy">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_atom_energy</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">symbol</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ref_type</span><span class="o">=</span><span class="s2">&quot;atom&quot;</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;kJ/mol&quot;</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return one atomic reference energy (including its correction), or None.&quot;&quot;&quot;</span>
+        <span class="n">atno</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_require_atomic_number</span><span class="p">(</span><span class="n">symbol</span><span class="p">)</span>
+        <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            SELECT energy, correction FROM atom_energy</span>
+<span class="sd">            WHERE atomic_number=? AND code=? AND method=? AND ref_type=? AND settings=?</span>
+<span class="sd">            &quot;&quot;&quot;</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">atno</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">ref_type</span><span class="p">,</span> <span class="n">settings</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">row</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;energy&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;correction&quot;</span><span class="p">]</span> <span class="ow">or</span> <span class="mf">0.0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_convert</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">to_kJ</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ThermoDB.get_reference_energies">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.db.ThermoDB.get_reference_energies">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_reference_energies</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ref_type</span><span class="o">=</span><span class="s2">&quot;atom&quot;</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s2">&quot;kJ/mol&quot;</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return ``{symbol: energy}`` for every element tabulated for this</span>
+<span class="sd">        (code, method, ref_type, settings) combination.</span>
+
+<span class="sd">        This is the lookup table `formation.formation_energy` needs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            SELECT e.symbol, a.energy, a.correction FROM atom_energy a</span>
+<span class="sd">            JOIN element e ON e.atomic_number = a.atomic_number</span>
+<span class="sd">            WHERE a.code=? AND a.method=? AND a.ref_type=? AND a.settings=?</span>
+<span class="sd">            &quot;&quot;&quot;</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">ref_type</span><span class="p">,</span> <span class="n">settings</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">():</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;energy&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;correction&quot;</span><span class="p">]</span> <span class="ow">or</span> <span class="mf">0.0</span><span class="p">)</span>
+            <span class="n">result</span><span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;symbol&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">_convert</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">to_kJ</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="ThermoDB.missing">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.db.ThermoDB.missing">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">missing</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">symbols</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ref_type</span><span class="o">=</span><span class="s2">&quot;atom&quot;</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the subset of `symbols` with no tabulated (code, method) energy.&quot;&quot;&quot;</span>
+        <span class="n">have</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_reference_energies</span><span class="p">(</span>
+            <span class="n">code</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">ref_type</span><span class="o">=</span><span class="n">ref_type</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="n">settings</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">symbols</span> <span class="k">if</span> <span class="n">s</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">have</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="ThermoDB.list_methods">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.db.ThermoDB.list_methods">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">list_methods</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return distinct (code, method, ref_type, settings) tuples present.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">code</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                <span class="s2">&quot;SELECT DISTINCT code, method, ref_type, settings FROM atom_energy &quot;</span>
+                <span class="s2">&quot;ORDER BY code, method, ref_type, settings&quot;</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                <span class="s2">&quot;SELECT DISTINCT code, method, ref_type, settings FROM atom_energy &quot;</span>
+                <span class="s2">&quot;WHERE code=? ORDER BY method, ref_type, settings&quot;</span><span class="p">,</span>
+                <span class="p">(</span><span class="n">code</span><span class="p">,),</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()]</span></div>
+
+
+<div class="viewcode-block" id="ThermoDB.coverage">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.db.ThermoDB.coverage">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">coverage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ref_type</span><span class="o">=</span><span class="s2">&quot;atom&quot;</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return (n_elements_present, max_atomic_number) for one (code, method).&quot;&quot;&quot;</span>
+        <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            SELECT COUNT(*) AS n, MAX(atomic_number) AS max_z FROM atom_energy</span>
+<span class="sd">            WHERE code=? AND method=? AND ref_type=? AND settings=?</span>
+<span class="sd">            &quot;&quot;&quot;</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">ref_type</span><span class="p">,</span> <span class="n">settings</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;n&quot;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;max_z&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="n">n</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="c1"># review / export -- keeps the machine-generated store honest against</span>
+    <span class="c1"># a human-reviewable snapshot (see the design doc&#39;s storage tradeoff)</span>
+    <span class="c1"># ------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="ThermoDB.dump_elements_csv">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.db.ThermoDB.dump_elements_csv">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">dump_elements_csv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Write the `element` table to CSV, ordered by atomic number.&quot;&quot;&quot;</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">elements</span><span class="p">()</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="n">writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">rows</span><span class="p">:</span>
+                <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span><span class="n">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+                <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+                    <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span></div>
+
+
+<div class="viewcode-block" id="ThermoDB.dump_atom_energies_csv">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.db.ThermoDB.dump_atom_energies_csv">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">dump_atom_energies_csv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Write the `atom_energy` table (joined to element symbols) to CSV.&quot;&quot;&quot;</span>
+        <span class="n">cur</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">            SELECT e.symbol, a.* FROM atom_energy a</span>
+<span class="s2">            JOIN element e ON e.atomic_number = a.atomic_number</span>
+<span class="s2">            ORDER BY a.code, a.method, a.ref_type, a.settings, e.atomic_number</span>
+<span class="s2">            &quot;&quot;&quot;</span><span class="p">)</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="n">cur</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="n">writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">rows</span><span class="p">:</span>
+                <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span><span class="n">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+                <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+                    <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">row</span><span class="p">))</span></div>
+
+
+    <span class="c1"># ------------------------------------------------------------------</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_require_atomic_number</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symbol</span><span class="p">):</span>
+        <span class="n">el</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_element</span><span class="p">(</span><span class="n">symbol</span><span class="o">=</span><span class="n">symbol</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">el</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Unknown element symbol </span><span class="si">{</span><span class="n">symbol</span><span class="si">!r}</span><span class="s2">; add it with add_element() first&quot;</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">el</span><span class="p">[</span><span class="s2">&quot;atomic_number&quot;</span><span class="p">]</span></div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.20.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>
