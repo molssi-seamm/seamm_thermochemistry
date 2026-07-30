@@ -52,7 +52,9 @@ DESCRIPTION = (
     "grids, up to 36 elements each; VASP (PBE, PBE-D3BJ, r2SCAN, "
     "r2SCAN-D3BJ @700&nbsp;eV, both isolated-atom and standard-state-phase "
     "conventions) across up to 94 elements; and ORCA (REVDSD-PBEP86-D4/2021, "
-    "def2-SV(P)/SVP/TZVP) across up to 66 elements, each value vetted "
+    "PWLDA, VWN, VWN3, each across the 16-basis def2 family: SV(P)/SVP/"
+    "TZVP/TZVP(-f)/QZVPP/SVPD/TZVPD/TZVPPD/QZVPD/QZVPPD and the ma-def2 "
+    "augmented variants) across up to 85 elements, each value vetted "
     "against its expected spin before inclusion. Coverage is expected to "
     "keep growing in future versions.</p>"
 )

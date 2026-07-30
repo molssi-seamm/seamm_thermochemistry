@@ -1,5 +1,8 @@
 seamm_thermochemistry
 ======================
+[//]: # (Badges)
+[![GitHub Actions Build Status](https://github.com/molssi-seamm/seamm_thermochemistry/workflows/CI/badge.svg)](https://github.com/molssi-seamm/seamm_thermochemistry/actions?query=workflow%3ACI)
+[![codecov](https://codecov.io/gh/molssi-seamm/seamm_thermochemistry/branch/main/graph/badge.svg)](https://codecov.io/gh/molssi-seamm/seamm_thermochemistry/branch/main)
 
 Shared atomic reference-energy database and formation-energy arithmetic for
 SEAMM.
@@ -56,16 +59,19 @@ matches `vasp_step`'s existing `DfE0` exactly. Both are exercised in
 
 ### Status
 
-Prototype. Schema and helper API are meant to be stable enough to build
-`gaussian_step`/`psi4_step`/`vasp_step` adapters against, but:
+The reference database is published on Zenodo (a DOI per version) and
+fetched with `seamm-thermochemistry-installer install` -- not bundled in
+the Python package. `gaussian_step`'s `calculate_energy_of_formation`
+already consumes it in production. Current coverage: the full Gaussian
+and Psi4 composite-method/basis grids, VASP (PBE family, both the
+isolated-atom and standard-state-phase conventions), and ORCA (several
+DFT methods across the full def2 basis family), all vetted and imported
+via `seamm-thermochemistry-import-orca` / the `importers` module.
 
-- No bundled, pre-populated `data/thermochemistry.db` yet -- build one with
-  the importers (see `scripts/build_prototype_db.py`).
-- Packaging is a static version, not yet wired to `versioningit` like its
-  sibling packages.
-- The `settings` column is a single free-form string (e.g. `"encut=700eV"`)
-  rather than normalized basis/cutoff columns -- fine for today's two
-  producers, may want normalizing once ORCA joins.
+One known simplification: the `settings` column is a single free-form
+string (e.g. `"encut=700eV"`) rather than normalized basis/cutoff columns
+-- fine across today's producers, may want normalizing if that stops being
+true.
 
 ### Quick start
 
