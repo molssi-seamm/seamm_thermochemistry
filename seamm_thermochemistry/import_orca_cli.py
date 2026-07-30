@@ -1,22 +1,24 @@
 #!/usr/bin/env python3
 """Import one or more ORCA atom-energy results CSVs into thermochemistry.db.
 
+Installed as the ``seamm-thermochemistry-import-orca`` console script.
+
 Usage
 -----
-    python3 scripts/import_orca_results.py results1.csv results2.csv ...
-    python3 scripts/import_orca_results.py --dry-run results.csv
-    python3 scripts/import_orca_results.py --force results.csv   # overwrite conflicts
+    seamm-thermochemistry-import-orca results1.csv results2.csv ...
+    seamm-thermochemistry-import-orca --dry-run results.csv
+    seamm-thermochemistry-import-orca --force results.csv   # overwrite conflicts
 
 See `seamm_thermochemistry.importers.import_orca_atom_results` for the CSV
-shape expected and the vetting/duplicate-handling rules -- this script is
+shape expected and the vetting/duplicate-handling rules -- this module is
 just the CLI + pretty-printing around that function.
 """
 
 import argparse
 from pathlib import Path
 
-from seamm_thermochemistry import ThermoDB, DEFAULT_DB_PATH
-from seamm_thermochemistry.importers import import_orca_atom_results
+from .db import ThermoDB, DEFAULT_DB_PATH
+from .importers import import_orca_atom_results
 
 
 def _fmt(entry):

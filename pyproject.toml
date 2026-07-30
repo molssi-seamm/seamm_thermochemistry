@@ -26,6 +26,7 @@ dependencies = [
 
 [project.scripts]
 seamm-thermochemistry-installer = "seamm_thermochemistry.__main__:run"
+seamm-thermochemistry-import-orca = "seamm_thermochemistry.import_orca_cli:main"
 
 [project.optional-dependencies]
 test = [
