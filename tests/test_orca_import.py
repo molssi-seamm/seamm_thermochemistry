@@ -199,6 +199,72 @@ def test_duplicate_conflict_overwritten_with_force(db, tmp_path):
     ) == pytest.approx(-1400.00)
 
 
+def test_prefer_lower_energy_updates_when_new_is_lower(db, tmp_path):
+    db.add_atom_energy(
+        "H", "orca", "PBE0", -1308.22, ref_type="atom", settings="def2-SV(P)"
+    )
+    csv_path = _write_csv(
+        tmp_path / "results.csv",
+        [["1", "H", "2", "-1400.00", "0.750001", "", ""]],  # more negative -> lower
+    )
+    summary = import_orca_atom_results(db, csv_path, prefer_lower_energy=True)
+
+    assert len(summary["updated"]) == 1
+    assert "new was lower" in summary["updated"][0]["reason"]
+    assert not summary["kept_existing"]
+    assert db.get_atom_energy(
+        "H", "orca", "PBE0", settings="def2-SV(P)"
+    ) == pytest.approx(-1400.00)
+
+
+def test_prefer_lower_energy_keeps_existing_when_it_is_lower(db, tmp_path):
+    db.add_atom_energy(
+        "H", "orca", "PBE0", -1400.00, ref_type="atom", settings="def2-SV(P)"
+    )
+    csv_path = _write_csv(
+        tmp_path / "results.csv",
+        [["1", "H", "2", "-1308.22", "0.750001", "", ""]],  # less negative -> higher
+    )
+    summary = import_orca_atom_results(db, csv_path, prefer_lower_energy=True)
+
+    assert len(summary["kept_existing"]) == 1
+    assert "existing was lower" in summary["kept_existing"][0]["reason"]
+    assert not summary["updated"]
+    # The database still has the lower (better) existing value, untouched.
+    assert db.get_atom_energy(
+        "H", "orca", "PBE0", settings="def2-SV(P)"
+    ) == pytest.approx(-1400.00)
+
+
+def test_prefer_lower_energy_dry_run_does_not_write(db, tmp_path):
+    db.add_atom_energy(
+        "H", "orca", "PBE0", -1308.22, ref_type="atom", settings="def2-SV(P)"
+    )
+    csv_path = _write_csv(
+        tmp_path / "results.csv",
+        [["1", "H", "2", "-1400.00", "0.750001", "", ""]],
+    )
+    summary = import_orca_atom_results(
+        db, csv_path, prefer_lower_energy=True, dry_run=True
+    )
+
+    assert len(summary["updated"]) == 1  # reported as what *would* happen
+    assert db.get_atom_energy(
+        "H", "orca", "PBE0", settings="def2-SV(P)"
+    ) == pytest.approx(
+        -1308.22
+    )  # but nothing actually changed
+
+
+def test_force_and_prefer_lower_energy_are_mutually_exclusive(db, tmp_path):
+    csv_path = _write_csv(
+        tmp_path / "results.csv",
+        [["1", "H", "2", "-1308.22", "0.750001", "", ""]],
+    )
+    with pytest.raises(ValueError):
+        import_orca_atom_results(db, csv_path, force=True, prefer_lower_energy=True)
+
+
 def test_dry_run_writes_nothing(db, tmp_path):
     csv_path = _write_csv(
         tmp_path / "results.csv",

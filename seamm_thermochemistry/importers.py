@@ -366,6 +366,7 @@ def import_orca_atom_results(
     energy_rel_tol=1e-6,
     energy_abs_tol=0.01,
     force=False,
+    prefer_lower_energy=False,
     dry_run=False,
 ):
     """Import ORCA atom-energy results from a per-job results CSV.
@@ -400,10 +401,31 @@ def import_orca_atom_results(
     across "hundreds of these": an existing (element, code, method,
     ref_type, settings) value that's already in the database is left
     alone if the new value is close (`"unchanged"`); if it differs by more
-    than `energy_rel_tol`/`energy_abs_tol` it is reported in
-    `"conflicts"` and, by default, *not* overwritten -- pass `force=True`
-    to overwrite anyway (each such case is then also listed in
-    `"updated"`).
+    than `energy_rel_tol`/`energy_abs_tol` it is a conflict, resolved one
+    of three ways (`force` and `prefer_lower_energy` are mutually
+    exclusive -- pick one):
+
+    - Neither set (default): reported in `"conflicts"`, *not* overwritten.
+      Safest, but needs a human to look at every conflict.
+    - `force=True`: always overwritten with the new value, listed in
+      `"updated"`. Only right when you're confident the new run is simply
+      better across the board -- a blanket "latest wins" that can silently
+      make things worse (see `prefer_lower_energy`).
+    - `prefer_lower_energy=True`: for hard atoms (partially-filled d/f
+      shells -- lanthanides, some transition metals) two independently
+      converged runs of the *same* nominal state can land on genuinely
+      different self-consistent solutions, invisible to the S^2 gate
+      since both have the right total spin. The tell is a conflict whose
+      delta is nearly constant across several basis sets for the same
+      element -- not a basis-incompleteness effect, a different orbital
+      occupation. There's no rigorous variational principle for DFT, but
+      "prefer whichever energy is lower" is the standard practical
+      criterion for picking between competing self-consistent solutions
+      of the same state. If the new value is lower it's written and
+      listed in `"updated"`; if the existing value is already lower it is
+      *kept* and listed in `"kept_existing"` -- so a blanket rerun can't
+      silently make a good stored value worse. Still reported either way,
+      never silent.
 
     Parameters
     ----------
@@ -425,8 +447,10 @@ def import_orca_atom_results(
         `math.isclose` tolerances for treating a duplicate energy value
         as "the same result" rather than a conflict.
     force : bool
-        Overwrite conflicting existing values instead of just reporting
-        them.
+        Overwrite every conflicting existing value unconditionally.
+    prefer_lower_energy : bool
+        Resolve conflicts by keeping whichever energy is lower (see
+        above). Mutually exclusive with `force`.
     dry_run : bool
         Classify and report everything, but never call
         `db.add_atom_energy` -- preview a CSV before committing it.
@@ -434,9 +458,13 @@ def import_orca_atom_results(
     Returns
     -------
     dict with keys "added", "updated", "unchanged", "conflicts",
-    "rejected", "spin_warnings", "multiplicity_mismatches" -- each a list
-    of small dicts describing what happened, for the caller to report.
+    "kept_existing", "rejected", "spin_warnings",
+    "multiplicity_mismatches" -- each a list of small dicts describing
+    what happened, for the caller to report.
     """
+    if force and prefer_lower_energy:
+        raise ValueError("force and prefer_lower_energy are mutually exclusive")
+
     csv_path = str(csv_path)
     with open(csv_path, newline="", encoding="utf-8-sig") as fh:
         reader = csv.DictReader(fh)
@@ -455,6 +483,7 @@ def import_orca_atom_results(
         "updated": [],
         "unchanged": [],
         "conflicts": [],
+        "kept_existing": [],
         "rejected": [],
         "spin_warnings": [],
         "multiplicity_mismatches": [],
@@ -509,10 +538,7 @@ def import_orca_atom_results(
                 if verdict == "warn":
                     summary["spin_warnings"].append({**entry, "reason": detail})
 
-                existing = db.get_atom_energy(
-                    symbol, code, method, ref_type=ref_type, settings=basis
-                )
-                if existing is None:
+                def _write():
                     if not dry_run:
                         db.add_atom_energy(
                             symbol,
@@ -524,6 +550,12 @@ def import_orca_atom_results(
                             units="kJ/mol",
                             source=csv_path,
                         )
+
+                existing = db.get_atom_energy(
+                    symbol, code, method, ref_type=ref_type, settings=basis
+                )
+                if existing is None:
+                    _write()
                     summary["added"].append(entry)
                 elif math.isclose(
                     existing, energy, rel_tol=energy_rel_tol, abs_tol=energy_abs_tol
@@ -536,18 +568,19 @@ def import_orca_atom_results(
                         "delta": energy - existing,
                     }
                     if force:
-                        if not dry_run:
-                            db.add_atom_energy(
-                                symbol,
-                                code,
-                                method,
-                                energy,
-                                ref_type=ref_type,
-                                settings=basis,
-                                units="kJ/mol",
-                                source=csv_path,
-                            )
+                        _write()
+                        conflict["reason"] = "force"
                         summary["updated"].append(conflict)
+                    elif prefer_lower_energy:
+                        if energy < existing:
+                            _write()
+                            conflict["reason"] = "prefer_lower_energy: new was lower"
+                            summary["updated"].append(conflict)
+                        else:
+                            conflict["reason"] = (
+                                "prefer_lower_energy: existing was lower"
+                            )
+                            summary["kept_existing"].append(conflict)
                     else:
                         summary["conflicts"].append(conflict)
 
