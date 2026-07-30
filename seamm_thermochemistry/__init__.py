@@ -15,6 +15,7 @@ from .formation import (  # noqa: F401
     MissingReferenceData,
 )
 from .derive import derive_dfH0_0K  # noqa: F401
+from ._version import __version__  # noqa: F401
 
 __all__ = [
     "ThermoDB",
@@ -23,4 +24,5 @@ __all__ = [
     "formation_energy",
     "MissingReferenceData",
     "derive_dfH0_0K",
+    "__version__",
 ]

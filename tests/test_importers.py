@@ -12,7 +12,9 @@ from seamm_thermochemistry import ThermoDB, formation_energy
 openpyxl = pytest.importorskip("openpyxl")
 from seamm_thermochemistry import importers  # noqa: E402
 
-REFERENCE_XLSX = Path("~/Downloads/Atom Reference Energies and States.xlsx").expanduser()
+REFERENCE_XLSX = Path(
+    "~/Downloads/Atom Reference Energies and States.xlsx"
+).expanduser()
 VASP_XLSX = Path("~/Downloads/VASP element_energies.xlsx").expanduser()
 
 needs_reference_xlsx = pytest.mark.skipif(

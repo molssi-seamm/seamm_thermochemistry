@@ -16,9 +16,18 @@ between them -- "ΔfH°(0)" vs "ΔfH°gas(0)" vs "DfH0(0)" for the same column):
 - Each of gaussian_step / psi4_step's ``data/atom_energies.csv`` -- the
   same experimental block, plus one column per method (isolated atom,
   kJ/mol) and an optional ``"<method> correction"`` column.
+
+A fourth, ongoing source needs no xlsx/openpyxl at all:
+
+- ``import_orca_atom_results`` reads a per-job ORCA atom-energy results
+  CSV (one row per element, one ``E DFT@<method>/<basis> (kJ/mol)`` /
+  ``S^2 DFT@<method>/<basis>`` column pair per method+basis run) and
+  vets each cell against its expected spin before adding it -- see that
+  function's docstring.
 """
 
 import csv
+import math
 import re
 
 try:
@@ -31,6 +40,7 @@ __all__ = [
     "import_reference_xlsx",
     "import_vasp_workbook",
     "import_wide_method_csv",
+    "import_orca_atom_results",
 ]
 
 # Transcribed from the `standard_state` dict duplicated in gaussian_step,
@@ -231,7 +241,13 @@ def import_vasp_workbook(
 
 
 def import_wide_method_csv(
-    db, path, code, *, methods=None, ref_type="atom", reference_note=None,
+    db,
+    path,
+    code,
+    *,
+    methods=None,
+    ref_type="atom",
+    reference_note=None,
     import_elements=True,
 ):
     """Load one of the wide per-code CSVs (gaussian_step/psi4_step style).
@@ -261,39 +277,311 @@ def import_wide_method_csv(
 
     elements = []
     n_energies = 0
-    for row in rows:
-        if len(row) < 12 or not row[1]:
-            continue
-        symbol = None
-        if import_elements:
-            symbol = _add_element_row(db, row[:12], reference_note=reference_note)
-        else:
-            symbol = row[1]
-        if symbol is None:
-            continue
-        elements.append(symbol)
-
-        for method in method_columns:
-            i = col_index[method]
-            if i >= len(row) or not row[i]:
+    # db.batch(): this can be hundreds of thousands of add_atom_energy calls
+    # for the full composite-method grid -- one commit (fsync) per call
+    # would make that prohibitively slow.
+    with db.batch():
+        for row in rows:
+            if len(row) < 12 or not row[1]:
                 continue
-            energy = float(row[i])
-            correction = None
-            corr_name = method + " correction"
-            if corr_name in col_index:
-                j = col_index[corr_name]
-                if j < len(row) and row[j]:
-                    correction = float(row[j])
-            db.add_atom_energy(
-                symbol,
-                code,
-                method,
-                energy,
-                ref_type=ref_type,
-                units="kJ/mol",
-                correction=correction,
-                source=str(path),
-            )
-            n_energies += 1
+            symbol = None
+            if import_elements:
+                symbol = _add_element_row(db, row[:12], reference_note=reference_note)
+            else:
+                symbol = row[1]
+            if symbol is None:
+                continue
+            elements.append(symbol)
+
+            for method in method_columns:
+                i = col_index[method]
+                if i >= len(row) or not row[i]:
+                    continue
+                energy = float(row[i])
+                correction = None
+                corr_name = method + " correction"
+                if corr_name in col_index:
+                    j = col_index[corr_name]
+                    if j < len(row) and row[j]:
+                        correction = float(row[j])
+                db.add_atom_energy(
+                    symbol,
+                    code,
+                    method,
+                    energy,
+                    ref_type=ref_type,
+                    units="kJ/mol",
+                    correction=correction,
+                    source=str(path),
+                )
+                n_energies += 1
 
     return {"elements": elements, "methods": method_columns, "n_energies": n_energies}
+
+
+_ORCA_ENERGY_COL_RE = re.compile(r"^E DFT@(?P<method>.+)/(?P<basis>.+) \(kJ/mol\)$")
+
+
+def _expected_s2(multiplicity):
+    """S(S+1) for the given multiplicity 2S+1."""
+    return (multiplicity**2 - 1) / 4.0
+
+
+def _classify_spin(s2_value, multiplicity, warn_threshold, reject_threshold):
+    """Classify a computed S^2 against the multiplicity's expected value.
+
+    Returns (verdict, detail) where verdict is "ok" | "warn" | "reject" and
+    detail is a human-readable reason (None for "ok").
+    """
+    expected = _expected_s2(multiplicity)
+
+    if s2_value is None:
+        if multiplicity == 1:
+            return "ok", None  # trivially 0; commonly left unreported
+        return "reject", "no S^2 reported for an open-shell atom"
+
+    if expected == 0:
+        # Singlet: expect ~0, not a meaningful relative deviation to compute.
+        if abs(s2_value) > 0.05:
+            return "reject", f"S^2={s2_value:.4f} but multiplicity=1 (expect ~0)"
+        return "ok", None
+
+    rel_dev = abs(s2_value - expected) / expected
+    detail = f"S^2={s2_value:.4f} vs expected {expected:.4f} ({rel_dev:.0%} off)"
+    if rel_dev > reject_threshold:
+        return "reject", detail
+    if rel_dev > warn_threshold:
+        return "warn", detail
+    return "ok", None
+
+
+def import_orca_atom_results(
+    db,
+    csv_path,
+    *,
+    code="orca",
+    ref_type="atom",
+    warn_threshold=0.02,
+    reject_threshold=0.20,
+    energy_rel_tol=1e-6,
+    energy_abs_tol=0.01,
+    force=False,
+    prefer_lower_energy=False,
+    dry_run=False,
+):
+    """Import ORCA atom-energy results from a per-job results CSV.
+
+    Expects the shape produced by the atom-energy scan flowchart: one row
+    per element (``Atomic Number``, ``Element``, ``Multiplicity``), and one
+    ``"E DFT@<method>/<basis> (kJ/mol)"`` / ``"S^2 DFT@<method>/<basis>"``
+    column pair per method+basis combination that has been run so far
+    (blank cells are jobs not finished/reached yet, not errors). ``method``
+    and ``basis`` are stored separately -- ``method`` as the ThermoDB
+    ``method``, ``basis`` as ``settings`` -- since ORCA (unlike Gaussian's
+    composite-method columns) always keeps them as independent axes.
+
+    Vetting, since a bad SCF root (wrong occupation, not just unconverged)
+    is the actual failure mode seen for hard atoms (lanthanides etc.), not
+    just a missing value:
+
+    - A computed S^2 is compared to the multiplicity's expected S(S+1).
+      Within `warn_threshold` (relative) it's added silently; beyond that
+      but within `reject_threshold` it's added but flagged in
+      `"spin_warnings"` for manual review; beyond `reject_threshold` it's
+      not added at all (`"rejected"`).
+    - A missing S^2 is fine for a singlet (trivially 0, commonly not
+      reported) but rejected for any open-shell multiplicity -- no way to
+      vet it.
+    - If the CSV's own multiplicity for an element disagrees with what's
+      already in the `element` table (when known), that's noted in
+      `"multiplicity_mismatches"` but does not block the import -- it may
+      just mean the reference table's own value needs a look.
+
+    Duplicate handling, since re-running elements/methods is expected
+    across "hundreds of these": an existing (element, code, method,
+    ref_type, settings) value that's already in the database is left
+    alone if the new value is close (`"unchanged"`); if it differs by more
+    than `energy_rel_tol`/`energy_abs_tol` it is a conflict, resolved one
+    of three ways (`force` and `prefer_lower_energy` are mutually
+    exclusive -- pick one):
+
+    - Neither set (default): reported in `"conflicts"`, *not* overwritten.
+      Safest, but needs a human to look at every conflict.
+    - `force=True`: always overwritten with the new value, listed in
+      `"updated"`. Only right when you're confident the new run is simply
+      better across the board -- a blanket "latest wins" that can silently
+      make things worse (see `prefer_lower_energy`).
+    - `prefer_lower_energy=True`: for hard atoms (partially-filled d/f
+      shells -- lanthanides, some transition metals) two independently
+      converged runs of the *same* nominal state can land on genuinely
+      different self-consistent solutions, invisible to the S^2 gate
+      since both have the right total spin. The tell is a conflict whose
+      delta is nearly constant across several basis sets for the same
+      element -- not a basis-incompleteness effect, a different orbital
+      occupation. There's no rigorous variational principle for DFT, but
+      "prefer whichever energy is lower" is the standard practical
+      criterion for picking between competing self-consistent solutions
+      of the same state. If the new value is lower it's written and
+      listed in `"updated"`; if the existing value is already lower it is
+      *kept* and listed in `"kept_existing"` -- so a blanket rerun can't
+      silently make a good stored value worse. Still reported either way,
+      never silent.
+
+    Parameters
+    ----------
+    db : ThermoDB
+    csv_path : str or Path
+    code : str
+        Defaults to "orca"; parameterized in case this CSV shape is ever
+        reused for another code.
+    ref_type : str
+        Defaults to "atom" (isolated gas-phase atom energies -- the only
+        thing this scan computes).
+    warn_threshold, reject_threshold : float
+        Relative S^2 deviation thresholds (see above). Tune per how
+        strict you want the gate; there's no universally "right" value,
+        the deviations here are your own to judge (e.g. an ~20%-high S^2
+        on some lanthanides is real but was still accepted on review in
+        this project).
+    energy_rel_tol, energy_abs_tol : float
+        `math.isclose` tolerances for treating a duplicate energy value
+        as "the same result" rather than a conflict.
+    force : bool
+        Overwrite every conflicting existing value unconditionally.
+    prefer_lower_energy : bool
+        Resolve conflicts by keeping whichever energy is lower (see
+        above). Mutually exclusive with `force`.
+    dry_run : bool
+        Classify and report everything, but never call
+        `db.add_atom_energy` -- preview a CSV before committing it.
+
+    Returns
+    -------
+    dict with keys "added", "updated", "unchanged", "conflicts",
+    "kept_existing", "rejected", "spin_warnings",
+    "multiplicity_mismatches" -- each a list of small dicts describing
+    what happened, for the caller to report.
+    """
+    if force and prefer_lower_energy:
+        raise ValueError("force and prefer_lower_energy are mutually exclusive")
+
+    csv_path = str(csv_path)
+    with open(csv_path, newline="", encoding="utf-8-sig") as fh:
+        reader = csv.DictReader(fh)
+        rows = list(reader)
+        fieldnames = reader.fieldnames or []
+
+    energy_columns = []  # (energy_col, s2_col, method, basis)
+    for col in fieldnames:
+        m = _ORCA_ENERGY_COL_RE.match(col)
+        if m:
+            method, basis = m.group("method"), m.group("basis")
+            energy_columns.append((col, f"S^2 DFT@{method}/{basis}", method, basis))
+
+    summary = {
+        "added": [],
+        "updated": [],
+        "unchanged": [],
+        "conflicts": [],
+        "kept_existing": [],
+        "rejected": [],
+        "spin_warnings": [],
+        "multiplicity_mismatches": [],
+    }
+
+    with db.batch():
+        for row in rows:
+            symbol = (row.get("Element") or "").strip()
+            if not symbol:
+                continue
+            try:
+                multiplicity = int(row["Multiplicity"])
+            except (KeyError, ValueError, TypeError):
+                summary["rejected"].append(
+                    {"symbol": symbol, "reason": "cannot parse Multiplicity"}
+                )
+                continue
+
+            element_row = db.get_element(symbol=symbol)
+            if element_row is not None and element_row["multiplicity"] is not None:
+                if int(element_row["multiplicity"]) != multiplicity:
+                    summary["multiplicity_mismatches"].append(
+                        {
+                            "symbol": symbol,
+                            "csv_multiplicity": multiplicity,
+                            "db_multiplicity": int(element_row["multiplicity"]),
+                        }
+                    )
+
+            for energy_col, s2_col, method, basis in energy_columns:
+                energy_str = (row.get(energy_col) or "").strip()
+                if not energy_str:
+                    continue  # job not run/reached yet -- not an error
+
+                energy = float(energy_str)
+                s2_str = (row.get(s2_col) or "").strip()
+                s2_value = float(s2_str) if s2_str else None
+
+                verdict, detail = _classify_spin(
+                    s2_value, multiplicity, warn_threshold, reject_threshold
+                )
+                entry = {
+                    "symbol": symbol,
+                    "method": method,
+                    "basis": basis,
+                    "energy": energy,
+                    "s2": s2_value,
+                }
+                if verdict == "reject":
+                    summary["rejected"].append({**entry, "reason": detail})
+                    continue
+                if verdict == "warn":
+                    summary["spin_warnings"].append({**entry, "reason": detail})
+
+                def _write():
+                    if not dry_run:
+                        db.add_atom_energy(
+                            symbol,
+                            code,
+                            method,
+                            energy,
+                            ref_type=ref_type,
+                            settings=basis,
+                            units="kJ/mol",
+                            source=csv_path,
+                        )
+
+                existing = db.get_atom_energy(
+                    symbol, code, method, ref_type=ref_type, settings=basis
+                )
+                if existing is None:
+                    _write()
+                    summary["added"].append(entry)
+                elif math.isclose(
+                    existing, energy, rel_tol=energy_rel_tol, abs_tol=energy_abs_tol
+                ):
+                    summary["unchanged"].append({**entry, "existing": existing})
+                else:
+                    conflict = {
+                        **entry,
+                        "existing": existing,
+                        "delta": energy - existing,
+                    }
+                    if force:
+                        _write()
+                        conflict["reason"] = "force"
+                        summary["updated"].append(conflict)
+                    elif prefer_lower_energy:
+                        if energy < existing:
+                            _write()
+                            conflict["reason"] = "prefer_lower_energy: new was lower"
+                            summary["updated"].append(conflict)
+                        else:
+                            conflict["reason"] = (
+                                "prefer_lower_energy: existing was lower"
+                            )
+                            summary["kept_existing"].append(conflict)
+                    else:
+                        summary["conflicts"].append(conflict)
+
+    return summary

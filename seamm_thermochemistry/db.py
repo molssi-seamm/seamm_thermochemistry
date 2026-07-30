@@ -26,7 +26,9 @@ Two reference conventions are both first-class (`ref_type`):
 See ``formation.py`` for the arithmetic that consumes this store.
 """
 
+import configparser
 import csv
+from contextlib import contextmanager
 import sqlite3
 from pathlib import Path
 
@@ -60,18 +62,18 @@ CREATE TABLE IF NOT EXISTS element (
 CREATE TABLE IF NOT EXISTS atom_energy (
     id                 INTEGER PRIMARY KEY AUTOINCREMENT,
     atomic_number      INTEGER NOT NULL REFERENCES element(atomic_number),
-    code               TEXT NOT NULL,               -- "gaussian", "psi4", "orca", "vasp", ...
+    code               TEXT NOT NULL,               -- "gaussian", "psi4", "vasp", ...
     method             TEXT NOT NULL,                -- e.g. "CBS-QB3", "PBE-D3BJ"
     ref_type           TEXT NOT NULL DEFAULT 'atom'  -- "atom" | "element_phase"
                            CHECK (ref_type IN ('atom', 'element_phase')),
-    settings           TEXT NOT NULL DEFAULT '',     -- free-form disambiguator, e.g. "encut=700eV"
+    settings           TEXT NOT NULL DEFAULT '',     -- e.g. "encut=700eV"
     energy             REAL NOT NULL,                -- kJ/mol, canonical unit
-    correction         REAL,                          -- optional additive correction, kJ/mol
+    correction         REAL,                          -- optional correction, kJ/mol
     spin_multiplicity  INTEGER,
-    source              TEXT,                          -- file / job path
-    computed_date        TEXT,                          -- ISO 8601, e.g. "2026-07-24"
-    code_version          TEXT,
-    notes                  TEXT,
+    source             TEXT,                          -- file / job path
+    computed_date      TEXT,                          -- ISO 8601, e.g. "2026-07-24"
+    code_version       TEXT,
+    notes              TEXT,
     UNIQUE (atomic_number, code, method, ref_type, settings)
 );
 
@@ -79,7 +81,31 @@ CREATE INDEX IF NOT EXISTS idx_atom_energy_lookup
     ON atom_energy (code, method, ref_type, settings);
 """
 
-DEFAULT_DB_PATH = Path(__file__).parent / "data" / "thermochemistry.db"
+_BUNDLED_DB_PATH = Path(__file__).parent / "data" / "thermochemistry.db"
+_SEAMM_INI_PATH = Path("~/.seamm.d/seamm.ini").expanduser()
+
+
+def _resolve_default_db_path():
+    """The installer-managed database path from seamm.ini's
+    [thermochemistry] section, if set, else the bundled package path.
+
+    Reads seamm.ini directly with the stdlib configparser rather than
+    importing seamm_installer, so this core module keeps its only real
+    dependency (seamm_util). seamm_installer (the `installer` extra) is
+    only needed to *populate* database-path in the first place -- see
+    installer.py -- not to read it back here.
+    """
+    if _SEAMM_INI_PATH.exists():
+        parser = configparser.ConfigParser(interpolation=None)
+        parser.read(_SEAMM_INI_PATH)
+        if parser.has_section("thermochemistry"):
+            value = parser.get("thermochemistry", "database-path", fallback="")
+            if value:
+                return Path(value).expanduser().resolve()
+    return _BUNDLED_DB_PATH
+
+
+DEFAULT_DB_PATH = _resolve_default_db_path()
 
 # kJ/mol per unit of energy, for the handful of units this data actually
 # shows up in. Kept local (rather than pulling in seamm_util.Q_ for every
@@ -110,10 +136,13 @@ class ThermoDB:
     Parameters
     ----------
     path : str or Path, optional
-        Database file. Defaults to the bundled ``data/thermochemistry.db``
-        shipped with the package. Pass ``~/.seamm.d/data/thermochemistry.db``
-        or similar for a personal/site override, mirroring the existing
-        ``~/.seamm.d/data/atom_energies.csv`` convention.
+        Database file. Defaults to ``DEFAULT_DB_PATH``: the installer-
+        managed location registered in ``~/.seamm.d/seamm.ini``'s
+        ``[thermochemistry]`` section (``database-path``, normally
+        ``~/SEAMM/Parameters/thermochemistry/thermochemistry.db`` -- see
+        ``installer.py``) if the installer has been run, else the bundled
+        ``data/thermochemistry.db`` shipped with the package (a stale
+        prototype snapshot, useful only before the installer has run).
     read_only : bool
         Open without creating/migrating the schema, and without permission
         to write. Use for a package-installed, already-built database.
@@ -132,6 +161,7 @@ class ThermoDB:
             self._db = sqlite3.connect(str(self.path), timeout=10.0)
         self._db.row_factory = sqlite3.Row
         self._db.execute("PRAGMA foreign_keys = ON")
+        self._autocommit = True
         if not read_only:
             self._create_schema()
 
@@ -143,6 +173,29 @@ class ThermoDB:
 
     def close(self):
         self._db.close()
+
+    def _maybe_commit(self):
+        if self._autocommit:
+            self._db.commit()
+
+    @contextmanager
+    def batch(self):
+        """Defer commits until the end of the block, for bulk imports.
+
+        `add_element`/`add_atom_energy` normally commit immediately --
+        the right default for interactive use, but one fsync per row makes
+        a bulk import of hundreds of thousands of rows (e.g. the full
+        Gaussian/Psi4 composite-method grids) prohibitively slow. Wrap
+        those calls in ``with db.batch():`` to commit once at the end
+        instead.
+        """
+        previous = self._autocommit
+        self._autocommit = False
+        try:
+            yield self
+            self._db.commit()
+        finally:
+            self._autocommit = previous
 
     def _create_schema(self):
         self._db.executescript(_SCHEMA_SQL)
@@ -215,7 +268,7 @@ class ThermoDB:
                 reference_note,
             ),
         )
-        self._db.commit()
+        self._maybe_commit()
 
     def get_element(self, symbol=None, atomic_number=None):
         """Return the experimental reference row for one element as a dict, or None."""
@@ -334,7 +387,7 @@ class ThermoDB:
                 notes,
             ),
         )
-        self._db.commit()
+        self._maybe_commit()
 
     def get_atom_energy(
         self, symbol, code, method, *, ref_type="atom", settings="", units="kJ/mol"
@@ -378,7 +431,9 @@ class ThermoDB:
 
     def missing(self, code, method, symbols, *, ref_type="atom", settings=""):
         """Return the subset of `symbols` with no tabulated (code, method) energy."""
-        have = self.get_reference_energies(code, method, ref_type=ref_type, settings=settings)
+        have = self.get_reference_energies(
+            code, method, ref_type=ref_type, settings=settings
+        )
         return [s for s in symbols if s not in have]
 
     def list_methods(self, code=None):
@@ -426,13 +481,11 @@ class ThermoDB:
 
     def dump_atom_energies_csv(self, path):
         """Write the `atom_energy` table (joined to element symbols) to CSV."""
-        cur = self._db.execute(
-            """
+        cur = self._db.execute("""
             SELECT e.symbol, a.* FROM atom_energy a
             JOIN element e ON e.atomic_number = a.atomic_number
             ORDER BY a.code, a.method, a.ref_type, a.settings, e.atomic_number
-            """
-        )
+            """)
         rows = cur.fetchall()
         with open(path, "w", newline="") as fh:
             writer = csv.writer(fh)
