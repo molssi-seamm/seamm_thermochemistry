@@ -8,6 +8,7 @@ dependencies:
   - python
   - pip
   - seamm-util
+  - tabulate
 
   # The 'import' extra -- reading the legacy Excel/CSV master files
   - pandas

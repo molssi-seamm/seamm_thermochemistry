@@ -170,3 +170,24 @@ def test_batch_restores_autocommit_after_exception(db):
     # add_atom_energy after the failed batch commits immediately again.
     db.add_atom_energy("O", "gaussian", "CBS-QB3", -98700.0)
     assert db.get_atom_energy("O", "gaussian", "CBS-QB3") == pytest.approx(-98700.0)
+
+
+def test_doi_absent_by_default(db):
+    assert db.doi() is None
+
+
+def test_set_doi_and_read_back(db):
+    db.set_doi("10.5281/zenodo.21612188")
+    assert db.doi() == "10.5281/zenodo.21612188"
+
+
+def test_set_doi_overwrites_previous(db):
+    db.set_doi("10.5281/zenodo.21612188")
+    db.set_doi("10.5281/zenodo.21612189")  # a later version's DOI
+    assert db.doi() == "10.5281/zenodo.21612189"
+
+
+def test_set_doi_does_not_disturb_schema_version(db):
+    version_before = db.schema_version()
+    db.set_doi("10.5281/zenodo.21612188")
+    assert db.schema_version() == version_before

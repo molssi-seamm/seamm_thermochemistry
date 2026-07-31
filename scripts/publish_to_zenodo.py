@@ -15,6 +15,17 @@ Only uploads/updates data/thermochemistry.db, sets metadata, and (only
 with --publish) publishes it -- registering the DOI. Without --publish, a
 draft is created/updated for you to review on Zenodo first.
 
+Zenodo prereserves a DOI as soon as a deposit/version is created -- before
+any file is attached, and regardless of --publish -- so this script stamps
+that DOI into the database itself (`ThermoDB.set_doi`) right before
+uploading it. That way the DOI is baked into the file, not just recorded
+in the Zenodo record around it: `format_report`'s "Reference database"
+line cites it directly, and the number stays correct even if someone
+copies the .db file out of Zenodo's own bookkeeping. A `--sandbox`/draft
+run therefore also stamps a (non-permanent) sandbox DOI -- harmless, since
+re-running for the real, `--publish`ed upload overwrites it with the
+production one before that upload.
+
 Run with --sandbox first against sandbox.zenodo.org: no real DOI, fully
 reversible, the right way to validate this before ever touching
 production Zenodo. Requires a [ZENODO]/[SANDBOX] token in
@@ -27,7 +38,7 @@ style rather than inventing a new one.
 
 import argparse
 
-from seamm_thermochemistry import DEFAULT_DB_PATH
+from seamm_thermochemistry import DEFAULT_DB_PATH, ThermoDB
 from seamm_util import Zenodo
 
 # The published record's concept id -- stable across all versions. Set once
@@ -118,6 +129,14 @@ def main():
         record = zenodo.create_record()
 
     _set_metadata(record)
+
+    # Stamp the (already prereserved) DOI into the database before it is
+    # uploaded, so the file itself carries its own citable identifier --
+    # see the module docstring.
+    with ThermoDB(DEFAULT_DB_PATH) as db:
+        db.set_doi(record.doi)
+    print(f"Stamped DOI into {DATABASE_FILENAME}: {record.doi}")
+
     record.add_file(DEFAULT_DB_PATH, binary=True)
 
     if args.publish:

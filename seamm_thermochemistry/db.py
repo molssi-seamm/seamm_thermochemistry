@@ -34,7 +34,7 @@ from pathlib import Path
 
 __all__ = ["ThermoDB", "DEFAULT_DB_PATH"]
 
-_SCHEMA_VERSION = 1
+_SCHEMA_VERSION = 2
 
 _SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS schema_info (
@@ -55,6 +55,8 @@ CREATE TABLE IF NOT EXISTS element (
     h298_minus_h0_std_state   REAL,      -- kJ/mol, standard-state phase, per atom
     s298_gas                  REAL,      -- J/(mol K), gas atom
     s298_gas_stderr           REAL,
+    s298_std_state             REAL,     -- J/(mol K), standard-state phase, per atom
+    s298_std_state_reference   TEXT,     -- source for s298_std_state
     reference                 TEXT,      -- source URL
     reference_note             TEXT      -- e.g. "JANAF"
 );
@@ -174,6 +176,40 @@ class ThermoDB:
     def close(self):
         self._db.close()
 
+    def schema_version(self):
+        """The schema version stamped in this database (an int), for
+        reports/provenance -- see `_SCHEMA_VERSION`."""
+        cur = self._db.execute("SELECT value FROM schema_info WHERE key='version'")
+        row = cur.fetchone()
+        return int(row["value"]) if row is not None else None
+
+    def doi(self):
+        """The Zenodo DOI of the published snapshot this database file IS,
+        or None for a working copy that has not been published yet.
+
+        Unlike the schema version (which just says "the table layout this
+        code understands"), the DOI identifies the actual *data* -- the
+        citable, permanent reference for reproducibility. Set once, right
+        before the file is uploaded to Zenodo -- see
+        ``scripts/publish_to_zenodo.py`` and `set_doi`.
+        """
+        cur = self._db.execute("SELECT value FROM schema_info WHERE key='doi'")
+        row = cur.fetchone()
+        return row["value"] if row is not None else None
+
+    def set_doi(self, doi):
+        """Stamp this database file with the Zenodo DOI of the snapshot it
+        is about to become. Call this right before uploading the file --
+        Zenodo prereserves a DOI as soon as a deposit/version is created,
+        before any file is attached, so the DOI can be baked into the file
+        itself rather than only living in the Zenodo record around it."""
+        self._db.execute(
+            "INSERT INTO schema_info (key, value) VALUES ('doi', ?) "
+            "ON CONFLICT(key) DO UPDATE SET value=excluded.value",
+            (doi,),
+        )
+        self._maybe_commit()
+
     def _maybe_commit(self):
         if self._autocommit:
             self._db.commit()
@@ -199,11 +235,26 @@ class ThermoDB:
 
     def _create_schema(self):
         self._db.executescript(_SCHEMA_SQL)
+        self._migrate_schema()
         self._db.execute(
-            "INSERT OR IGNORE INTO schema_info (key, value) VALUES ('version', ?)",
+            "INSERT OR REPLACE INTO schema_info (key, value) VALUES ('version', ?)",
             (str(_SCHEMA_VERSION),),
         )
         self._db.commit()
+
+    def _migrate_schema(self):
+        """Add columns introduced after schema v1 to an already-existing
+        `element` table (`CREATE TABLE IF NOT EXISTS` does not add columns
+        to a table that already exists)."""
+        columns = {
+            row["name"] for row in self._db.execute("PRAGMA table_info(element)")
+        }
+        if "s298_std_state" not in columns:
+            self._db.execute("ALTER TABLE element ADD COLUMN s298_std_state REAL")
+        if "s298_std_state_reference" not in columns:
+            self._db.execute(
+                "ALTER TABLE element ADD COLUMN s298_std_state_reference TEXT"
+            )
 
     # ------------------------------------------------------------------
     # element (experimental reference) table
@@ -224,6 +275,8 @@ class ThermoDB:
         h298_minus_h0_std_state=None,
         s298_gas=None,
         s298_gas_stderr=None,
+        s298_std_state=None,
+        s298_std_state_reference=None,
         reference=None,
         reference_note=None,
     ):
@@ -234,8 +287,9 @@ class ThermoDB:
                 atomic_number, symbol, multiplicity, term_symbol, standard_state,
                 dfH0_0K, dfH0_298K, dfH0_298K_stderr, h298_minus_h0_atom,
                 h298_minus_h0_std_state, s298_gas, s298_gas_stderr,
+                s298_std_state, s298_std_state_reference,
                 reference, reference_note
-            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             ON CONFLICT(atomic_number) DO UPDATE SET
                 symbol=excluded.symbol,
                 multiplicity=excluded.multiplicity,
@@ -248,6 +302,8 @@ class ThermoDB:
                 h298_minus_h0_std_state=excluded.h298_minus_h0_std_state,
                 s298_gas=excluded.s298_gas,
                 s298_gas_stderr=excluded.s298_gas_stderr,
+                s298_std_state=excluded.s298_std_state,
+                s298_std_state_reference=excluded.s298_std_state_reference,
                 reference=excluded.reference,
                 reference_note=excluded.reference_note
             """,
@@ -264,6 +320,8 @@ class ThermoDB:
                 h298_minus_h0_std_state,
                 s298_gas,
                 s298_gas_stderr,
+                s298_std_state,
+                s298_std_state_reference,
                 reference,
                 reference_note,
             ),
@@ -298,6 +356,36 @@ class ThermoDB:
         if el is None:
             return None
         return el["dfH0_0K"] if at_0K else el["dfH0_298K"]
+
+    def s298_gas(self, symbol):
+        """Experimental standard molar entropy of the isolated gas atom,
+        S°(X, g, 298.15 K), J/(mol K), or None."""
+        el = self.get_element(symbol=symbol)
+        if el is None:
+            return None
+        return el["s298_gas"]
+
+    def s298_std_state(self, symbol):
+        """Experimental standard molar entropy of the element's standard-state
+        phase, PER ATOM of X (e.g. S°(H2,g,298.15K)/2 for H), J/(mol K), or
+        None. Needed (together with `s298_gas`) for a Gibbs-energy-of-
+        formation anchor -- see `formation.formation_gibbs_energy`."""
+        el = self.get_element(symbol=symbol)
+        if el is None:
+            return None
+        return el["s298_std_state"]
+
+    def set_s298_std_state(self, symbol, value, *, reference=None):
+        """Set just the standard-state-phase entropy (and its citation) for an
+        already-`add_element`-ed element, without needing to re-supply every
+        other column (unlike `add_element`, which replaces the whole row)."""
+        atno = self._require_atomic_number(symbol)
+        self._db.execute(
+            "UPDATE element SET s298_std_state=?, s298_std_state_reference=? "
+            "WHERE atomic_number=?",
+            (value, reference, atno),
+        )
+        self._maybe_commit()
 
     def elements(self):
         """Return all element rows, ordered by atomic number."""
@@ -406,6 +494,26 @@ class ThermoDB:
             return None
         value = row["energy"] + (row["correction"] or 0.0)
         return _convert(value, units, to_kJ=False)
+
+    def get_atom_energy_row(
+        self, symbol, code, method, *, ref_type="atom", settings=""
+    ):
+        """Return the full `atom_energy` row (energy, correction, source,
+        computed_date, code_version, notes, ...) as a dict, or None.
+
+        For provenance/reporting -- `get_atom_energy` returns just the
+        combined number `get_reference_energies`/`atomization_energy` need.
+        """
+        atno = self._require_atomic_number(symbol)
+        cur = self._db.execute(
+            """
+            SELECT * FROM atom_energy
+            WHERE atomic_number=? AND code=? AND method=? AND ref_type=? AND settings=?
+            """,
+            (atno, code, method, ref_type, settings),
+        )
+        row = cur.fetchone()
+        return dict(row) if row is not None else None
 
     def get_reference_energies(
         self, code, method, *, ref_type="atom", settings="", units="kJ/mol"
