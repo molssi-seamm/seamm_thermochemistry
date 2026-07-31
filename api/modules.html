@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>seamm_thermochemistry &#8212; SEAMM thermochemistry Plug-in 2026.7.30 documentation</title>
+    <title>seamm_thermochemistry &#8212; SEAMM thermochemistry Plug-in 2026.7.30.1 documentation</title>
   
   
   
@@ -41,7 +41,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../_static/documentation_options.js?v=5e20fa5c"></script>
+    <script src="../_static/documentation_options.js?v=6a84fa41"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -55,7 +55,7 @@
     <link rel="prev" title="API Documentation" href="../api.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.7.30" />
+  <meta name="docsearch:version" content="2026.7.30.1" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -452,14 +452,21 @@
 <li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.db.ThermoDB.close"><code class="docutils literal notranslate"><span class="pre">ThermoDB.close()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.db.ThermoDB.coverage"><code class="docutils literal notranslate"><span class="pre">ThermoDB.coverage()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.db.ThermoDB.dfH0"><code class="docutils literal notranslate"><span class="pre">ThermoDB.dfH0()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.db.ThermoDB.doi"><code class="docutils literal notranslate"><span class="pre">ThermoDB.doi()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.db.ThermoDB.dump_atom_energies_csv"><code class="docutils literal notranslate"><span class="pre">ThermoDB.dump_atom_energies_csv()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.db.ThermoDB.dump_elements_csv"><code class="docutils literal notranslate"><span class="pre">ThermoDB.dump_elements_csv()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.db.ThermoDB.elements"><code class="docutils literal notranslate"><span class="pre">ThermoDB.elements()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.db.ThermoDB.get_atom_energy"><code class="docutils literal notranslate"><span class="pre">ThermoDB.get_atom_energy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.db.ThermoDB.get_atom_energy_row"><code class="docutils literal notranslate"><span class="pre">ThermoDB.get_atom_energy_row()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.db.ThermoDB.get_element"><code class="docutils literal notranslate"><span class="pre">ThermoDB.get_element()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.db.ThermoDB.get_reference_energies"><code class="docutils literal notranslate"><span class="pre">ThermoDB.get_reference_energies()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.db.ThermoDB.list_methods"><code class="docutils literal notranslate"><span class="pre">ThermoDB.list_methods()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.db.ThermoDB.missing"><code class="docutils literal notranslate"><span class="pre">ThermoDB.missing()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.db.ThermoDB.s298_gas"><code class="docutils literal notranslate"><span class="pre">ThermoDB.s298_gas()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.db.ThermoDB.s298_std_state"><code class="docutils literal notranslate"><span class="pre">ThermoDB.s298_std_state()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.db.ThermoDB.schema_version"><code class="docutils literal notranslate"><span class="pre">ThermoDB.schema_version()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.db.ThermoDB.set_doi"><code class="docutils literal notranslate"><span class="pre">ThermoDB.set_doi()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.db.ThermoDB.set_s298_std_state"><code class="docutils literal notranslate"><span class="pre">ThermoDB.set_s298_std_state()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -472,6 +479,8 @@
 <li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.formation.MissingReferenceData"><code class="docutils literal notranslate"><span class="pre">MissingReferenceData</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.formation.atomization_energy"><code class="docutils literal notranslate"><span class="pre">atomization_energy()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.formation.formation_energy"><code class="docutils literal notranslate"><span class="pre">formation_energy()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.formation.formation_enthalpy"><code class="docutils literal notranslate"><span class="pre">formation_enthalpy()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.formation.formation_gibbs_energy"><code class="docutils literal notranslate"><span class="pre">formation_gibbs_energy()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="seamm_thermochemistry.html#module-seamm_thermochemistry.import_orca_cli">seamm_thermochemistry.import_orca_cli module</a><ul>
@@ -499,6 +508,10 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="seamm_thermochemistry.html#module-seamm_thermochemistry.report">seamm_thermochemistry.report module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.report.format_report"><code class="docutils literal notranslate"><span class="pre">format_report()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="seamm_thermochemistry.html#module-seamm_thermochemistry">Module contents</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.MissingReferenceData"><code class="docutils literal notranslate"><span class="pre">MissingReferenceData</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.ThermoDB"><code class="docutils literal notranslate"><span class="pre">ThermoDB</span></code></a><ul>
@@ -508,19 +521,29 @@
 <li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.ThermoDB.close"><code class="docutils literal notranslate"><span class="pre">ThermoDB.close()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.ThermoDB.coverage"><code class="docutils literal notranslate"><span class="pre">ThermoDB.coverage()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.ThermoDB.dfH0"><code class="docutils literal notranslate"><span class="pre">ThermoDB.dfH0()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.ThermoDB.doi"><code class="docutils literal notranslate"><span class="pre">ThermoDB.doi()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.ThermoDB.dump_atom_energies_csv"><code class="docutils literal notranslate"><span class="pre">ThermoDB.dump_atom_energies_csv()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.ThermoDB.dump_elements_csv"><code class="docutils literal notranslate"><span class="pre">ThermoDB.dump_elements_csv()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.ThermoDB.elements"><code class="docutils literal notranslate"><span class="pre">ThermoDB.elements()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.ThermoDB.get_atom_energy"><code class="docutils literal notranslate"><span class="pre">ThermoDB.get_atom_energy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.ThermoDB.get_atom_energy_row"><code class="docutils literal notranslate"><span class="pre">ThermoDB.get_atom_energy_row()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.ThermoDB.get_element"><code class="docutils literal notranslate"><span class="pre">ThermoDB.get_element()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.ThermoDB.get_reference_energies"><code class="docutils literal notranslate"><span class="pre">ThermoDB.get_reference_energies()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.ThermoDB.list_methods"><code class="docutils literal notranslate"><span class="pre">ThermoDB.list_methods()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.ThermoDB.missing"><code class="docutils literal notranslate"><span class="pre">ThermoDB.missing()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.ThermoDB.s298_gas"><code class="docutils literal notranslate"><span class="pre">ThermoDB.s298_gas()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.ThermoDB.s298_std_state"><code class="docutils literal notranslate"><span class="pre">ThermoDB.s298_std_state()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.ThermoDB.schema_version"><code class="docutils literal notranslate"><span class="pre">ThermoDB.schema_version()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.ThermoDB.set_doi"><code class="docutils literal notranslate"><span class="pre">ThermoDB.set_doi()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.ThermoDB.set_s298_std_state"><code class="docutils literal notranslate"><span class="pre">ThermoDB.set_s298_std_state()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.atomization_energy"><code class="docutils literal notranslate"><span class="pre">atomization_energy()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.derive_dfH0_0K"><code class="docutils literal notranslate"><span class="pre">derive_dfH0_0K()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.format_report"><code class="docutils literal notranslate"><span class="pre">format_report()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.formation_energy"><code class="docutils literal notranslate"><span class="pre">formation_energy()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.formation_enthalpy"><code class="docutils literal notranslate"><span class="pre">formation_enthalpy()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.formation_gibbs_energy"><code class="docutils literal notranslate"><span class="pre">formation_gibbs_energy()</span></code></a></li>
 </ul>
 </li>
 </ul>

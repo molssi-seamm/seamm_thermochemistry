@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.formation &#8212; SEAMM thermochemistry Plug-in 2026.7.30 documentation</title>
+    <title>seamm_thermochemistry.formation &#8212; SEAMM thermochemistry Plug-in 2026.7.30.1 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
 
-    <script src="../../_static/documentation_options.js?v=5e20fa5c"></script>
+    <script src="../../_static/documentation_options.js?v=6a84fa41"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.7.30" />
+  <meta name="docsearch:version" content="2026.7.30.1" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -451,7 +451,23 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">seamm_util</span><span class="w"> </span><span class="kn">import</span> <span class="n">Q_</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;atomization_energy&quot;</span><span class="p">,</span> <span class="s2">&quot;formation_energy&quot;</span><span class="p">,</span> <span class="s2">&quot;MissingReferenceData&quot;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;atomization_energy&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;formation_energy&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;formation_enthalpy&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;formation_gibbs_energy&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;MissingReferenceData&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="c1"># CODATA gas constant, kJ/(mol K).</span>
+<span class="n">_R</span> <span class="o">=</span> <span class="mf">8.31446261815324e-3</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_ideal_gas_thermal_enthalpy</span><span class="p">(</span><span class="n">temperature</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;H(T) - H(0) for a monatomic ideal gas, kJ/mol: (5/2) R T (3/2 RT</span>
+<span class="sd">    translational + RT for the pV term that converts U to H). Exact for</span>
+<span class="sd">    any isolated gas atom at any T.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="mf">2.5</span> <span class="o">*</span> <span class="n">_R</span> <span class="o">*</span> <span class="n">temperature</span>
 
 
 <div class="viewcode-block" id="MissingReferenceData">
@@ -592,6 +608,188 @@
         <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">total_anchor</span> <span class="o">-</span> <span class="n">atomization</span></div>
+
+
+
+<div class="viewcode-block" id="formation_enthalpy">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.formation.formation_enthalpy">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">formation_enthalpy</span><span class="p">(</span>
+    <span class="n">composition</span><span class="p">,</span>
+    <span class="n">H_system</span><span class="p">,</span>
+    <span class="n">temperature</span><span class="p">,</span>
+    <span class="n">db</span><span class="p">,</span>
+    <span class="n">code</span><span class="p">,</span>
+    <span class="n">method</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">ref_type</span><span class="o">=</span><span class="s2">&quot;atom&quot;</span><span class="p">,</span>
+    <span class="n">settings</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+    <span class="n">units</span><span class="o">=</span><span class="s2">&quot;kJ/mol&quot;</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;DfH(T): enthalpy of formation from the elements, at temperature T.</span>
+
+<span class="sd">    Generalizes ``formation_energy(..., anchor=True, anchor_at_0K=True)``</span>
+<span class="sd">    from the electronic-only, 0 K quantity to a real temperature, by</span>
+<span class="sd">    treating each reference atom as a monatomic ideal gas: its</span>
+<span class="sd">    H(T)-H(0) = (5/2)RT exactly, so (from the elements -&gt; atoms -&gt; molecule</span>
+<span class="sd">    Hess cycle, atom energies at T = E_ref(X) + (5/2)RT)</span>
+
+<span class="sd">        DfH(T) = sum(n_X * DfH0(X, 0K)) - n_atoms*(5/2)*R*T</span>
+<span class="sd">                 - [sum(n_X * E_ref(X)) - H_system]</span>
+
+<span class="sd">    Approximation: only the ATOM&#39;s own H(T)-H(0) is added; the standard-</span>
+<span class="sd">    state element&#39;s own H(T)-H(0) away from 298.15 K is not separately</span>
+<span class="sd">    corrected for (there is no single cheap closed form for it the way</span>
+<span class="sd">    there is for a monatomic ideal gas -- it depends on the standard</span>
+<span class="sd">    state&#39;s own heat capacity). This is the same approximation the legacy</span>
+<span class="sd">    298 K-only gaussian_step/psi4_step formation-enthalpy code made</span>
+<span class="sd">    implicitly (it used the exact tabulated 298 K anchor rather than</span>
+<span class="sd">    deriving one); the error it introduces is small near 298.15 K and</span>
+<span class="sd">    grows (slowly) away from it.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    composition, db, code, method, ref_type, settings, units</span>
+<span class="sd">        As in `atomization_energy`.</span>
+<span class="sd">    H_system : float</span>
+<span class="sd">        The system&#39;s total enthalpy H(T) -- electronic + ZPE + thermal</span>
+<span class="sd">        correction -- on the SAME absolute energy scale as the electronic</span>
+<span class="sd">        energy stored for the reference atoms (not a thermal correction</span>
+<span class="sd">        alone), in `units`.</span>
+<span class="sd">    temperature : float</span>
+<span class="sd">        Temperature, in K.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        DfH(T), in `units`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">composition</span> <span class="o">=</span> <span class="n">_as_counter</span><span class="p">(</span><span class="n">composition</span><span class="p">)</span>
+    <span class="n">ref_energies</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_reference_energies</span><span class="p">(</span>
+        <span class="n">code</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">ref_type</span><span class="o">=</span><span class="n">ref_type</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="n">settings</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span>
+    <span class="p">)</span>
+    <span class="n">missing</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">el</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">composition</span> <span class="k">if</span> <span class="n">el</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ref_energies</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">missing</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">MissingReferenceData</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;No </span><span class="si">{</span><span class="n">code</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">method</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">ref_type</span><span class="si">}</span><span class="s2">) reference energy for: &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">missing</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+    <span class="n">ref_sum</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">n</span> <span class="o">*</span> <span class="n">ref_energies</span><span class="p">[</span><span class="n">el</span><span class="p">]</span> <span class="k">for</span> <span class="n">el</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">composition</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+    <span class="n">n_atoms</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">composition</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+    <span class="n">thermal_per_atom</span> <span class="o">=</span> <span class="n">Q_</span><span class="p">(</span><span class="n">_ideal_gas_thermal_enthalpy</span><span class="p">(</span><span class="n">temperature</span><span class="p">),</span> <span class="s2">&quot;kJ/mol&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">m_as</span><span class="p">(</span>
+        <span class="n">units</span>
+    <span class="p">)</span>
+
+    <span class="n">anchor</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">missing_anchor</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">el</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">composition</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">dfH0</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">dfH0</span><span class="p">(</span><span class="n">el</span><span class="p">,</span> <span class="n">at_0K</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">dfH0</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">missing_anchor</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="n">anchor</span> <span class="o">+=</span> <span class="n">n</span> <span class="o">*</span> <span class="n">Q_</span><span class="p">(</span><span class="n">dfH0</span><span class="p">,</span> <span class="s2">&quot;kJ/mol&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">m_as</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">missing_anchor</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">MissingReferenceData</span><span class="p">(</span>
+            <span class="s2">&quot;No experimental 0 K heat of formation for: &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">missing_anchor</span><span class="p">))</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">anchor</span> <span class="o">-</span> <span class="n">n_atoms</span> <span class="o">*</span> <span class="n">thermal_per_atom</span> <span class="o">-</span> <span class="n">ref_sum</span> <span class="o">+</span> <span class="n">H_system</span></div>
+
+
+
+<div class="viewcode-block" id="formation_gibbs_energy">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.formation.formation_gibbs_energy">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">formation_gibbs_energy</span><span class="p">(</span>
+    <span class="n">composition</span><span class="p">,</span>
+    <span class="n">G_system</span><span class="p">,</span>
+    <span class="n">temperature</span><span class="p">,</span>
+    <span class="n">db</span><span class="p">,</span>
+    <span class="n">code</span><span class="p">,</span>
+    <span class="n">method</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">ref_type</span><span class="o">=</span><span class="s2">&quot;atom&quot;</span><span class="p">,</span>
+    <span class="n">settings</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+    <span class="n">units</span><span class="o">=</span><span class="s2">&quot;kJ/mol&quot;</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;DfG(T): Gibbs energy of formation from the elements, at T.</span>
+
+<span class="sd">    Same Hess-cycle construction as `formation_enthalpy`, extended to G.</span>
+<span class="sd">    Requires each element&#39;s `s298_std_state` (the *standard-state phase&#39;s*</span>
+<span class="sd">    molar entropy, per atom -- see `ThermoDB.s298_std_state`) in addition</span>
+<span class="sd">    to the usual 0 K atom energies and heats of formation; raises</span>
+<span class="sd">    `MissingReferenceData` for any element missing either.</span>
+
+<span class="sd">    Derivation note: the reference atom&#39;s OWN entropy cancels exactly out</span>
+<span class="sd">    of the final formula (it is only an intermediate state in the</span>
+<span class="sd">    elements -&gt; atoms -&gt; molecule cycle, and appears with opposite sign in</span>
+<span class="sd">    each half-reaction), so -- pleasantly -- no atomic entropy data is</span>
+<span class="sd">    needed at all, only the standard-state element&#39;s:</span>
+
+<span class="sd">        DfG(T) = sum(n_X * DfH0(X,0K))</span>
+<span class="sd">                 + T * sum(n_X * S298_std_state(X)) / 1000</span>
+<span class="sd">                 - n_atoms*(5/2)*R*T</span>
+<span class="sd">                 - [sum(n_X * E_ref(X)) - G_system]</span>
+
+<span class="sd">    Approximation: `S298_std_state` is used at its tabulated 298.15 K</span>
+<span class="sd">    value regardless of T (a standard-state solid&#39;s entropy has no cheap</span>
+<span class="sd">    closed-form T-dependence the way a monatomic ideal gas&#39;s does -- this</span>
+<span class="sd">    is the dominant source of error away from 298.15 K, layered on top of</span>
+<span class="sd">    the same 0 K-anchor approximation `formation_enthalpy` makes). At</span>
+<span class="sd">    T=0 this reduces exactly to</span>
+<span class="sd">    ``formation_energy(..., anchor=True, anchor_at_0K=True)`` evaluated</span>
+<span class="sd">    with `G_system` in place of the electronic energy -- a useful sanity</span>
+<span class="sd">    check (G_system at T=0 with no thermal terms IS the electronic</span>
+<span class="sd">    energy).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    composition, db, code, method, ref_type, settings, units</span>
+<span class="sd">        As in `atomization_energy`.</span>
+<span class="sd">    G_system : float</span>
+<span class="sd">        The system&#39;s total Gibbs free energy G(T), on the same absolute</span>
+<span class="sd">        scale as the electronic energy, in `units`.</span>
+<span class="sd">    temperature : float</span>
+<span class="sd">        Temperature, in K.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        DfG(T), in `units`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">composition</span> <span class="o">=</span> <span class="n">_as_counter</span><span class="p">(</span><span class="n">composition</span><span class="p">)</span>
+    <span class="n">ref_energies</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_reference_energies</span><span class="p">(</span>
+        <span class="n">code</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">ref_type</span><span class="o">=</span><span class="n">ref_type</span><span class="p">,</span> <span class="n">settings</span><span class="o">=</span><span class="n">settings</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span>
+    <span class="p">)</span>
+    <span class="n">missing</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">el</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">composition</span> <span class="k">if</span> <span class="n">el</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ref_energies</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">missing</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">MissingReferenceData</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;No </span><span class="si">{</span><span class="n">code</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">method</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">ref_type</span><span class="si">}</span><span class="s2">) reference energy for: &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">missing</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+    <span class="n">ref_sum</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">n</span> <span class="o">*</span> <span class="n">ref_energies</span><span class="p">[</span><span class="n">el</span><span class="p">]</span> <span class="k">for</span> <span class="n">el</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">composition</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+    <span class="n">n_atoms</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">composition</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+    <span class="n">thermal_per_atom</span> <span class="o">=</span> <span class="n">Q_</span><span class="p">(</span><span class="n">_ideal_gas_thermal_enthalpy</span><span class="p">(</span><span class="n">temperature</span><span class="p">),</span> <span class="s2">&quot;kJ/mol&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">m_as</span><span class="p">(</span>
+        <span class="n">units</span>
+    <span class="p">)</span>
+
+    <span class="n">anchor</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">std_state_term</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">missing_anchor</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">el</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">composition</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">dfH0</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">dfH0</span><span class="p">(</span><span class="n">el</span><span class="p">,</span> <span class="n">at_0K</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">s_std</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">s298_std_state</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">dfH0</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">s_std</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">missing_anchor</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span><span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="n">anchor</span> <span class="o">+=</span> <span class="n">n</span> <span class="o">*</span> <span class="n">Q_</span><span class="p">(</span><span class="n">dfH0</span><span class="p">,</span> <span class="s2">&quot;kJ/mol&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">m_as</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
+        <span class="n">std_state_term</span> <span class="o">+=</span> <span class="n">n</span> <span class="o">*</span> <span class="n">Q_</span><span class="p">(</span><span class="n">temperature</span> <span class="o">*</span> <span class="n">s_std</span> <span class="o">/</span> <span class="mf">1000.0</span><span class="p">,</span> <span class="s2">&quot;kJ/mol&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">m_as</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">missing_anchor</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">MissingReferenceData</span><span class="p">(</span>
+            <span class="s2">&quot;No experimental 0 K heat of formation and/or standard-state &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;entropy for: </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">missing_anchor</span><span class="p">))</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">anchor</span> <span class="o">+</span> <span class="n">std_state_term</span> <span class="o">-</span> <span class="n">n_atoms</span> <span class="o">*</span> <span class="n">thermal_per_atom</span> <span class="o">-</span> <span class="n">ref_sum</span> <span class="o">+</span> <span class="n">G_system</span></div>
 
 </pre></div>
 

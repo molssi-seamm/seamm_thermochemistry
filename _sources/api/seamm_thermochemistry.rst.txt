@@ -52,6 +52,14 @@ seamm\_thermochemistry.installer module
    :show-inheritance:
    :undoc-members:
 
+seamm\_thermochemistry.report module
+------------------------------------
+
+.. automodule:: seamm_thermochemistry.report
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 Module contents
 ---------------
 
