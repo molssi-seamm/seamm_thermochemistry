@@ -38,7 +38,23 @@ from collections import Counter
 
 from seamm_util import Q_
 
-__all__ = ["atomization_energy", "formation_energy", "MissingReferenceData"]
+__all__ = [
+    "atomization_energy",
+    "formation_energy",
+    "formation_enthalpy",
+    "formation_gibbs_energy",
+    "MissingReferenceData",
+]
+
+# CODATA gas constant, kJ/(mol K).
+_R = 8.31446261815324e-3
+
+
+def _ideal_gas_thermal_enthalpy(temperature):
+    """H(T) - H(0) for a monatomic ideal gas, kJ/mol: (5/2) R T (3/2 RT
+    translational + RT for the pV term that converts U to H). Exact for
+    any isolated gas atom at any T."""
+    return 2.5 * _R * temperature
 
 
 class MissingReferenceData(KeyError):
@@ -171,3 +187,179 @@ def formation_energy(
         )
 
     return total_anchor - atomization
+
+
+def formation_enthalpy(
+    composition,
+    H_system,
+    temperature,
+    db,
+    code,
+    method,
+    *,
+    ref_type="atom",
+    settings="",
+    units="kJ/mol",
+):
+    """DfH(T): enthalpy of formation from the elements, at temperature T.
+
+    Generalizes ``formation_energy(..., anchor=True, anchor_at_0K=True)``
+    from the electronic-only, 0 K quantity to a real temperature, by
+    treating each reference atom as a monatomic ideal gas: its
+    H(T)-H(0) = (5/2)RT exactly, so (from the elements -> atoms -> molecule
+    Hess cycle, atom energies at T = E_ref(X) + (5/2)RT)
+
+        DfH(T) = sum(n_X * DfH0(X, 0K)) - n_atoms*(5/2)*R*T
+                 - [sum(n_X * E_ref(X)) - H_system]
+
+    Approximation: only the ATOM's own H(T)-H(0) is added; the standard-
+    state element's own H(T)-H(0) away from 298.15 K is not separately
+    corrected for (there is no single cheap closed form for it the way
+    there is for a monatomic ideal gas -- it depends on the standard
+    state's own heat capacity). This is the same approximation the legacy
+    298 K-only gaussian_step/psi4_step formation-enthalpy code made
+    implicitly (it used the exact tabulated 298 K anchor rather than
+    deriving one); the error it introduces is small near 298.15 K and
+    grows (slowly) away from it.
+
+    Parameters
+    ----------
+    composition, db, code, method, ref_type, settings, units
+        As in `atomization_energy`.
+    H_system : float
+        The system's total enthalpy H(T) -- electronic + ZPE + thermal
+        correction -- on the SAME absolute energy scale as the electronic
+        energy stored for the reference atoms (not a thermal correction
+        alone), in `units`.
+    temperature : float
+        Temperature, in K.
+
+    Returns
+    -------
+    float
+        DfH(T), in `units`.
+    """
+    composition = _as_counter(composition)
+    ref_energies = db.get_reference_energies(
+        code, method, ref_type=ref_type, settings=settings, units=units
+    )
+    missing = sorted(el for el in composition if el not in ref_energies)
+    if missing:
+        raise MissingReferenceData(
+            f"No {code}/{method} ({ref_type}) reference energy for: "
+            f"{', '.join(missing)}"
+        )
+    ref_sum = sum(n * ref_energies[el] for el, n in composition.items())
+    n_atoms = sum(composition.values())
+    thermal_per_atom = Q_(_ideal_gas_thermal_enthalpy(temperature), "kJ/mol").m_as(
+        units
+    )
+
+    anchor = 0.0
+    missing_anchor = []
+    for el, n in composition.items():
+        dfH0 = db.dfH0(el, at_0K=True)
+        if dfH0 is None:
+            missing_anchor.append(el)
+            continue
+        anchor += n * Q_(dfH0, "kJ/mol").m_as(units)
+    if missing_anchor:
+        raise MissingReferenceData(
+            "No experimental 0 K heat of formation for: "
+            f"{', '.join(sorted(missing_anchor))}"
+        )
+
+    return anchor - n_atoms * thermal_per_atom - ref_sum + H_system
+
+
+def formation_gibbs_energy(
+    composition,
+    G_system,
+    temperature,
+    db,
+    code,
+    method,
+    *,
+    ref_type="atom",
+    settings="",
+    units="kJ/mol",
+):
+    """DfG(T): Gibbs energy of formation from the elements, at T.
+
+    Same Hess-cycle construction as `formation_enthalpy`, extended to G.
+    Requires each element's `s298_std_state` (the *standard-state phase's*
+    molar entropy, per atom -- see `ThermoDB.s298_std_state`) in addition
+    to the usual 0 K atom energies and heats of formation; raises
+    `MissingReferenceData` for any element missing either.
+
+    Derivation note: the reference atom's OWN entropy cancels exactly out
+    of the final formula (it is only an intermediate state in the
+    elements -> atoms -> molecule cycle, and appears with opposite sign in
+    each half-reaction), so -- pleasantly -- no atomic entropy data is
+    needed at all, only the standard-state element's:
+
+        DfG(T) = sum(n_X * DfH0(X,0K))
+                 + T * sum(n_X * S298_std_state(X)) / 1000
+                 - n_atoms*(5/2)*R*T
+                 - [sum(n_X * E_ref(X)) - G_system]
+
+    Approximation: `S298_std_state` is used at its tabulated 298.15 K
+    value regardless of T (a standard-state solid's entropy has no cheap
+    closed-form T-dependence the way a monatomic ideal gas's does -- this
+    is the dominant source of error away from 298.15 K, layered on top of
+    the same 0 K-anchor approximation `formation_enthalpy` makes). At
+    T=0 this reduces exactly to
+    ``formation_energy(..., anchor=True, anchor_at_0K=True)`` evaluated
+    with `G_system` in place of the electronic energy -- a useful sanity
+    check (G_system at T=0 with no thermal terms IS the electronic
+    energy).
+
+    Parameters
+    ----------
+    composition, db, code, method, ref_type, settings, units
+        As in `atomization_energy`.
+    G_system : float
+        The system's total Gibbs free energy G(T), on the same absolute
+        scale as the electronic energy, in `units`.
+    temperature : float
+        Temperature, in K.
+
+    Returns
+    -------
+    float
+        DfG(T), in `units`.
+    """
+    composition = _as_counter(composition)
+    ref_energies = db.get_reference_energies(
+        code, method, ref_type=ref_type, settings=settings, units=units
+    )
+    missing = sorted(el for el in composition if el not in ref_energies)
+    if missing:
+        raise MissingReferenceData(
+            f"No {code}/{method} ({ref_type}) reference energy for: "
+            f"{', '.join(missing)}"
+        )
+    ref_sum = sum(n * ref_energies[el] for el, n in composition.items())
+    n_atoms = sum(composition.values())
+    thermal_per_atom = Q_(_ideal_gas_thermal_enthalpy(temperature), "kJ/mol").m_as(
+        units
+    )
+
+    anchor = 0.0
+    std_state_term = 0.0
+    missing_anchor = []
+    for el, n in composition.items():
+        dfH0 = db.dfH0(el, at_0K=True)
+        s_std = db.s298_std_state(el)
+        if dfH0 is None or s_std is None:
+            missing_anchor.append(el)
+            continue
+        anchor += n * Q_(dfH0, "kJ/mol").m_as(units)
+        std_state_term += n * Q_(temperature * s_std / 1000.0, "kJ/mol").m_as(units)
+    if missing_anchor:
+        raise MissingReferenceData(
+            "No experimental 0 K heat of formation and/or standard-state "
+            f"entropy for: {', '.join(sorted(missing_anchor))}"
+        )
+
+    return anchor + std_state_term - n_atoms * thermal_per_atom - ref_sum + G_system

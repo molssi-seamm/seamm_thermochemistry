@@ -12,9 +12,12 @@ from .db import ThermoDB, DEFAULT_DB_PATH  # noqa: F401
 from .formation import (  # noqa: F401
     atomization_energy,
     formation_energy,
+    formation_enthalpy,
+    formation_gibbs_energy,
     MissingReferenceData,
 )
 from .derive import derive_dfH0_0K  # noqa: F401
+from .report import format_report  # noqa: F401
 from ._version import __version__  # noqa: F401
 
 __all__ = [
@@ -22,7 +25,10 @@ __all__ = [
     "DEFAULT_DB_PATH",
     "atomization_energy",
     "formation_energy",
+    "formation_enthalpy",
+    "formation_gibbs_energy",
     "MissingReferenceData",
     "derive_dfH0_0K",
+    "format_report",
     "__version__",
 ]
