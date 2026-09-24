@@ -22,12 +22,15 @@ VASP_XLSX = Path("~/Downloads/VASP element_energies.xlsx").expanduser()
 GAUSSIAN_CSV = Path(
     "~/Work/SEAMM/gaussian_step/gaussian_step/data/atom_energies.csv"
 ).expanduser()
-PSI4_CSV = Path("~/Work/SEAMM/psi4_step/psi4_step/data/atom_energies.csv").expanduser()
+# psi4_step's atom_energies.csv is NOT imported: it is gaussian_step's file
+# with two columns dropped (every shared value identical, checked 2026-09-24),
+# i.e. Gaussian numbers, not Psi4 results -- and the two codes' B3LYP differ
+# (VWN3 vs VWN5). Psi4 atom energies come back once they are actually computed
+# with Psi4.
 
 # Full composite-method/basis grid (~5000+ columns each) -- pass an explicit
 # list here instead of None for a quick partial rebuild during development.
 GAUSSIAN_METHODS = None
-PSI4_METHODS = None
 
 
 def main():
@@ -62,21 +65,6 @@ def main():
             dt = time.perf_counter() - t0
             print(
                 f"  Gaussian: {len(summary['methods'])} methods, "
-                f"{summary['n_energies']} energies ({dt:.1f}s)"
-            )
-
-        if PSI4_CSV.exists():
-            t0 = time.perf_counter()
-            summary = importers.import_wide_method_csv(
-                db,
-                PSI4_CSV,
-                "psi4",
-                methods=PSI4_METHODS,
-                import_elements=False,
-            )
-            dt = time.perf_counter() - t0
-            print(
-                f"  Psi4: {len(summary['methods'])} methods, "
                 f"{summary['n_energies']} energies ({dt:.1f}s)"
             )
 
