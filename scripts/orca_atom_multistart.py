@@ -18,7 +18,10 @@ For each element, method and basis this runs several SCF starts:
 
 * ``pbe0``: orbitals of PBE0/def2-SV(P) from a damped PModel guess (the
   protocol of the original SEAMM atom-energy flowchart, which converges well);
-* ORCA's own ``PModel``, ``HCore``, ``Hueckel`` and ``PAtom`` guesses;
+* ORCA's own ``PModel``, ``HCore``, ``Hueckel`` and ``PAtom`` guesses -- except
+  that from La (Z = 57) on, where Hueckel and PAtom are unavailable, a
+  ``smear`` start replaces them: PBE/def2-SV(P) orbitals from a Fermi-smeared
+  SCF;
 * then, for each distinct state found in ANY basis (identified by the Mulliken
   s/p/d/f charge and spin populations), that state's orbitals read into every
   other basis where it has not been found yet. So all bases of an element end
@@ -45,7 +48,9 @@ Outputs, in ``--out``:
 * ``choices.csv``: which start won for each entry, how many distinct states
   were seen, and any flags (open-shell singlet, <S**2>, no convergence).
 
-It is resumable: finished runs are parsed, not rerun. ``--rechoose`` rebuilds
+It is resumable: finished runs are parsed (also if their ``orca.out`` was
+compressed to ``orca.out.gz``), not rerun, so a new version of the script can
+extend a finished run with just its new starts. ``--rechoose`` rebuilds
 ``choices.csv`` and ``Results.csv`` from an existing ``runs.csv`` without
 running anything (e.g. after changing the selection rule).
 
@@ -59,6 +64,7 @@ import argparse
 import concurrent.futures
 import configparser
 import csv
+import gzip
 from pathlib import Path
 import re
 import shutil
@@ -88,6 +94,10 @@ DEFAULT_BASES = [
     "ma-def2-QZVPP",
 ]
 DIRECT_GUESSES = ["PModel", "HCore", "Hueckel", "PAtom"]
+# ORCA's Hueckel and PAtom guesses need an extended-Hueckel minimal basis, which
+# stops at Z = 56 ("Atomic number (57) too high"). From La on those starts are
+# skipped and a smeared seed (below) is added instead.
+EHT_MAX_Z = 56
 
 # The damping block of the original SEAMM atom-energy flowchart.
 SCF_BLOCK = """%scf
@@ -132,9 +142,21 @@ def write_input(path, keywords, symbol, mult, guess_block, moinp=None):
     path.write_text("\n".join(lines))
 
 
+def read_output(out_path):
+    """The text of orca.out, or of orca.out.gz if the output was compressed."""
+    if out_path.exists():
+        return out_path.read_text(errors="replace")
+    gz = out_path.with_name(out_path.name + ".gz")
+    if gz.exists():
+        with gzip.open(gz, "rt", errors="replace") as fh:
+            return fh.read()
+    return ""
+
+
 def parse(out_path):
-    """Energies, <S**2>, convergence and Mulliken l-populations from orca.out."""
-    text = out_path.read_text(errors="replace") if out_path.exists() else ""
+    """Energies, <S**2>, convergence and Mulliken l-populations from orca.out
+    (or orca.out.gz)."""
+    text = read_output(out_path)
     r = {"status": "missing"}
     if not text:
         return r
@@ -184,8 +206,9 @@ def fingerprint(r):
 def run_orca(orca, workdir, timeout):
     """Run ORCA in workdir unless a finished output is already there."""
     out = workdir / "orca.out"
-    if out.exists() and parse(out)["status"] != "missing":
-        return parse(out)
+    done = parse(out)
+    if done["status"] != "missing":
+        return done
     t0 = time.perf_counter()
     try:
         with out.open("w") as fh:
@@ -272,6 +295,24 @@ class ElementSearch:
         r = run_orca(self.args.orca, d, self.args.timeout)
         return d / "orca.gbw" if r.get("status") == "ok" else None
 
+    def smear_seed(self):
+        """PBE/def2-SV(P) orbitals from a Fermi-smeared SCF (SmearTemp 5000 K),
+        which lets near-degenerate orbitals share electrons before settling --
+        a start that explores configurations differently from the others. Used
+        from La on, where Hueckel and PAtom are unavailable."""
+        d = self.root / "seed_smear"
+        d.mkdir(parents=True, exist_ok=True)
+        if not (d / "orca.inp").exists():
+            write_input(
+                d / "orca.inp",
+                "PBE def2-SV(P) AutoAux TIGHTSCF NoCOSX SlowConv",
+                self.symbol,
+                self.mult,
+                "  SmearTemp 5000\n  Guess PModel\n",
+            )
+        r = run_orca(self.args.orca, d, self.args.timeout)
+        return d / "orca.gbw" if r.get("status") == "ok" else None
+
     def one(self, basis, start, guess_block, moinp_src=None):
         d = self.root / safe(self.method) / safe(basis) / safe(start)
         d.mkdir(parents=True, exist_ok=True)
@@ -295,13 +336,18 @@ class ElementSearch:
         return rec
 
     def search(self, pool):
-        seed = self.pbe0_seed()
+        seeds = {"pbe0": self.pbe0_seed()}
+        guesses = DIRECT_GUESSES
+        if self.Z > EHT_MAX_Z:
+            seeds["smear"] = self.smear_seed()
+            guesses = [g for g in DIRECT_GUESSES if g not in ("Hueckel", "PAtom")]
         # Round 1: every direct start in every basis.
         jobs = []
         for basis in self.args.bases:
-            if seed is not None:
-                jobs.append((basis, "pbe0", "  Guess MORead\n", seed))
-            for g in DIRECT_GUESSES:
+            for name, seed in seeds.items():
+                if seed is not None:
+                    jobs.append((basis, name, "  Guess MORead\n", seed))
+            for g in guesses:
                 jobs.append((basis, g, f"  Guess {g}\n", None))
         list(pool.map(lambda j: self.one(*j), jobs))
         # Round 2: share every state found anywhere with every basis.
