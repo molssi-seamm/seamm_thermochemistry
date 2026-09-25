@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.derive &#8212; SEAMM thermochemistry Plug-in 2026.7.30.1 documentation</title>
+    <title>seamm_thermochemistry.derive &#8212; SEAMM thermochemistry Plug-in 2026.9.25 documentation</title>
   
   
   
@@ -26,8 +26,8 @@
   </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
-<link href="../../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+  <link href="../../_static/styles/theme.css?digest=cb8930eaaf36d9849b67" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=cb8930eaaf36d9849b67" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
@@ -35,12 +35,12 @@
     <link rel="stylesheet" type="text/css" href="../../_static/css/custom.css" />
   
   <!-- So that users can add custom icons -->
-  <script defer src="../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <script defer src="../../_static/scripts/fontawesome.js?digest=cb8930eaaf36d9849b67"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
-<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67" />
 
-    <script src="../../_static/documentation_options.js?v=6a84fa41"></script>
+    <script src="../../_static/documentation_options.js?v=9a43dc2a"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.7.30.1" />
+  <meta name="docsearch:version" content="2026.9.25" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -411,7 +411,7 @@
                 <article class="bd-article">
                   
   <h1>Source code for seamm_thermochemistry.derive</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Derive DfH(X, 0K) from the 298 K experimental data already in the store.</span>
+<span></span><span class="sd">"""Derive DfH(X, 0K) from the 298 K experimental data already in the store.</span>
 
 <span class="sd">The master reference sheet only has ΔfH°(0K) filled in for H and He; every</span>
 <span class="sd">other element has ΔfH°(298K) plus the two H(298K)-H(0K) corrections needed</span>
@@ -426,28 +426,28 @@
 <span class="sd">division is needed. Verified against the two elements the master sheet</span>
 <span class="sd">already gives directly: H (218 - 6.197 + 8.468/2 = 216.03, matches</span>
 <span class="sd">216.034) and He (0 - 6.197 + 6.197 = 0, matches 0), both to within the</span>
-<span class="sd">sheet&#39;s own rounding.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">sheet's own rounding.</span>
+<span class="sd">"""</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;derive_dfH0_0K&quot;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"derive_dfH0_0K"</span><span class="p">]</span>
 
 <span class="c1"># Elements whose standard state is a diatomic gas (X2) -- everything else in</span>
-<span class="c1"># the periodic table&#39;s H-Kr range has a monatomic formula unit (solid metal,</span>
+<span class="c1"># the periodic table's H-Kr range has a monatomic formula unit (solid metal,</span>
 <span class="c1"># noble gas, C(s,gr), etc.), so no factor is needed.</span>
-<span class="n">_DIATOMIC_STANDARD_STATE</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;H&quot;</span><span class="p">,</span> <span class="s2">&quot;N&quot;</span><span class="p">,</span> <span class="s2">&quot;O&quot;</span><span class="p">,</span> <span class="s2">&quot;F&quot;</span><span class="p">,</span> <span class="s2">&quot;Cl&quot;</span><span class="p">,</span> <span class="s2">&quot;Br&quot;</span><span class="p">}</span>
+<span class="n">_DIATOMIC_STANDARD_STATE</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"H"</span><span class="p">,</span> <span class="s2">"N"</span><span class="p">,</span> <span class="s2">"O"</span><span class="p">,</span> <span class="s2">"F"</span><span class="p">,</span> <span class="s2">"Cl"</span><span class="p">,</span> <span class="s2">"Br"</span><span class="p">}</span>
 
 
 <div class="viewcode-block" id="derive_dfH0_0K">
 <a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.derive.derive_dfH0_0K">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">derive_dfH0_0K</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fill in `element.dfH0_0K` for every element where it&#39;s derivable.</span>
+<span class="w">    </span><span class="sd">"""Fill in `element.dfH0_0K` for every element where it's derivable.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    db : ThermoDB</span>
 <span class="sd">    overwrite : bool</span>
 <span class="sd">        If False (default), skip elements that already have `dfH0_0K` --</span>
-<span class="sd">        the master sheet&#39;s own H/He values are treated as authoritative</span>
+<span class="sd">        the master sheet's own H/He values are treated as authoritative</span>
 <span class="sd">        over a re-derivation (though the derivation reproduces them to</span>
 <span class="sd">        within rounding; see module docstring).</span>
 
@@ -455,41 +455,41 @@
 <span class="sd">    -------</span>
 <span class="sd">    list of str</span>
 <span class="sd">        Symbols of the elements filled in.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">filled</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">db</span><span class="o">.</span><span class="n">elements</span><span class="p">():</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">overwrite</span> <span class="ow">and</span> <span class="n">el</span><span class="p">[</span><span class="s2">&quot;dfH0_0K&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">overwrite</span> <span class="ow">and</span> <span class="n">el</span><span class="p">[</span><span class="s2">"dfH0_0K"</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">continue</span>
-        <span class="n">dfH298</span> <span class="o">=</span> <span class="n">el</span><span class="p">[</span><span class="s2">&quot;dfH0_298K&quot;</span><span class="p">]</span>
-        <span class="n">h298h0_atom</span> <span class="o">=</span> <span class="n">el</span><span class="p">[</span><span class="s2">&quot;h298_minus_h0_atom&quot;</span><span class="p">]</span>
-        <span class="n">h298h0_std</span> <span class="o">=</span> <span class="n">el</span><span class="p">[</span><span class="s2">&quot;h298_minus_h0_std_state&quot;</span><span class="p">]</span>
+        <span class="n">dfH298</span> <span class="o">=</span> <span class="n">el</span><span class="p">[</span><span class="s2">"dfH0_298K"</span><span class="p">]</span>
+        <span class="n">h298h0_atom</span> <span class="o">=</span> <span class="n">el</span><span class="p">[</span><span class="s2">"h298_minus_h0_atom"</span><span class="p">]</span>
+        <span class="n">h298h0_std</span> <span class="o">=</span> <span class="n">el</span><span class="p">[</span><span class="s2">"h298_minus_h0_std_state"</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">dfH298</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">h298h0_atom</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">h298h0_std</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">continue</span>
 
-        <span class="n">divisor</span> <span class="o">=</span> <span class="mi">2</span> <span class="k">if</span> <span class="n">el</span><span class="p">[</span><span class="s2">&quot;symbol&quot;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">_DIATOMIC_STANDARD_STATE</span> <span class="k">else</span> <span class="mi">1</span>
+        <span class="n">divisor</span> <span class="o">=</span> <span class="mi">2</span> <span class="k">if</span> <span class="n">el</span><span class="p">[</span><span class="s2">"symbol"</span><span class="p">]</span> <span class="ow">in</span> <span class="n">_DIATOMIC_STANDARD_STATE</span> <span class="k">else</span> <span class="mi">1</span>
         <span class="n">dfH0_0K</span> <span class="o">=</span> <span class="n">dfH298</span> <span class="o">-</span> <span class="n">h298h0_atom</span> <span class="o">+</span> <span class="n">h298h0_std</span> <span class="o">/</span> <span class="n">divisor</span>
 
         <span class="n">db</span><span class="o">.</span><span class="n">add_element</span><span class="p">(</span>
-            <span class="n">el</span><span class="p">[</span><span class="s2">&quot;atomic_number&quot;</span><span class="p">],</span>
-            <span class="n">el</span><span class="p">[</span><span class="s2">&quot;symbol&quot;</span><span class="p">],</span>
-            <span class="n">multiplicity</span><span class="o">=</span><span class="n">el</span><span class="p">[</span><span class="s2">&quot;multiplicity&quot;</span><span class="p">],</span>
-            <span class="n">term_symbol</span><span class="o">=</span><span class="n">el</span><span class="p">[</span><span class="s2">&quot;term_symbol&quot;</span><span class="p">],</span>
-            <span class="n">standard_state</span><span class="o">=</span><span class="n">el</span><span class="p">[</span><span class="s2">&quot;standard_state&quot;</span><span class="p">],</span>
+            <span class="n">el</span><span class="p">[</span><span class="s2">"atomic_number"</span><span class="p">],</span>
+            <span class="n">el</span><span class="p">[</span><span class="s2">"symbol"</span><span class="p">],</span>
+            <span class="n">multiplicity</span><span class="o">=</span><span class="n">el</span><span class="p">[</span><span class="s2">"multiplicity"</span><span class="p">],</span>
+            <span class="n">term_symbol</span><span class="o">=</span><span class="n">el</span><span class="p">[</span><span class="s2">"term_symbol"</span><span class="p">],</span>
+            <span class="n">standard_state</span><span class="o">=</span><span class="n">el</span><span class="p">[</span><span class="s2">"standard_state"</span><span class="p">],</span>
             <span class="n">dfH0_0K</span><span class="o">=</span><span class="n">dfH0_0K</span><span class="p">,</span>
-            <span class="n">dfH0_298K</span><span class="o">=</span><span class="n">el</span><span class="p">[</span><span class="s2">&quot;dfH0_298K&quot;</span><span class="p">],</span>
-            <span class="n">dfH0_298K_stderr</span><span class="o">=</span><span class="n">el</span><span class="p">[</span><span class="s2">&quot;dfH0_298K_stderr&quot;</span><span class="p">],</span>
-            <span class="n">h298_minus_h0_atom</span><span class="o">=</span><span class="n">el</span><span class="p">[</span><span class="s2">&quot;h298_minus_h0_atom&quot;</span><span class="p">],</span>
-            <span class="n">h298_minus_h0_std_state</span><span class="o">=</span><span class="n">el</span><span class="p">[</span><span class="s2">&quot;h298_minus_h0_std_state&quot;</span><span class="p">],</span>
-            <span class="n">s298_gas</span><span class="o">=</span><span class="n">el</span><span class="p">[</span><span class="s2">&quot;s298_gas&quot;</span><span class="p">],</span>
-            <span class="n">s298_gas_stderr</span><span class="o">=</span><span class="n">el</span><span class="p">[</span><span class="s2">&quot;s298_gas_stderr&quot;</span><span class="p">],</span>
-            <span class="n">reference</span><span class="o">=</span><span class="n">el</span><span class="p">[</span><span class="s2">&quot;reference&quot;</span><span class="p">],</span>
+            <span class="n">dfH0_298K</span><span class="o">=</span><span class="n">el</span><span class="p">[</span><span class="s2">"dfH0_298K"</span><span class="p">],</span>
+            <span class="n">dfH0_298K_stderr</span><span class="o">=</span><span class="n">el</span><span class="p">[</span><span class="s2">"dfH0_298K_stderr"</span><span class="p">],</span>
+            <span class="n">h298_minus_h0_atom</span><span class="o">=</span><span class="n">el</span><span class="p">[</span><span class="s2">"h298_minus_h0_atom"</span><span class="p">],</span>
+            <span class="n">h298_minus_h0_std_state</span><span class="o">=</span><span class="n">el</span><span class="p">[</span><span class="s2">"h298_minus_h0_std_state"</span><span class="p">],</span>
+            <span class="n">s298_gas</span><span class="o">=</span><span class="n">el</span><span class="p">[</span><span class="s2">"s298_gas"</span><span class="p">],</span>
+            <span class="n">s298_gas_stderr</span><span class="o">=</span><span class="n">el</span><span class="p">[</span><span class="s2">"s298_gas_stderr"</span><span class="p">],</span>
+            <span class="n">reference</span><span class="o">=</span><span class="n">el</span><span class="p">[</span><span class="s2">"reference"</span><span class="p">],</span>
             <span class="n">reference_note</span><span class="o">=</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">el</span><span class="p">[</span><span class="s1">&#39;reference_note&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> (0K derived from 298K)&quot;</span>
-                <span class="k">if</span> <span class="n">el</span><span class="p">[</span><span class="s2">&quot;reference_note&quot;</span><span class="p">]</span>
-                <span class="k">else</span> <span class="s2">&quot;0K derived from 298K&quot;</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">el</span><span class="p">[</span><span class="s1">'reference_note'</span><span class="p">]</span><span class="si">}</span><span class="s2"> (0K derived from 298K)"</span>
+                <span class="k">if</span> <span class="n">el</span><span class="p">[</span><span class="s2">"reference_note"</span><span class="p">]</span>
+                <span class="k">else</span> <span class="s2">"0K derived from 298K"</span>
             <span class="p">),</span>
         <span class="p">)</span>
-        <span class="n">filled</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span><span class="p">[</span><span class="s2">&quot;symbol&quot;</span><span class="p">])</span>
+        <span class="n">filled</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">el</span><span class="p">[</span><span class="s2">"symbol"</span><span class="p">])</span>
     <span class="k">return</span> <span class="n">filled</span></div>
 
 </pre></div>
@@ -521,8 +521,8 @@
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
-<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+  <script defer src="../../_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -534,7 +534,7 @@
         <div class="footer-item">
 <p class="theme-version">
   <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.20.0.
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.21.0.
 </p></div>
       
     </div>

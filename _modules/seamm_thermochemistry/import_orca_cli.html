@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.import_orca_cli &#8212; SEAMM thermochemistry Plug-in 2026.7.30.1 documentation</title>
+    <title>seamm_thermochemistry.import_orca_cli &#8212; SEAMM thermochemistry Plug-in 2026.9.25 documentation</title>
   
   
   
@@ -26,8 +26,8 @@
   </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
-<link href="../../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+  <link href="../../_static/styles/theme.css?digest=cb8930eaaf36d9849b67" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=cb8930eaaf36d9849b67" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
@@ -35,12 +35,12 @@
     <link rel="stylesheet" type="text/css" href="../../_static/css/custom.css" />
   
   <!-- So that users can add custom icons -->
-  <script defer src="../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <script defer src="../../_static/scripts/fontawesome.js?digest=cb8930eaaf36d9849b67"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
-<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67" />
 
-    <script src="../../_static/documentation_options.js?v=6a84fa41"></script>
+    <script src="../../_static/documentation_options.js?v=9a43dc2a"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.7.30.1" />
+  <meta name="docsearch:version" content="2026.9.25" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -412,7 +412,7 @@
                   
   <h1>Source code for seamm_thermochemistry.import_orca_cli</h1><div class="highlight"><pre>
 <span></span><span class="ch">#!/usr/bin/env python3</span>
-<span class="sd">&quot;&quot;&quot;Import one or more ORCA atom-energy results CSVs into thermochemistry.db.</span>
+<span class="sd">"""Import one or more ORCA atom-energy results CSVs into thermochemistry.db.</span>
 
 <span class="sd">Installed as the ``seamm-thermochemistry-import-orca`` console script.</span>
 
@@ -426,7 +426,7 @@
 <span class="sd">See `seamm_thermochemistry.importers.import_orca_atom_results` for the CSV</span>
 <span class="sd">shape expected and the vetting/duplicate-handling rules -- this module is</span>
 <span class="sd">just the CLI + pretty-printing around that function.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
@@ -436,56 +436,56 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_fmt</span><span class="p">(</span><span class="n">entry</span><span class="p">):</span>
-    <span class="n">bits</span> <span class="o">=</span> <span class="p">[</span><span class="n">entry</span><span class="p">[</span><span class="s2">&quot;symbol&quot;</span><span class="p">],</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">&#39;method&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">&#39;basis&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">]</span>
-    <span class="k">if</span> <span class="s2">&quot;energy&quot;</span> <span class="ow">in</span> <span class="n">entry</span><span class="p">:</span>
-        <span class="n">bits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">&#39;energy&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> kJ/mol&quot;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">bits</span><span class="p">)</span>
+    <span class="n">bits</span> <span class="o">=</span> <span class="p">[</span><span class="n">entry</span><span class="p">[</span><span class="s2">"symbol"</span><span class="p">],</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">'method'</span><span class="p">]</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">'basis'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">]</span>
+    <span class="k">if</span> <span class="s2">"energy"</span> <span class="ow">in</span> <span class="n">entry</span><span class="p">:</span>
+        <span class="n">bits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">'energy'</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> kJ/mol"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s2">" "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">bits</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="report">
 <a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.import_orca_cli.report">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">report</span><span class="p">(</span><span class="n">csv_path</span><span class="p">,</span> <span class="n">summary</span><span class="p">):</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">{</span><span class="n">csv_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="si">{</span><span class="n">csv_path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span>
-        <span class="sa">f</span><span class="s2">&quot;  added=</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">summary</span><span class="p">[</span><span class="s1">&#39;added&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2"> unchanged=</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">summary</span><span class="p">[</span><span class="s1">&#39;unchanged&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2"> &quot;</span>
-        <span class="sa">f</span><span class="s2">&quot;updated=</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">summary</span><span class="p">[</span><span class="s1">&#39;updated&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2"> conflicts=</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">summary</span><span class="p">[</span><span class="s1">&#39;conflicts&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2"> &quot;</span>
-        <span class="sa">f</span><span class="s2">&quot;rejected=</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">summary</span><span class="p">[</span><span class="s1">&#39;rejected&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2"> &quot;</span>
-        <span class="sa">f</span><span class="s2">&quot;spin_warnings=</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">summary</span><span class="p">[</span><span class="s1">&#39;spin_warnings&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="sa">f</span><span class="s2">"  added=</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">summary</span><span class="p">[</span><span class="s1">'added'</span><span class="p">])</span><span class="si">}</span><span class="s2"> unchanged=</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">summary</span><span class="p">[</span><span class="s1">'unchanged'</span><span class="p">])</span><span class="si">}</span><span class="s2"> "</span>
+        <span class="sa">f</span><span class="s2">"updated=</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">summary</span><span class="p">[</span><span class="s1">'updated'</span><span class="p">])</span><span class="si">}</span><span class="s2"> conflicts=</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">summary</span><span class="p">[</span><span class="s1">'conflicts'</span><span class="p">])</span><span class="si">}</span><span class="s2"> "</span>
+        <span class="sa">f</span><span class="s2">"rejected=</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">summary</span><span class="p">[</span><span class="s1">'rejected'</span><span class="p">])</span><span class="si">}</span><span class="s2"> "</span>
+        <span class="sa">f</span><span class="s2">"spin_warnings=</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">summary</span><span class="p">[</span><span class="s1">'spin_warnings'</span><span class="p">])</span><span class="si">}</span><span class="s2">"</span>
     <span class="p">)</span>
 
-    <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">summary</span><span class="p">[</span><span class="s2">&quot;rejected&quot;</span><span class="p">]:</span>
-        <span class="k">if</span> <span class="s2">&quot;method&quot;</span> <span class="ow">in</span> <span class="n">entry</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  REJECTED  </span><span class="si">{</span><span class="n">_fmt</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span><span class="si">}</span><span class="s2"> -- </span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">&#39;reason&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">summary</span><span class="p">[</span><span class="s2">"rejected"</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="s2">"method"</span> <span class="ow">in</span> <span class="n">entry</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  REJECTED  </span><span class="si">{</span><span class="n">_fmt</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span><span class="si">}</span><span class="s2"> -- </span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">'reason'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  REJECTED  </span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">&#39;symbol&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> -- </span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">&#39;reason&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  REJECTED  </span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">'symbol'</span><span class="p">]</span><span class="si">}</span><span class="s2"> -- </span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">'reason'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
-    <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">summary</span><span class="p">[</span><span class="s2">&quot;spin_warnings&quot;</span><span class="p">]:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  SPIN?     </span><span class="si">{</span><span class="n">_fmt</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span><span class="si">}</span><span class="s2"> -- </span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">&#39;reason&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> (added anyway)&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">summary</span><span class="p">[</span><span class="s2">"spin_warnings"</span><span class="p">]:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  SPIN?     </span><span class="si">{</span><span class="n">_fmt</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span><span class="si">}</span><span class="s2"> -- </span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">'reason'</span><span class="p">]</span><span class="si">}</span><span class="s2"> (added anyway)"</span><span class="p">)</span>
 
-    <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">summary</span><span class="p">[</span><span class="s2">&quot;conflicts&quot;</span><span class="p">]:</span>
+    <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">summary</span><span class="p">[</span><span class="s2">"conflicts"</span><span class="p">]:</span>
         <span class="nb">print</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;  CONFLICT  </span><span class="si">{</span><span class="n">_fmt</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span><span class="si">}</span><span class="s2"> -- existing=</span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">&#39;existing&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> &quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;new=</span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">&#39;energy&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> (delta=</span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">&#39;delta&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">+.3f</span><span class="si">}</span><span class="s2">) &quot;</span>
-            <span class="s2">&quot;-- NOT overwritten, rerun with --force or --prefer-lower-energy&quot;</span>
+            <span class="sa">f</span><span class="s2">"  CONFLICT  </span><span class="si">{</span><span class="n">_fmt</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span><span class="si">}</span><span class="s2"> -- existing=</span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">'existing'</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> "</span>
+            <span class="sa">f</span><span class="s2">"new=</span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">'energy'</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> (delta=</span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">'delta'</span><span class="p">]</span><span class="si">:</span><span class="s2">+.3f</span><span class="si">}</span><span class="s2">) "</span>
+            <span class="s2">"-- NOT overwritten, rerun with --force or --prefer-lower-energy"</span>
         <span class="p">)</span>
 
-    <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">summary</span><span class="p">[</span><span class="s2">&quot;updated&quot;</span><span class="p">]:</span>
-        <span class="n">reason</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot; [</span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">&#39;reason&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">]&quot;</span> <span class="k">if</span> <span class="s2">&quot;reason&quot;</span> <span class="ow">in</span> <span class="n">entry</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">summary</span><span class="p">[</span><span class="s2">"updated"</span><span class="p">]:</span>
+        <span class="n">reason</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">" [</span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">'reason'</span><span class="p">]</span><span class="si">}</span><span class="s2">]"</span> <span class="k">if</span> <span class="s2">"reason"</span> <span class="ow">in</span> <span class="n">entry</span> <span class="k">else</span> <span class="s2">""</span>
         <span class="nb">print</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;  UPDATED   </span><span class="si">{</span><span class="n">_fmt</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span><span class="si">}</span><span class="s2"> -- existing=</span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">&#39;existing&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> &quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;new=</span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">&#39;energy&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> (delta=</span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">&#39;delta&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">+.3f</span><span class="si">}</span><span class="s2">)</span><span class="si">{</span><span class="n">reason</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">"  UPDATED   </span><span class="si">{</span><span class="n">_fmt</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span><span class="si">}</span><span class="s2"> -- existing=</span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">'existing'</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> "</span>
+            <span class="sa">f</span><span class="s2">"new=</span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">'energy'</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> (delta=</span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">'delta'</span><span class="p">]</span><span class="si">:</span><span class="s2">+.3f</span><span class="si">}</span><span class="s2">)</span><span class="si">{</span><span class="n">reason</span><span class="si">}</span><span class="s2">"</span>
         <span class="p">)</span>
 
-    <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">summary</span><span class="p">[</span><span class="s2">&quot;kept_existing&quot;</span><span class="p">]:</span>
+    <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">summary</span><span class="p">[</span><span class="s2">"kept_existing"</span><span class="p">]:</span>
         <span class="nb">print</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;  KEPT      </span><span class="si">{</span><span class="n">_fmt</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span><span class="si">}</span><span class="s2"> -- existing=</span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">&#39;existing&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> is &quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;lower than new=</span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">&#39;energy&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> (delta=</span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">&#39;delta&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">+.3f</span><span class="si">}</span><span class="s2">)&quot;</span>
+            <span class="sa">f</span><span class="s2">"  KEPT      </span><span class="si">{</span><span class="n">_fmt</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span><span class="si">}</span><span class="s2"> -- existing=</span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">'existing'</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> is "</span>
+            <span class="sa">f</span><span class="s2">"lower than new=</span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">'energy'</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> (delta=</span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">'delta'</span><span class="p">]</span><span class="si">:</span><span class="s2">+.3f</span><span class="si">}</span><span class="s2">)"</span>
         <span class="p">)</span>
 
-    <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">summary</span><span class="p">[</span><span class="s2">&quot;multiplicity_mismatches&quot;</span><span class="p">]:</span>
+    <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">summary</span><span class="p">[</span><span class="s2">"multiplicity_mismatches"</span><span class="p">]:</span>
         <span class="nb">print</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;  MULT?     </span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">&#39;symbol&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> -- CSV says </span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">&#39;csv_multiplicity&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">, &quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;database says </span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">&#39;db_multiplicity&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">"  MULT?     </span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">'symbol'</span><span class="p">]</span><span class="si">}</span><span class="s2"> -- CSV says </span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">'csv_multiplicity'</span><span class="p">]</span><span class="si">}</span><span class="s2">, "</span>
+            <span class="sa">f</span><span class="s2">"database says </span><span class="si">{</span><span class="n">entry</span><span class="p">[</span><span class="s1">'db_multiplicity'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
         <span class="p">)</span></div>
 
 
@@ -494,69 +494,69 @@
 <a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.import_orca_cli.main">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
     <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="vm">__doc__</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;csv_files&quot;</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;ORCA results CSV file(s)&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"csv_files"</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s2">"+"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"ORCA results CSV file(s)"</span><span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s2">&quot;--db&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Database path (default: DEFAULT_DB_PATH)&quot;</span>
+        <span class="s2">"--db"</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Database path (default: DEFAULT_DB_PATH)"</span>
     <span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--code&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;orca&quot;</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--ref-type&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;atom&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--code"</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">"orca"</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--ref-type"</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">"atom"</span><span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s2">&quot;--warn-threshold&quot;</span><span class="p">,</span>
+        <span class="s2">"--warn-threshold"</span><span class="p">,</span>
         <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
         <span class="n">default</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Relative S^2 deviation above which to flag for review (default 2</span><span class="si">%%</span><span class="s2">)&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">"Relative S^2 deviation above which to flag for review (default 2</span><span class="si">%%</span><span class="s2">)"</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s2">&quot;--reject-threshold&quot;</span><span class="p">,</span>
+        <span class="s2">"--reject-threshold"</span><span class="p">,</span>
         <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
         <span class="n">default</span><span class="o">=</span><span class="mf">0.20</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Relative S^2 deviation above which to skip entirely (default 20</span><span class="si">%%</span><span class="s2">)&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">"Relative S^2 deviation above which to skip entirely (default 20</span><span class="si">%%</span><span class="s2">)"</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s2">&quot;--energy-rel-tol&quot;</span><span class="p">,</span>
+        <span class="s2">"--energy-rel-tol"</span><span class="p">,</span>
         <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
         <span class="n">default</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Relative tolerance for treating a duplicate as unchanged&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">"Relative tolerance for treating a duplicate as unchanged"</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s2">&quot;--energy-abs-tol&quot;</span><span class="p">,</span>
+        <span class="s2">"--energy-abs-tol"</span><span class="p">,</span>
         <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
         <span class="n">default</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Absolute tolerance (kJ/mol) for treating a duplicate as unchanged&quot;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">"Absolute tolerance (kJ/mol) for treating a duplicate as unchanged"</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">resolution</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">add_mutually_exclusive_group</span><span class="p">()</span>
     <span class="n">resolution</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s2">&quot;--force&quot;</span><span class="p">,</span>
-        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Overwrite every conflicting existing value, unconditionally&quot;</span><span class="p">,</span>
+        <span class="s2">"--force"</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s2">"store_true"</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">"Overwrite every conflicting existing value, unconditionally"</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">resolution</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s2">&quot;--prefer-lower-energy&quot;</span><span class="p">,</span>
-        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+        <span class="s2">"--prefer-lower-energy"</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s2">"store_true"</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="p">(</span>
-            <span class="s2">&quot;Resolve conflicts by keeping whichever energy is lower (more &quot;</span>
-            <span class="s2">&quot;stable) -- for hard atoms, two runs can converge to different &quot;</span>
-            <span class="s2">&quot;self-consistent solutions of the same nominal state, invisible &quot;</span>
-            <span class="s2">&quot;to the S^2 gate. Still reported, never silent.&quot;</span>
+            <span class="s2">"Resolve conflicts by keeping whichever energy is lower (more "</span>
+            <span class="s2">"stable) -- for hard atoms, two runs can converge to different "</span>
+            <span class="s2">"self-consistent solutions of the same nominal state, invisible "</span>
+            <span class="s2">"to the S^2 gate. Still reported, never silent."</span>
         <span class="p">),</span>
     <span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s2">&quot;--dry-run&quot;</span><span class="p">,</span>
-        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Classify and report everything without writing to the database&quot;</span><span class="p">,</span>
+        <span class="s2">"--dry-run"</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s2">"store_true"</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">"Classify and report everything without writing to the database"</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
 
     <span class="n">db_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">db</span><span class="p">)</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span> <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">db</span> <span class="k">else</span> <span class="n">DEFAULT_DB_PATH</span>
 
     <span class="n">totals</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">&quot;added&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-        <span class="s2">&quot;updated&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-        <span class="s2">&quot;unchanged&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-        <span class="s2">&quot;conflicts&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-        <span class="s2">&quot;kept_existing&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-        <span class="s2">&quot;rejected&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-        <span class="s2">&quot;spin_warnings&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s2">"added"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s2">"updated"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s2">"unchanged"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s2">"conflicts"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s2">"kept_existing"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s2">"rejected"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s2">"spin_warnings"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
     <span class="p">}</span>
     <span class="k">with</span> <span class="n">ThermoDB</span><span class="p">(</span><span class="n">db_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">db</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">csv_file</span> <span class="ow">in</span> <span class="n">args</span><span class="o">.</span><span class="n">csv_files</span><span class="p">:</span>
@@ -577,33 +577,33 @@
             <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">totals</span><span class="p">:</span>
                 <span class="n">totals</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">summary</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
-    <span class="n">label</span> <span class="o">=</span> <span class="s2">&quot;Would have&quot;</span> <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">dry_run</span> <span class="k">else</span> <span class="s2">&quot;Did&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span> <span class="o">+</span> <span class="s2">"="</span> <span class="o">*</span> <span class="mi">60</span><span class="p">)</span>
+    <span class="n">label</span> <span class="o">=</span> <span class="s2">"Would have"</span> <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">dry_run</span> <span class="k">else</span> <span class="s2">"Did"</span>
     <span class="nb">print</span><span class="p">(</span>
-        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">: add </span><span class="si">{</span><span class="n">totals</span><span class="p">[</span><span class="s1">&#39;added&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">, update </span><span class="si">{</span><span class="n">totals</span><span class="p">[</span><span class="s1">&#39;updated&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">, &quot;</span>
-        <span class="sa">f</span><span class="s2">&quot;leave </span><span class="si">{</span><span class="n">totals</span><span class="p">[</span><span class="s1">&#39;unchanged&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> unchanged.&quot;</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">: add </span><span class="si">{</span><span class="n">totals</span><span class="p">[</span><span class="s1">'added'</span><span class="p">]</span><span class="si">}</span><span class="s2">, update </span><span class="si">{</span><span class="n">totals</span><span class="p">[</span><span class="s1">'updated'</span><span class="p">]</span><span class="si">}</span><span class="s2">, "</span>
+        <span class="sa">f</span><span class="s2">"leave </span><span class="si">{</span><span class="n">totals</span><span class="p">[</span><span class="s1">'unchanged'</span><span class="p">]</span><span class="si">}</span><span class="s2"> unchanged."</span>
     <span class="p">)</span>
-    <span class="k">if</span> <span class="n">totals</span><span class="p">[</span><span class="s2">&quot;conflicts&quot;</span><span class="p">]:</span>
+    <span class="k">if</span> <span class="n">totals</span><span class="p">[</span><span class="s2">"conflicts"</span><span class="p">]:</span>
         <span class="nb">print</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">totals</span><span class="p">[</span><span class="s1">&#39;conflicts&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> conflicting value(s) NOT overwritten &quot;</span>
-            <span class="s2">&quot;-- rerun with --force or --prefer-lower-energy, or review them above.&quot;</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">totals</span><span class="p">[</span><span class="s1">'conflicts'</span><span class="p">]</span><span class="si">}</span><span class="s2"> conflicting value(s) NOT overwritten "</span>
+            <span class="s2">"-- rerun with --force or --prefer-lower-energy, or review them above."</span>
         <span class="p">)</span>
-    <span class="k">if</span> <span class="n">totals</span><span class="p">[</span><span class="s2">&quot;kept_existing&quot;</span><span class="p">]:</span>
+    <span class="k">if</span> <span class="n">totals</span><span class="p">[</span><span class="s2">"kept_existing"</span><span class="p">]:</span>
         <span class="nb">print</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">totals</span><span class="p">[</span><span class="s1">&#39;kept_existing&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> conflicting value(s) kept as-is &quot;</span>
-            <span class="s2">&quot;(existing was lower) -- see KEPT lines above.&quot;</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">totals</span><span class="p">[</span><span class="s1">'kept_existing'</span><span class="p">]</span><span class="si">}</span><span class="s2"> conflicting value(s) kept as-is "</span>
+            <span class="s2">"(existing was lower) -- see KEPT lines above."</span>
         <span class="p">)</span>
-    <span class="k">if</span> <span class="n">totals</span><span class="p">[</span><span class="s2">&quot;rejected&quot;</span><span class="p">]:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">totals</span><span class="p">[</span><span class="s1">&#39;rejected&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> cell(s) rejected on the S^2 gate -- see above.&quot;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">totals</span><span class="p">[</span><span class="s2">&quot;spin_warnings&quot;</span><span class="p">]:</span>
+    <span class="k">if</span> <span class="n">totals</span><span class="p">[</span><span class="s2">"rejected"</span><span class="p">]:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">totals</span><span class="p">[</span><span class="s1">'rejected'</span><span class="p">]</span><span class="si">}</span><span class="s2"> cell(s) rejected on the S^2 gate -- see above."</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">totals</span><span class="p">[</span><span class="s2">"spin_warnings"</span><span class="p">]:</span>
         <span class="nb">print</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">totals</span><span class="p">[</span><span class="s1">&#39;spin_warnings&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> cell(s) added despite an elevated S^2 &quot;</span>
-            <span class="s2">&quot;-- worth a look.&quot;</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">totals</span><span class="p">[</span><span class="s1">'spin_warnings'</span><span class="p">]</span><span class="si">}</span><span class="s2"> cell(s) added despite an elevated S^2 "</span>
+            <span class="s2">"-- worth a look."</span>
         <span class="p">)</span></div>
 
 
 
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">"__main__"</span><span class="p">:</span>
     <span class="n">main</span><span class="p">()</span>
 </pre></div>
 
@@ -634,8 +634,8 @@
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
-<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+  <script defer src="../../_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -647,7 +647,7 @@
         <div class="footer-item">
 <p class="theme-version">
   <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.20.0.
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.21.0.
 </p></div>
       
     </div>

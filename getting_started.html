@@ -8,7 +8,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.7.30.1 documentation</title>
+    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.9.25 documentation</title>
   
   
   
@@ -27,8 +27,8 @@
   </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
-<link href="_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+  <link href="_static/styles/theme.css?digest=cb8930eaaf36d9849b67" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=cb8930eaaf36d9849b67" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
@@ -36,12 +36,12 @@
     <link rel="stylesheet" type="text/css" href="_static/css/custom.css" />
   
   <!-- So that users can add custom icons -->
-  <script defer src="_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <script defer src="_static/scripts/fontawesome.js?digest=cb8930eaaf36d9849b67"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
-<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67" />
 
-    <script src="_static/documentation_options.js?v=6a84fa41"></script>
+    <script src="_static/documentation_options.js?v=9a43dc2a"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -55,7 +55,7 @@
     <link rel="prev" title="Welcome to SEAMM thermochemistry’s documentation!" href="index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.7.30.1" />
+  <meta name="docsearch:version" content="2026.9.25" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -473,14 +473,14 @@ then resolves to that location automatically.</p>
 <h2>A quick example<a class="headerlink" href="#a-quick-example" title="Link to this heading">#</a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">seamm_thermochemistry</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThermoDB</span><span class="p">,</span> <span class="n">formation_energy</span>
 
-<span class="k">with</span> <span class="n">ThermoDB</span><span class="p">(</span><span class="s2">&quot;my_reference.db&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">db</span><span class="p">:</span>
-    <span class="n">db</span><span class="o">.</span><span class="n">add_element</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;H&quot;</span><span class="p">,</span> <span class="n">dfH0_0K</span><span class="o">=</span><span class="mf">216.034</span><span class="p">,</span> <span class="n">standard_state</span><span class="o">=</span><span class="s2">&quot;1/2 H2(g)&quot;</span><span class="p">)</span>
-    <span class="n">db</span><span class="o">.</span><span class="n">add_element</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="s2">&quot;O&quot;</span><span class="p">,</span> <span class="n">dfH0_0K</span><span class="o">=</span><span class="mf">246.79</span><span class="p">,</span> <span class="n">standard_state</span><span class="o">=</span><span class="s2">&quot;1/2 O2(g)&quot;</span><span class="p">)</span>
-    <span class="n">db</span><span class="o">.</span><span class="n">add_atom_energy</span><span class="p">(</span><span class="s2">&quot;H&quot;</span><span class="p">,</span> <span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;CBS-QB3&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mf">1312.0</span><span class="p">)</span>
-    <span class="n">db</span><span class="o">.</span><span class="n">add_atom_energy</span><span class="p">(</span><span class="s2">&quot;O&quot;</span><span class="p">,</span> <span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;CBS-QB3&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mf">197400.0</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">ThermoDB</span><span class="p">(</span><span class="s2">"my_reference.db"</span><span class="p">)</span> <span class="k">as</span> <span class="n">db</span><span class="p">:</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">add_element</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s2">"H"</span><span class="p">,</span> <span class="n">dfH0_0K</span><span class="o">=</span><span class="mf">216.034</span><span class="p">,</span> <span class="n">standard_state</span><span class="o">=</span><span class="s2">"1/2 H2(g)"</span><span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">add_element</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="s2">"O"</span><span class="p">,</span> <span class="n">dfH0_0K</span><span class="o">=</span><span class="mf">246.79</span><span class="p">,</span> <span class="n">standard_state</span><span class="o">=</span><span class="s2">"1/2 O2(g)"</span><span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">add_atom_energy</span><span class="p">(</span><span class="s2">"H"</span><span class="p">,</span> <span class="s2">"gaussian"</span><span class="p">,</span> <span class="s2">"CBS-QB3"</span><span class="p">,</span> <span class="o">-</span><span class="mf">1312.0</span><span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">add_atom_energy</span><span class="p">(</span><span class="s2">"O"</span><span class="p">,</span> <span class="s2">"gaussian"</span><span class="p">,</span> <span class="s2">"CBS-QB3"</span><span class="p">,</span> <span class="o">-</span><span class="mf">197400.0</span><span class="p">)</span>
 
     <span class="n">dfE</span> <span class="o">=</span> <span class="n">formation_energy</span><span class="p">(</span>
-        <span class="p">{</span><span class="s2">&quot;H&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;O&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span> <span class="n">system_energy</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;CBS-QB3&quot;</span>
+        <span class="p">{</span><span class="s2">"H"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">"O"</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span> <span class="n">system_energy</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="s2">"gaussian"</span><span class="p">,</span> <span class="s2">"CBS-QB3"</span>
     <span class="p">)</span>
 </pre></div>
 </div>
@@ -599,8 +599,8 @@ to different, equally spin-clean self-consistent solutions.</p>
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
-<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+  <script defer src="_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67"></script>
+<script defer src="_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -612,7 +612,7 @@ to different, equally spin-clean self-consistent solutions.</p>
         <div class="footer-item">
 <p class="theme-version">
   <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.20.0.
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.21.0.
 </p></div>
       
     </div>

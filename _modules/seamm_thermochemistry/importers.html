@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.importers &#8212; SEAMM thermochemistry Plug-in 2026.7.30.1 documentation</title>
+    <title>seamm_thermochemistry.importers &#8212; SEAMM thermochemistry Plug-in 2026.9.25 documentation</title>
   
   
   
@@ -26,8 +26,8 @@
   </noscript>
   
   <!-- Loaded before other Sphinx assets -->
-  <link href="../../_static/styles/theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
-<link href="../../_static/styles/pydata-sphinx-theme.css?digest=90905a2f556bf617f1a9" rel="stylesheet" />
+  <link href="../../_static/styles/theme.css?digest=cb8930eaaf36d9849b67" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=cb8930eaaf36d9849b67" rel="stylesheet" />
 
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
@@ -35,12 +35,12 @@
     <link rel="stylesheet" type="text/css" href="../../_static/css/custom.css" />
   
   <!-- So that users can add custom icons -->
-  <script defer src="../../_static/scripts/fontawesome.js?digest=90905a2f556bf617f1a9"></script>
+  <script defer src="../../_static/scripts/fontawesome.js?digest=cb8930eaaf36d9849b67"></script>
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9" />
-<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9" />
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67" />
 
-    <script src="../../_static/documentation_options.js?v=6a84fa41"></script>
+    <script src="../../_static/documentation_options.js?v=9a43dc2a"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.7.30.1" />
+  <meta name="docsearch:version" content="2026.9.25" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -411,24 +411,24 @@
                 <article class="bd-article">
                   
   <h1>Source code for seamm_thermochemistry.importers</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Importers from the legacy master files into a ThermoDB.</span>
+<span></span><span class="sd">"""Importers from the legacy master files into a ThermoDB.</span>
 
 <span class="sd">Requires the ``import`` extra (``pandas``, ``openpyxl``) -- the core</span>
 <span class="sd">``db``/``formation`` modules do not need either.</span>
 
 <span class="sd">Three legacy sources exist today, all sharing the same 12-column</span>
 <span class="sd">experimental-reference block (by *position*; header text drifts slightly</span>
-<span class="sd">between them -- &quot;ΔfH°(0)&quot; vs &quot;ΔfH°gas(0)&quot; vs &quot;DfH0(0)&quot; for the same column):</span>
+<span class="sd">between them -- "ΔfH°(0)" vs "ΔfH°gas(0)" vs "DfH0(0)" for the same column):</span>
 
-<span class="sd">- Paul&#39;s master workbook, &quot;Atom Reference Energies and States.xlsx&quot; --</span>
+<span class="sd">- Paul's master workbook, "Atom Reference Energies and States.xlsx" --</span>
 <span class="sd">  the clean experimental block only, one row per element.</span>
-<span class="sd">- &quot;VASP element_energies.xlsx&quot; (sheet &quot;element_energies&quot;) -- the same</span>
-<span class="sd">  experimental block, plus paired ``&quot;&lt;method&gt;@&lt;encut&gt; atom energy&quot;``</span>
-<span class="sd">  (isolated atom, ref_type=&quot;atom&quot;) and ``&quot;&lt;method&gt;@&lt;encut&gt;&quot;`` (per-atom</span>
-<span class="sd">  standard-state energy, ref_type=&quot;element_phase&quot;) columns.</span>
-<span class="sd">- Each of gaussian_step / psi4_step&#39;s ``data/atom_energies.csv`` -- the</span>
+<span class="sd">- "VASP element_energies.xlsx" (sheet "element_energies") -- the same</span>
+<span class="sd">  experimental block, plus paired ``"&lt;method&gt;@&lt;encut&gt; atom energy"``</span>
+<span class="sd">  (isolated atom, ref_type="atom") and ``"&lt;method&gt;@&lt;encut&gt;"`` (per-atom</span>
+<span class="sd">  standard-state energy, ref_type="element_phase") columns.</span>
+<span class="sd">- Each of gaussian_step / psi4_step's ``data/atom_energies.csv`` -- the</span>
 <span class="sd">  same experimental block, plus one column per method (isolated atom,</span>
-<span class="sd">  kJ/mol) and an optional ``&quot;&lt;method&gt; correction&quot;`` column.</span>
+<span class="sd">  kJ/mol) and an optional ``"&lt;method&gt; correction"`` column.</span>
 
 <span class="sd">A fourth, ongoing source needs no xlsx/openpyxl at all:</span>
 
@@ -436,8 +436,8 @@
 <span class="sd">  CSV (one row per element, one ``E DFT@&lt;method&gt;/&lt;basis&gt; (kJ/mol)`` /</span>
 <span class="sd">  ``S^2 DFT@&lt;method&gt;/&lt;basis&gt;`` column pair per method+basis run) and</span>
 <span class="sd">  vets each cell against its expected spin before adding it -- see that</span>
-<span class="sd">  function&#39;s docstring.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">  function's docstring.</span>
+<span class="sd">"""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">csv</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
@@ -449,104 +449,104 @@
     <span class="n">openpyxl</span> <span class="o">=</span> <span class="kc">None</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s2">&quot;STANDARD_STATE&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;import_reference_xlsx&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;import_vasp_workbook&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;import_wide_method_csv&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;import_orca_atom_results&quot;</span><span class="p">,</span>
+    <span class="s2">"STANDARD_STATE"</span><span class="p">,</span>
+    <span class="s2">"import_reference_xlsx"</span><span class="p">,</span>
+    <span class="s2">"import_vasp_workbook"</span><span class="p">,</span>
+    <span class="s2">"import_wide_method_csv"</span><span class="p">,</span>
+    <span class="s2">"import_orca_atom_results"</span><span class="p">,</span>
 <span class="p">]</span>
 
 <span class="c1"># Transcribed from the `standard_state` dict duplicated in gaussian_step,</span>
 <span class="c1"># psi4_step, and vasp_step (all three are byte-for-byte identical). Only</span>
-<span class="c1"># covers Z=1-36 (H-Kr), matching today&#39;s experimental DfH coverage.</span>
+<span class="c1"># covers Z=1-36 (H-Kr), matching today's experimental DfH coverage.</span>
 <span class="c1">#</span>
-<span class="c1"># Note: the original dict&#39;s entry for Kr is the bare string &quot;(g)&quot; (missing</span>
-<span class="c1"># the &quot;Kr&quot; symbol) -- an upstream copy-paste bug. Corrected here to</span>
-<span class="c1"># &quot;Kr(g)&quot;; worth fixing upstream too once this package replaces the copies.</span>
+<span class="c1"># Note: the original dict's entry for Kr is the bare string "(g)" (missing</span>
+<span class="c1"># the "Kr" symbol) -- an upstream copy-paste bug. Corrected here to</span>
+<span class="c1"># "Kr(g)"; worth fixing upstream too once this package replaces the copies.</span>
 <span class="n">STANDARD_STATE</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;H&quot;</span><span class="p">:</span> <span class="s2">&quot;1/2 H2(g)&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;He&quot;</span><span class="p">:</span> <span class="s2">&quot;He(g)&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;Li&quot;</span><span class="p">:</span> <span class="s2">&quot;Li(s)&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;Be&quot;</span><span class="p">:</span> <span class="s2">&quot;Be(s)&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;B&quot;</span><span class="p">:</span> <span class="s2">&quot;B(s)&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;C&quot;</span><span class="p">:</span> <span class="s2">&quot;C(s,gr)&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;N&quot;</span><span class="p">:</span> <span class="s2">&quot;1/2 N2(g)&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;O&quot;</span><span class="p">:</span> <span class="s2">&quot;1/2 O2(g)&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;F&quot;</span><span class="p">:</span> <span class="s2">&quot;1/2 F2(g)&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;Ne&quot;</span><span class="p">:</span> <span class="s2">&quot;Ne(g)&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;Na&quot;</span><span class="p">:</span> <span class="s2">&quot;Na(s)&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;Mg&quot;</span><span class="p">:</span> <span class="s2">&quot;Mg(s)&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;Al&quot;</span><span class="p">:</span> <span class="s2">&quot;Al(s)&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;Si&quot;</span><span class="p">:</span> <span class="s2">&quot;Si(s)&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;P&quot;</span><span class="p">:</span> <span class="s2">&quot;P(s)&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;S&quot;</span><span class="p">:</span> <span class="s2">&quot;S(s)&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;Cl&quot;</span><span class="p">:</span> <span class="s2">&quot;1/2 Cl2(g)&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;Ar&quot;</span><span class="p">:</span> <span class="s2">&quot;Ar(g)&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;K&quot;</span><span class="p">:</span> <span class="s2">&quot;K(s)&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;Ca&quot;</span><span class="p">:</span> <span class="s2">&quot;Ca(s)&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;Sc&quot;</span><span class="p">:</span> <span class="s2">&quot;Sc(s)&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;Ti&quot;</span><span class="p">:</span> <span class="s2">&quot;Ti(s)&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;V&quot;</span><span class="p">:</span> <span class="s2">&quot;V(s)&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;Cr&quot;</span><span class="p">:</span> <span class="s2">&quot;Cr(s)&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;Mn&quot;</span><span class="p">:</span> <span class="s2">&quot;Mn(s)&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;Fe&quot;</span><span class="p">:</span> <span class="s2">&quot;Fe(s)&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;Co&quot;</span><span class="p">:</span> <span class="s2">&quot;Co(s)&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;Ni&quot;</span><span class="p">:</span> <span class="s2">&quot;Ni(s)&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;Cu&quot;</span><span class="p">:</span> <span class="s2">&quot;Cu(s)&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;Zn&quot;</span><span class="p">:</span> <span class="s2">&quot;Zn(s)&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;Ga&quot;</span><span class="p">:</span> <span class="s2">&quot;Ga(s)&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;Ge&quot;</span><span class="p">:</span> <span class="s2">&quot;Ge(s)&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;As&quot;</span><span class="p">:</span> <span class="s2">&quot;As(s)&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;Se&quot;</span><span class="p">:</span> <span class="s2">&quot;Se(s)&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;Br&quot;</span><span class="p">:</span> <span class="s2">&quot;1/2 Br2(l)&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;Kr&quot;</span><span class="p">:</span> <span class="s2">&quot;Kr(g)&quot;</span><span class="p">,</span>
+    <span class="s2">"H"</span><span class="p">:</span> <span class="s2">"1/2 H2(g)"</span><span class="p">,</span>
+    <span class="s2">"He"</span><span class="p">:</span> <span class="s2">"He(g)"</span><span class="p">,</span>
+    <span class="s2">"Li"</span><span class="p">:</span> <span class="s2">"Li(s)"</span><span class="p">,</span>
+    <span class="s2">"Be"</span><span class="p">:</span> <span class="s2">"Be(s)"</span><span class="p">,</span>
+    <span class="s2">"B"</span><span class="p">:</span> <span class="s2">"B(s)"</span><span class="p">,</span>
+    <span class="s2">"C"</span><span class="p">:</span> <span class="s2">"C(s,gr)"</span><span class="p">,</span>
+    <span class="s2">"N"</span><span class="p">:</span> <span class="s2">"1/2 N2(g)"</span><span class="p">,</span>
+    <span class="s2">"O"</span><span class="p">:</span> <span class="s2">"1/2 O2(g)"</span><span class="p">,</span>
+    <span class="s2">"F"</span><span class="p">:</span> <span class="s2">"1/2 F2(g)"</span><span class="p">,</span>
+    <span class="s2">"Ne"</span><span class="p">:</span> <span class="s2">"Ne(g)"</span><span class="p">,</span>
+    <span class="s2">"Na"</span><span class="p">:</span> <span class="s2">"Na(s)"</span><span class="p">,</span>
+    <span class="s2">"Mg"</span><span class="p">:</span> <span class="s2">"Mg(s)"</span><span class="p">,</span>
+    <span class="s2">"Al"</span><span class="p">:</span> <span class="s2">"Al(s)"</span><span class="p">,</span>
+    <span class="s2">"Si"</span><span class="p">:</span> <span class="s2">"Si(s)"</span><span class="p">,</span>
+    <span class="s2">"P"</span><span class="p">:</span> <span class="s2">"P(s)"</span><span class="p">,</span>
+    <span class="s2">"S"</span><span class="p">:</span> <span class="s2">"S(s)"</span><span class="p">,</span>
+    <span class="s2">"Cl"</span><span class="p">:</span> <span class="s2">"1/2 Cl2(g)"</span><span class="p">,</span>
+    <span class="s2">"Ar"</span><span class="p">:</span> <span class="s2">"Ar(g)"</span><span class="p">,</span>
+    <span class="s2">"K"</span><span class="p">:</span> <span class="s2">"K(s)"</span><span class="p">,</span>
+    <span class="s2">"Ca"</span><span class="p">:</span> <span class="s2">"Ca(s)"</span><span class="p">,</span>
+    <span class="s2">"Sc"</span><span class="p">:</span> <span class="s2">"Sc(s)"</span><span class="p">,</span>
+    <span class="s2">"Ti"</span><span class="p">:</span> <span class="s2">"Ti(s)"</span><span class="p">,</span>
+    <span class="s2">"V"</span><span class="p">:</span> <span class="s2">"V(s)"</span><span class="p">,</span>
+    <span class="s2">"Cr"</span><span class="p">:</span> <span class="s2">"Cr(s)"</span><span class="p">,</span>
+    <span class="s2">"Mn"</span><span class="p">:</span> <span class="s2">"Mn(s)"</span><span class="p">,</span>
+    <span class="s2">"Fe"</span><span class="p">:</span> <span class="s2">"Fe(s)"</span><span class="p">,</span>
+    <span class="s2">"Co"</span><span class="p">:</span> <span class="s2">"Co(s)"</span><span class="p">,</span>
+    <span class="s2">"Ni"</span><span class="p">:</span> <span class="s2">"Ni(s)"</span><span class="p">,</span>
+    <span class="s2">"Cu"</span><span class="p">:</span> <span class="s2">"Cu(s)"</span><span class="p">,</span>
+    <span class="s2">"Zn"</span><span class="p">:</span> <span class="s2">"Zn(s)"</span><span class="p">,</span>
+    <span class="s2">"Ga"</span><span class="p">:</span> <span class="s2">"Ga(s)"</span><span class="p">,</span>
+    <span class="s2">"Ge"</span><span class="p">:</span> <span class="s2">"Ge(s)"</span><span class="p">,</span>
+    <span class="s2">"As"</span><span class="p">:</span> <span class="s2">"As(s)"</span><span class="p">,</span>
+    <span class="s2">"Se"</span><span class="p">:</span> <span class="s2">"Se(s)"</span><span class="p">,</span>
+    <span class="s2">"Br"</span><span class="p">:</span> <span class="s2">"1/2 Br2(l)"</span><span class="p">,</span>
+    <span class="s2">"Kr"</span><span class="p">:</span> <span class="s2">"Kr(g)"</span><span class="p">,</span>
 <span class="p">}</span>
 
 <span class="c1"># Column layout shared (by position) across all three legacy sources.</span>
 <span class="n">_EXPERIMENTAL_COLUMNS</span> <span class="o">=</span> <span class="p">(</span>
-    <span class="s2">&quot;atomic_number&quot;</span><span class="p">,</span>  <span class="c1"># 0</span>
-    <span class="s2">&quot;symbol&quot;</span><span class="p">,</span>  <span class="c1"># 1</span>
-    <span class="s2">&quot;multiplicity&quot;</span><span class="p">,</span>  <span class="c1"># 2</span>
-    <span class="s2">&quot;term_symbol&quot;</span><span class="p">,</span>  <span class="c1"># 3</span>
-    <span class="s2">&quot;dfH0_0K&quot;</span><span class="p">,</span>  <span class="c1"># 4</span>
-    <span class="s2">&quot;dfH0_298K&quot;</span><span class="p">,</span>  <span class="c1"># 5</span>
-    <span class="s2">&quot;dfH0_298K_stderr&quot;</span><span class="p">,</span>  <span class="c1"># 6</span>
-    <span class="s2">&quot;h298_minus_h0_atom&quot;</span><span class="p">,</span>  <span class="c1"># 7</span>
-    <span class="s2">&quot;h298_minus_h0_std_state&quot;</span><span class="p">,</span>  <span class="c1"># 8</span>
-    <span class="s2">&quot;s298_gas&quot;</span><span class="p">,</span>  <span class="c1"># 9</span>
-    <span class="s2">&quot;s298_gas_stderr&quot;</span><span class="p">,</span>  <span class="c1"># 10</span>
-    <span class="s2">&quot;reference&quot;</span><span class="p">,</span>  <span class="c1"># 11</span>
+    <span class="s2">"atomic_number"</span><span class="p">,</span>  <span class="c1"># 0</span>
+    <span class="s2">"symbol"</span><span class="p">,</span>  <span class="c1"># 1</span>
+    <span class="s2">"multiplicity"</span><span class="p">,</span>  <span class="c1"># 2</span>
+    <span class="s2">"term_symbol"</span><span class="p">,</span>  <span class="c1"># 3</span>
+    <span class="s2">"dfH0_0K"</span><span class="p">,</span>  <span class="c1"># 4</span>
+    <span class="s2">"dfH0_298K"</span><span class="p">,</span>  <span class="c1"># 5</span>
+    <span class="s2">"dfH0_298K_stderr"</span><span class="p">,</span>  <span class="c1"># 6</span>
+    <span class="s2">"h298_minus_h0_atom"</span><span class="p">,</span>  <span class="c1"># 7</span>
+    <span class="s2">"h298_minus_h0_std_state"</span><span class="p">,</span>  <span class="c1"># 8</span>
+    <span class="s2">"s298_gas"</span><span class="p">,</span>  <span class="c1"># 9</span>
+    <span class="s2">"s298_gas_stderr"</span><span class="p">,</span>  <span class="c1"># 10</span>
+    <span class="s2">"reference"</span><span class="p">,</span>  <span class="c1"># 11</span>
 <span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_require_openpyxl</span><span class="p">():</span>
     <span class="k">if</span> <span class="n">openpyxl</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
-            <span class="s2">&quot;importers.py needs openpyxl; install the &#39;import&#39; extra &quot;</span>
-            <span class="s2">&quot;(pip install seamm_thermochemistry[import])&quot;</span>
+            <span class="s2">"importers.py needs openpyxl; install the 'import' extra "</span>
+            <span class="s2">"(pip install seamm_thermochemistry[import])"</span>
         <span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_add_element_row</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">reference_note</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;row: a tuple/list positionally matching _EXPERIMENTAL_COLUMNS.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""row: a tuple/list positionally matching _EXPERIMENTAL_COLUMNS."""</span>
     <span class="n">values</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">_EXPERIMENTAL_COLUMNS</span><span class="p">,</span> <span class="n">row</span><span class="p">))</span>
-    <span class="n">symbol</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="s2">&quot;symbol&quot;</span><span class="p">]</span>
+    <span class="n">symbol</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="s2">"symbol"</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">symbol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span>
     <span class="n">db</span><span class="o">.</span><span class="n">add_element</span><span class="p">(</span>
-        <span class="nb">int</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="s2">&quot;atomic_number&quot;</span><span class="p">]),</span>
+        <span class="nb">int</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="s2">"atomic_number"</span><span class="p">]),</span>
         <span class="n">symbol</span><span class="p">,</span>
-        <span class="n">multiplicity</span><span class="o">=</span><span class="n">values</span><span class="p">[</span><span class="s2">&quot;multiplicity&quot;</span><span class="p">],</span>
-        <span class="n">term_symbol</span><span class="o">=</span><span class="n">values</span><span class="p">[</span><span class="s2">&quot;term_symbol&quot;</span><span class="p">],</span>
+        <span class="n">multiplicity</span><span class="o">=</span><span class="n">values</span><span class="p">[</span><span class="s2">"multiplicity"</span><span class="p">],</span>
+        <span class="n">term_symbol</span><span class="o">=</span><span class="n">values</span><span class="p">[</span><span class="s2">"term_symbol"</span><span class="p">],</span>
         <span class="n">standard_state</span><span class="o">=</span><span class="n">STANDARD_STATE</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">symbol</span><span class="p">),</span>
-        <span class="n">dfH0_0K</span><span class="o">=</span><span class="n">values</span><span class="p">[</span><span class="s2">&quot;dfH0_0K&quot;</span><span class="p">],</span>
-        <span class="n">dfH0_298K</span><span class="o">=</span><span class="n">values</span><span class="p">[</span><span class="s2">&quot;dfH0_298K&quot;</span><span class="p">],</span>
-        <span class="n">dfH0_298K_stderr</span><span class="o">=</span><span class="n">values</span><span class="p">[</span><span class="s2">&quot;dfH0_298K_stderr&quot;</span><span class="p">],</span>
-        <span class="n">h298_minus_h0_atom</span><span class="o">=</span><span class="n">values</span><span class="p">[</span><span class="s2">&quot;h298_minus_h0_atom&quot;</span><span class="p">],</span>
-        <span class="n">h298_minus_h0_std_state</span><span class="o">=</span><span class="n">values</span><span class="p">[</span><span class="s2">&quot;h298_minus_h0_std_state&quot;</span><span class="p">],</span>
-        <span class="n">s298_gas</span><span class="o">=</span><span class="n">values</span><span class="p">[</span><span class="s2">&quot;s298_gas&quot;</span><span class="p">],</span>
-        <span class="n">s298_gas_stderr</span><span class="o">=</span><span class="n">values</span><span class="p">[</span><span class="s2">&quot;s298_gas_stderr&quot;</span><span class="p">],</span>
-        <span class="n">reference</span><span class="o">=</span><span class="n">values</span><span class="p">[</span><span class="s2">&quot;reference&quot;</span><span class="p">],</span>
+        <span class="n">dfH0_0K</span><span class="o">=</span><span class="n">values</span><span class="p">[</span><span class="s2">"dfH0_0K"</span><span class="p">],</span>
+        <span class="n">dfH0_298K</span><span class="o">=</span><span class="n">values</span><span class="p">[</span><span class="s2">"dfH0_298K"</span><span class="p">],</span>
+        <span class="n">dfH0_298K_stderr</span><span class="o">=</span><span class="n">values</span><span class="p">[</span><span class="s2">"dfH0_298K_stderr"</span><span class="p">],</span>
+        <span class="n">h298_minus_h0_atom</span><span class="o">=</span><span class="n">values</span><span class="p">[</span><span class="s2">"h298_minus_h0_atom"</span><span class="p">],</span>
+        <span class="n">h298_minus_h0_std_state</span><span class="o">=</span><span class="n">values</span><span class="p">[</span><span class="s2">"h298_minus_h0_std_state"</span><span class="p">],</span>
+        <span class="n">s298_gas</span><span class="o">=</span><span class="n">values</span><span class="p">[</span><span class="s2">"s298_gas"</span><span class="p">],</span>
+        <span class="n">s298_gas_stderr</span><span class="o">=</span><span class="n">values</span><span class="p">[</span><span class="s2">"s298_gas_stderr"</span><span class="p">],</span>
+        <span class="n">reference</span><span class="o">=</span><span class="n">values</span><span class="p">[</span><span class="s2">"reference"</span><span class="p">],</span>
         <span class="n">reference_note</span><span class="o">=</span><span class="n">reference_note</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="k">return</span> <span class="n">symbol</span>
@@ -554,11 +554,11 @@
 
 <div class="viewcode-block" id="import_reference_xlsx">
 <a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.importers.import_reference_xlsx">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">import_reference_xlsx</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">sheet</span><span class="o">=</span><span class="s2">&quot;Reference Data&quot;</span><span class="p">,</span> <span class="n">reference_note</span><span class="o">=</span><span class="s2">&quot;JANAF&quot;</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Load the experimental block from Paul&#39;s master workbook.</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">import_reference_xlsx</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">sheet</span><span class="o">=</span><span class="s2">"Reference Data"</span><span class="p">,</span> <span class="n">reference_note</span><span class="o">=</span><span class="s2">"JANAF"</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Load the experimental block from Paul's master workbook.</span>
 
 <span class="sd">    Returns the list of element symbols imported.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">_require_openpyxl</span><span class="p">()</span>
     <span class="n">wb</span> <span class="o">=</span> <span class="n">openpyxl</span><span class="o">.</span><span class="n">load_workbook</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">read_only</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">data_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
@@ -574,27 +574,27 @@
 
 
 
-<span class="n">_ATOM_ENERGY_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^(.*)@(\d+) atom energy$&quot;</span><span class="p">)</span>
-<span class="n">_ELEMENT_PHASE_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^(.*)@(\d+)$&quot;</span><span class="p">)</span>
+<span class="n">_ATOM_ENERGY_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"^(.*)@(\d+) atom energy$"</span><span class="p">)</span>
+<span class="n">_ELEMENT_PHASE_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"^(.*)@(\d+)$"</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="import_vasp_workbook">
 <a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.importers.import_vasp_workbook">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">import_vasp_workbook</span><span class="p">(</span>
-    <span class="n">db</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">sheet</span><span class="o">=</span><span class="s2">&quot;element_energies&quot;</span><span class="p">,</span> <span class="n">reference_note</span><span class="o">=</span><span class="s2">&quot;JANAF&quot;</span><span class="p">,</span> <span class="n">import_elements</span><span class="o">=</span><span class="kc">True</span>
+    <span class="n">db</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">sheet</span><span class="o">=</span><span class="s2">"element_energies"</span><span class="p">,</span> <span class="n">reference_note</span><span class="o">=</span><span class="s2">"JANAF"</span><span class="p">,</span> <span class="n">import_elements</span><span class="o">=</span><span class="kc">True</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Load the VASP element/atom energy workbook.</span>
+<span class="w">    </span><span class="sd">"""Load the VASP element/atom energy workbook.</span>
 
 <span class="sd">    Imports the shared experimental block (optional, `import_elements`) plus</span>
-<span class="sd">    every ``&quot;&lt;method&gt;@&lt;encut&gt; atom energy&quot;`` column as `ref_type=&quot;atom&quot;` and</span>
-<span class="sd">    every matching ``&quot;&lt;method&gt;@&lt;encut&gt;&quot;`` column as `ref_type=&quot;element_phase&quot;`,</span>
-<span class="sd">    with ``settings=f&quot;encut={encut}eV&quot;``. Both column families are already</span>
-<span class="sd">    in kJ/mol in this workbook (checked against its own &quot;Testing&quot; sheet,</span>
+<span class="sd">    every ``"&lt;method&gt;@&lt;encut&gt; atom energy"`` column as `ref_type="atom"` and</span>
+<span class="sd">    every matching ``"&lt;method&gt;@&lt;encut&gt;"`` column as `ref_type="element_phase"`,</span>
+<span class="sd">    with ``settings=f"encut={encut}eV"``. Both column families are already</span>
+<span class="sd">    in kJ/mol in this workbook (checked against its own "Testing" sheet,</span>
 <span class="sd">    which carries the raw VASP eV values alongside their kJ/mol conversion)</span>
 <span class="sd">    -- not eV, despite the encut being in eV.</span>
 
-<span class="sd">    Returns a dict {&quot;elements&quot;: [...], &quot;atom_energy&quot;: n, &quot;element_phase&quot;: n}.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    Returns a dict {"elements": [...], "atom_energy": n, "element_phase": n}.</span>
+<span class="sd">    """</span>
     <span class="n">_require_openpyxl</span><span class="p">()</span>
     <span class="n">wb</span> <span class="o">=</span> <span class="n">openpyxl</span><span class="o">.</span><span class="n">load_workbook</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">read_only</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">data_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
@@ -627,12 +627,12 @@
                     <span class="n">method</span><span class="p">,</span> <span class="n">encut</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
                     <span class="n">db</span><span class="o">.</span><span class="n">add_atom_energy</span><span class="p">(</span>
                         <span class="n">symbol</span><span class="p">,</span>
-                        <span class="s2">&quot;vasp&quot;</span><span class="p">,</span>
+                        <span class="s2">"vasp"</span><span class="p">,</span>
                         <span class="n">method</span><span class="p">,</span>
                         <span class="n">value</span><span class="p">,</span>
-                        <span class="n">ref_type</span><span class="o">=</span><span class="s2">&quot;atom&quot;</span><span class="p">,</span>
-                        <span class="n">settings</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;encut=</span><span class="si">{</span><span class="n">encut</span><span class="si">}</span><span class="s2">eV&quot;</span><span class="p">,</span>
-                        <span class="n">units</span><span class="o">=</span><span class="s2">&quot;kJ/mol&quot;</span><span class="p">,</span>
+                        <span class="n">ref_type</span><span class="o">=</span><span class="s2">"atom"</span><span class="p">,</span>
+                        <span class="n">settings</span><span class="o">=</span><span class="sa">f</span><span class="s2">"encut=</span><span class="si">{</span><span class="n">encut</span><span class="si">}</span><span class="s2">eV"</span><span class="p">,</span>
+                        <span class="n">units</span><span class="o">=</span><span class="s2">"kJ/mol"</span><span class="p">,</span>
                         <span class="n">source</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">),</span>
                     <span class="p">)</span>
                     <span class="n">n_atom</span> <span class="o">+=</span> <span class="mi">1</span>
@@ -643,17 +643,17 @@
                     <span class="n">method</span><span class="p">,</span> <span class="n">encut</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
                     <span class="n">db</span><span class="o">.</span><span class="n">add_atom_energy</span><span class="p">(</span>
                         <span class="n">symbol</span><span class="p">,</span>
-                        <span class="s2">&quot;vasp&quot;</span><span class="p">,</span>
+                        <span class="s2">"vasp"</span><span class="p">,</span>
                         <span class="n">method</span><span class="p">,</span>
                         <span class="n">value</span><span class="p">,</span>
-                        <span class="n">ref_type</span><span class="o">=</span><span class="s2">&quot;element_phase&quot;</span><span class="p">,</span>
-                        <span class="n">settings</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;encut=</span><span class="si">{</span><span class="n">encut</span><span class="si">}</span><span class="s2">eV&quot;</span><span class="p">,</span>
-                        <span class="n">units</span><span class="o">=</span><span class="s2">&quot;kJ/mol&quot;</span><span class="p">,</span>
+                        <span class="n">ref_type</span><span class="o">=</span><span class="s2">"element_phase"</span><span class="p">,</span>
+                        <span class="n">settings</span><span class="o">=</span><span class="sa">f</span><span class="s2">"encut=</span><span class="si">{</span><span class="n">encut</span><span class="si">}</span><span class="s2">eV"</span><span class="p">,</span>
+                        <span class="n">units</span><span class="o">=</span><span class="s2">"kJ/mol"</span><span class="p">,</span>
                         <span class="n">source</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">),</span>
                     <span class="p">)</span>
                     <span class="n">n_phase</span> <span class="o">+=</span> <span class="mi">1</span>
 
-        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;elements&quot;</span><span class="p">:</span> <span class="n">elements</span><span class="p">,</span> <span class="s2">&quot;atom_energy&quot;</span><span class="p">:</span> <span class="n">n_atom</span><span class="p">,</span> <span class="s2">&quot;element_phase&quot;</span><span class="p">:</span> <span class="n">n_phase</span><span class="p">}</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">"elements"</span><span class="p">:</span> <span class="n">elements</span><span class="p">,</span> <span class="s2">"atom_energy"</span><span class="p">:</span> <span class="n">n_atom</span><span class="p">,</span> <span class="s2">"element_phase"</span><span class="p">:</span> <span class="n">n_phase</span><span class="p">}</span>
     <span class="k">finally</span><span class="p">:</span>
         <span class="n">wb</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
@@ -667,30 +667,30 @@
     <span class="n">code</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
     <span class="n">methods</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-    <span class="n">ref_type</span><span class="o">=</span><span class="s2">&quot;atom&quot;</span><span class="p">,</span>
+    <span class="n">ref_type</span><span class="o">=</span><span class="s2">"atom"</span><span class="p">,</span>
     <span class="n">reference_note</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">import_elements</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Load one of the wide per-code CSVs (gaussian_step/psi4_step style).</span>
+<span class="w">    </span><span class="sd">"""Load one of the wide per-code CSVs (gaussian_step/psi4_step style).</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    code : str</span>
-<span class="sd">        &quot;gaussian&quot; or &quot;psi4&quot; (or whatever this file belongs to).</span>
+<span class="sd">        "gaussian" or "psi4" (or whatever this file belongs to).</span>
 <span class="sd">    methods : list of str, optional</span>
 <span class="sd">        Restrict to these method columns (by exact header text). If None,</span>
 <span class="sd">        import every non-empty method column found -- can be thousands of</span>
 <span class="sd">        columns for the full Gaussian composite-method grid; pass an</span>
 <span class="sd">        explicit list for anything but a one-off full import.</span>
 
-<span class="sd">    Returns a dict {&quot;elements&quot;: [...], &quot;methods&quot;: [...], &quot;n_energies&quot;: n}.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8-sig&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+<span class="sd">    Returns a dict {"elements": [...], "methods": [...], "n_energies": n}.</span>
+<span class="sd">    """</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s2">""</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8-sig"</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
         <span class="n">reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
         <span class="n">header</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">reader</span><span class="p">)</span>
         <span class="n">rows</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">reader</span><span class="p">)</span>
 
-    <span class="n">method_columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">h</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">header</span><span class="p">[</span><span class="mi">13</span><span class="p">:]</span> <span class="k">if</span> <span class="n">h</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">h</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot; correction&quot;</span><span class="p">)]</span>
+    <span class="n">method_columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">h</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">header</span><span class="p">[</span><span class="mi">13</span><span class="p">:]</span> <span class="k">if</span> <span class="n">h</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">h</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">" correction"</span><span class="p">)]</span>
     <span class="k">if</span> <span class="n">methods</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">wanted</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">methods</span><span class="p">)</span>
         <span class="n">method_columns</span> <span class="o">=</span> <span class="p">[</span><span class="n">h</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">method_columns</span> <span class="k">if</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">wanted</span><span class="p">]</span>
@@ -720,7 +720,7 @@
                     <span class="k">continue</span>
                 <span class="n">energy</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
                 <span class="n">correction</span> <span class="o">=</span> <span class="kc">None</span>
-                <span class="n">corr_name</span> <span class="o">=</span> <span class="n">method</span> <span class="o">+</span> <span class="s2">&quot; correction&quot;</span>
+                <span class="n">corr_name</span> <span class="o">=</span> <span class="n">method</span> <span class="o">+</span> <span class="s2">" correction"</span>
                 <span class="k">if</span> <span class="n">corr_name</span> <span class="ow">in</span> <span class="n">col_index</span><span class="p">:</span>
                     <span class="n">j</span> <span class="o">=</span> <span class="n">col_index</span><span class="p">[</span><span class="n">corr_name</span><span class="p">]</span>
                     <span class="k">if</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="ow">and</span> <span class="n">row</span><span class="p">[</span><span class="n">j</span><span class="p">]:</span>
@@ -731,50 +731,50 @@
                     <span class="n">method</span><span class="p">,</span>
                     <span class="n">energy</span><span class="p">,</span>
                     <span class="n">ref_type</span><span class="o">=</span><span class="n">ref_type</span><span class="p">,</span>
-                    <span class="n">units</span><span class="o">=</span><span class="s2">&quot;kJ/mol&quot;</span><span class="p">,</span>
+                    <span class="n">units</span><span class="o">=</span><span class="s2">"kJ/mol"</span><span class="p">,</span>
                     <span class="n">correction</span><span class="o">=</span><span class="n">correction</span><span class="p">,</span>
                     <span class="n">source</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">),</span>
                 <span class="p">)</span>
                 <span class="n">n_energies</span> <span class="o">+=</span> <span class="mi">1</span>
 
-    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;elements&quot;</span><span class="p">:</span> <span class="n">elements</span><span class="p">,</span> <span class="s2">&quot;methods&quot;</span><span class="p">:</span> <span class="n">method_columns</span><span class="p">,</span> <span class="s2">&quot;n_energies&quot;</span><span class="p">:</span> <span class="n">n_energies</span><span class="p">}</span></div>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">"elements"</span><span class="p">:</span> <span class="n">elements</span><span class="p">,</span> <span class="s2">"methods"</span><span class="p">:</span> <span class="n">method_columns</span><span class="p">,</span> <span class="s2">"n_energies"</span><span class="p">:</span> <span class="n">n_energies</span><span class="p">}</span></div>
 
 
 
-<span class="n">_ORCA_ENERGY_COL_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^E DFT@(?P&lt;method&gt;.+)/(?P&lt;basis&gt;.+) \(kJ/mol\)$&quot;</span><span class="p">)</span>
+<span class="n">_ORCA_ENERGY_COL_RE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"^E DFT@(?P&lt;method&gt;.+)/(?P&lt;basis&gt;.+) \(kJ/mol\)$"</span><span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_expected_s2</span><span class="p">(</span><span class="n">multiplicity</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;S(S+1) for the given multiplicity 2S+1.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""S(S+1) for the given multiplicity 2S+1."""</span>
     <span class="k">return</span> <span class="p">(</span><span class="n">multiplicity</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mf">4.0</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_classify_spin</span><span class="p">(</span><span class="n">s2_value</span><span class="p">,</span> <span class="n">multiplicity</span><span class="p">,</span> <span class="n">warn_threshold</span><span class="p">,</span> <span class="n">reject_threshold</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Classify a computed S^2 against the multiplicity&#39;s expected value.</span>
+<span class="w">    </span><span class="sd">"""Classify a computed S^2 against the multiplicity's expected value.</span>
 
-<span class="sd">    Returns (verdict, detail) where verdict is &quot;ok&quot; | &quot;warn&quot; | &quot;reject&quot; and</span>
-<span class="sd">    detail is a human-readable reason (None for &quot;ok&quot;).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    Returns (verdict, detail) where verdict is "ok" | "warn" | "reject" and</span>
+<span class="sd">    detail is a human-readable reason (None for "ok").</span>
+<span class="sd">    """</span>
     <span class="n">expected</span> <span class="o">=</span> <span class="n">_expected_s2</span><span class="p">(</span><span class="n">multiplicity</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">s2_value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">multiplicity</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">return</span> <span class="s2">&quot;ok&quot;</span><span class="p">,</span> <span class="kc">None</span>  <span class="c1"># trivially 0; commonly left unreported</span>
-        <span class="k">return</span> <span class="s2">&quot;reject&quot;</span><span class="p">,</span> <span class="s2">&quot;no S^2 reported for an open-shell atom&quot;</span>
+            <span class="k">return</span> <span class="s2">"ok"</span><span class="p">,</span> <span class="kc">None</span>  <span class="c1"># trivially 0; commonly left unreported</span>
+        <span class="k">return</span> <span class="s2">"reject"</span><span class="p">,</span> <span class="s2">"no S^2 reported for an open-shell atom"</span>
 
     <span class="k">if</span> <span class="n">expected</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="c1"># Singlet: expect ~0, not a meaningful relative deviation to compute.</span>
         <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">s2_value</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">0.05</span><span class="p">:</span>
-            <span class="k">return</span> <span class="s2">&quot;reject&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;S^2=</span><span class="si">{</span><span class="n">s2_value</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> but multiplicity=1 (expect ~0)&quot;</span>
-        <span class="k">return</span> <span class="s2">&quot;ok&quot;</span><span class="p">,</span> <span class="kc">None</span>
+            <span class="k">return</span> <span class="s2">"reject"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"S^2=</span><span class="si">{</span><span class="n">s2_value</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> but multiplicity=1 (expect ~0)"</span>
+        <span class="k">return</span> <span class="s2">"ok"</span><span class="p">,</span> <span class="kc">None</span>
 
     <span class="n">rel_dev</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">s2_value</span> <span class="o">-</span> <span class="n">expected</span><span class="p">)</span> <span class="o">/</span> <span class="n">expected</span>
-    <span class="n">detail</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;S^2=</span><span class="si">{</span><span class="n">s2_value</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> vs expected </span><span class="si">{</span><span class="n">expected</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">rel_dev</span><span class="si">:</span><span class="s2">.0%</span><span class="si">}</span><span class="s2"> off)&quot;</span>
+    <span class="n">detail</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"S^2=</span><span class="si">{</span><span class="n">s2_value</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> vs expected </span><span class="si">{</span><span class="n">expected</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">rel_dev</span><span class="si">:</span><span class="s2">.0%</span><span class="si">}</span><span class="s2"> off)"</span>
     <span class="k">if</span> <span class="n">rel_dev</span> <span class="o">&gt;</span> <span class="n">reject_threshold</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;reject&quot;</span><span class="p">,</span> <span class="n">detail</span>
+        <span class="k">return</span> <span class="s2">"reject"</span><span class="p">,</span> <span class="n">detail</span>
     <span class="k">if</span> <span class="n">rel_dev</span> <span class="o">&gt;</span> <span class="n">warn_threshold</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;warn&quot;</span><span class="p">,</span> <span class="n">detail</span>
-    <span class="k">return</span> <span class="s2">&quot;ok&quot;</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="s2">"warn"</span><span class="p">,</span> <span class="n">detail</span>
+    <span class="k">return</span> <span class="s2">"ok"</span><span class="p">,</span> <span class="kc">None</span>
 
 
 <div class="viewcode-block" id="import_orca_atom_results">
@@ -783,8 +783,8 @@
     <span class="n">db</span><span class="p">,</span>
     <span class="n">csv_path</span><span class="p">,</span>
     <span class="o">*</span><span class="p">,</span>
-    <span class="n">code</span><span class="o">=</span><span class="s2">&quot;orca&quot;</span><span class="p">,</span>
-    <span class="n">ref_type</span><span class="o">=</span><span class="s2">&quot;atom&quot;</span><span class="p">,</span>
+    <span class="n">code</span><span class="o">=</span><span class="s2">"orca"</span><span class="p">,</span>
+    <span class="n">ref_type</span><span class="o">=</span><span class="s2">"atom"</span><span class="p">,</span>
     <span class="n">warn_threshold</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span>
     <span class="n">reject_threshold</span><span class="o">=</span><span class="mf">0.20</span><span class="p">,</span>
     <span class="n">energy_rel_tol</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span>
@@ -793,47 +793,47 @@
     <span class="n">prefer_lower_energy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="n">dry_run</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Import ORCA atom-energy results from a per-job results CSV.</span>
+<span class="w">    </span><span class="sd">"""Import ORCA atom-energy results from a per-job results CSV.</span>
 
 <span class="sd">    Expects the shape produced by the atom-energy scan flowchart: one row</span>
 <span class="sd">    per element (``Atomic Number``, ``Element``, ``Multiplicity``), and one</span>
-<span class="sd">    ``&quot;E DFT@&lt;method&gt;/&lt;basis&gt; (kJ/mol)&quot;`` / ``&quot;S^2 DFT@&lt;method&gt;/&lt;basis&gt;&quot;``</span>
+<span class="sd">    ``"E DFT@&lt;method&gt;/&lt;basis&gt; (kJ/mol)"`` / ``"S^2 DFT@&lt;method&gt;/&lt;basis&gt;"``</span>
 <span class="sd">    column pair per method+basis combination that has been run so far</span>
 <span class="sd">    (blank cells are jobs not finished/reached yet, not errors). ``method``</span>
 <span class="sd">    and ``basis`` are stored separately -- ``method`` as the ThermoDB</span>
-<span class="sd">    ``method``, ``basis`` as ``settings`` -- since ORCA (unlike Gaussian&#39;s</span>
+<span class="sd">    ``method``, ``basis`` as ``settings`` -- since ORCA (unlike Gaussian's</span>
 <span class="sd">    composite-method columns) always keeps them as independent axes.</span>
 
 <span class="sd">    Vetting, since a bad SCF root (wrong occupation, not just unconverged)</span>
 <span class="sd">    is the actual failure mode seen for hard atoms (lanthanides etc.), not</span>
 <span class="sd">    just a missing value:</span>
 
-<span class="sd">    - A computed S^2 is compared to the multiplicity&#39;s expected S(S+1).</span>
-<span class="sd">      Within `warn_threshold` (relative) it&#39;s added silently; beyond that</span>
-<span class="sd">      but within `reject_threshold` it&#39;s added but flagged in</span>
-<span class="sd">      `&quot;spin_warnings&quot;` for manual review; beyond `reject_threshold` it&#39;s</span>
-<span class="sd">      not added at all (`&quot;rejected&quot;`).</span>
+<span class="sd">    - A computed S^2 is compared to the multiplicity's expected S(S+1).</span>
+<span class="sd">      Within `warn_threshold` (relative) it's added silently; beyond that</span>
+<span class="sd">      but within `reject_threshold` it's added but flagged in</span>
+<span class="sd">      `"spin_warnings"` for manual review; beyond `reject_threshold` it's</span>
+<span class="sd">      not added at all (`"rejected"`).</span>
 <span class="sd">    - A missing S^2 is fine for a singlet (trivially 0, commonly not</span>
 <span class="sd">      reported) but rejected for any open-shell multiplicity -- no way to</span>
 <span class="sd">      vet it.</span>
-<span class="sd">    - If the CSV&#39;s own multiplicity for an element disagrees with what&#39;s</span>
-<span class="sd">      already in the `element` table (when known), that&#39;s noted in</span>
-<span class="sd">      `&quot;multiplicity_mismatches&quot;` but does not block the import -- it may</span>
-<span class="sd">      just mean the reference table&#39;s own value needs a look.</span>
+<span class="sd">    - If the CSV's own multiplicity for an element disagrees with what's</span>
+<span class="sd">      already in the `element` table (when known), that's noted in</span>
+<span class="sd">      `"multiplicity_mismatches"` but does not block the import -- it may</span>
+<span class="sd">      just mean the reference table's own value needs a look.</span>
 
 <span class="sd">    Duplicate handling, since re-running elements/methods is expected</span>
-<span class="sd">    across &quot;hundreds of these&quot;: an existing (element, code, method,</span>
-<span class="sd">    ref_type, settings) value that&#39;s already in the database is left</span>
-<span class="sd">    alone if the new value is close (`&quot;unchanged&quot;`); if it differs by more</span>
+<span class="sd">    across "hundreds of these": an existing (element, code, method,</span>
+<span class="sd">    ref_type, settings) value that's already in the database is left</span>
+<span class="sd">    alone if the new value is close (`"unchanged"`); if it differs by more</span>
 <span class="sd">    than `energy_rel_tol`/`energy_abs_tol` it is a conflict, resolved one</span>
 <span class="sd">    of three ways (`force` and `prefer_lower_energy` are mutually</span>
 <span class="sd">    exclusive -- pick one):</span>
 
-<span class="sd">    - Neither set (default): reported in `&quot;conflicts&quot;`, *not* overwritten.</span>
+<span class="sd">    - Neither set (default): reported in `"conflicts"`, *not* overwritten.</span>
 <span class="sd">      Safest, but needs a human to look at every conflict.</span>
 <span class="sd">    - `force=True`: always overwritten with the new value, listed in</span>
-<span class="sd">      `&quot;updated&quot;`. Only right when you&#39;re confident the new run is simply</span>
-<span class="sd">      better across the board -- a blanket &quot;latest wins&quot; that can silently</span>
+<span class="sd">      `"updated"`. Only right when you're confident the new run is simply</span>
+<span class="sd">      better across the board -- a blanket "latest wins" that can silently</span>
 <span class="sd">      make things worse (see `prefer_lower_energy`).</span>
 <span class="sd">    - `prefer_lower_energy=True`: for hard atoms (partially-filled d/f</span>
 <span class="sd">      shells -- lanthanides, some transition metals) two independently</span>
@@ -842,12 +842,12 @@
 <span class="sd">      since both have the right total spin. The tell is a conflict whose</span>
 <span class="sd">      delta is nearly constant across several basis sets for the same</span>
 <span class="sd">      element -- not a basis-incompleteness effect, a different orbital</span>
-<span class="sd">      occupation. There&#39;s no rigorous variational principle for DFT, but</span>
-<span class="sd">      &quot;prefer whichever energy is lower&quot; is the standard practical</span>
+<span class="sd">      occupation. There's no rigorous variational principle for DFT, but</span>
+<span class="sd">      "prefer whichever energy is lower" is the standard practical</span>
 <span class="sd">      criterion for picking between competing self-consistent solutions</span>
-<span class="sd">      of the same state. If the new value is lower it&#39;s written and</span>
-<span class="sd">      listed in `&quot;updated&quot;`; if the existing value is already lower it is</span>
-<span class="sd">      *kept* and listed in `&quot;kept_existing&quot;` -- so a blanket rerun can&#39;t</span>
+<span class="sd">      of the same state. If the new value is lower it's written and</span>
+<span class="sd">      listed in `"updated"`; if the existing value is already lower it is</span>
+<span class="sd">      *kept* and listed in `"kept_existing"` -- so a blanket rerun can't</span>
 <span class="sd">      silently make a good stored value worse. Still reported either way,</span>
 <span class="sd">      never silent.</span>
 
@@ -856,20 +856,20 @@
 <span class="sd">    db : ThermoDB</span>
 <span class="sd">    csv_path : str or Path</span>
 <span class="sd">    code : str</span>
-<span class="sd">        Defaults to &quot;orca&quot;; parameterized in case this CSV shape is ever</span>
+<span class="sd">        Defaults to "orca"; parameterized in case this CSV shape is ever</span>
 <span class="sd">        reused for another code.</span>
 <span class="sd">    ref_type : str</span>
-<span class="sd">        Defaults to &quot;atom&quot; (isolated gas-phase atom energies -- the only</span>
+<span class="sd">        Defaults to "atom" (isolated gas-phase atom energies -- the only</span>
 <span class="sd">        thing this scan computes).</span>
 <span class="sd">    warn_threshold, reject_threshold : float</span>
 <span class="sd">        Relative S^2 deviation thresholds (see above). Tune per how</span>
-<span class="sd">        strict you want the gate; there&#39;s no universally &quot;right&quot; value,</span>
+<span class="sd">        strict you want the gate; there's no universally "right" value,</span>
 <span class="sd">        the deviations here are your own to judge (e.g. an ~20%-high S^2</span>
 <span class="sd">        on some lanthanides is real but was still accepted on review in</span>
 <span class="sd">        this project).</span>
 <span class="sd">    energy_rel_tol, energy_abs_tol : float</span>
 <span class="sd">        `math.isclose` tolerances for treating a duplicate energy value</span>
-<span class="sd">        as &quot;the same result&quot; rather than a conflict.</span>
+<span class="sd">        as "the same result" rather than a conflict.</span>
 <span class="sd">    force : bool</span>
 <span class="sd">        Overwrite every conflicting existing value unconditionally.</span>
 <span class="sd">    prefer_lower_energy : bool</span>
@@ -881,16 +881,16 @@
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    dict with keys &quot;added&quot;, &quot;updated&quot;, &quot;unchanged&quot;, &quot;conflicts&quot;,</span>
-<span class="sd">    &quot;kept_existing&quot;, &quot;rejected&quot;, &quot;spin_warnings&quot;,</span>
-<span class="sd">    &quot;multiplicity_mismatches&quot; -- each a list of small dicts describing</span>
+<span class="sd">    dict with keys "added", "updated", "unchanged", "conflicts",</span>
+<span class="sd">    "kept_existing", "rejected", "spin_warnings",</span>
+<span class="sd">    "multiplicity_mismatches" -- each a list of small dicts describing</span>
 <span class="sd">    what happened, for the caller to report.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">force</span> <span class="ow">and</span> <span class="n">prefer_lower_energy</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;force and prefer_lower_energy are mutually exclusive&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"force and prefer_lower_energy are mutually exclusive"</span><span class="p">)</span>
 
     <span class="n">csv_path</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">csv_path</span><span class="p">)</span>
-    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">csv_path</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8-sig&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">csv_path</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s2">""</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8-sig"</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
         <span class="n">reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">DictReader</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
         <span class="n">rows</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">reader</span><span class="p">)</span>
         <span class="n">fieldnames</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">fieldnames</span> <span class="ow">or</span> <span class="p">[]</span>
@@ -899,68 +899,68 @@
     <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">fieldnames</span><span class="p">:</span>
         <span class="n">m</span> <span class="o">=</span> <span class="n">_ORCA_ENERGY_COL_RE</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">m</span><span class="p">:</span>
-            <span class="n">method</span><span class="p">,</span> <span class="n">basis</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">&quot;method&quot;</span><span class="p">),</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">&quot;basis&quot;</span><span class="p">)</span>
-            <span class="n">energy_columns</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">col</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;S^2 DFT@</span><span class="si">{</span><span class="n">method</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">basis</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">basis</span><span class="p">))</span>
+            <span class="n">method</span><span class="p">,</span> <span class="n">basis</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">"method"</span><span class="p">),</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">"basis"</span><span class="p">)</span>
+            <span class="n">energy_columns</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">col</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"S^2 DFT@</span><span class="si">{</span><span class="n">method</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">basis</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">basis</span><span class="p">))</span>
 
     <span class="n">summary</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">&quot;added&quot;</span><span class="p">:</span> <span class="p">[],</span>
-        <span class="s2">&quot;updated&quot;</span><span class="p">:</span> <span class="p">[],</span>
-        <span class="s2">&quot;unchanged&quot;</span><span class="p">:</span> <span class="p">[],</span>
-        <span class="s2">&quot;conflicts&quot;</span><span class="p">:</span> <span class="p">[],</span>
-        <span class="s2">&quot;kept_existing&quot;</span><span class="p">:</span> <span class="p">[],</span>
-        <span class="s2">&quot;rejected&quot;</span><span class="p">:</span> <span class="p">[],</span>
-        <span class="s2">&quot;spin_warnings&quot;</span><span class="p">:</span> <span class="p">[],</span>
-        <span class="s2">&quot;multiplicity_mismatches&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">"added"</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">"updated"</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">"unchanged"</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">"conflicts"</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">"kept_existing"</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">"rejected"</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">"spin_warnings"</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">"multiplicity_mismatches"</span><span class="p">:</span> <span class="p">[],</span>
     <span class="p">}</span>
 
     <span class="k">with</span> <span class="n">db</span><span class="o">.</span><span class="n">batch</span><span class="p">():</span>
         <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
-            <span class="n">symbol</span> <span class="o">=</span> <span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Element&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="n">symbol</span> <span class="o">=</span> <span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"Element"</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">symbol</span><span class="p">:</span>
                 <span class="k">continue</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">multiplicity</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;Multiplicity&quot;</span><span class="p">])</span>
+                <span class="n">multiplicity</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">"Multiplicity"</span><span class="p">])</span>
             <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
-                <span class="n">summary</span><span class="p">[</span><span class="s2">&quot;rejected&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-                    <span class="p">{</span><span class="s2">&quot;symbol&quot;</span><span class="p">:</span> <span class="n">symbol</span><span class="p">,</span> <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="s2">&quot;cannot parse Multiplicity&quot;</span><span class="p">}</span>
+                <span class="n">summary</span><span class="p">[</span><span class="s2">"rejected"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="p">{</span><span class="s2">"symbol"</span><span class="p">:</span> <span class="n">symbol</span><span class="p">,</span> <span class="s2">"reason"</span><span class="p">:</span> <span class="s2">"cannot parse Multiplicity"</span><span class="p">}</span>
                 <span class="p">)</span>
                 <span class="k">continue</span>
 
             <span class="n">element_row</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">get_element</span><span class="p">(</span><span class="n">symbol</span><span class="o">=</span><span class="n">symbol</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">element_row</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">element_row</span><span class="p">[</span><span class="s2">&quot;multiplicity&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">element_row</span><span class="p">[</span><span class="s2">&quot;multiplicity&quot;</span><span class="p">])</span> <span class="o">!=</span> <span class="n">multiplicity</span><span class="p">:</span>
-                    <span class="n">summary</span><span class="p">[</span><span class="s2">&quot;multiplicity_mismatches&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="k">if</span> <span class="n">element_row</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">element_row</span><span class="p">[</span><span class="s2">"multiplicity"</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">element_row</span><span class="p">[</span><span class="s2">"multiplicity"</span><span class="p">])</span> <span class="o">!=</span> <span class="n">multiplicity</span><span class="p">:</span>
+                    <span class="n">summary</span><span class="p">[</span><span class="s2">"multiplicity_mismatches"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
                         <span class="p">{</span>
-                            <span class="s2">&quot;symbol&quot;</span><span class="p">:</span> <span class="n">symbol</span><span class="p">,</span>
-                            <span class="s2">&quot;csv_multiplicity&quot;</span><span class="p">:</span> <span class="n">multiplicity</span><span class="p">,</span>
-                            <span class="s2">&quot;db_multiplicity&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">element_row</span><span class="p">[</span><span class="s2">&quot;multiplicity&quot;</span><span class="p">]),</span>
+                            <span class="s2">"symbol"</span><span class="p">:</span> <span class="n">symbol</span><span class="p">,</span>
+                            <span class="s2">"csv_multiplicity"</span><span class="p">:</span> <span class="n">multiplicity</span><span class="p">,</span>
+                            <span class="s2">"db_multiplicity"</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">element_row</span><span class="p">[</span><span class="s2">"multiplicity"</span><span class="p">]),</span>
                         <span class="p">}</span>
                     <span class="p">)</span>
 
             <span class="k">for</span> <span class="n">energy_col</span><span class="p">,</span> <span class="n">s2_col</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">basis</span> <span class="ow">in</span> <span class="n">energy_columns</span><span class="p">:</span>
-                <span class="n">energy_str</span> <span class="o">=</span> <span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">energy_col</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                <span class="n">energy_str</span> <span class="o">=</span> <span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">energy_col</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">energy_str</span><span class="p">:</span>
                     <span class="k">continue</span>  <span class="c1"># job not run/reached yet -- not an error</span>
 
                 <span class="n">energy</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">energy_str</span><span class="p">)</span>
-                <span class="n">s2_str</span> <span class="o">=</span> <span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">s2_col</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                <span class="n">s2_str</span> <span class="o">=</span> <span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">s2_col</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
                 <span class="n">s2_value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">s2_str</span><span class="p">)</span> <span class="k">if</span> <span class="n">s2_str</span> <span class="k">else</span> <span class="kc">None</span>
 
                 <span class="n">verdict</span><span class="p">,</span> <span class="n">detail</span> <span class="o">=</span> <span class="n">_classify_spin</span><span class="p">(</span>
                     <span class="n">s2_value</span><span class="p">,</span> <span class="n">multiplicity</span><span class="p">,</span> <span class="n">warn_threshold</span><span class="p">,</span> <span class="n">reject_threshold</span>
                 <span class="p">)</span>
                 <span class="n">entry</span> <span class="o">=</span> <span class="p">{</span>
-                    <span class="s2">&quot;symbol&quot;</span><span class="p">:</span> <span class="n">symbol</span><span class="p">,</span>
-                    <span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="n">method</span><span class="p">,</span>
-                    <span class="s2">&quot;basis&quot;</span><span class="p">:</span> <span class="n">basis</span><span class="p">,</span>
-                    <span class="s2">&quot;energy&quot;</span><span class="p">:</span> <span class="n">energy</span><span class="p">,</span>
-                    <span class="s2">&quot;s2&quot;</span><span class="p">:</span> <span class="n">s2_value</span><span class="p">,</span>
+                    <span class="s2">"symbol"</span><span class="p">:</span> <span class="n">symbol</span><span class="p">,</span>
+                    <span class="s2">"method"</span><span class="p">:</span> <span class="n">method</span><span class="p">,</span>
+                    <span class="s2">"basis"</span><span class="p">:</span> <span class="n">basis</span><span class="p">,</span>
+                    <span class="s2">"energy"</span><span class="p">:</span> <span class="n">energy</span><span class="p">,</span>
+                    <span class="s2">"s2"</span><span class="p">:</span> <span class="n">s2_value</span><span class="p">,</span>
                 <span class="p">}</span>
-                <span class="k">if</span> <span class="n">verdict</span> <span class="o">==</span> <span class="s2">&quot;reject&quot;</span><span class="p">:</span>
-                    <span class="n">summary</span><span class="p">[</span><span class="s2">&quot;rejected&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="o">**</span><span class="n">entry</span><span class="p">,</span> <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="n">detail</span><span class="p">})</span>
+                <span class="k">if</span> <span class="n">verdict</span> <span class="o">==</span> <span class="s2">"reject"</span><span class="p">:</span>
+                    <span class="n">summary</span><span class="p">[</span><span class="s2">"rejected"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="o">**</span><span class="n">entry</span><span class="p">,</span> <span class="s2">"reason"</span><span class="p">:</span> <span class="n">detail</span><span class="p">})</span>
                     <span class="k">continue</span>
-                <span class="k">if</span> <span class="n">verdict</span> <span class="o">==</span> <span class="s2">&quot;warn&quot;</span><span class="p">:</span>
-                    <span class="n">summary</span><span class="p">[</span><span class="s2">&quot;spin_warnings&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="o">**</span><span class="n">entry</span><span class="p">,</span> <span class="s2">&quot;reason&quot;</span><span class="p">:</span> <span class="n">detail</span><span class="p">})</span>
+                <span class="k">if</span> <span class="n">verdict</span> <span class="o">==</span> <span class="s2">"warn"</span><span class="p">:</span>
+                    <span class="n">summary</span><span class="p">[</span><span class="s2">"spin_warnings"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="o">**</span><span class="n">entry</span><span class="p">,</span> <span class="s2">"reason"</span><span class="p">:</span> <span class="n">detail</span><span class="p">})</span>
 
                 <span class="k">def</span><span class="w"> </span><span class="nf">_write</span><span class="p">():</span>
                     <span class="k">if</span> <span class="ow">not</span> <span class="n">dry_run</span><span class="p">:</span>
@@ -971,7 +971,7 @@
                             <span class="n">energy</span><span class="p">,</span>
                             <span class="n">ref_type</span><span class="o">=</span><span class="n">ref_type</span><span class="p">,</span>
                             <span class="n">settings</span><span class="o">=</span><span class="n">basis</span><span class="p">,</span>
-                            <span class="n">units</span><span class="o">=</span><span class="s2">&quot;kJ/mol&quot;</span><span class="p">,</span>
+                            <span class="n">units</span><span class="o">=</span><span class="s2">"kJ/mol"</span><span class="p">,</span>
                             <span class="n">source</span><span class="o">=</span><span class="n">csv_path</span><span class="p">,</span>
                         <span class="p">)</span>
 
@@ -980,33 +980,33 @@
                 <span class="p">)</span>
                 <span class="k">if</span> <span class="n">existing</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="n">_write</span><span class="p">()</span>
-                    <span class="n">summary</span><span class="p">[</span><span class="s2">&quot;added&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
+                    <span class="n">summary</span><span class="p">[</span><span class="s2">"added"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">entry</span><span class="p">)</span>
                 <span class="k">elif</span> <span class="n">math</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span>
                     <span class="n">existing</span><span class="p">,</span> <span class="n">energy</span><span class="p">,</span> <span class="n">rel_tol</span><span class="o">=</span><span class="n">energy_rel_tol</span><span class="p">,</span> <span class="n">abs_tol</span><span class="o">=</span><span class="n">energy_abs_tol</span>
                 <span class="p">):</span>
-                    <span class="n">summary</span><span class="p">[</span><span class="s2">&quot;unchanged&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="o">**</span><span class="n">entry</span><span class="p">,</span> <span class="s2">&quot;existing&quot;</span><span class="p">:</span> <span class="n">existing</span><span class="p">})</span>
+                    <span class="n">summary</span><span class="p">[</span><span class="s2">"unchanged"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="o">**</span><span class="n">entry</span><span class="p">,</span> <span class="s2">"existing"</span><span class="p">:</span> <span class="n">existing</span><span class="p">})</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">conflict</span> <span class="o">=</span> <span class="p">{</span>
                         <span class="o">**</span><span class="n">entry</span><span class="p">,</span>
-                        <span class="s2">&quot;existing&quot;</span><span class="p">:</span> <span class="n">existing</span><span class="p">,</span>
-                        <span class="s2">&quot;delta&quot;</span><span class="p">:</span> <span class="n">energy</span> <span class="o">-</span> <span class="n">existing</span><span class="p">,</span>
+                        <span class="s2">"existing"</span><span class="p">:</span> <span class="n">existing</span><span class="p">,</span>
+                        <span class="s2">"delta"</span><span class="p">:</span> <span class="n">energy</span> <span class="o">-</span> <span class="n">existing</span><span class="p">,</span>
                     <span class="p">}</span>
                     <span class="k">if</span> <span class="n">force</span><span class="p">:</span>
                         <span class="n">_write</span><span class="p">()</span>
-                        <span class="n">conflict</span><span class="p">[</span><span class="s2">&quot;reason&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;force&quot;</span>
-                        <span class="n">summary</span><span class="p">[</span><span class="s2">&quot;updated&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">conflict</span><span class="p">)</span>
+                        <span class="n">conflict</span><span class="p">[</span><span class="s2">"reason"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"force"</span>
+                        <span class="n">summary</span><span class="p">[</span><span class="s2">"updated"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">conflict</span><span class="p">)</span>
                     <span class="k">elif</span> <span class="n">prefer_lower_energy</span><span class="p">:</span>
                         <span class="k">if</span> <span class="n">energy</span> <span class="o">&lt;</span> <span class="n">existing</span><span class="p">:</span>
                             <span class="n">_write</span><span class="p">()</span>
-                            <span class="n">conflict</span><span class="p">[</span><span class="s2">&quot;reason&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;prefer_lower_energy: new was lower&quot;</span>
-                            <span class="n">summary</span><span class="p">[</span><span class="s2">&quot;updated&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">conflict</span><span class="p">)</span>
+                            <span class="n">conflict</span><span class="p">[</span><span class="s2">"reason"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"prefer_lower_energy: new was lower"</span>
+                            <span class="n">summary</span><span class="p">[</span><span class="s2">"updated"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">conflict</span><span class="p">)</span>
                         <span class="k">else</span><span class="p">:</span>
-                            <span class="n">conflict</span><span class="p">[</span><span class="s2">&quot;reason&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-                                <span class="s2">&quot;prefer_lower_energy: existing was lower&quot;</span>
+                            <span class="n">conflict</span><span class="p">[</span><span class="s2">"reason"</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                                <span class="s2">"prefer_lower_energy: existing was lower"</span>
                             <span class="p">)</span>
-                            <span class="n">summary</span><span class="p">[</span><span class="s2">&quot;kept_existing&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">conflict</span><span class="p">)</span>
+                            <span class="n">summary</span><span class="p">[</span><span class="s2">"kept_existing"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">conflict</span><span class="p">)</span>
                     <span class="k">else</span><span class="p">:</span>
-                        <span class="n">summary</span><span class="p">[</span><span class="s2">&quot;conflicts&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">conflict</span><span class="p">)</span>
+                        <span class="n">summary</span><span class="p">[</span><span class="s2">"conflicts"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">conflict</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">summary</span></div>
 
@@ -1039,8 +1039,8 @@
   </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script defer src="../../_static/scripts/bootstrap.js?digest=90905a2f556bf617f1a9"></script>
-<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=90905a2f556bf617f1a9"></script>
+  <script defer src="../../_static/scripts/bootstrap.js?digest=cb8930eaaf36d9849b67"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=cb8930eaaf36d9849b67"></script>
 
   <footer class="bd-footer">
 <div class="bd-footer__inner bd-page-width">
@@ -1052,7 +1052,7 @@
         <div class="footer-item">
 <p class="theme-version">
   <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
-  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.20.0.
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.21.0.
 </p></div>
       
     </div>
