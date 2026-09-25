@@ -24,9 +24,12 @@ For each element, method and basis this runs several SCF starts:
   other basis where it has not been found yet. So all bases of an element end
   up sharing the same lowest state.
 
-It keeps the solution with the lowest SCF energy whose <S**2> is acceptable
-(the SCF part is variational; the MP2 part of a double hybrid is not, so the
-SCF energy is what decides). Settings that were found to matter:
+It keeps the converged solution with the lowest SCF energy (the SCF part is
+variational; the MP2 part of a double hybrid is not, so the SCF energy is what
+decides). <S**2> does not disqualify a solution, since spin contamination is
+normal in unrestricted DFT; more than 20% above S(S+1) is flagged.
+
+Settings that were found to matter:
 
 * ``NoCOSX``: ORCA 6.1.1's default RIJCOSX mis-builds the virtual orbitals of
   some lone atoms (Na, Na+ and Mg are ~5 kJ/mol off in the MP2 part; Li and H
@@ -42,7 +45,9 @@ Outputs, in ``--out``:
 * ``choices.csv``: which start won for each entry, how many distinct states
   were seen, and any flags (open-shell singlet, <S**2>, no convergence).
 
-It is resumable: finished runs are parsed, not rerun.
+It is resumable: finished runs are parsed, not rerun. ``--rechoose`` rebuilds
+``choices.csv`` and ``Results.csv`` from an existing ``runs.csv`` without
+running anything (e.g. after changing the selection rule).
 
 Example::
 
@@ -93,8 +98,9 @@ SCF_BLOCK = """%scf
 {guess}end
 """
 
-# <S**2> tolerance, as a fraction of S(S+1) (matches the importer's reject
-# threshold); a pure doublet etc. is well inside it.
+# <S**2> above S(S+1) by more than this fraction is flagged (not rejected: the
+# lowest solution is kept regardless, since spin contamination is a normal
+# feature of unrestricted DFT, e.g. Sc's 4s2 pair polarized by its 3d electron).
 S2_REL_TOL = 0.20
 
 
@@ -210,6 +216,34 @@ def run_orca(orca, workdir, timeout):
 
 
 # --------------------------------------------------------------------------
+# Choosing the solution
+# --------------------------------------------------------------------------
+def converged(rec):
+    return rec.get("status") == "ok" and rec.get("scf") not in (None, "")
+
+
+def select(runs, mult, term):
+    """The chosen run among `runs` (one element, method and basis) and its
+    flags: the lowest SCF energy of any converged run. <S**2> does not
+    disqualify a run; contamination above S2_REL_TOL is flagged."""
+    cands = [r for r in runs if converged(r)]
+    if not cands:
+        return None, "no converged solution"
+    best = min(cands, key=lambda r: float(r["scf"]))
+    flags = []
+    if open_shell_singlet(term):
+        flags.append(f"open-shell singlet ({term})")
+    S = (mult - 1) / 2
+    s2 = best.get("s2")
+    if S > 0 and s2 not in (None, ""):
+        pure = S * (S + 1)
+        excess = (float(s2) - pure) / pure
+        if abs(excess) > S2_REL_TOL:
+            flags.append(f"<S**2> {float(s2):.3f} vs {pure:.3f} ({100 * excess:+.0f}%)")
+    return best, "; ".join(flags)
+
+
+# --------------------------------------------------------------------------
 # The search for one element and method
 # --------------------------------------------------------------------------
 class ElementSearch:
@@ -260,14 +294,6 @@ class ElementSearch:
         self.runs.append(rec)
         return rec
 
-    def acceptable(self, rec):
-        if rec.get("status") != "ok" or "scf" not in rec:
-            return False
-        S = (self.mult - 1) / 2
-        if "s2" in rec and S > 0:
-            return abs(rec["s2"] - S * (S + 1)) <= S2_REL_TOL * S * (S + 1)
-        return True
-
     def search(self, pool):
         seed = self.pbe0_seed()
         # Round 1: every direct start in every basis.
@@ -282,7 +308,7 @@ class ElementSearch:
         states = {}
         for rec in self.runs:
             fp = rec.get("fingerprint")
-            if self.acceptable(rec) and fp and (rec["dir"] / "orca.gbw").exists():
+            if converged(rec) and fp and (rec["dir"] / "orca.gbw").exists():
                 best = states.get(fp)
                 if best is None or rec["scf"] < best["scf"]:
                     states[fp] = rec
@@ -291,7 +317,7 @@ class ElementSearch:
             seen = {
                 r.get("fingerprint")
                 for r in self.runs
-                if r["basis"] == basis and self.acceptable(r)
+                if r["basis"] == basis and converged(r)
             }
             for fp, src in states.items():
                 if fp not in seen:
@@ -302,24 +328,9 @@ class ElementSearch:
         return len(states)
 
     def choose(self, basis):
-        cands = [r for r in self.runs if r["basis"] == basis and self.acceptable(r)]
-        if not cands:
-            return None, "no acceptable solution"
-        best = min(cands, key=lambda r: r["scf"])
-        flags = []
-        if open_shell_singlet(self.term):
-            flags.append(f"open-shell singlet ({self.term})")
-        lower = [
-            r
-            for r in self.runs
-            if r["basis"] == basis
-            and r.get("status") == "ok"
-            and "scf" in r
-            and r["scf"] < best["scf"] - 1e-6
-        ]
-        if lower:
-            flags.append("a lower solution failed the <S**2> check")
-        return best, "; ".join(flags)
+        return select(
+            [r for r in self.runs if r["basis"] == basis], self.mult, self.term
+        )
 
 
 # --------------------------------------------------------------------------
@@ -360,7 +371,7 @@ def default_orca():
 
 def main():
     p = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    p.add_argument("--elements", required=True, help="e.g. '1-36', '26 Kr'")
+    p.add_argument("--elements", default=None, help="e.g. '1-36', '26 Kr'")
     p.add_argument(
         "--methods",
         nargs="+",
@@ -373,6 +384,11 @@ def main():
     p.add_argument("--workers", type=int, default=4)
     p.add_argument("--timeout", type=float, default=4 * 3600, help="s per run")
     p.add_argument("--out", required=True)
+    p.add_argument(
+        "--rechoose",
+        action="store_true",
+        help="only rebuild choices.csv/Results.csv from the runs.csv in --out",
+    )
     p.add_argument("--db", default=None, help="ThermoDB for the element table")
     p.add_argument("--keep-gbw", action="store_true", help="keep all orbital files")
     args = p.parse_args()
@@ -382,46 +398,21 @@ def main():
 
         args.db = DEFAULT_DB_PATH
     table = element_table(args.db)
-    Zs = parse_elements(args.elements, table)
     out = Path(args.out).expanduser()
+    if args.rechoose:
+        return rechoose(out, table)
+    if args.elements is None:
+        p.error("--elements is required unless --rechoose is given")
+    Zs = parse_elements(args.elements, table)
     out.mkdir(parents=True, exist_ok=True)
     args.out = str(out)
 
-    run_fields = [
-        "Z",
-        "El",
-        "method",
-        "basis",
-        "start",
-        "status",
-        "scf",
-        "total",
-        "s2",
-        "fingerprint",
-        "seconds",
-        "dir",
-    ]
-    choice_fields = [
-        "Z",
-        "El",
-        "Multiplicity",
-        "Term",
-        "method",
-        "basis",
-        "start",
-        "energy_kJ",
-        "scf",
-        "s2",
-        "n_states",
-        "flags",
-    ]
     results = {}  # Z -> {column: value}
     all_runs, choices = [], []
 
     with concurrent.futures.ThreadPoolExecutor(args.workers) as pool:
         for Z in Zs:
             sym, mult, term = table[Z]
-            results[Z] = {"Atomic Number": Z, "Element": sym, "Multiplicity": mult}
             for method in args.methods:
                 es = ElementSearch(args, Z, sym, mult, term, method)
                 n_states = es.search(pool)
@@ -431,48 +422,110 @@ def main():
                             "Z": Z,
                             "El": sym,
                             "method": method,
-                            **{k: rec.get(k) for k in run_fields[3:]},
+                            **{k: rec.get(k) for k in RUN_FIELDS[3:]},
                         }
                     )
                 for basis in args.bases:
                     best, flags = es.choose(basis)
-                    col = f"DFT@{db_method(method)}/{basis}"
-                    if best is not None:
-                        results[Z][f"E {col} (kJ/mol)"] = round(
-                            best["total"] * KJ_PER_EH, 3
-                        )
-                        results[Z][f"S^2 {col}"] = best.get("s2", "")
-                    choices.append(
-                        {
-                            "Z": Z,
-                            "El": sym,
-                            "Multiplicity": mult,
-                            "Term": term,
-                            "method": method,
-                            "basis": basis,
-                            "start": best["start"] if best else "",
-                            "energy_kJ": (
-                                round(best["total"] * KJ_PER_EH, 3) if best else ""
-                            ),
-                            "scf": best["scf"] if best else "",
-                            "s2": best.get("s2", "") if best else "",
-                            "n_states": n_states,
-                            "flags": flags,
-                        }
+                    record(
+                        results, choices, table, Z, method, basis, best, flags, n_states
                     )
                 if not args.keep_gbw:
                     for rec in es.runs:
                         (rec["dir"] / "orca.gbw").unlink(missing_ok=True)
                 print(f"{Z:3d} {sym:2s} {method}: {n_states} state(s)", flush=True)
             # Rewrite the outputs after every element, so partial runs are usable.
-            write_csv(out / "runs.csv", run_fields, all_runs)
-            write_csv(out / "choices.csv", choice_fields, choices)
-            cols = ["Atomic Number", "Element", "Multiplicity"] + sorted(
-                {k for r in results.values() for k in r}
-                - {"Atomic Number", "Element", "Multiplicity"},
-                key=lambda k: (k.split(" ", 2)[1], k.split(" ")[0]),
-            )
-            write_csv(out / "Results.csv", cols, [results[z] for z in sorted(results)])
+            write_csv(out / "runs.csv", RUN_FIELDS, all_runs)
+            write_outputs(out, choices, results)
+
+
+RUN_FIELDS = [
+    "Z",
+    "El",
+    "method",
+    "basis",
+    "start",
+    "status",
+    "scf",
+    "total",
+    "s2",
+    "fingerprint",
+    "seconds",
+    "dir",
+]
+CHOICE_FIELDS = [
+    "Z",
+    "El",
+    "Multiplicity",
+    "Term",
+    "method",
+    "basis",
+    "start",
+    "energy_kJ",
+    "scf",
+    "s2",
+    "n_states",
+    "flags",
+]
+
+
+def record(results, choices, table, Z, method, basis, best, flags, n_states):
+    """Add one chosen entry to its Results.csv row and to choices.csv."""
+    sym, mult, term = table[Z]
+    row = results.setdefault(
+        Z, {"Atomic Number": Z, "Element": sym, "Multiplicity": mult}
+    )
+    col = f"DFT@{db_method(method)}/{basis}"
+    energy = round(float(best["total"]) * KJ_PER_EH, 3) if best else ""
+    if best is not None:
+        row[f"E {col} (kJ/mol)"] = energy
+        row[f"S^2 {col}"] = best.get("s2", "")
+    choices.append(
+        {
+            "Z": Z,
+            "El": sym,
+            "Multiplicity": mult,
+            "Term": term,
+            "method": method,
+            "basis": basis,
+            "start": best["start"] if best else "",
+            "energy_kJ": energy,
+            "scf": best["scf"] if best else "",
+            "s2": best.get("s2", "") if best else "",
+            "n_states": n_states,
+            "flags": flags,
+        }
+    )
+
+
+def write_outputs(out, choices, results):
+    write_csv(out / "choices.csv", CHOICE_FIELDS, choices)
+    fixed = ["Atomic Number", "Element", "Multiplicity"]
+    cols = fixed + sorted(
+        {k for r in results.values() for k in r} - set(fixed),
+        key=lambda k: (k.split(" ", 2)[1], k.split(" ")[0]),
+    )
+    write_csv(out / "Results.csv", cols, [results[z] for z in sorted(results)])
+
+
+def rechoose(out, table):
+    """Rebuild choices.csv and Results.csv from runs.csv with `select`."""
+    with open(out / "runs.csv", newline="") as fh:
+        runs = list(csv.DictReader(fh))
+    groups = {}
+    for r in runs:
+        groups.setdefault((int(r["Z"]), r["method"]), []).append(r)
+    results, choices = {}, []
+    for (Z, method), recs in sorted(groups.items()):
+        _, mult, term = table[Z]
+        n_states = len(
+            {r["fingerprint"] for r in recs if converged(r) and r["fingerprint"]}
+        )
+        for basis in dict.fromkeys(r["basis"] for r in recs):
+            best, flags = select([r for r in recs if r["basis"] == basis], mult, term)
+            record(results, choices, table, Z, method, basis, best, flags, n_states)
+    write_outputs(out, choices, results)
+    print(f"rechose {len(choices)} entries from {len(runs)} runs in {out}")
 
 
 def write_csv(path, fields, rows):
