@@ -48,6 +48,10 @@ Outputs, in ``--out``:
 * ``choices.csv``: which start won for each entry, how many distinct states
   were seen, and any flags (open-shell singlet, <S**2>, no convergence).
 
+Stopping it with SIGTERM, SIGINT or SIGHUP (or, with ``--watch-parent``, killing
+its parent process) kills all of its ORCA calculations too; their partial
+outputs are rerun when the script is resumed.
+
 It is resumable: finished runs are parsed (also if their ``orca.out`` was
 compressed to ``orca.out.gz``), not rerun, so a new version of the script can
 extend a finished run with just its new starts. ``--rechoose`` rebuilds
@@ -65,12 +69,15 @@ import concurrent.futures
 import configparser
 import csv
 import gzip
+import os
 from pathlib import Path
 import re
 import shutil
+import signal
 import sqlite3
 import subprocess
 import sys
+import threading
 import time
 
 KJ_PER_EH = 2625.499639
@@ -160,8 +167,13 @@ def parse(out_path):
     r = {"status": "missing"}
     if not text:
         return r
-    if "ORCA TERMINATED NORMALLY" not in text:
-        r["status"] = "error"
+    if (out_path.parent / "TIMEOUT").exists():
+        r["status"] = "timeout"
+    elif "ORCA TERMINATED NORMALLY" not in text:
+        # A run that was killed (e.g. the job was stopped) leaves a partial
+        # output with neither ending: it is unfinished, not a failed calculation.
+        failed = ("error termination", "aborting the run", "INPUT ERROR")
+        r["status"] = "error" if any(f in text for f in failed) else "incomplete"
     elif "SCF NOT CONVERGED" in text or "SCF CONVERGED AFTER" not in text:
         r["status"] = "not converged"
     else:
@@ -203,24 +215,82 @@ def fingerprint(r):
     return " ".join(parts) or None
 
 
+# --------------------------------------------------------------------------
+# Stopping cleanly
+# --------------------------------------------------------------------------
+# Each ORCA run is started in its own session (process group), so the whole
+# tree -- the orca driver and the orca_leanscf/orca_mp2/... programs it starts
+# -- can be killed at once. On SIGTERM/SIGINT/SIGHUP, or if the parent process
+# disappears (--watch-parent; e.g. a SEAMM job was killed, which signals only
+# the run_flowchart process), every running ORCA group is killed and the
+# script exits. Killed runs leave partial outputs, which parse() reports as
+# "incomplete", so a resumed run redoes them.
+_RUNNING = set()
+_RUNNING_LOCK = threading.Lock()
+_STOPPING = threading.Event()
+
+
+def stop_all(reason):
+    """Kill every running ORCA process group (once) and mark the run stopping."""
+    if _STOPPING.is_set():
+        return
+    _STOPPING.set()
+    print(f"Stopping: {reason}. Killing the running ORCA calculations.", flush=True)
+    with _RUNNING_LOCK:
+        procs = list(_RUNNING)
+    for sig in (signal.SIGTERM, signal.SIGKILL):
+        for proc in procs:
+            try:
+                os.killpg(proc.pid, sig)
+            except (ProcessLookupError, PermissionError):
+                pass
+        if sig == signal.SIGTERM:
+            time.sleep(2)
+
+
+def _on_signal(signum, frame):
+    stop_all(f"signal {signal.Signals(signum).name}")
+    os._exit(128 + signum)
+
+
+def _watch_parent(interval=5):
+    """Stop if the parent process goes away (the script is then re-parented)."""
+    parent = os.getppid()
+    while not _STOPPING.is_set():
+        time.sleep(interval)
+        if os.getppid() != parent:
+            stop_all("the parent process exited")
+            os._exit(1)
+
+
 def run_orca(orca, workdir, timeout):
     """Run ORCA in workdir unless a finished output is already there."""
     out = workdir / "orca.out"
     done = parse(out)
-    if done["status"] != "missing":
+    if done["status"] not in ("missing", "incomplete"):
         return done
+    if _STOPPING.is_set():
+        return {"status": "stopped"}
     t0 = time.perf_counter()
-    try:
-        with out.open("w") as fh:
-            subprocess.run(
-                [orca, "orca.inp"],
-                cwd=workdir,
-                stdout=fh,
-                stderr=subprocess.STDOUT,
-                timeout=timeout,
-            )
-    except subprocess.TimeoutExpired:
-        pass
+    with out.open("w") as fh:
+        proc = subprocess.Popen(
+            [orca, "orca.inp"],
+            cwd=workdir,
+            stdout=fh,
+            stderr=subprocess.STDOUT,
+            start_new_session=True,
+        )
+        with _RUNNING_LOCK:
+            _RUNNING.add(proc)
+        try:
+            proc.wait(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            os.killpg(proc.pid, signal.SIGKILL)
+            proc.wait()
+            (workdir / "TIMEOUT").write_text(f"killed after {timeout} s\n")
+        finally:
+            with _RUNNING_LOCK:
+                _RUNNING.discard(proc)
     r = parse(out)
     r["seconds"] = round(time.perf_counter() - t0, 1)
     # Keep orca.inp/orca.out (the record) and orca.gbw (needed to share states
@@ -316,11 +386,14 @@ class ElementSearch:
     def one(self, basis, start, guess_block, moinp_src=None):
         d = self.root / safe(self.method) / safe(basis) / safe(start)
         d.mkdir(parents=True, exist_ok=True)
+        # (Re)supply the starting orbitals whenever the run still has to be done:
+        # a run killed part-way (and resumed) already has its orca.inp, but its
+        # guess.gbw may be gone.
+        unfinished = parse(d / "orca.out")["status"] in ("missing", "incomplete")
+        if moinp_src is not None and unfinished and Path(moinp_src).exists():
+            shutil.copy(moinp_src, d / "guess.gbw")
         if not (d / "orca.inp").exists():
-            moinp = None
-            if moinp_src is not None:
-                shutil.copy(moinp_src, d / "guess.gbw")
-                moinp = "guess.gbw"
+            moinp = "guess.gbw" if moinp_src is not None else None
             write_input(
                 d / "orca.inp",
                 self.keywords.format(basis=basis),
@@ -437,7 +510,18 @@ def main():
     )
     p.add_argument("--db", default=None, help="ThermoDB for the element table")
     p.add_argument("--keep-gbw", action="store_true", help="keep all orbital files")
+    p.add_argument(
+        "--watch-parent",
+        action="store_true",
+        help="stop (killing all ORCA runs) if the parent process exits, e.g. when "
+        "a SEAMM job running this script is killed",
+    )
     args = p.parse_args()
+
+    for signum in (signal.SIGTERM, signal.SIGINT, signal.SIGHUP):
+        signal.signal(signum, _on_signal)
+    if args.watch_parent:
+        threading.Thread(target=_watch_parent, daemon=True).start()
 
     if args.db is None:
         from seamm_thermochemistry import DEFAULT_DB_PATH
