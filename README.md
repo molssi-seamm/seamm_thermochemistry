@@ -33,8 +33,9 @@ VASP). This package is the single shared replacement:
   formation when no harmonic thermochemistry has been run.
 - **`importers.py`** -- one-off loaders from the three legacy master files
   (Paul's experimental-data workbook, the VASP element-energy workbook, and
-  the gaussian_step/psi4_step wide CSVs) into a `ThermoDB`. Needs the
-  `import` extra (`pandas`, `openpyxl`).
+  the gaussian_step wide CSV) into a `ThermoDB`. Needs the `import` extra
+  (`pandas`, `openpyxl`). (psi4_step's CSV is not imported: it is a copy of
+  gaussian_step's, i.e. Gaussian numbers, not Psi4 results.)
 
 ### Two reference conventions, one schema
 
@@ -63,10 +64,36 @@ The reference database is published on Zenodo (a DOI per version) and
 fetched with `seamm-thermochemistry-installer install` -- not bundled in
 the Python package. `gaussian_step`'s `calculate_energy_of_formation`
 already consumes it in production. Current coverage: the full Gaussian
-and Psi4 composite-method/basis grids, VASP (PBE family, both the
-isolated-atom and standard-state-phase conventions), and ORCA (several
-DFT methods across the full def2 basis family), all vetted and imported
-via `seamm-thermochemistry-import-orca` / the `importers` module.
+composite-method/basis grid, VASP (PBE family, both the isolated-atom and
+standard-state-phase conventions), and ORCA (several DFT methods across the
+full def2 basis family), all vetted and imported via
+`seamm-thermochemistry-import-orca` / the `importers` module. There are no
+Psi4 atom energies yet: the earlier "psi4" rows were copies of Gaussian's.
+
+### Computing ORCA atom energies
+
+`scripts/orca_atom_multistart.py` computes the ORCA atomic reference energies.
+An atom's reference energy for a method is defined as **the lowest-energy SCF
+solution of that method at the experimental ground-state spin multiplicity**.
+That is well defined even where the method orders the atom's states differently
+from experiment. There, though, the atomization route to formation energies is
+itself becoming unreliable, and for careful work reaction energies to
+well-known species (e.g. H2O -> H2 + 1/2 O2) are the better tool. Formation
+energies remain far more meaningful than raw total energies, for users and for
+machine-learning training data alike.
+
+A single SCF start is not enough to find that solution for open-shell atoms: Fe
+from ORCA's PModel guess lands in 3d7 4s1, 120 kJ/mol above 3d6 4s2, and small
+setting changes flip Nb and Ho between solutions over 80 kJ/mol apart. So the
+script runs several starts per element, method and basis (PBE0/def2-SV(P)
+orbitals, PModel, HCore, Hueckel, PAtom), shares every state found in one basis
+with all the others, and keeps the lowest SCF energy. <S**2> is recorded and
+contamination over 20% flagged, but it does not disqualify a solution. It uses
+exact exchange (`NoCOSX`), because ORCA's default COSX gets some lone atoms
+wrong (He ~1, Na and Mg ~5 kJ/mol), and full orbital convergence
+(`ConvCheckMode 0`) for the MP2 part of double hybrids. It writes a
+`Results.csv` that `seamm-thermochemistry-import-orca` reads, plus a log of
+every run and of each choice.
 
 One known simplification: the `settings` column is a single free-form
 string (e.g. `"encut=700eV"`) rather than normalized basis/cutoff columns
