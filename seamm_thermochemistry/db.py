@@ -88,8 +88,14 @@ _SEAMM_INI_PATH = Path("~/.seamm.d/seamm.ini").expanduser()
 
 
 def _resolve_default_db_path():
-    """The installer-managed database path from seamm.ini's
-    [thermochemistry] section, if set, else the bundled package path.
+    """The database to use when none is given.
+
+    In order: the SEAMM installation's own copy,
+    ``<root>/Parameters/thermochemistry/thermochemistry.db``, if it exists; the
+    installer-managed path from seamm.ini's [thermochemistry] section, which every
+    installation of the user shares; the bundled package path. So a second
+    installation such as ``~/SEAMM_DEV`` uses the shared database unless it has
+    its own.
 
     Reads seamm.ini directly with the stdlib configparser rather than
     importing seamm_installer, so this core module keeps its only real
@@ -97,6 +103,15 @@ def _resolve_default_db_path():
     only needed to *populate* database-path in the first place -- see
     installer.py -- not to read it back here.
     """
+    try:
+        from seamm_util import current_root
+
+        own = current_root() / "Parameters" / "thermochemistry" / "thermochemistry.db"
+        if own.exists():
+            return own.resolve()
+    except ImportError:  # seamm-util older than 2026.9.27.1
+        pass
+
     if _SEAMM_INI_PATH.exists():
         parser = configparser.ConfigParser(interpolation=None)
         parser.read(_SEAMM_INI_PATH)

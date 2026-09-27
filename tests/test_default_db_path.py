@@ -6,7 +6,15 @@ real ~/.seamm.d/seamm.ini.
 
 from pathlib import Path
 
+import pytest
+
 from seamm_thermochemistry import db as db_module
+
+
+@pytest.fixture(autouse=True)
+def _empty_root(tmp_path, monkeypatch):
+    """An installation root with no database of its own, unless a test makes one."""
+    monkeypatch.setenv("SEAMM_ROOT", str(tmp_path / "root"))
 
 
 def _write_ini(path, text):
@@ -66,3 +74,16 @@ def test_tolerates_percent_signs_elsewhere_in_the_file(tmp_path, monkeypatch):
     )
     monkeypatch.setattr(db_module, "_SEAMM_INI_PATH", ini)
     assert db_module._resolve_default_db_path() == target.resolve()
+
+
+def test_installation_copy_beats_shared_path(tmp_path, monkeypatch):
+    shared = tmp_path / "SEAMM" / "Parameters" / "thermochemistry" / "shared.db"
+    ini = tmp_path / "seamm.ini"
+    _write_ini(ini, f"[thermochemistry]\ndatabase-path = {shared}\n")
+    monkeypatch.setattr(db_module, "_SEAMM_INI_PATH", ini)
+    assert db_module._resolve_default_db_path() == shared
+
+    own = tmp_path / "root" / "Parameters" / "thermochemistry" / "thermochemistry.db"
+    own.parent.mkdir(parents=True)
+    own.write_bytes(b"")
+    assert db_module._resolve_default_db_path() == own.resolve()
