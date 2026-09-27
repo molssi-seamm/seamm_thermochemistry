@@ -2,6 +2,13 @@
 History
 =======
 
+2026.9.27.1 -- Bugfix: a trial installation cannot replace the shared database
+    * In an installation that shares the default installation's codes and data (the
+      default for any SEAMM installation other than ``~/SEAMM``, from seamm-manager
+      2026.9.27.6), the installer no longer downloads the reference database over the
+      shared file, nor deletes it on uninstall; it reports which database the
+      installation uses, or that the default installation has none.
+
 2026.9.27 -- The reference database can belong to the installation
     * The default database is now the SEAMM installation's own
       ``Parameters/thermochemistry/thermochemistry.db`` if it has one, then the
