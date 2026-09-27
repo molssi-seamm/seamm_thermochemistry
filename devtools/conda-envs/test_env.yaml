@@ -30,5 +30,6 @@ dependencies:
 
   # Pip-only installs
   - pip:
+      - seamm-util>=2026.9.27.1
       # Documentation
       - sphinx-copybutton

@@ -2,6 +2,16 @@
 History
 =======
 
+2026.9.27 -- The reference database can belong to the installation
+    * The default database is now the SEAMM installation's own
+      ``Parameters/thermochemistry/thermochemistry.db`` if it has one, then the
+      installer-registered database (shared by every installation of the user), then
+      the bundled snapshot. A second installation such as ``~/SEAMM_DEV`` therefore
+      uses the shared database unless it has its own. Requires seamm-util 2026.9.27.1.
+    * Internal: the ORCA atom-energy script uses a smeared start for Z >= 57, resumes
+      from compressed outputs, stops its ORCA runs when it is stopped, and redoes runs
+      that were killed.
+
 2026.9.25 -- Internal: robust ORCA atom-energy script; no copied Psi4 data
     * Added ``scripts/orca_atom_multistart.py``, which computes ORCA atomic
       reference energies as the lowest-energy SCF solution at the experimental
