@@ -84,9 +84,27 @@ class Installer(seamm_installer.InstallerBase):
 
         return False
 
+    def _shared_report(self):
+        """In an installation that shares the default installation's codes and
+        data, never download: report the database it will use. Returns True if
+        this installation shares (and so nothing else should be done)."""
+        if not getattr(self, "shared_codes", False):
+            return False
+        path = self._configured_database_path()
+        if path.exists():
+            print(f"    This installation uses the shared reference database {path}.")
+        else:
+            print(
+                "    This installation shares the default installation's data, which "
+                f"has no reference database ({path}). Install it there first."
+            )
+        return True
+
     def install(self):
         """Download the reference database from Zenodo and register its
         location in seamm.ini's [thermochemistry] section."""
+        if self._shared_report():
+            return
         if self.zenodo_concept_id is None:
             raise RuntimeError(
                 "seamm_thermochemistry has no Zenodo record configured yet "
@@ -114,6 +132,8 @@ class Installer(seamm_installer.InstallerBase):
         """Re-download the reference database (a newer Zenodo version may
         be out -- get_latest_public_record always resolves to the current
         one, so this is just install() again)."""
+        if self._shared_report():
+            return
         path = self._configured_database_path()
         if not path.exists():
             print(
@@ -124,6 +144,8 @@ class Installer(seamm_installer.InstallerBase):
 
     def uninstall(self):
         """Remove the installed reference database and clear the config."""
+        if self._shared_report():
+            return
         data = self.configuration.get_values(self.section)
         if "database-path" not in data or data["database-path"] == "":
             print("The thermochemistry database is not installed; nothing to do.")
