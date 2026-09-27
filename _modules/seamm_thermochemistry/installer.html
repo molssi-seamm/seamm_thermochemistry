@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.installer &#8212; SEAMM thermochemistry Plug-in 2026.9.27 documentation</title>
+    <title>seamm_thermochemistry.installer &#8212; SEAMM thermochemistry Plug-in 2026.9.27.1 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../../_static/documentation_options.js?v=09c3d259"></script>
+    <script src="../../_static/documentation_options.js?v=2246f11d"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -51,7 +51,7 @@
     <link rel="search" title="Search" href="../../search.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.9.27" />
+  <meta name="docsearch:version" content="2026.9.27.1" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -501,11 +501,29 @@
         <span class="k">return</span> <span class="kc">False</span></div>
 
 
+    <span class="k">def</span><span class="w"> </span><span class="nf">_shared_report</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""In an installation that shares the default installation's codes and</span>
+<span class="sd">        data, never download: report the database it will use. Returns True if</span>
+<span class="sd">        this installation shares (and so nothing else should be done)."""</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">"shared_codes"</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configured_database_path</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"    This installation uses the shared reference database </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">."</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s2">"    This installation shares the default installation's data, which "</span>
+                <span class="sa">f</span><span class="s2">"has no reference database (</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">). Install it there first."</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
 <div class="viewcode-block" id="Installer.install">
 <a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.installer.Installer.install">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">install</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">"""Download the reference database from Zenodo and register its</span>
 <span class="sd">        location in seamm.ini's [thermochemistry] section."""</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shared_report</span><span class="p">():</span>
+            <span class="k">return</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">zenodo_concept_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
                 <span class="s2">"seamm_thermochemistry has no Zenodo record configured yet "</span>
@@ -536,6 +554,8 @@
 <span class="w">        </span><span class="sd">"""Re-download the reference database (a newer Zenodo version may</span>
 <span class="sd">        be out -- get_latest_public_record always resolves to the current</span>
 <span class="sd">        one, so this is just install() again)."""</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shared_report</span><span class="p">():</span>
+            <span class="k">return</span>
         <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_configured_database_path</span><span class="p">()</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
             <span class="nb">print</span><span class="p">(</span>
@@ -549,6 +569,8 @@
 <a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.installer.Installer.uninstall">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">uninstall</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">"""Remove the installed reference database and clear the config."""</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shared_report</span><span class="p">():</span>
+            <span class="k">return</span>
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">configuration</span><span class="o">.</span><span class="n">get_values</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">section</span><span class="p">)</span>
         <span class="k">if</span> <span class="s2">"database-path"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data</span> <span class="ow">or</span> <span class="n">data</span><span class="p">[</span><span class="s2">"database-path"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">""</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">"The thermochemistry database is not installed; nothing to do."</span><span class="p">)</span>
