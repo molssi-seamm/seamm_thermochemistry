@@ -7,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.9.27.1 documentation</title>
+    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.9.28 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="_static/documentation_options.js?v=2246f11d"></script>
+    <script src="_static/documentation_options.js?v=e1d9719b"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -54,7 +54,7 @@
     <link rel="prev" title="Welcome to SEAMM thermochemistry’s documentation!" href="index.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.9.27.1" />
+  <meta name="docsearch:version" content="2026.9.28" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -458,8 +458,7 @@ published reference database from Zenodo.</p></li>
 <h2>Fetching the reference database<a class="headerlink" href="#fetching-the-reference-database" title="Link to this heading">#</a></h2>
 <p>The reference database itself (<code class="docutils literal notranslate"><span class="pre">thermochemistry.db</span></code>) is not shipped
 inside the Python package – it is a growing dataset published separately
-on Zenodo, with a version DOI for every release. Fetch (or update) the
-local copy with:</p>
+on Zenodo, with a version DOI for every release. Fetch the local copy with:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">seamm</span><span class="o">-</span><span class="n">thermochemistry</span><span class="o">-</span><span class="n">installer</span> <span class="n">install</span>
 </pre></div>
 </div>
@@ -467,6 +466,16 @@ local copy with:</p>
 checksum, and registers its location in <code class="docutils literal notranslate"><span class="pre">~/.seamm.d/seamm.ini</span></code>’s
 <code class="docutils literal notranslate"><span class="pre">[thermochemistry]</span></code> section. <code class="xref py py-data docutils literal notranslate"><span class="pre">seamm_thermochemistry.DEFAULT_DB_PATH</span></code>
 then resolves to that location automatically.</p>
+<p><code class="docutils literal notranslate"><span class="pre">seamm-thermochemistry-installer</span> <span class="pre">update</span></code> (which <code class="docutils literal notranslate"><span class="pre">seamm-manager</span> <span class="pre">update</span></code> runs)
+brings the copy up to the latest published version – but only if the local file is
+exactly one of the published versions. A database you have edited, for instance with
+curated or recomputed reference energies, is kept as it is and reported; to replace it
+with the published version anyway, run
+<code class="docutils literal notranslate"><span class="pre">seamm-thermochemistry-installer</span> <span class="pre">update</span> <span class="pre">--force</span></code>, which saves the old file as
+<code class="docutils literal notranslate"><span class="pre">thermochemistry.db.bak-&lt;date&gt;</span></code> first. Every replacement keeps such a backup, and a
+download is checked before it replaces anything. <code class="docutils literal notranslate"><span class="pre">install</span></code> never overwrites an
+existing database, and <code class="docutils literal notranslate"><span class="pre">uninstall</span></code> leaves one with local changes in place unless
+given <code class="docutils literal notranslate"><span class="pre">--force</span></code>.</p>
 </section>
 <section id="a-quick-example">
 <h2>A quick example<a class="headerlink" href="#a-quick-example" title="Link to this heading">#</a></h2>

@@ -31,8 +31,7 @@ Fetching the reference database
 
 The reference database itself (``thermochemistry.db``) is not shipped
 inside the Python package -- it is a growing dataset published separately
-on Zenodo, with a version DOI for every release. Fetch (or update) the
-local copy with::
+on Zenodo, with a version DOI for every release. Fetch the local copy with::
 
     seamm-thermochemistry-installer install
 
@@ -40,6 +39,17 @@ which downloads the latest version, verifies it against Zenodo's own
 checksum, and registers its location in ``~/.seamm.d/seamm.ini``'s
 ``[thermochemistry]`` section. :data:`seamm_thermochemistry.DEFAULT_DB_PATH`
 then resolves to that location automatically.
+
+``seamm-thermochemistry-installer update`` (which ``seamm-manager update`` runs)
+brings the copy up to the latest published version -- but only if the local file is
+exactly one of the published versions. A database you have edited, for instance with
+curated or recomputed reference energies, is kept as it is and reported; to replace it
+with the published version anyway, run
+``seamm-thermochemistry-installer update --force``, which saves the old file as
+``thermochemistry.db.bak-<date>`` first. Every replacement keeps such a backup, and a
+download is checked before it replaces anything. ``install`` never overwrites an
+existing database, and ``uninstall`` leaves one with local changes in place unless
+given ``--force``.
 
 A quick example
 ----------------

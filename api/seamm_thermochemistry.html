@@ -7,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>seamm_thermochemistry package &#8212; SEAMM thermochemistry Plug-in 2026.9.27.1 documentation</title>
+    <title>seamm_thermochemistry package &#8212; SEAMM thermochemistry Plug-in 2026.9.28 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=64cc4de3f052d77215f0" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=64cc4de3f052d77215f0" />
 
-    <script src="../_static/documentation_options.js?v=2246f11d"></script>
+    <script src="../_static/documentation_options.js?v=e1d9719b"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -53,7 +53,7 @@
     <link rel="prev" title="seamm_thermochemistry" href="modules.html" />
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.9.27.1" />
+  <meta name="docsearch:version" content="2026.9.28" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -1180,20 +1180,26 @@ declined.</p>
 <span class="sig-name descname"><span class="pre">install</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/installer.html#Installer.install"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.installer.Installer.install" title="Link to this definition">#</a></dt>
 <dd><p>Download the reference database from Zenodo and register its
 location in seamm.ini’s [thermochemistry] section.</p>
+<p>An existing database is never overwritten here; see <cite>update</cite>.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="seamm_thermochemistry.installer.Installer.uninstall">
 <span class="sig-name descname"><span class="pre">uninstall</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/installer.html#Installer.uninstall"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.installer.Installer.uninstall" title="Link to this definition">#</a></dt>
 <dd><p>Remove the installed reference database and clear the config.</p>
+<p>A database with local changes is left in place (only the configuration is
+cleared) unless <code class="docutils literal notranslate"><span class="pre">uninstall</span> <span class="pre">--force</span></code> is given.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="seamm_thermochemistry.installer.Installer.update">
 <span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/installer.html#Installer.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.installer.Installer.update" title="Link to this definition">#</a></dt>
-<dd><p>Re-download the reference database (a newer Zenodo version may
-be out – get_latest_public_record always resolves to the current
-one, so this is just install() again).</p>
+<dd><p>Bring the database up to the latest published version – unless it has
+local changes.</p>
+<p>The database is replaced only if the local file is exactly one of the
+published versions (or the copy this installer installed). A database that
+has been edited, e.g. with curated reference energies, is kept as it is and
+reported; <code class="docutils literal notranslate"><span class="pre">update</span> <span class="pre">--force</span></code> replaces it, keeping a backup.</p>
 </dd></dl>
 
 <dl class="py attribute">
