@@ -2,6 +2,19 @@
 History
 =======
 
+2026.9.28 -- Bugfix: updating never replaces a database with local changes
+    * ``seamm-thermochemistry-installer update`` -- run by every
+      ``seamm-manager update`` -- downloaded the published database over the local
+      one, so curated changes were lost. It now replaces the local database only if
+      it is exactly one of the published versions (or the copy the installer
+      installed). A database with local changes is kept and reported;
+      ``update --force`` replaces it anyway.
+    * Every replacement first saves the old file as ``thermochemistry.db.bak-<date>``,
+      and the download is verified before it replaces anything. Before, a download
+      with the wrong checksum deleted the database itself.
+    * ``install`` no longer overwrites an existing database, and ``uninstall`` leaves
+      one with local changes in place unless given ``--force``.
+
 2026.9.27.1 -- Bugfix: a trial installation cannot replace the shared database
     * In an installation that shares the default installation's codes and data (the
       default for any SEAMM installation other than ``~/SEAMM``, from seamm-manager
