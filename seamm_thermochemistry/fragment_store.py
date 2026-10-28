@@ -497,12 +497,17 @@ def harvest_job(
 
     Returns {"inserted": n, "duplicate": n, "logged": n, "skipped": [reasons]}.
     """
-    from molsystem import SystemDB
-
     job_directory = Path(job_directory).expanduser().resolve()
     path = job_directory / database
     if not path.exists():
         raise FileNotFoundError(f"No {database} in {job_directory}")
+    try:
+        from molsystem import SystemDB
+    except ImportError:  # pragma: no cover
+        raise ImportError(
+            "Harvesting a job needs molsystem (pip install molsystem), which reads "
+            "the job's database."
+        )
     job_id = None
     try:
         with open(job_directory / "job_data.json") as fd:
