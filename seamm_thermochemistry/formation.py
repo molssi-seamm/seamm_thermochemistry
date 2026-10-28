@@ -229,7 +229,7 @@ def formation_enthalpy(
     Hess cycle is elements (standard states, T) -> gas atoms (T) -> molecule
     (T). The gas atoms' own H(T)-H(0) appears in both halves of the cycle
     and cancels exactly, leaving the standard-state elements' thermal
-    enthalpy (the form used by G4 and similar composite methods):
+    enthalpy (the form used by G4 and similar composite methods)::
 
         DfH(T) = sum(n_X * [DfH0(X, 0 K) - (H_std(X, T) - H_std(X, 0))])
                  - [sum(n_X * E_ref(X)) - H_system]
@@ -319,13 +319,13 @@ def formation_gibbs_energy(
     any of them.
 
     Derivation: on the computed energy scale the standard-state element's
-    Gibbs energy per atom is
+    Gibbs energy per atom is::
 
         G_std(X, T) = E_ref(X) - DfH0(X, 0K) + [H_std(X, T) - H_std(X, 0)]
                       - T * S_std(X, T)
 
     (the gas atom at 0 K sits DfH0(X, 0K) above the standard state, and
-    has no ZPE), so
+    has no ZPE), so::
 
         DfG(T) = G_system - sum(n_X * G_std(X, T))
                = sum(n_X * [DfH0(X, 0K) - (H_std(X, T) - H_std(X, 0))])
