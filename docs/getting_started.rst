@@ -163,6 +163,38 @@ quadrature. Never convert an
 ATcT value between 0 K and 298.15 K yourself, and never mix TN versions in one
 reaction. The index needs RDKit (``pip install seamm-thermochemistry[cbh]``).
 
+The fragment-energy store
+-------------------------
+
+Fragments recur between targets, so their energies are kept in a store,
+``fragments.db`` next to the ATcT cache, and a species is computed once per
+level of theory. A job stores its species' energies as properties on the
+systems named ``CBH:<SMILES>``; afterwards, on the host (never on a compute
+node, and never with the store on GPFS or NFS), promote them::
+
+    seamm-thermochemistry-fragments harvest ~/SEAMM/Jobs/projects/x/Job_42
+    seamm-thermochemistry-fragments list [SMILES]
+    seamm-thermochemistry-fragments lookup CC --model-chemistry MOPAC:SQM@PM7
+    seamm-thermochemistry-fragments duplicates
+
+The harvest is insert-or-ignore with provenance (job, configuration, geometry
+hash, date): the first value wins, and an attempt whose values differ by more
+than 0.1 kJ/mol is logged, never overwritten, which catches another conformer
+or SCF solution. A record is keyed by the species (canonical SMILES, charge,
+multiplicity) and the *fingerprints* of the calculations that gave the energy
+and the frequencies, opaque strings that the QC step writes next to its
+results; E, ZPE and H(298.15 K) are separate fields, since the levels can
+differ. A record with no fingerprint is keyed on the model chemistry and
+code version, flagged unverified, and used only when nothing verified exists.
+In Python::
+
+    from seamm_thermochemistry import FragmentStore
+    store = FragmentStore()                 # read-only, empty if no file
+    record = store.get("CC", energy_fingerprint=fp, model_chemistry=mc)
+    record["E"], record["ZPE"], record["H"], record["verified"]
+
+Reads are best effort: a missing, locked or corrupt store gives None.
+
 Connectivity-based hierarchy (CBH) reactions
 --------------------------------------------
 

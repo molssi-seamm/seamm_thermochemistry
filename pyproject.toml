@@ -33,6 +33,7 @@ dependencies = [
 seamm-thermochemistry-installer = "seamm_thermochemistry.__main__:run"
 seamm-thermochemistry-import-orca = "seamm_thermochemistry.import_orca_cli:main"
 seamm-thermochemistry-atct = "seamm_thermochemistry.atct_cli:main"
+seamm-thermochemistry-fragments = "seamm_thermochemistry.fragment_cli:main"
 
 [project.optional-dependencies]
 test = [
