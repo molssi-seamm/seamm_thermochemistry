@@ -136,7 +136,7 @@ def test_download_from_local_source(base):
     assert (directory / "atct_all.json").exists()
     meta = json.loads((directory / "metadata.json").read_text())
     assert meta["version"] == "9.999"
-    assert meta["n_entries"] == 32
+    assert meta["n_entries"] == 35
     assert len(meta["sha256"]) == 64
     assert "ver. 9.999 of the Thermochemical Network" in meta["citation"]
     # the file is the download, unmodified in content

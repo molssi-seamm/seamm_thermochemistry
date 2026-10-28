@@ -195,6 +195,32 @@ In Python::
 
 Reads are best effort: a missing, locked or corrupt store gives None.
 
+Laddered reference values (CBH-ANL)
+-----------------------------------
+
+ATcT values for every fragment are not self-consistent with one another at
+the 0.5 kJ/mol level, and CBH results referenced to them drift with molecular
+size (the n-alkanes, above). CBH-ANL (Elliott et al. 2023) instead takes ATcT
+values only for the CBH-0 species (H2, CH4, H2O, NH3, HF, ... and the radical
+CBH-0 species) and "ladders" every other reference species from its own CBH
+reaction one rung below its size, computed at a high level of theory::
+
+    seamm-thermochemistry-ladder build anl-f12 CC CCC CCCC \
+        --energy "ORCA:QC@CCSD(T)-F12/bse:cc-pVTZ-F12" \
+        --frequencies "ORCA:DFT@B2PLYP-D3/bse:cc-pVTZ" --zpe-scale 0.9863
+    seamm-thermochemistry-ladder show anl-f12
+
+The energies and frequencies come from the fragment store (harvest the jobs
+first); the levels are settings fingerprints or model chemistry strings. The
+ladder is saved as a named reference set in ``ladders/`` next to the store,
+with every value's ATcT coefficients (so a reaction's ATcT uncertainty is
+cᵀΣc exactly), its provenance, and, for every ladder species that ATcT has,
+the difference from ATcT: their RMS is the measured method term, an upper
+bound since it includes ATcT's own inconsistencies. Work at 0 K: ATcT's 0 K
+values refer to the lowest conformer, while its 298.15 K values are
+conformer averages. In Python ``Ladder.load(name)`` and
+``ladder.entry(smiles)`` give the value in the layout of an ATcT entry.
+
 Connectivity-based hierarchy (CBH) reactions
 --------------------------------------------
 

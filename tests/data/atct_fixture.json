@@ -478,5 +478,50 @@
   "SMILES": "C=O",
   "CASRN": "50-00-0",
   "charge": 0
+ },
+ {
+  "ATcT_TN_Version": "9.999",
+  "ATcT_ID": "74-98-6*0",
+  "Name": "Propane",
+  "Formula": "C3H8  (g)",
+  "Delta_Hf_0K": "-82.400",
+  "Delta_Hf_298K": "-105.000",
+  "Delta_Hf298K_uncertainty": "0.150",
+  "unit": "kJ/mol",
+  "mass": "44.0956",
+  "mass_uncertainty": "0.002",
+  "SMILES": "CCC",
+  "CASRN": "74-98-6",
+  "charge": 0
+ },
+ {
+  "ATcT_TN_Version": "9.999",
+  "ATcT_ID": "106-97-8*0",
+  "Name": "n-Butane",
+  "Formula": "C4H10  (g)",
+  "Delta_Hf_0K": "-98.230",
+  "Delta_Hf_298K": "-125.550",
+  "Delta_Hf298K_uncertainty": "0.180",
+  "unit": "kJ/mol",
+  "mass": "58.122",
+  "mass_uncertainty": "0.003",
+  "SMILES": "CCCC",
+  "CASRN": "106-97-8",
+  "charge": 0
+ },
+ {
+  "ATcT_TN_Version": "9.999",
+  "ATcT_ID": "7664-39-3*0",
+  "Name": "Hydrogen fluoride",
+  "Formula": "HF  (g)",
+  "Delta_Hf_0K": "-273.300",
+  "Delta_Hf_298K": "-273.250",
+  "Delta_Hf298K_uncertainty": "0.018",
+  "unit": "kJ/mol",
+  "mass": "20.0063",
+  "mass_uncertainty": "0.0001",
+  "SMILES": "F",
+  "CASRN": "7664-39-3",
+  "charge": 0
  }
 ]
