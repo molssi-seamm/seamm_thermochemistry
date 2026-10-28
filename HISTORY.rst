@@ -2,6 +2,30 @@
 History
 =======
 
+2026.10.28.3 -- The fragment-energy store and CBH-ANL laddered reference values
+    * ``seamm-thermochemistry-fragments harvest|list|lookup|duplicates``: a store of
+      the energies of CBH species computed earlier, one SQLite file next to the ATcT
+      cache, so that a species is computed once per level of theory. A record is keyed
+      by the species (canonical SMILES, charge, multiplicity) and the opaque settings
+      fingerprints of the energy and frequency calculations, with E, ZPE and
+      H(298.15 K) as separate fields; a record without a fingerprint is keyed on the
+      model chemistry and code version and flagged unverified. ``harvest`` is the single
+      writer, run on the host: insert-or-ignore with provenance, and an attempt whose
+      values differ by more than 0.1 kJ/mol is logged, never overwritten.
+    * ``seamm-thermochemistry-ladder build|show|list``: laddered reference values as in
+      CBH-ANL (Elliott et al. 2023): ATcT only for the CBH-0 species, every other
+      species from its own CBH reaction one rung below its size at a high level, with
+      the coefficients on the ATcT anchors (so a reaction's ATcT uncertainty is cᵀΣc
+      exactly), the provenance, and the difference from ATcT for every ladder species
+      ATcT has, whose RMS is the measured method term. Saved as a named reference set.
+    * ``seamm-thermochemistry-atct covariance [--from FILE]`` caches a covariance block
+      saved from a browser or fetched from the API. ATcT lists its uncertainties
+      rounded up to 0.01 kJ/mol; the check of a block allows for that.
+    * Bugfix: an entry lookup with an explicit multiplicity tripped over the
+      nuclear-spin isomers of the matching state ("para singlet" formaldehyde).
+    * The alkane drift golden case now checks the covariance uncertainties: the CBH-2
+      drift of C4-C7 referenced to ATcT ethane and propane is outside the 95 % limits.
+
 2026.10.28.2 -- The Active Thermochemical Tables (ATcT) and CBH reactions
     * ``seamm_thermochemistry.atct`` keeps a complete, unmodified copy of one version of
       ATcT (the ``/api/v1/all/`` download) under
