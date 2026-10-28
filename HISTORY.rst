@@ -2,6 +2,24 @@
 History
 =======
 
+2026.10.29 -- Local copy of the Active Thermochemical Tables (ATcT)
+    * ``seamm_thermochemistry.atct`` keeps a complete, unmodified copy of one version of
+      ATcT (the ``/api/v1/all/`` download) under
+      ``Parameters/thermochemistry/ATcT/<version>/``, with its download date and
+      SHA-256, builds an RDKit index from canonical SMILES to the entries, and selects
+      the entry for a molecule: gas phase and matching charge; double-bond stereo kept,
+      a single stereocentre ignored; the plain ``*0`` entry over conformers unless a
+      label is asked for; a labelled spin state when the multiplicity matches;
+      nuclear-spin isomers never. An ambiguous match stops with the candidates listed,
+      and an explicit ATcT ID overrides the rules.
+    * Covariance blocks from ``/covariance/species/`` are cached per version, checked
+      against the listed 95 % uncertainties, and used by ``reaction_uncertainty`` for
+      the 95 % uncertainty of a reaction enthalpy; without a block the uncertainties
+      are combined in quadrature and the caller is told.
+    * ``seamm-thermochemistry-atct download|list|lookup|index``; ``download --from``
+      imports a copy saved from a browser. ATcT data are never distributed with SEAMM.
+    * RDKit is an optional dependency: ``pip install seamm-thermochemistry[cbh]``.
+
 2026.10.28.1 -- Bugfix: enthalpy and Gibbs energy of formation at T
     * ``formation_enthalpy`` and ``formation_gibbs_energy`` subtracted (5/2)RT per
       atom, the gas atom's own thermal enthalpy, where the Hess cycle needs the

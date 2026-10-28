@@ -117,3 +117,41 @@ unless they conflict -- see
 full vetting and conflict-resolution rules, including
 ``--prefer-lower-energy`` for the hard-atom case where two runs converge
 to different, equally spin-clean self-consistent solutions.
+
+Active Thermochemical Tables
+----------------------------
+
+``seamm_thermochemistry.atct`` holds a local copy of one version of the Active
+Thermochemical Tables (ATcT, https://atct.anl.gov), the mutually consistent
+enthalpies of formation that the isodesmic (CBH) thermochemistry in SEAMM uses as
+references. Each installation downloads its own copy::
+
+    seamm-thermochemistry-atct download            # from atct.anl.gov
+    seamm-thermochemistry-atct download --from all.json   # a copy saved in a browser
+    seamm-thermochemistry-atct list
+    seamm-thermochemistry-atct lookup "C/C=C/C"
+
+The copy lives in ``Parameters/thermochemistry/ATcT/<version>/`` and is never
+modified; a newer version goes in its own directory, so earlier results stay
+reproducible. In Python::
+
+    from seamm_thermochemistry import ATcT, reaction_uncertainty
+
+    tables = ATcT()                      # the newest cached version
+    entry = tables.lookup("CCF")         # fluoroethane, plain gas-phase entry
+    entry["dfH0_298K"], entry["uncertainty_298K"], tables.version
+
+The selection rules follow how ATcT labels its entries: gas phase with the right
+charge; double-bond stereochemistry must match (cis and trans are separate
+species), while a lone stereocentre is ignored (enantiomers share a value); the
+plain ``*0`` entry is used over conformer entries unless ``conformer=`` names
+one; a labelled spin state is used when ``multiplicity=`` matches it; and the
+ortho/para nuclear-spin entries are never used. Anything still ambiguous stops
+with the candidates listed; ``atct_id=`` overrides everything.
+
+ATcT uncertainties are 95 % confidence limits at 298.15 K, and the values of
+different species are correlated. ``tables.covariance(ids)`` fetches and caches
+the covariance block, and ``reaction_uncertainty(coefficients, uncertainties,
+covariance)`` gives the 95 % uncertainty of a reaction enthalpy. Never convert an
+ATcT value between 0 K and 298.15 K yourself, and never mix TN versions in one
+reaction. The index needs RDKit (``pip install seamm-thermochemistry[cbh]``).
