@@ -130,7 +130,7 @@ def test_download_from_local_source(base):
     assert (directory / "atct_all.json").exists()
     meta = json.loads((directory / "metadata.json").read_text())
     assert meta["version"] == "9.999"
-    assert meta["n_entries"] == 25
+    assert meta["n_entries"] == 27
     assert len(meta["sha256"]) == 64
     assert "ver. 9.999 of the Thermochemical Network" in meta["citation"]
     # the file is the download, unmodified in content
@@ -235,6 +235,13 @@ def test_lookup_nuclear_spin_isomers_ignored(tables):
     e = tables.lookup("[H][H]")
     assert e["id"] == "1333-74-0*0"
     assert e["exact"] and e["uncertainty_298K"] == 0.0
+
+
+def test_lookup_isotopologues_resolved_by_mass(tables):
+    # D2 and HD share the SMILES [H][H] with H2: the natural-abundance mass wins
+    assert tables.lookup("[H][H]")["name"] == "Hydrogen"
+    ids = sorted(e["id"] for e in tables.candidates("[H][H]"))
+    assert "7782-39-0*0" in ids and "13983-20-5*0" in ids
 
 
 def test_lookup_spin_state(tables):

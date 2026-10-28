@@ -320,6 +320,17 @@ def canonical_smiles(smiles, *, stereo=True, keep_single_center=False):
     return Chem.MolToSmiles(mol, isomericSmiles=True)
 
 
+def _natural_mass(smiles):
+    """The average molecular mass at natural abundance, or None."""
+    Chem = _rdkit()
+    from rdkit.Chem import Descriptors
+
+    mol = Chem.MolFromSmiles(smiles)
+    if mol is None:
+        return None
+    return Descriptors.MolWt(mol)
+
+
 # ---------------------------------------------------------------------------
 # The cache on disk
 # ---------------------------------------------------------------------------
@@ -679,6 +690,19 @@ class ATcT:
             if len(groups) == 1:
                 plain.sort(key=lambda e: e.index)
                 return plain[0]
+            # Isotopologues (H2, HD, D2) share a SMILES: keep the natural
+            # abundance one, whose mass matches the query's
+            natural = _natural_mass(smiles)
+            if natural is not None:
+                close = [
+                    e
+                    for e in plain
+                    if e["mass"] is not None and abs(e["mass"] - natural) < 0.3
+                ]
+                if len(close) == 1:
+                    return close[0]
+                if close:
+                    plain = close
             raise AmbiguousEntry(
                 f"Several plain ATcT entries match '{smiles}' (different species "
                 "with the same connectivity, e.g. stereoisomers): give the stereo "
