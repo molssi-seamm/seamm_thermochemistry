@@ -19,8 +19,24 @@ from seamm_thermochemistry import (
 def db(tmp_path):
     with ThermoDB(tmp_path / "test.db") as db:
         # Round numbers chosen so the arithmetic is easy to check by hand.
-        db.add_element(1, "H", dfH0_0K=100.0, dfH0_298K=110.0)
-        db.add_element(8, "O", dfH0_0K=200.0, dfH0_298K=210.0)
+        # h298_minus_h0_std_state is per formula unit of the standard state:
+        # H2 and O2 here, so 4.0 and 6.0 per atom.
+        db.add_element(
+            1,
+            "H",
+            standard_state="1/2 H2(g)",
+            dfH0_0K=100.0,
+            dfH0_298K=110.0,
+            h298_minus_h0_std_state=8.0,
+        )
+        db.add_element(
+            8,
+            "O",
+            standard_state="1/2 O2(g)",
+            dfH0_0K=200.0,
+            dfH0_298K=210.0,
+            h298_minus_h0_std_state=12.0,
+        )
         db.set_s298_std_state("H", 50.0, reference="test")
         db.set_s298_std_state("O", 80.0, reference="test")
 
@@ -115,34 +131,95 @@ def test_missing_experimental_anchor_raises(db, tmp_path):
             formation_energy({"H": 2}, -5.0, db2, "test", "M")
 
 
-def test_formation_enthalpy_at_300K(db):
-    # anchor=(2*100+200)=400; ref_sum=(2*-10+-70)=-90; n_atoms=3;
-    # thermal/atom = 2.5*R*300 = 6.235846963614930 kJ/mol.
-    # DfH(300K) = 400 - 3*6.235846963614930 - (-90) + (-95) = 376.29245911...
+def test_formation_enthalpy_at_298K(db):
+    # anchor = sum n*(DfH0(0K) - h_std) = 2*(100-4) + (200-6) = 386;
+    # ref_sum = (2*-10 + -70) = -90.
+    # DfH(298.15) = 386 - (-90) + (-95) = 381.0
+    result = formation_enthalpy(H2O, -95.0, 298.15, db, "test", "M")
+    assert result == pytest.approx(381.0)
+
+
+def test_formation_enthalpy_at_300K_scales_std_state_term(db):
+    # Away from 298.15 K the standard-state H(T)-H(0) is scaled linearly:
+    # h_std(300) = (2*4 + 6) * 300/298.15 = 14.086869...
+    # DfH(300) = 400 - 14.086869 + 90 - 95 = 380.913131...
+    scale = 300.0 / 298.15
     result = formation_enthalpy(H2O, -95.0, 300.0, db, "test", "M")
-    assert result == pytest.approx(376.29245910915523)
+    assert result == pytest.approx(400.0 - 14.0 * scale + 90.0 - 95.0)
 
 
 def test_formation_enthalpy_reduces_to_formation_energy_at_0K(db):
-    # At T=0 the ideal-gas thermal term vanishes, so DfH(0) == DfE0 with
+    # At T=0 the standard-state thermal term vanishes, so DfH(0) == DfE0 with
     # the same (here ZPE-free) system energy.
     dfh0 = formation_enthalpy(H2O, SYSTEM_ENERGY, 0.0, db, "test", "M")
     dfe0 = formation_energy(H2O, SYSTEM_ENERGY, db, "test", "M", anchor_at_0K=True)
     assert dfh0 == pytest.approx(dfe0)
 
 
-def test_formation_enthalpy_trivial_single_atom_is_T_independent(db):
-    # Decisive regression check for the sign of the (5/2)RT term: for the
-    # degenerate "molecule" that IS just one isolated reference atom (no
-    # atomization step at all), DfH(T) must reduce to the plain 0 K anchor
-    # for *any* T -- H_system's own (5/2)RT growth with T is exactly
-    # cancelled by the same atom's thermal term in the Hess cycle. A wrong
-    # sign here would leave a spurious 2*(5/2)RT term that grows with T.
+def test_formation_enthalpy_single_atom_gives_DfH_of_the_atom_at_T(db):
+    # The degenerate "molecule" that IS one gas atom: DfH(T) must be the
+    # atom's own DfH(X, T) = DfH(X, 0K) + [H_atom(T)-H_atom(0)] -
+    # [H_std(X, T)-H_std(X, 0)], which DOES depend on T (H: 216.03 at 0 K,
+    # 218.00 at 298 K). The atom's own thermal enthalpy enters only through
+    # H_system; the standard state's is subtracted by the function.
     R = 8.31446261815324e-3
-    for T in (0.0, 300.0, 500.0):
+    for T in (0.0, 298.15, 500.0):
         H_system = -10.0 + 2.5 * R * T  # H atom's own E_ref + (5/2)RT
         result = formation_enthalpy({"H": 1}, H_system, T, db, "test", "M")
-        assert result == pytest.approx(100.0)  # == db.dfH0("H"), for every T
+        expected = 100.0 + 2.5 * R * T - 4.0 * T / 298.15
+        assert result == pytest.approx(expected)
+
+
+def test_formation_enthalpy_water_JANAF_298K_minus_0K(tmp_path):
+    # Real JANAF data for H and O, as in the published database: the
+    # difference DfH(298.15) - DfH(0) must equal the molecule's own
+    # H(298)-H(0) minus the elements', and reproduce experiment:
+    # water DfH(0) = -238.92, DfH(298.15) = -241.83 kJ/mol (JANAF), i.e.
+    # -2.91; with H(298)-H(0) = 9.904 for H2O(g), 8.468 for H2 and 8.683
+    # for O2: 9.904 - 8.468 - 8.683/2 = -2.906. The old (5/2)RT-per-atom
+    # formula gave 9.904 - 3*6.197 = -8.69, 5.8 kJ/mol too negative.
+    with ThermoDB(tmp_path / "janaf.db") as db2:
+        db2.add_element(
+            1,
+            "H",
+            standard_state="1/2 H2(g)",
+            dfH0_0K=216.034,
+            dfH0_298K=217.998,
+            h298_minus_h0_atom=6.197,
+            h298_minus_h0_std_state=8.468,
+        )
+        db2.add_element(
+            8,
+            "O",
+            standard_state="1/2 O2(g)",
+            dfH0_0K=246.795,
+            dfH0_298K=249.18,
+            h298_minus_h0_atom=6.725,
+            h298_minus_h0_std_state=8.683,
+        )
+        db2.add_atom_energy("H", "test", "M", -10.0, ref_type="atom")
+        db2.add_atom_energy("O", "test", "M", -70.0, ref_type="atom")
+
+        E0 = -100.0  # electronic + ZPE, arbitrary
+        dfh_0 = formation_enthalpy(H2O, E0, 0.0, db2, "test", "M")
+        dfh_298 = formation_enthalpy(H2O, E0 + 9.904, 298.15, db2, "test", "M")
+        assert dfh_298 - dfh_0 == pytest.approx(9.904 - 8.468 - 8.683 / 2)
+        assert dfh_298 - dfh_0 == pytest.approx(-2.91, abs=0.01)
+
+
+def test_std_state_thermal_enthalpy_halves_diatomics_only(tmp_path):
+    from seamm_thermochemistry.formation import _std_state_thermal_enthalpy
+
+    with ThermoDB(tmp_path / "std.db") as db2:
+        db2.add_element(
+            1, "H", standard_state="1/2 H2(g)", h298_minus_h0_std_state=8.468
+        )
+        db2.add_element(6, "C", standard_state="C(s,gr)", h298_minus_h0_std_state=1.05)
+        db2.add_element(2, "He", standard_state="He(g)")
+        assert _std_state_thermal_enthalpy(db2, "H", 298.15) == pytest.approx(4.234)
+        assert _std_state_thermal_enthalpy(db2, "C", 298.15) == pytest.approx(1.05)
+        assert _std_state_thermal_enthalpy(db2, "C", 0.0) == pytest.approx(0.0)
+        assert _std_state_thermal_enthalpy(db2, "He", 298.15) is None
 
 
 def test_formation_enthalpy_missing_anchor_raises(db, tmp_path):
@@ -153,31 +230,38 @@ def test_formation_enthalpy_missing_anchor_raises(db, tmp_path):
             formation_enthalpy({"H": 2}, -5.0, 300.0, db2, "test", "M")
 
 
-def test_formation_gibbs_energy_at_300K(db):
-    # std_state_term = 300*(2*50+80)/1000 = 300*180/1000 = 54.0
-    # DfG(300K) = 400 + 54.0 - 3*6.235846963614930 - (-90) + (-96)
-    #           = 429.2924591091553
-    result = formation_gibbs_energy(H2O, -96.0, 300.0, db, "test", "M")
-    assert result == pytest.approx(429.2924591091553)
+def test_formation_gibbs_energy_at_298K(db):
+    # std_state_term = 298.15*(2*50+80)/1000 = 53.667
+    # DfG(298.15) = 386 + 53.667 - (-90) + (-96) = 433.667
+    result = formation_gibbs_energy(H2O, -96.0, 298.15, db, "test", "M")
+    assert result == pytest.approx(386.0 + 298.15 * 180.0 / 1000.0 + 90.0 - 96.0)
 
 
-def test_formation_gibbs_energy_trivial_single_atom(db):
-    # Same decisive check as the enthalpy case, extended to G: for the
-    # degenerate "molecule" that IS just one isolated reference atom,
-    # DfG(T) = DfH0(0K) - T*(S_eff - S298_std_state)/1000 for WHATEVER
-    # entropy S_eff went into building the atom's own G(T) -- i.e. the
-    # atom's own entropy must cancel out of the result exactly, leaving
-    # only the standard-state-element entropy behind. S_eff=90.0 here is
-    # an arbitrary placeholder (not read from the DB, not a real physical
-    # value) -- the point is the result must not depend on its value
-    # except through G_system itself.
+def test_formation_gibbs_energy_single_atom(db):
+    # The degenerate "molecule" that IS one gas atom: DfG(T) must be
+    # DfH(X, 0K) + [H_atom(T)-H_atom(0)] - [H_std(X,T)-H_std(X,0)]
+    # - T*(S_eff - S298_std_state)/1000 for WHATEVER entropy S_eff went
+    # into the atom's own G(T): the atom's entropy enters only through
+    # G_system, and only the standard-state element's is added back.
     R = 8.31446261815324e-3
     s_eff = 90.0
-    for T in (0.0, 300.0, 500.0):
+    for T in (0.0, 298.15, 500.0):
         G_system = -10.0 + 2.5 * R * T - T * s_eff / 1000.0
         result = formation_gibbs_energy({"H": 1}, G_system, T, db, "test", "M")
-        expected = 100.0 - T * (s_eff - 50.0) / 1000.0
+        expected = 100.0 + 2.5 * R * T - 4.0 * T / 298.15 - T * (s_eff - 50.0) / 1000.0
         assert result == pytest.approx(expected)
+
+
+def test_formation_gibbs_energy_equals_DfH_minus_T_DfS(db):
+    # With G_system = H_system - T*S_system, DfG = DfH - T*(S_sys - sum n S_std)
+    T = 298.15
+    H_system = -95.0
+    S_system = 188.8  # J/mol/K
+    G_system = H_system - T * S_system / 1000.0
+    dfh = formation_enthalpy(H2O, H_system, T, db, "test", "M")
+    dfg = formation_gibbs_energy(H2O, G_system, T, db, "test", "M")
+    dfs = (S_system - (2 * 50.0 + 80.0)) / 1000.0
+    assert dfg == pytest.approx(dfh - T * dfs)
 
 
 def test_formation_gibbs_energy_reduces_to_formation_energy_at_0K(db):

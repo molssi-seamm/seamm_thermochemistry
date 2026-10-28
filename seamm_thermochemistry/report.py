@@ -19,6 +19,7 @@ from pathlib import Path
 from tabulate import tabulate
 
 from .formation import (
+    _std_state_thermal_enthalpy,
     formation_energy,
     formation_enthalpy,
     formation_gibbs_energy,
@@ -109,6 +110,36 @@ def _anchor_table(composition, db):
         headers=["Atom", "n", "DfH0(0K) (kJ/mol)", "Reference"],
         tablefmt="rounded_outline",
         colalign=("center", "center", "decimal", "left"),
+        disable_numparse=True,
+    )
+
+
+def _std_state_thermal_table(composition, db, temperature):
+    """Per-atom standard-state H(T)-H(0) used by the DfH(T)/DfG(T) sections."""
+    rows = []
+    for el, n in sorted(composition.items()):
+        el_row = db.get_element(symbol=el) or {}
+        h_std = _std_state_thermal_enthalpy(db, el, temperature)
+        rows.append(
+            [
+                el,
+                n,
+                el_row.get("standard_state") or "",
+                "" if h_std is None else f"{h_std:.3f}",
+                "" if h_std is None else f"{n * h_std:.3f}",
+            ]
+        )
+    return tabulate(
+        rows,
+        headers=[
+            "Element",
+            "n",
+            "Standard state",
+            f"H({temperature:.2f} K)-H(0 K) per atom (kJ/mol)",
+            "n * (kJ/mol)",
+        ],
+        tablefmt="rounded_outline",
+        colalign=("center", "center", "center", "decimal", "decimal"),
         disable_numparse=True,
     )
 
@@ -281,11 +312,14 @@ def format_report(
             lines.append("-" * (len(lines[-1])))
             lines.append(
                 f"{_DELTA}fH(T) extends {_DELTA}fE to the system's total enthalpy "
-                f"H(T) (electronic + ZPE + thermal correction), treating each "
-                "reference atom as a monatomic ideal gas -- see "
-                "`formation_enthalpy` for the exact construction and its "
-                "approximations."
+                "H(T) (electronic + ZPE + thermal correction), referenced to "
+                "the elements' standard states at T through their tabulated "
+                "H(298.15 K)-H(0 K) (below, per atom; scaled linearly in T away "
+                "from 298.15 K) -- see `formation_enthalpy` for the exact "
+                "construction and its approximations."
             )
+            lines.append("")
+            lines.append(_std_state_thermal_table(composition, db, temperature))
             lines.append("")
             lines.append(
                 f"    {_DELTA}fH{_DEGREE}({temperature:.2f} K) = {dfh_t:.4f} {units}"
