@@ -150,6 +150,14 @@ def job(tmp_path):
             n = f"settings fingerprint#Thermochemistry#{model}"
             p.add(n, "str", units=None, noerror=True)
             p.put(n, "mopac:deadbeef")
+    # A species named with a non-canonical SMILES (as Read Structure names them)
+    system = db.create_system(name="CBH:C(F)", make_current=True)
+    c = system.create_configuration(name="initial", make_current=True)
+    c.from_smiles("CF")
+    c.properties.add(
+        f"total energy#Thermochemistry#{model}", "float", units="E_h", noerror=True
+    )
+    c.properties.put(f"total energy#Thermochemistry#{model}", -230.0 / 2625.4996394799)
     # A system that is not a CBH species
     system = db.create_system(name="water", make_current=True)
     system.create_configuration(name="initial", make_current=True).from_smiles("O")
@@ -160,9 +168,9 @@ def job(tmp_path):
 
 def test_harvest(job, store):
     counts = harvest_job(job, store)
-    assert counts["inserted"] == 3 and counts["skipped"] == []
+    assert counts["inserted"] == 4 and counts["skipped"] == []
     records = {r["species"]: r for r in store.records()}
-    assert set(records) == {"CCF", "C", "[CH3]"}
+    assert set(records) == {"CCF", "C", "[CH3]", "CF"}  # C(F) canonicalized
     assert records["CCF"]["E"] == pytest.approx(-262.0)  # E_h converted
     assert not records["CCF"]["verified"]  # no fingerprint stored
     assert records["CCF"]["model_chemistry"] == "MOPAC:SQM@PM7"
@@ -174,7 +182,7 @@ def test_harvest(job, store):
     assert c["geometry_hash"] and c["source"].startswith("total energy#")
     # Harvesting again changes nothing
     counts = harvest_job(job, store)
-    assert counts == {"inserted": 0, "duplicate": 3, "logged": 0, "skipped": []}
+    assert counts == {"inserted": 0, "duplicate": 4, "logged": 0, "skipped": []}
     # and the step's lookup finds them
     assert store.get("CCF", model_chemistry="MOPAC:SQM@PM7")["E"] == pytest.approx(
         -262.0
@@ -193,7 +201,7 @@ def test_cli_roundtrip(job, tmp_path, capsys):
     path = str(tmp_path / "cli.db")
     assert main(["--store", path, "harvest", str(job)]) == 0
     out = capsys.readouterr().out
-    assert "3 inserted" in out
+    assert "4 inserted" in out
     assert (
         main(["--store", path, "lookup", "C", "--fingerprint", "mopac:deadbeef"]) == 0
     )

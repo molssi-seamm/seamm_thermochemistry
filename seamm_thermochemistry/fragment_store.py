@@ -522,7 +522,13 @@ def harvest_job(
         for system in db.get_systems():
             if not system.name.startswith(name_prefix):
                 continue
-            species = system.name[len(name_prefix) :]
+            species = system.name[len(name_prefix) :].strip()
+            try:  # the store is keyed on RDKit's canonical SMILES
+                from .atct import canonical_smiles
+
+                species = canonical_smiles(species)
+            except Exception:
+                pass
             configuration = system.configuration
             properties = configuration.properties
             try:
