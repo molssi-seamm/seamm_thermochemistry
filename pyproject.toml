@@ -32,11 +32,13 @@ dependencies = [
 [project.scripts]
 seamm-thermochemistry-installer = "seamm_thermochemistry.__main__:run"
 seamm-thermochemistry-import-orca = "seamm_thermochemistry.import_orca_cli:main"
+seamm-thermochemistry-atct = "seamm_thermochemistry.atct_cli:main"
 
 [project.optional-dependencies]
 test = [
     "pytest>=6.1.2",
     "pytest-cov",
+    "rdkit",
 ]
 # Only needed by seamm_thermochemistry.importers, for reading the legacy
 # Excel/CSV master files. Core db.py / formation.py have no such dependency.
@@ -49,6 +51,11 @@ import = [
 # consuming ThermoDB/formation_energy doesn't need to pull it in.
 installer = [
     "seamm-installer",
+]
+# The ATcT index and the CBH reaction generator need RDKit; the reference
+# database and the formation arithmetic do not.
+cbh = [
+    "rdkit",
 ]
 
 [tool.setuptools]

@@ -19,6 +19,8 @@ from .formation import (  # noqa: F401
 from .derive import derive_dfH0_0K  # noqa: F401
 from .report import format_report  # noqa: F401
 from ._version import __version__  # noqa: F401
+from .atct import ATcT, ATcTEntry, ATcTError, AmbiguousEntry, MissingEntry  # noqa: F401
+from .atct import reaction_uncertainty  # noqa: F401
 
 __all__ = [
     "ThermoDB",
@@ -30,5 +32,11 @@ __all__ = [
     "MissingReferenceData",
     "derive_dfH0_0K",
     "format_report",
+    "ATcT",
+    "ATcTEntry",
+    "ATcTError",
+    "AmbiguousEntry",
+    "MissingEntry",
+    "reaction_uncertainty",
     "__version__",
 ]

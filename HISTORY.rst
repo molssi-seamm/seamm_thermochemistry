@@ -2,6 +2,56 @@
 History
 =======
 
+2026.10.28.2 -- The Active Thermochemical Tables (ATcT) and CBH reactions
+    * ``seamm_thermochemistry.atct`` keeps a complete, unmodified copy of one version of
+      ATcT (the ``/api/v1/all/`` download) under
+      ``Parameters/thermochemistry/ATcT/<version>/``, with its download date and
+      SHA-256, builds an RDKit index from canonical SMILES to the entries, and selects
+      the entry for a molecule: gas phase and matching charge; double-bond stereo kept,
+      a single stereocentre ignored; the plain ``*0`` entry over conformers unless a
+      label is asked for; a labelled spin state when the multiplicity matches;
+      nuclear-spin isomers never. An ambiguous match stops with the candidates listed,
+      and an explicit ATcT ID overrides the rules.
+    * Covariance blocks from ``/covariance/species/`` are cached per version, checked
+      against the listed 95 % uncertainties, and used by ``reaction_uncertainty`` for
+      the 95 % uncertainty of a reaction enthalpy; without a block the uncertainties
+      are combined in quadrature and the caller is told.
+    * ``seamm-thermochemistry-atct download|list|lookup|index|covariance``;
+      ``download --from`` and ``covariance --from`` import copies saved from a
+      browser. ATcT lists its uncertainties rounded up to 0.01 kJ/mol, and the check
+      of a covariance block allows for that. ATcT data are never distributed with
+      SEAMM.
+    * ``seamm_thermochemistry.cbh`` generates the connectivity-based hierarchy (CBH)
+      reactions of a molecule, CBH-0 to CBH-4, from its SMILES: induced fragments
+      capped with hydrogens to the parent valence, keeping bond orders, charges,
+      unpaired electrons, double-bond stereo (ring double bonds are cis) and the
+      relative configuration of stereocentres; identical fragments merged and both
+      sides cancelled; a strict balance of elements, charge, spin and heavy-atom bond
+      types; trivial rungs detected. Aromatic ring systems, 3- and 4-membered rings and
+      charge-separated or hypervalent groups (nitro, sulfonyl, phosphoryl, PF6-, ...)
+      are contracted into single nodes by default ("ring-preserved" CBH); a rung that
+      the formula cannot build (small unprotected rings) is reported as unavailable.
+      Golden tests reproduce every reaction published by Ramabhadran & Raghavachari
+      (2011) and Raghavachari et al. (2023) that we checked: cyclohexanone,
+      cyclopentadiene, 2-oxazoline, heptanethiol, propyl pent-4-enoate, methionine
+      CBH-0 to CBH-4, methyl 3-butenoate, methyl butanoate and its radical, and
+      4-chlorotoluene both ring-preserved and Kekulé. ``unique_fragments`` gives the
+      union of the reference species of several reactions, so that a batch computes
+      each fragment once.
+    * ``scripts/cbh_drift.py`` compares CBH-n enthalpies of formation with ATcT's own
+      values for a set of targets, given their 0 K enthalpies at one level of theory.
+      A golden case (run only where ATcT ver. 1.220 is cached) freezes the drift of
+      the n-alkanes C4-C7 at CBH-2 with ATcT references for ethane and propane,
+      +0.38, +1.18, +1.61 and +1.72 kJ/mol against ATcT's own values, from the
+      CBH-ANL energies of Elliott et al. (2023). With the ATcT covariance block the
+      95 % uncertainty of the drift is 0.18, 0.37, 0.47 and 0.63 kJ/mol (the alkane
+      values are positively correlated), so the drift is significant for all four.
+    * Found on the real ver. 1.220 data: H2, HD and D2 share the SMILES ``[H][H]``
+      (resolved by mass), and the 20 exact element entries have no unit (kJ/mol).
+    * RDKit is an optional dependency: ``pip install seamm-thermochemistry[cbh]``.
+    * CI now installs the package with uv from its declared dependencies; the conda
+      test environment file is gone.
+
 2026.10.28.1 -- Bugfix: enthalpy and Gibbs energy of formation at T
     * ``formation_enthalpy`` and ``formation_gibbs_energy`` subtracted (5/2)RT per
       atom, the gas atom's own thermal enthalpy, where the Hess cycle needs the

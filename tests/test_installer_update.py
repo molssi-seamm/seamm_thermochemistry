@@ -6,6 +6,12 @@ from pathlib import Path
 import sys
 
 import pytest
+import shutil
+
+pytestmark = pytest.mark.skipif(
+    shutil.which("conda") is None,
+    reason="seamm_installer's InstallerBase needs conda on the PATH",
+)
 
 pytest.importorskip("seamm_installer")
 
