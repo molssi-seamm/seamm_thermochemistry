@@ -18,6 +18,23 @@ History
       are combined in quadrature and the caller is told.
     * ``seamm-thermochemistry-atct download|list|lookup|index``; ``download --from``
       imports a copy saved from a browser. ATcT data are never distributed with SEAMM.
+    * ``seamm_thermochemistry.cbh`` generates the connectivity-based hierarchy (CBH)
+      reactions of a molecule, CBH-0 to CBH-4, from its SMILES: induced fragments
+      capped with hydrogens to the parent valence, keeping bond orders, charges,
+      unpaired electrons, double-bond stereo (ring double bonds are cis) and the
+      relative configuration of stereocentres; identical fragments merged and both
+      sides cancelled; a strict balance of elements, charge, spin and heavy-atom bond
+      types; trivial rungs detected. Aromatic ring systems, 3- and 4-membered rings and
+      charge-separated or hypervalent groups (nitro, sulfonyl, phosphoryl, PF6-, ...)
+      are contracted into single nodes by default ("ring-preserved" CBH); a rung that
+      the formula cannot build (small unprotected rings) is reported as unavailable.
+      Golden tests reproduce every reaction published by Ramabhadran & Raghavachari
+      (2011) and Raghavachari et al. (2023) that we checked: cyclohexanone,
+      cyclopentadiene, 2-oxazoline, heptanethiol, propyl pent-4-enoate, methionine
+      CBH-0 to CBH-4, methyl 3-butenoate, methyl butanoate and its radical, and
+      4-chlorotoluene both ring-preserved and Kekulé. ``unique_fragments`` gives the
+      union of the reference species of several reactions, so that a batch computes
+      each fragment once.
     * RDKit is an optional dependency: ``pip install seamm-thermochemistry[cbh]``.
 
 2026.10.28.1 -- Bugfix: enthalpy and Gibbs energy of formation at T

@@ -305,6 +305,10 @@ def canonical_smiles(smiles, *, stereo=True, keep_single_center=False):
     if mol is None:
         return None
     if not stereo:
+        # Drop the stereo first, so that a hydrogen that only defined it
+        # ([H]/N=C\O) is removed too
+        Chem.RemoveStereochemistry(mol)
+        mol = Chem.RemoveHs(mol)
         return Chem.MolToSmiles(mol, isomericSmiles=False)
     if not keep_single_center:
         centers = Chem.FindMolChiralCenters(
@@ -559,6 +563,15 @@ class ATcT:
             # No stereo in the query: include the stereo entries too
             for _id in self.index["flat"].get(flat, []):
                 if _id not in ids:
+                    ids.append(_id)
+        elif not ids:
+            # Stereo in the query that the tables do not have (e.g. the E/Z of
+            # an N-H imine): fall back to entries written without stereo
+            for _id in self.index["flat"].get(flat, []):
+                entry_smiles = self.entries[_id]["smiles"]
+                if canonical_smiles(entry_smiles) == canonical_smiles(
+                    entry_smiles, stereo=False
+                ):
                     ids.append(_id)
         result = [self.entries[_id] for _id in ids]
         if gas_only:

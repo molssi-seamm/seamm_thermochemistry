@@ -155,3 +155,30 @@ the covariance block, and ``reaction_uncertainty(coefficients, uncertainties,
 covariance)`` gives the 95 % uncertainty of a reaction enthalpy. Never convert an
 ATcT value between 0 K and 298.15 K yourself, and never mix TN versions in one
 reaction. The index needs RDKit (``pip install seamm-thermochemistry[cbh]``).
+
+Connectivity-based hierarchy (CBH) reactions
+--------------------------------------------
+
+``seamm_thermochemistry.cbh`` builds the error-cancelling reactions of
+Ramabhadran and Raghavachari's connectivity-based hierarchy from a SMILES::
+
+    from seamm_thermochemistry import cbh
+
+    reactions = cbh.cbh_reactions("CSCCC(N)C(=O)O", rungs=[1, 2, 3])
+    for rung, reaction in reactions.items():
+        print(reaction)                 # CBH-2: ... -> ...
+        reaction.coefficients           # {canonical SMILES: coefficient}
+        reaction.references             # the species other than the target
+        reaction.balanced, reaction.trivial
+
+Products have positive coefficients, reactants negative and the target -1.
+Every fragment keeps the bond orders, charges, unpaired electrons and
+stereochemistry it has in the parent, and every cut bond is replaced by
+hydrogens. By default aromatic ring systems, three- and four-membered rings and
+charge-separated or hypervalent groups are kept whole (``protect="default"``;
+``protect="none"`` gives the plain Kekulé hierarchy, and a sequence of
+``"aromatic"``, ``"small rings"``, ``"groups"``, ``"all rings"`` or SMARTS
+patterns chooses). A rung that reproduces the target is ``trivial``; a rung
+the formula cannot build raises ``RungUnavailable``. ``cbh.unique_fragments``
+gives the union of the reference species over several reactions, so that a
+batch of targets computes each fragment once.

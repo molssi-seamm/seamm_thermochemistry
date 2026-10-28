@@ -113,6 +113,11 @@ def test_canonical_smiles_drops_a_single_stereocentre_keeps_two():
     assert "@" in rr
 
 
+def test_canonical_smiles_flat_drops_stereo_defining_hydrogen():
+    assert A.canonical_smiles("[H]/N=C\\O", stereo=False) == "N=CO"
+    assert A.canonical_smiles("[H]/N=C\\O") != "N=CO"
+
+
 def test_canonical_smiles_unparseable():
     assert A.canonical_smiles("O=[N]=O") is None
 
@@ -125,7 +130,7 @@ def test_download_from_local_source(base):
     assert (directory / "atct_all.json").exists()
     meta = json.loads((directory / "metadata.json").read_text())
     assert meta["version"] == "9.999"
-    assert meta["n_entries"] == 24
+    assert meta["n_entries"] == 25
     assert len(meta["sha256"]) == 64
     assert "ver. 9.999 of the Thermochemical Network" in meta["citation"]
     # the file is the download, unmodified in content
@@ -255,6 +260,15 @@ def test_lookup_mixture_entry_when_no_stereo_given(tables):
     assert tables.lookup("ClC=CCl")["id"] == "540-59-0*0"
     assert tables.lookup("Cl/C=C\\Cl")["id"] == "156-59-2*0"
     assert tables.lookup("Cl/C=C/Cl")["id"] == "156-60-5*0"
+
+
+def test_lookup_stereo_query_falls_back_to_unspecified_entry(tables):
+    # A CBH fragment can carry stereo the tables never specify (the E/Z of an
+    # N-H imine): the entry written without stereo is used
+    assert tables.lookup("[H]/N=C\\O")["id"] == "75-12-7*9"
+    assert tables.lookup("N=CO")["id"] == "75-12-7*9"
+    # but where the tables do have the stereo, it must match
+    assert tables.lookup("Cl/C=C\\Cl")["id"] == "156-59-2*0"
 
 
 def test_lookup_enantiomer_ignores_single_centre(tables):
