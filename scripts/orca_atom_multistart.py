@@ -384,19 +384,25 @@ class ElementSearch:
         return d / "orca.gbw" if r.get("status") == "ok" else None
 
     def smear_seed(self):
-        """PBE/def2-SV(P) orbitals from a Fermi-smeared SCF (SmearTemp 5000 K),
+        """PBE/def2-SV(P) orbitals from a Fermi-smeared SCF (SmearTemp 10000 K),
         which lets near-degenerate orbitals share electrons before settling --
         a start that explores configurations differently from the others. Used
-        from La on, where Hueckel and PAtom are unavailable."""
+        from La on, where Hueckel and PAtom are unavailable.
+
+        With SmearTemp 5000 and SlowConv the SCF never converged for Tm and Lu:
+        the energy still swung by up to 0.8 Eh after 500 cycles. The stronger
+        smearing, a permanent level shift and VerySlowConv converge them in
+        under a minute. A seed that already has its orca.inp keeps it."""
         d = self.root / "seed_smear"
         d.mkdir(parents=True, exist_ok=True)
         if not (d / "orca.inp").exists():
             write_input(
                 d / "orca.inp",
-                "PBE def2-SV(P) AutoAux TIGHTSCF NoCOSX SlowConv",
+                "PBE def2-SV(P) AutoAux TIGHTSCF NoCOSX VerySlowConv",
                 self.symbol,
                 self.mult,
-                "  SmearTemp 5000\n  Guess PModel\n",
+                "  SmearTemp 10000\n  MaxIter 1500\n  Shift Shift 0.5 ErrOff 0.0 end\n"
+                "  Guess PModel\n",
             )
         r = run_orca(self.args.orca, d, self.args.timeout)
         return d / "orca.gbw" if r.get("status") == "ok" else None

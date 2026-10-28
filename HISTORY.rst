@@ -11,6 +11,12 @@ History
     * A rerun of an unfinished run no longer starts from the orbitals the earlier
       attempt left behind (ORCA's AutoStart picked up the stale ``orca.gbw``): each
       run starts from its own guess, as its start name says.
+    * The smeared seed used from La on (PBE/def2-SV(P)) now has SmearTemp 10000,
+      VerySlowConv, a permanent level shift of 0.5 Eh and up to 1500 cycles. With the
+      old settings it never converged for Tm and Lu, so those searches had no
+      smeared starts; now it converges in under a minute, and for Tm it found a
+      solution 1.3 kJ/mol lower in def2-TZVP. Seeds that already ran keep their
+      input.
 
 2026.9.28 -- Bugfix: updating never replaces a database with local changes
     * ``seamm-thermochemistry-installer update`` -- run by every

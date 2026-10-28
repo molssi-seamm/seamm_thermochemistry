@@ -86,7 +86,8 @@ A single SCF start is not enough to find that solution for open-shell atoms: Fe
 from ORCA's PModel guess lands in 3d7 4s1, 120 kJ/mol above 3d6 4s2, and small
 setting changes flip Nb and Ho between solutions over 80 kJ/mol apart. So the
 script runs several starts per element, method and basis (PBE0/def2-SV(P)
-orbitals, PModel, HCore, Hueckel, PAtom), shares every state found in one basis
+orbitals, PModel, HCore, Hueckel, PAtom; from La on, where ORCA has no Hueckel or
+PAtom guess, Fermi-smeared PBE orbitals instead), shares every state found in one basis
 with all the others, and keeps the lowest SCF energy. <S**2> is recorded and
 contamination over 20% flagged, but it does not disqualify a solution. It uses
 exact exchange (`NoCOSX`), because ORCA's default COSX gets some lone atoms
