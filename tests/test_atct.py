@@ -136,7 +136,7 @@ def test_download_from_local_source(base):
     assert (directory / "atct_all.json").exists()
     meta = json.loads((directory / "metadata.json").read_text())
     assert meta["version"] == "9.999"
-    assert meta["n_entries"] == 27
+    assert meta["n_entries"] == 32
     assert len(meta["sha256"]) == 64
     assert "ver. 9.999 of the Thermochemical Network" in meta["citation"]
     # the file is the download, unmodified in content
@@ -303,6 +303,17 @@ def test_entry_label_and_groups(tables):
     e = tables.lookup("CC(=O)O", conformer="anti")
     assert e.casrn_group == "64-19-7" and e.index == 2
     assert "64-19-7*2" in e.label() and "± 0.7" in e.label()
+
+
+def test_spin_state_with_nuclear_spin_isomers(tables):
+    """Formaldehyde has singlet, para singlet, ortho singlet and triplet
+    entries: an explicit multiplicity must not trip over the nuclear-spin
+    isomers of the matching state."""
+    assert tables.lookup("C=O")["id"] == "50-00-0*0"
+    assert tables.lookup("C=O", multiplicity=1)["id"] == "50-00-0*2"
+    assert tables.lookup("C=O", multiplicity=3)["id"] == "50-00-0*1"
+    assert tables.entries["50-00-0*21"].is_nuclear_spin_isomer
+    assert not tables.entries["50-00-0*2"].is_nuclear_spin_isomer
 
 
 # -- covariance --------------------------------------------------------------

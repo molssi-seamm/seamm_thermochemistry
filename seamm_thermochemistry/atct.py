@@ -258,7 +258,9 @@ class ATcTEntry(dict):
 
     @property
     def is_nuclear_spin_isomer(self):
-        words = {w.strip().lower() for w in self["descriptor"].split(",")}
+        """ortho/para entries, also when combined with a spin state
+        ("para singlet" formaldehyde)."""
+        words = {w.lower() for w in self["descriptor"].replace(",", " ").split()}
         return bool(words & _NUCLEAR_SPIN)
 
     def label(self):
