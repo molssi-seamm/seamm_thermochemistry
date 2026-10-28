@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.fragment_store &#8212; SEAMM thermochemistry Plug-in 2026.10.28.3 documentation</title>
+    <title>seamm_thermochemistry.fragment_store &#8212; SEAMM thermochemistry Plug-in 2026.10.28.4 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../_static/documentation_options.js?v=70663187"></script>
+    <script src="../../_static/documentation_options.js?v=bbefa14a"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.10.28.3" />
+  <meta name="docsearch:version" content="2026.10.28.4" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -925,12 +925,16 @@
     <span class="n">fingerprint</span><span class="o">=</span><span class="s2">"settings fingerprint#*#*"</span><span class="p">,</span>
     <span class="n">frequency_fingerprint</span><span class="o">=</span><span class="s2">"frequency fingerprint#*#*"</span><span class="p">,</span>
     <span class="n">name_prefix</span><span class="o">=</span><span class="s2">"CBH:"</span><span class="p">,</span>
+    <span class="n">all_systems</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="n">database</span><span class="o">=</span><span class="s2">"seamm.db"</span><span class="p">,</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Promote the species energies of one job into the store.</span>
 
 <span class="sd">    Every system whose name starts with `name_prefix` (``CBH:&lt;SMILES&gt;``: the</span>
-<span class="sd">    SMILES is the species identity) contributes one record per energy</span>
+<span class="sd">    SMILES is the species identity), or every system when `all_systems`</span>
+<span class="sd">    (the name, less the prefix if present, canonicalized, is the species, as</span>
+<span class="sd">    for systems that Read Structure named by SMILES), contributes one record</span>
+<span class="sd">    per energy</span>
 <span class="sd">    property found on its current configuration, with the ZPE and enthalpy</span>
 <span class="sd">    of the same level when present, the fingerprints if the QC step stored</span>
 <span class="sd">    them, and the provenance (job directory, configuration id, geometry</span>
@@ -962,9 +966,12 @@
     <span class="n">db</span> <span class="o">=</span> <span class="n">SystemDB</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="sa">f</span><span class="s2">"file:</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">?mode=ro"</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">system</span> <span class="ow">in</span> <span class="n">db</span><span class="o">.</span><span class="n">get_systems</span><span class="p">():</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">system</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">name_prefix</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">system</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">name_prefix</span><span class="p">):</span>
+                <span class="n">species</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">name</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">name_prefix</span><span class="p">)</span> <span class="p">:]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="n">all_systems</span><span class="p">:</span>
+                <span class="n">species</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
                 <span class="k">continue</span>
-            <span class="n">species</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">name</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">name_prefix</span><span class="p">)</span> <span class="p">:]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
             <span class="k">try</span><span class="p">:</span>  <span class="c1"># the store is keyed on RDKit's canonical SMILES</span>
                 <span class="kn">from</span><span class="w"> </span><span class="nn">.atct</span><span class="w"> </span><span class="kn">import</span> <span class="n">canonical_smiles</span>
 

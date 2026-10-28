@@ -236,6 +236,11 @@ Ramabhadran and Raghavachari's connectivity-based hierarchy from a SMILES::
         reaction.references             # the species other than the target
         reaction.balanced, reaction.trivial
 
+``cbh.lowest_conformer(smiles, n=20)`` gives the lowest MMFF94 conformer of
+``n`` RDKit embeddings (symbols, coordinates, energies), the right start for a
+species whose lowest rotamer is wanted: a single embedding of a long chain is
+often gauche.
+
 Products have positive coefficients, reactants negative and the target -1.
 Every fragment keeps the bond orders, charges, unpaired electrons and
 stereochemistry it has in the parent, and every cut bond is replaced by

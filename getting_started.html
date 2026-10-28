@@ -7,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.10.28.3 documentation</title>
+    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.10.28.4 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="_static/documentation_options.js?v=70663187"></script>
+    <script src="_static/documentation_options.js?v=bbefa14a"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -55,7 +55,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.10.28.3" />
+  <meta name="docsearch:version" content="2026.10.28.4" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -654,6 +654,10 @@ Ramabhadran and Raghavachari’s connectivity-based hierarchy from a SMILES:</p>
     <span class="n">reaction</span><span class="o">.</span><span class="n">balanced</span><span class="p">,</span> <span class="n">reaction</span><span class="o">.</span><span class="n">trivial</span>
 </pre></div>
 </div>
+<p><code class="docutils literal notranslate"><span class="pre">cbh.lowest_conformer(smiles,</span> <span class="pre">n=20)</span></code> gives the lowest MMFF94 conformer of
+<code class="docutils literal notranslate"><span class="pre">n</span></code> RDKit embeddings (symbols, coordinates, energies), the right start for a
+species whose lowest rotamer is wanted: a single embedding of a long chain is
+often gauche.</p>
 <p>Products have positive coefficients, reactants negative and the target -1.
 Every fragment keeps the bond orders, charges, unpaired electrons and
 stereochemistry it has in the parent, and every cut bond is replaced by
