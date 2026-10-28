@@ -46,15 +46,36 @@ __all__ = [
     "MissingReferenceData",
 ]
 
-# CODATA gas constant, kJ/(mol K).
-_R = 8.31446261815324e-3
+# The temperature at which the tabulated standard-state data apply, K.
+_T_REF = 298.15
+
+# Elements whose standard state is a diatomic gas X2. The database tabulates
+# `h298_minus_h0_std_state` per formula unit of the standard state, so for these
+# it is per X2 and must be halved to give the per-atom value (see derive.py).
+_DIATOMIC_STANDARD_STATE = {"H", "N", "O", "F", "Cl", "Br"}
 
 
-def _ideal_gas_thermal_enthalpy(temperature):
-    """H(T) - H(0) for a monatomic ideal gas, kJ/mol: (5/2) R T (3/2 RT
-    translational + RT for the pV term that converts U to H). Exact for
-    any isolated gas atom at any T."""
-    return 2.5 * _R * temperature
+def _std_state_thermal_enthalpy(db, symbol, temperature):
+    """H(T) - H(0) of the element's standard state, per atom, in kJ/mol.
+
+    Exact at 298.15 K, where the database tabulates it (JANAF). At other
+    temperatures it is scaled linearly in T. For the gaseous standard states
+    (H2, N2, O2, F2, Cl2, and the noble gases) this is within about 1 kJ/mol
+    per atom up to 1000 K, since their heat capacity is nearly constant; for
+    solids such as graphite the error grows with |T - 298.15 K| and reaches
+    several kJ/mol per atom by 1000 K. Returns None if the database lacks the
+    value.
+    """
+    el = db.get_element(symbol=symbol)
+    if el is None:
+        return None
+    h = el["h298_minus_h0_std_state"]
+    if h is None:
+        return None
+    standard_state = el["standard_state"] or ""
+    if standard_state.startswith("1/2 ") or symbol in _DIATOMIC_STANDARD_STATE:
+        h /= 2
+    return h * temperature / _T_REF
 
 
 class MissingReferenceData(KeyError):
@@ -204,23 +225,30 @@ def formation_enthalpy(
     """DfH(T): enthalpy of formation from the elements, at temperature T.
 
     Generalizes ``formation_energy(..., anchor=True, anchor_at_0K=True)``
-    from the electronic-only, 0 K quantity to a real temperature, by
-    treating each reference atom as a monatomic ideal gas: its
-    H(T)-H(0) = (5/2)RT exactly, so (from the elements -> atoms -> molecule
-    Hess cycle, atom energies at T = E_ref(X) + (5/2)RT)
+    from the electronic-only, 0 K quantity to a real temperature. The
+    Hess cycle is elements (standard states, T) -> gas atoms (T) -> molecule
+    (T). The gas atoms' own H(T)-H(0) appears in both halves of the cycle
+    and cancels exactly, leaving the standard-state elements' thermal
+    enthalpy (the form used by G4 and similar composite methods):
 
-        DfH(T) = sum(n_X * DfH0(X, 0K)) - n_atoms*(5/2)*R*T
+        DfH(T) = sum(n_X * [DfH0(X, 0 K) - (H_std(X, T) - H_std(X, 0))])
                  - [sum(n_X * E_ref(X)) - H_system]
 
-    Approximation: only the ATOM's own H(T)-H(0) is added; the standard-
-    state element's own H(T)-H(0) away from 298.15 K is not separately
-    corrected for (there is no single cheap closed form for it the way
-    there is for a monatomic ideal gas -- it depends on the standard
-    state's own heat capacity). This is the same approximation the legacy
-    298 K-only gaussian_step/psi4_step formation-enthalpy code made
-    implicitly (it used the exact tabulated 298 K anchor rather than
-    deriving one); the error it introduces is small near 298.15 K and
-    grows (slowly) away from it.
+    where H_std is the enthalpy of the element's standard state, per atom
+    (`ThermoDB.element.h298_minus_h0_std_state`, halved for the diatomic
+    gases). Equivalently, DfH(T) = sum(n_X * DfH0(X, T)) - [atomization
+    enthalpy at T]; at 298.15 K the two forms use the same tabulated data
+    and agree to rounding.
+
+    Approximation: the standard-state H(T)-H(0) is tabulated at 298.15 K
+    only and is scaled linearly in T elsewhere -- see
+    `_std_state_thermal_enthalpy` for the size of the error. At 298.15 K the
+    result is exact.
+
+    History: until 2026.10.28 this function subtracted (5/2)RT per atom,
+    the gas atom's own thermal enthalpy, instead of the standard-state
+    term. That made DfH(298 K) too negative by 1.96 kJ/mol per H, 5.15 per
+    C and 1.86 per O (5.8 kJ/mol for water).
 
     Parameters
     ----------
@@ -250,26 +278,23 @@ def formation_enthalpy(
             f"{', '.join(missing)}"
         )
     ref_sum = sum(n * ref_energies[el] for el, n in composition.items())
-    n_atoms = sum(composition.values())
-    thermal_per_atom = Q_(_ideal_gas_thermal_enthalpy(temperature), "kJ/mol").m_as(
-        units
-    )
 
     anchor = 0.0
     missing_anchor = []
     for el, n in composition.items():
         dfH0 = db.dfH0(el, at_0K=True)
-        if dfH0 is None:
+        h_std = _std_state_thermal_enthalpy(db, el, temperature)
+        if dfH0 is None or h_std is None:
             missing_anchor.append(el)
             continue
-        anchor += n * Q_(dfH0, "kJ/mol").m_as(units)
+        anchor += n * Q_(dfH0 - h_std, "kJ/mol").m_as(units)
     if missing_anchor:
         raise MissingReferenceData(
-            "No experimental 0 K heat of formation for: "
-            f"{', '.join(sorted(missing_anchor))}"
+            "No experimental 0 K heat of formation and/or standard-state "
+            f"H(298 K)-H(0 K) for: {', '.join(sorted(missing_anchor))}"
         )
 
-    return anchor - n_atoms * thermal_per_atom - ref_sum + H_system
+    return anchor - ref_sum + H_system
 
 
 def formation_gibbs_energy(
@@ -289,30 +314,36 @@ def formation_gibbs_energy(
     Same Hess-cycle construction as `formation_enthalpy`, extended to G.
     Requires each element's `s298_std_state` (the *standard-state phase's*
     molar entropy, per atom -- see `ThermoDB.s298_std_state`) in addition
-    to the usual 0 K atom energies and heats of formation; raises
-    `MissingReferenceData` for any element missing either.
+    to the usual 0 K atom energies, heats of formation and standard-state
+    H(298 K)-H(0 K); raises `MissingReferenceData` for any element missing
+    any of them.
 
-    Derivation note: the reference atom's OWN entropy cancels exactly out
-    of the final formula (it is only an intermediate state in the
-    elements -> atoms -> molecule cycle, and appears with opposite sign in
-    each half-reaction), so -- pleasantly -- no atomic entropy data is
-    needed at all, only the standard-state element's:
+    Derivation: on the computed energy scale the standard-state element's
+    Gibbs energy per atom is
 
-        DfG(T) = sum(n_X * DfH0(X,0K))
+        G_std(X, T) = E_ref(X) - DfH0(X, 0K) + [H_std(X, T) - H_std(X, 0)]
+                      - T * S_std(X, T)
+
+    (the gas atom at 0 K sits DfH0(X, 0K) above the standard state, and
+    has no ZPE), so
+
+        DfG(T) = G_system - sum(n_X * G_std(X, T))
+               = sum(n_X * [DfH0(X, 0K) - (H_std(X, T) - H_std(X, 0))])
                  + T * sum(n_X * S298_std_state(X)) / 1000
-                 - n_atoms*(5/2)*R*T
                  - [sum(n_X * E_ref(X)) - G_system]
 
-    Approximation: `S298_std_state` is used at its tabulated 298.15 K
-    value regardless of T (a standard-state solid's entropy has no cheap
-    closed-form T-dependence the way a monatomic ideal gas's does -- this
-    is the dominant source of error away from 298.15 K, layered on top of
-    the same 0 K-anchor approximation `formation_enthalpy` makes). At
-    T=0 this reduces exactly to
+    No atomic entropy is needed: the gas atom is only an intermediate.
+
+    Approximations: `S298_std_state` is used at its tabulated 298.15 K
+    value regardless of T, and the standard-state H(T)-H(0) is scaled
+    linearly from its 298.15 K value (see `_std_state_thermal_enthalpy`).
+    At T=0 this reduces exactly to
     ``formation_energy(..., anchor=True, anchor_at_0K=True)`` evaluated
-    with `G_system` in place of the electronic energy -- a useful sanity
-    check (G_system at T=0 with no thermal terms IS the electronic
-    energy).
+    with `G_system` in place of the electronic energy.
+
+    History: until 2026.10.28 this function subtracted (5/2)RT per atom
+    instead of the standard-state thermal enthalpy; see
+    `formation_enthalpy`.
 
     Parameters
     ----------
@@ -340,26 +371,24 @@ def formation_gibbs_energy(
             f"{', '.join(missing)}"
         )
     ref_sum = sum(n * ref_energies[el] for el, n in composition.items())
-    n_atoms = sum(composition.values())
-    thermal_per_atom = Q_(_ideal_gas_thermal_enthalpy(temperature), "kJ/mol").m_as(
-        units
-    )
 
     anchor = 0.0
     std_state_term = 0.0
     missing_anchor = []
     for el, n in composition.items():
         dfH0 = db.dfH0(el, at_0K=True)
+        h_std = _std_state_thermal_enthalpy(db, el, temperature)
         s_std = db.s298_std_state(el)
-        if dfH0 is None or s_std is None:
+        if dfH0 is None or h_std is None or s_std is None:
             missing_anchor.append(el)
             continue
-        anchor += n * Q_(dfH0, "kJ/mol").m_as(units)
+        anchor += n * Q_(dfH0 - h_std, "kJ/mol").m_as(units)
         std_state_term += n * Q_(temperature * s_std / 1000.0, "kJ/mol").m_as(units)
     if missing_anchor:
         raise MissingReferenceData(
-            "No experimental 0 K heat of formation and/or standard-state "
-            f"entropy for: {', '.join(sorted(missing_anchor))}"
+            "No experimental 0 K heat of formation, standard-state "
+            "H(298 K)-H(0 K) and/or standard-state entropy for: "
+            f"{', '.join(sorted(missing_anchor))}"
         )
 
-    return anchor + std_state_term - n_atoms * thermal_per_atom - ref_sum + G_system
+    return anchor + std_state_term - ref_sum + G_system

@@ -15,6 +15,7 @@ def db(tmp_path):
             dfH0_0K=100.0,
             dfH0_298K=110.0,
             standard_state="1/2 H2(g)",
+            h298_minus_h0_std_state=8.0,
             reference="http://example.org/H",
             reference_note="TEST",
         )
@@ -24,6 +25,7 @@ def db(tmp_path):
             dfH0_0K=200.0,
             dfH0_298K=210.0,
             standard_state="1/2 O2(g)",
+            h298_minus_h0_std_state=12.0,
             reference="http://example.org/O",
             reference_note="TEST",
         )
@@ -121,7 +123,13 @@ def test_report_missing_gibbs_data_does_not_block_other_sections(db, tmp_path):
     # A DB with dfH0 but no s298_std_state for one element: DfE0/DfHT still
     # come through; only the Gibbs section reports the gap.
     with ThermoDB(tmp_path / "no_gibbs.db") as db2:
-        db2.add_element(1, "H", dfH0_0K=100.0)
+        db2.add_element(
+            1,
+            "H",
+            standard_state="1/2 H2(g)",
+            dfH0_0K=100.0,
+            h298_minus_h0_std_state=8.0,
+        )
         db2.add_atom_energy("H", "test", "M", -10.0)
         text = format_report(
             {"H": 2},

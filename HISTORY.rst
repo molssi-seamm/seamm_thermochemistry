@@ -2,6 +2,23 @@
 History
 =======
 
+2026.10.28.1 -- Bugfix: enthalpy and Gibbs energy of formation at T
+    * ``formation_enthalpy`` and ``formation_gibbs_energy`` subtracted (5/2)RT per
+      atom, the gas atom's own thermal enthalpy, where the Hess cycle needs the
+      standard-state element's H(T)-H(0 K). The gas atom's thermal enthalpy
+      cancels exactly between the two halves of the cycle. The result was too
+      negative by 1.96 kJ/mol per H, 5.15 per C and 1.86 per O at 298 K: 5.8 kJ/mol
+      for water, and about 5 kJ/mol per carbon atom for organic molecules. Every
+      ``DfHT`` and ``DfGT`` reported by orca_step so far has this error; ``DfE0`` and
+      the atomization energies were never affected.
+    * The correction now uses the tabulated standard-state H(298.15 K)-H(0 K) per
+      atom (halved for the diatomic gases, as ``derive_dfH0_0K`` already did). It is
+      exact at 298.15 K and scaled linearly in T elsewhere, which is good to about
+      1 kJ/mol per atom for gaseous standard states up to 1000 K but poor for
+      solids such as graphite far from 298 K. The report states the values used.
+    * The tests that encoded the wrong physics were replaced, including a check
+      against JANAF data that ΔfH(298 K)-ΔfH(0 K) of water is -2.90 kJ/mol.
+
 2026.10.28 -- Bugfix: ORCA atom runs use node-local scratch
     * ``scripts/orca_atom_multistart.py`` now runs ORCA in a scratch directory under
       ``$TMPDIR`` (node-local on a cluster) and keeps only ``orca.out`` and
