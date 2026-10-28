@@ -52,6 +52,22 @@ seamm\_thermochemistry.formation module
    :show-inheritance:
    :undoc-members:
 
+seamm\_thermochemistry.fragment\_cli module
+-------------------------------------------
+
+.. automodule:: seamm_thermochemistry.fragment_cli
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+seamm\_thermochemistry.fragment\_store module
+---------------------------------------------
+
+.. automodule:: seamm_thermochemistry.fragment_store
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 seamm\_thermochemistry.import\_orca\_cli module
 -----------------------------------------------
 
@@ -72,6 +88,22 @@ seamm\_thermochemistry.installer module
 ---------------------------------------
 
 .. automodule:: seamm_thermochemistry.installer
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+seamm\_thermochemistry.ladder module
+------------------------------------
+
+.. automodule:: seamm_thermochemistry.ladder
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+seamm\_thermochemistry.ladder\_cli module
+-----------------------------------------
+
+.. automodule:: seamm_thermochemistry.ladder_cli
    :members:
    :show-inheritance:
    :undoc-members:

@@ -7,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>seamm_thermochemistry &#8212; SEAMM thermochemistry Plug-in 2026.10.28.2 documentation</title>
+    <title>seamm_thermochemistry &#8212; SEAMM thermochemistry Plug-in 2026.10.28.3 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=d41eb59e"></script>
+    <script src="../_static/documentation_options.js?v=70663187"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -55,7 +55,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.10.28.2" />
+  <meta name="docsearch:version" content="2026.10.28.3" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -543,6 +543,28 @@
 <li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.formation.formation_gibbs_energy"><code class="docutils literal notranslate"><span class="pre">formation_gibbs_energy()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="seamm_thermochemistry.html#module-seamm_thermochemistry.fragment_cli">seamm_thermochemistry.fragment_cli module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.fragment_cli.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="seamm_thermochemistry.html#module-seamm_thermochemistry.fragment_store">seamm_thermochemistry.fragment_store module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.fragment_store.FragmentRecord"><code class="docutils literal notranslate"><span class="pre">FragmentRecord</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.fragment_store.FragmentRecord.key"><code class="docutils literal notranslate"><span class="pre">FragmentRecord.key</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.fragment_store.FragmentRecord.make"><code class="docutils literal notranslate"><span class="pre">FragmentRecord.make()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.fragment_store.FragmentStore"><code class="docutils literal notranslate"><span class="pre">FragmentStore</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.fragment_store.FragmentStore.close"><code class="docutils literal notranslate"><span class="pre">FragmentStore.close()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.fragment_store.FragmentStore.duplicates"><code class="docutils literal notranslate"><span class="pre">FragmentStore.duplicates()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.fragment_store.FragmentStore.get"><code class="docutils literal notranslate"><span class="pre">FragmentStore.get()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.fragment_store.FragmentStore.put"><code class="docutils literal notranslate"><span class="pre">FragmentStore.put()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.fragment_store.FragmentStore.records"><code class="docutils literal notranslate"><span class="pre">FragmentStore.records()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.fragment_store.fragment_store_path"><code class="docutils literal notranslate"><span class="pre">fragment_store_path()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.fragment_store.harvest_job"><code class="docutils literal notranslate"><span class="pre">harvest_job()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="seamm_thermochemistry.html#module-seamm_thermochemistry.import_orca_cli">seamm_thermochemistry.import_orca_cli module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#usage">Usage</a></li>
 <li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.import_orca_cli.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
@@ -557,6 +579,23 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="seamm_thermochemistry.html#seamm-thermochemistry-installer-module">seamm_thermochemistry.installer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="seamm_thermochemistry.html#module-seamm_thermochemistry.ladder">seamm_thermochemistry.ladder module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.ladder.Ladder"><code class="docutils literal notranslate"><span class="pre">Ladder</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.ladder.Ladder.entry"><code class="docutils literal notranslate"><span class="pre">Ladder.entry()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.ladder.Ladder.load"><code class="docutils literal notranslate"><span class="pre">Ladder.load()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.ladder.Ladder.save"><code class="docutils literal notranslate"><span class="pre">Ladder.save()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.ladder.Ladder.summary"><code class="docutils literal notranslate"><span class="pre">Ladder.summary()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.ladder.LadderError"><code class="docutils literal notranslate"><span class="pre">LadderError</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.ladder.build_ladder"><code class="docutils literal notranslate"><span class="pre">build_ladder()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.ladder.ladder_path"><code class="docutils literal notranslate"><span class="pre">ladder_path()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="seamm_thermochemistry.html#module-seamm_thermochemistry.ladder_cli">seamm_thermochemistry.ladder_cli module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.ladder_cli.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="seamm_thermochemistry.html#module-seamm_thermochemistry.report">seamm_thermochemistry.report module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.report.format_report"><code class="docutils literal notranslate"><span class="pre">format_report()</span></code></a></li>
 </ul>
@@ -588,6 +627,27 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.ATcTError"><code class="docutils literal notranslate"><span class="pre">ATcTError</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.AmbiguousEntry"><code class="docutils literal notranslate"><span class="pre">AmbiguousEntry</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.FragmentRecord"><code class="docutils literal notranslate"><span class="pre">FragmentRecord</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.FragmentRecord.key"><code class="docutils literal notranslate"><span class="pre">FragmentRecord.key</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.FragmentRecord.make"><code class="docutils literal notranslate"><span class="pre">FragmentRecord.make()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.FragmentStore"><code class="docutils literal notranslate"><span class="pre">FragmentStore</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.FragmentStore.close"><code class="docutils literal notranslate"><span class="pre">FragmentStore.close()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.FragmentStore.duplicates"><code class="docutils literal notranslate"><span class="pre">FragmentStore.duplicates()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.FragmentStore.get"><code class="docutils literal notranslate"><span class="pre">FragmentStore.get()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.FragmentStore.put"><code class="docutils literal notranslate"><span class="pre">FragmentStore.put()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.FragmentStore.records"><code class="docutils literal notranslate"><span class="pre">FragmentStore.records()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.Ladder"><code class="docutils literal notranslate"><span class="pre">Ladder</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.Ladder.entry"><code class="docutils literal notranslate"><span class="pre">Ladder.entry()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.Ladder.load"><code class="docutils literal notranslate"><span class="pre">Ladder.load()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.Ladder.save"><code class="docutils literal notranslate"><span class="pre">Ladder.save()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.Ladder.summary"><code class="docutils literal notranslate"><span class="pre">Ladder.summary()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.LadderError"><code class="docutils literal notranslate"><span class="pre">LadderError</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.MissingEntry"><code class="docutils literal notranslate"><span class="pre">MissingEntry</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.MissingReferenceData"><code class="docutils literal notranslate"><span class="pre">MissingReferenceData</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.ThermoDB"><code class="docutils literal notranslate"><span class="pre">ThermoDB</span></code></a><ul>
@@ -615,11 +675,13 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.atomization_energy"><code class="docutils literal notranslate"><span class="pre">atomization_energy()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.build_ladder"><code class="docutils literal notranslate"><span class="pre">build_ladder()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.derive_dfH0_0K"><code class="docutils literal notranslate"><span class="pre">derive_dfH0_0K()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.format_report"><code class="docutils literal notranslate"><span class="pre">format_report()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.formation_energy"><code class="docutils literal notranslate"><span class="pre">formation_energy()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.formation_enthalpy"><code class="docutils literal notranslate"><span class="pre">formation_enthalpy()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.formation_gibbs_energy"><code class="docutils literal notranslate"><span class="pre">formation_gibbs_energy()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.harvest_job"><code class="docutils literal notranslate"><span class="pre">harvest_job()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.reaction_uncertainty"><code class="docutils literal notranslate"><span class="pre">reaction_uncertainty()</span></code></a></li>
 </ul>
 </li>

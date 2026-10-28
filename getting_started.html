@@ -7,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.10.28.2 documentation</title>
+    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.10.28.3 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="_static/documentation_options.js?v=d41eb59e"></script>
+    <script src="_static/documentation_options.js?v=70663187"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -55,7 +55,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.10.28.2" />
+  <meta name="docsearch:version" content="2026.10.28.3" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -584,6 +584,62 @@ quadrature. Never convert an
 ATcT value between 0 K and 298.15 K yourself, and never mix TN versions in one
 reaction. The index needs RDKit (<code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">seamm-thermochemistry[cbh]</span></code>).</p>
 </section>
+<section id="the-fragment-energy-store">
+<h2>The fragment-energy store<a class="headerlink" href="#the-fragment-energy-store" title="Link to this heading">#</a></h2>
+<p>Fragments recur between targets, so their energies are kept in a store,
+<code class="docutils literal notranslate"><span class="pre">fragments.db</span></code> next to the ATcT cache, and a species is computed once per
+level of theory. A job stores its species’ energies as properties on the
+systems named <code class="docutils literal notranslate"><span class="pre">CBH:&lt;SMILES&gt;</span></code>; afterwards, on the host (never on a compute
+node, and never with the store on GPFS or NFS), promote them:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">seamm</span><span class="o">-</span><span class="n">thermochemistry</span><span class="o">-</span><span class="n">fragments</span> <span class="n">harvest</span> <span class="o">~/</span><span class="n">SEAMM</span><span class="o">/</span><span class="n">Jobs</span><span class="o">/</span><span class="n">projects</span><span class="o">/</span><span class="n">x</span><span class="o">/</span><span class="n">Job_42</span>
+<span class="n">seamm</span><span class="o">-</span><span class="n">thermochemistry</span><span class="o">-</span><span class="n">fragments</span> <span class="nb">list</span> <span class="p">[</span><span class="n">SMILES</span><span class="p">]</span>
+<span class="n">seamm</span><span class="o">-</span><span class="n">thermochemistry</span><span class="o">-</span><span class="n">fragments</span> <span class="n">lookup</span> <span class="n">CC</span> <span class="o">--</span><span class="n">model</span><span class="o">-</span><span class="n">chemistry</span> <span class="n">MOPAC</span><span class="p">:</span><span class="n">SQM</span><span class="nd">@PM7</span>
+<span class="n">seamm</span><span class="o">-</span><span class="n">thermochemistry</span><span class="o">-</span><span class="n">fragments</span> <span class="n">duplicates</span>
+</pre></div>
+</div>
+<p>The harvest is insert-or-ignore with provenance (job, configuration, geometry
+hash, date): the first value wins, and an attempt whose values differ by more
+than 0.1 kJ/mol is logged, never overwritten, which catches another conformer
+or SCF solution. A record is keyed by the species (canonical SMILES, charge,
+multiplicity) and the <em>fingerprints</em> of the calculations that gave the energy
+and the frequencies, opaque strings that the QC step writes next to its
+results; E, ZPE and H(298.15 K) are separate fields, since the levels can
+differ. A record with no fingerprint is keyed on the model chemistry and
+code version, flagged unverified, and used only when nothing verified exists.
+In Python:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">seamm_thermochemistry</span><span class="w"> </span><span class="kn">import</span> <span class="n">FragmentStore</span>
+<span class="n">store</span> <span class="o">=</span> <span class="n">FragmentStore</span><span class="p">()</span>                 <span class="c1"># read-only, empty if no file</span>
+<span class="n">record</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"CC"</span><span class="p">,</span> <span class="n">energy_fingerprint</span><span class="o">=</span><span class="n">fp</span><span class="p">,</span> <span class="n">model_chemistry</span><span class="o">=</span><span class="n">mc</span><span class="p">)</span>
+<span class="n">record</span><span class="p">[</span><span class="s2">"E"</span><span class="p">],</span> <span class="n">record</span><span class="p">[</span><span class="s2">"ZPE"</span><span class="p">],</span> <span class="n">record</span><span class="p">[</span><span class="s2">"H"</span><span class="p">],</span> <span class="n">record</span><span class="p">[</span><span class="s2">"verified"</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Reads are best effort: a missing, locked or corrupt store gives None.</p>
+</section>
+<section id="laddered-reference-values-cbh-anl">
+<h2>Laddered reference values (CBH-ANL)<a class="headerlink" href="#laddered-reference-values-cbh-anl" title="Link to this heading">#</a></h2>
+<p>ATcT values for every fragment are not self-consistent with one another at
+the 0.5 kJ/mol level, and CBH results referenced to them drift with molecular
+size (the n-alkanes, above). CBH-ANL (Elliott et al. 2023) instead takes ATcT
+values only for the CBH-0 species (H2, CH4, H2O, NH3, HF, … and the radical
+CBH-0 species) and “ladders” every other reference species from its own CBH
+reaction one rung below its size, computed at a high level of theory:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">seamm</span><span class="o">-</span><span class="n">thermochemistry</span><span class="o">-</span><span class="n">ladder</span> <span class="n">build</span> <span class="n">anl</span><span class="o">-</span><span class="n">f12</span> <span class="n">CC</span> <span class="n">CCC</span> <span class="n">CCCC</span> \
+    <span class="o">--</span><span class="n">energy</span> <span class="s2">"ORCA:QC@CCSD(T)-F12/bse:cc-pVTZ-F12"</span> \
+    <span class="o">--</span><span class="n">frequencies</span> <span class="s2">"ORCA:DFT@B2PLYP-D3/bse:cc-pVTZ"</span> <span class="o">--</span><span class="n">zpe</span><span class="o">-</span><span class="n">scale</span> <span class="mf">0.9863</span>
+<span class="n">seamm</span><span class="o">-</span><span class="n">thermochemistry</span><span class="o">-</span><span class="n">ladder</span> <span class="n">show</span> <span class="n">anl</span><span class="o">-</span><span class="n">f12</span>
+</pre></div>
+</div>
+<p>The energies and frequencies come from the fragment store (harvest the jobs
+first); the levels are settings fingerprints or model chemistry strings. The
+ladder is saved as a named reference set in <code class="docutils literal notranslate"><span class="pre">ladders/</span></code> next to the store,
+with every value’s ATcT coefficients (so a reaction’s ATcT uncertainty is
+cᵀΣc exactly), its provenance, and, for every ladder species that ATcT has,
+the difference from ATcT: their RMS is the measured method term, an upper
+bound since it includes ATcT’s own inconsistencies. Work at 0 K: ATcT’s 0 K
+values refer to the lowest conformer, while its 298.15 K values are
+conformer averages. In Python <code class="docutils literal notranslate"><span class="pre">Ladder.load(name)</span></code> and
+<code class="docutils literal notranslate"><span class="pre">ladder.entry(smiles)</span></code> give the value in the layout of an ATcT entry.</p>
+</section>
 <section id="connectivity-based-hierarchy-cbh-reactions">
 <h2>Connectivity-based hierarchy (CBH) reactions<a class="headerlink" href="#connectivity-based-hierarchy-cbh-reactions" title="Link to this heading">#</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">seamm_thermochemistry.cbh</span></code> builds the error-cancelling reactions of
@@ -665,6 +721,8 @@ batch of targets computes each fragment once.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#two-reference-conventions-one-schema">Two reference conventions, one schema</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#importing-orca-results">Importing ORCA results</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#active-thermochemical-tables">Active Thermochemical Tables</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-fragment-energy-store">The fragment-energy store</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#laddered-reference-values-cbh-anl">Laddered reference values (CBH-ANL)</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#connectivity-based-hierarchy-cbh-reactions">Connectivity-based hierarchy (CBH) reactions</a></li>
 </ul>
   </nav></div>
