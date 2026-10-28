@@ -37,6 +37,10 @@ History
       each fragment once.
     * ``scripts/cbh_drift.py`` compares CBH-n enthalpies of formation with ATcT's own
       values for a set of targets, given their 0 K enthalpies at one level of theory.
+      A golden case (run only where ATcT ver. 1.220 is cached) freezes the drift of
+      the n-alkanes C4-C7 at CBH-2 with ATcT references for ethane and propane,
+      +0.38, +1.18, +1.61 and +1.72 kJ/mol against ATcT's own values, from the
+      CBH-ANL energies of Elliott et al. (2023).
     * Found on the real ver. 1.220 data: H2, HD and D2 share the SMILES ``[H][H]``
       (resolved by mass), and the 20 exact element entries have no unit (kJ/mol).
     * RDKit is an optional dependency: ``pip install seamm-thermochemistry[cbh]``.

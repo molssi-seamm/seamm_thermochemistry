@@ -40,7 +40,7 @@ def main(argv=None):
 
     values = {}
     with open(args.energies, newline="") as fd:
-        for row in csv.DictReader(fd):
+        for row in csv.DictReader(line for line in fd if not line.startswith("#")):
             can = canonical_smiles(row["smiles"])
             v = float(row["dfH0_0K"])
             values[can] = v * KCAL if args.kcal else v
