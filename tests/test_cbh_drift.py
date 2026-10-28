@@ -8,10 +8,15 @@ The 0 K enthalpies at one level of theory come from Elliott's Table 7: ethane
 CCSD(T)-F12b/cc-pVTZ-F12//B2PLYP-D3/cc-pVTZ. Any CBH-2 reaction among them
 returns that method's reaction enthalpy. Referenced to ATcT 1.220 propane and
 ethane, the results drift upward against ATcT's own alkane values by +0.38,
-+1.18, +1.61 and +1.72 kJ/mol for C4 to C7 (science, 2026-10-28; quadrature
-over the 298 K 95 % uncertainties). The drift exceeds the ATcT reference +
-target uncertainties but sits inside CBH-ANL's own claimed 2σ, so it does not
-say which side is wrong. To be rerun with the covariance block once cached.
++1.18, +1.61 and +1.72 kJ/mol for C4 to C7 (science, 2026-10-28). With the
+ATcT covariance block for ethane to octane (cached 2026-10-28 from a browser
+download) the 95 % uncertainty of the reference combination is 0.23, 0.32,
+0.43 and 0.53 kJ/mol, smaller than the quadrature 0.32, 0.51, 0.70 and 0.89
+because the alkane values are positively correlated, and the uncertainty of the
+drift itself (references minus the target) is 0.18, 0.37, 0.47 and 0.63. The
+drift exceeds those limits for all four, but sits inside CBH-ANL's own claimed
+2σ, so it does not say which side is wrong. Without the block the quadrature
+numbers are checked instead.
 """
 
 import pytest
@@ -33,6 +38,15 @@ ENERGIES = {
 
 EXPECTED_DRIFT = {4: 0.38, 5: 1.18, 6: 1.61, 7: 1.72}
 EXPECTED_DRH = {4: 0.812, 5: 1.628, 6: 2.611, 7: 3.678}
+# 95 % uncertainty of the reference combination and of the drift, kJ/mol
+EXPECTED_U_REF = {
+    "covariance": {4: 0.23, 5: 0.32, 6: 0.43, 7: 0.53},
+    "quadrature": {4: 0.32, 5: 0.51, 6: 0.70, 7: 0.89},
+}
+EXPECTED_U_DRIFT = {
+    "covariance": {4: 0.18, 5: 0.37, 6: 0.47, 7: 0.63},
+    "quadrature": {4: 0.37, 5: 0.59, 6: 0.77, 7: 0.99},
+}
 
 
 @pytest.fixture(scope="module")
@@ -57,11 +71,24 @@ def test_alkane_cbh2_drift(tables):
         dfH = ref - drH
         own = tables.lookup(target)["dfH0_0K"]
         assert dfH - own == pytest.approx(EXPECTED_DRIFT[n], abs=0.05)
+        ids = [refs[s]["id"] for s in rxn.references]
+        coefficients = list(rxn.references.values())
+        uncertainties = [refs[s]["uncertainty_298K"] for s in rxn.references]
         u, used = reaction_uncertainty(
-            list(rxn.references.values()),
-            [refs[s]["uncertainty_298K"] for s in rxn.references],
-            tables.covariance([refs[s]["id"] for s in rxn.references], fetch=False),
+            coefficients, uncertainties, tables.covariance(ids, fetch=False)
         )
-        # The drift is outside the quadrature reference uncertainty for C5+
+        method = "covariance" if used else "quadrature"
+        assert u == pytest.approx(EXPECTED_U_REF[method][n], abs=0.005)
+        udrift, used = reaction_uncertainty(
+            coefficients + [-1.0],
+            uncertainties + [tables.lookup(target)["uncertainty_298K"]],
+            tables.covariance(ids + [tables.lookup(target)["id"]], fetch=False),
+        )
+        method = "covariance" if used else "quadrature"
+        assert udrift == pytest.approx(EXPECTED_U_DRIFT[method][n], abs=0.005)
+        # The drift is outside the 95 % limits: of the references alone for
+        # C5+ either way, and of the drift itself for C4 too with the covariance
         if n >= 5:
             assert dfH - own > u
+        if used:
+            assert dfH - own > udrift

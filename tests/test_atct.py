@@ -362,6 +362,32 @@ def test_covariance_rejects_wrong_scale(tables):
         tables.parse_covariance(block)
 
 
+def test_covariance_accepts_rounded_up_uncertainty(tables):
+    # ATcT lists uncertainties rounded up: 0.1118 is listed as 0.12
+    block = _block(IDS)
+    block["matrix"][1][1] = 0.1318**2  # listed 0.14
+    tables.parse_covariance(block)
+    block["matrix"][1][1] = 0.1430**2  # above the listed value
+    with pytest.raises(A.ATcTError, match="95 %"):
+        tables.parse_covariance(block)
+
+
+def test_covariance_import(tables, tmp_path):
+    path = tmp_path / "cov.json"
+    path.write_text(json.dumps(_block(IDS[:2])))
+    block = tables.import_covariance(path)
+    assert block["ids"] == IDS[:2] and block["source"] == str(path)
+    sigma = tables.covariance([IDS[1], IDS[0]], fetch=False)
+    assert math.sqrt(sigma[0][0]) == pytest.approx(UNC[IDS[1]])
+    # Importing the same species again replaces the block
+    tables.import_covariance(path)
+    n = sum(1 for b in tables.covariance_cache["blocks"] if b["ids"] == IDS[:2])
+    assert n == 1
+    path.write_text("<html>Just a moment...</html>")
+    with pytest.raises(A.ATcTError, match="not JSON"):
+        tables.import_covariance(path)
+
+
 def test_covariance_failure_falls_back_to_none(tables, monkeypatch):
     def failing(url, **kwargs):
         raise A.ATcTError("HTTP 403")

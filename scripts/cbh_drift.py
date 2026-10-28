@@ -15,8 +15,10 @@ kcal/mol with --kcal): the enthalpies of formation at 0 K of every target
 and fragment at ONE consistent level of theory (e.g. ANL0 or G4 atomization
 values), from which the reaction enthalpies follow exactly. The ATcT values
 come from the local cache (seamm-thermochemistry-atct). The reference
-uncertainty uses the cached covariance block when there is one, otherwise
-quadrature, and says which.
+uncertainty (±ref) uses the cached covariance block when there is one,
+otherwise quadrature, and says which; ±drift is the ATcT uncertainty of the
+drift itself, references minus the target, which is correlated with them
+(``seamm-thermochemistry-atct covariance`` caches the block).
 """
 
 import argparse
@@ -49,7 +51,7 @@ def main(argv=None):
     print(f"ATcT ver. {tables.version}; energies from {args.energies}\n")
     header = (
         f"{'target':14s} {'DrH(0K)':>9s} {'DfH CBH':>9s} {'ATcT':>9s} {'drift':>7s} "
-        f"{'±ref':>6s} method"
+        f"{'±ref':>6s} {'±drift':>6s} method"
     )
     print(header)
     for can, own_value in values.items():
@@ -85,10 +87,20 @@ def main(argv=None):
             [refs[s]["uncertainty_298K"] or 0.0 for s in rxn.references],
             cov,
         )
+        # The drift = references - target: its uncertainty with the target
+        # included, so that the correlation with the target is counted
+        udrift, used2 = reaction_uncertainty(
+            list(rxn.references.values()) + [-1.0],
+            [refs[s]["uncertainty_298K"] or 0.0 for s in rxn.references]
+            + [own["uncertainty_298K"] or 0.0],
+            tables.covariance(ids + [own["id"]], fetch=False),
+        )
+        method = "covariance" if used else "quadrature"
+        if used != used2:
+            method += " (±drift " + ("covariance" if used2 else "quadrature") + ")"
         print(
             f"{can:14s} {drH:9.2f} {dfH:9.2f} {own['dfH0_0K']:9.2f} "
-            f"{dfH - own['dfH0_0K']:+7.2f} {u:6.2f} "
-            f"{'covariance' if used else 'quadrature'}   {rxn}"
+            f"{dfH - own['dfH0_0K']:+7.2f} {u:6.2f} {udrift:6.2f} {method}   {rxn}"
         )
     return 0
 

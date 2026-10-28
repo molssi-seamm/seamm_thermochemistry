@@ -152,7 +152,14 @@ with the candidates listed; ``atct_id=`` overrides everything.
 ATcT uncertainties are 95 % confidence limits at 298.15 K, and the values of
 different species are correlated. ``tables.covariance(ids)`` fetches and caches
 the covariance block, and ``reaction_uncertainty(coefficients, uncertainties,
-covariance)`` gives the 95 % uncertainty of a reaction enthalpy. Never convert an
+covariance)`` gives the 95 % uncertainty of a reaction enthalpy. As with the
+tables, a block can be saved from a browser (the response of
+``https://atct.anl.gov/api/v1/covariance/species/?atctids=74-84-0*0,74-98-6*0``)
+and cached with ``seamm-thermochemistry-atct covariance --from FILE``; the
+diagonal is checked against the listed uncertainties, which ATcT rounds up to
+0.01 kJ/mol. The correlations matter: for the CBH-2 reactions of the n-alkanes
+the covariance gives reference uncertainties about 40 % smaller than
+quadrature. Never convert an
 ATcT value between 0 K and 298.15 K yourself, and never mix TN versions in one
 reaction. The index needs RDKit (``pip install seamm-thermochemistry[cbh]``).
 

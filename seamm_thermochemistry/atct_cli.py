@@ -8,6 +8,8 @@ Thermochemical Tables and look entries up from the command line::
     seamm-thermochemistry-atct lookup SMILES [--charge Q] [--multiplicity M]
                                       [--conformer LABEL] [--version V]
     seamm-thermochemistry-atct index [--version V]   (rebuild the index)
+    seamm-thermochemistry-atct covariance [--from FILE] [--version V]
+                                      [SMILES-or-ATcT-ID ...]
 """
 
 import argparse
@@ -58,6 +60,30 @@ def main(argv=None):
 
     index = sub.add_parser("index", help="Rebuild the SMILES index of a version.")
     index.add_argument("--version", help="The TN version (default: newest).")
+
+    cov = sub.add_parser(
+        "covariance",
+        help="Cache the ATcT covariance block for a set of species, from a file "
+        "saved from a browser (--from) or fetched from atct.anl.gov.",
+    )
+    cov.add_argument(
+        "species",
+        nargs="*",
+        help="The species, as SMILES or ATcT IDs (e.g. 74-84-0*0). With --from "
+        "they are only checked to be in the block.",
+    )
+    cov.add_argument(
+        "--from",
+        dest="source",
+        help="A saved copy of /api/v1/covariance/species/?atctids=... .",
+    )
+    cov.add_argument("--version", help="The TN version (default: newest).")
+    cov.add_argument("--charge", type=int, default=0, help="for SMILES lookups")
+    cov.add_argument(
+        "--user-agent",
+        default=A.USER_AGENT,
+        help="The User-Agent header to send (default: %(default)s).",
+    )
 
     args = parser.parse_args(argv)
 
@@ -111,6 +137,32 @@ def main(argv=None):
                 f"{len(index['stereo'])} canonical SMILES, "
                 f"{len(index['unparsed'])} unparsed entries."
             )
+        elif args.command == "covariance":
+            tables = A.ATcT(version=args.version, base=args.base)
+            ids = []
+            for species in args.species:
+                if species in tables.entries:
+                    ids.append(species)
+                else:
+                    ids.append(tables.lookup(species, charge=args.charge)["id"])
+            if args.source:
+                block = tables.import_covariance(args.source)
+                missing = [i for i in ids if i not in block["ids"]]
+                if missing:
+                    print(f"Warning: not in the block: {', '.join(missing)}")
+            else:
+                if not ids:
+                    raise A.ATcTError("Give the species to fetch the block for.")
+                block = tables.fetch_covariance(ids, user_agent=args.user_agent)
+            print(
+                f"Cached the covariance block for {len(block['ids'])} species in "
+                f"ver. {tables.version}: {', '.join(block['ids'])}"
+            )
+            if args.source:
+                print(
+                    "The block does not say which TN version it is for; the "
+                    "diagonal matches the listed uncertainties of this version."
+                )
     except (A.ATcTError, FileNotFoundError) as e:
         print(f"Error: {e}", file=sys.stderr)
         return 1

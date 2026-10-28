@@ -781,13 +781,41 @@ class ATcT:
         self._save_covariance()
         return block
 
+    def import_covariance(self, source):
+        """Add a covariance block saved from a browser, e.g. the response of
+        ``/api/v1/covariance/species/?atctids=...`` saved to a file. The block
+        is checked like a fetched one; a block already cached with exactly the
+        same IDs is replaced.
+
+        Returns the block.
+        """
+        with open(source, encoding="utf-8") as fd:
+            try:
+                data = json.load(fd)
+            except json.JSONDecodeError as e:
+                raise ATcTError(f"{source} is not JSON: {e}")
+        block = self.parse_covariance(data)
+        if block.get("version") not in (None, "", self.version):
+            raise ATcTError(
+                f"The covariance block is for TN version {block['version']}, "
+                f"the cache is {self.version}"
+            )
+        block["source"] = str(source)
+        blocks = self.covariance_cache["blocks"]
+        blocks[:] = [b for b in blocks if set(b["ids"]) != set(block["ids"])]
+        blocks.append(block)
+        self._save_covariance()
+        return block
+
     def parse_covariance(self, data):
         """The API's covariance response as {"ids": [...], "matrix": [[...]]}.
 
         The rows come back in the API's own order (``species_atctids``), not
-        the request order. The square root of each diagonal element must equal
-        the listed 298.15 K uncertainty, which confirms that the matrix is on
-        the 95 % scale; a mismatch is an error.
+        the request order. The square root of each diagonal element must agree
+        with the listed 298.15 K uncertainty, which confirms that the matrix is
+        on the 95 % scale; a mismatch is an error. ATcT lists the uncertainties
+        rounded *up* to 0.01 kJ/mol (0.1118 is listed as 0.12), so the listed
+        value may exceed the diagonal by up to 0.01.
         """
         ids = data.get("species_atctids")
         if ids is None:
@@ -801,7 +829,7 @@ class ATcT:
                 continue
             listed = entry["uncertainty_298K"]
             diagonal = math.sqrt(max(matrix[i][i], 0.0))
-            if abs(diagonal - listed) > 0.002 + 0.01 * listed:
+            if not -0.002 <= listed - diagonal <= 0.012 + 0.01 * listed:
                 raise ATcTError(
                     f"The covariance diagonal for {_id} gives an uncertainty of "
                     f"{diagonal:.4f} but the table lists {listed}; the matrix "
