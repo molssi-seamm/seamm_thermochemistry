@@ -2,7 +2,7 @@
 History
 =======
 
-2026.10.29 -- Local copy of the Active Thermochemical Tables (ATcT)
+2026.10.28.2 -- The Active Thermochemical Tables (ATcT) and CBH reactions
     * ``seamm_thermochemistry.atct`` keeps a complete, unmodified copy of one version of
       ATcT (the ``/api/v1/all/`` download) under
       ``Parameters/thermochemistry/ATcT/<version>/``, with its download date and
@@ -35,7 +35,13 @@ History
       4-chlorotoluene both ring-preserved and Kekulé. ``unique_fragments`` gives the
       union of the reference species of several reactions, so that a batch computes
       each fragment once.
+    * ``scripts/cbh_drift.py`` compares CBH-n enthalpies of formation with ATcT's own
+      values for a set of targets, given their 0 K enthalpies at one level of theory.
+    * Found on the real ver. 1.220 data: H2, HD and D2 share the SMILES ``[H][H]``
+      (resolved by mass), and the 20 exact element entries have no unit (kJ/mol).
     * RDKit is an optional dependency: ``pip install seamm-thermochemistry[cbh]``.
+    * CI now installs the package with uv from its declared dependencies; the conda
+      test environment file is gone.
 
 2026.10.28.1 -- Bugfix: enthalpy and Gibbs energy of formation at T
     * ``formation_enthalpy`` and ``formation_gibbs_energy`` subtracted (5/2)RT per

@@ -38,6 +38,7 @@ seamm-thermochemistry-atct = "seamm_thermochemistry.atct_cli:main"
 test = [
     "pytest>=6.1.2",
     "pytest-cov",
+    "rdkit",
 ]
 # Only needed by seamm_thermochemistry.importers, for reading the legacy
 # Excel/CSV master files. Core db.py / formation.py have no such dependency.
