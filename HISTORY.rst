@@ -2,6 +2,16 @@
 History
 =======
 
+2026.10.28 -- Bugfix: ORCA atom runs use node-local scratch
+    * ``scripts/orca_atom_multistart.py`` now runs ORCA in a scratch directory under
+      ``$TMPDIR`` (node-local on a cluster) and keeps only ``orca.out`` and
+      ``orca.gbw`` in the run directories. With hundreds of runs at once, ORCA's
+      temporary files on the shared filesystem made the runs I/O-bound, about 18
+      times slower, so many hit the 4 h limit per run.
+    * A rerun of an unfinished run no longer starts from the orbitals the earlier
+      attempt left behind (ORCA's AutoStart picked up the stale ``orca.gbw``): each
+      run starts from its own guess, as its start name says.
+
 2026.9.28 -- Bugfix: updating never replaces a database with local changes
     * ``seamm-thermochemistry-installer update`` -- run by every
       ``seamm-manager update`` -- downloaded the published database over the local

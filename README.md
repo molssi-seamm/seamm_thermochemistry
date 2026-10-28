@@ -95,6 +95,12 @@ wrong (He ~1, Na and Mg ~5 kJ/mol), and full orbital convergence
 `Results.csv` that `seamm-thermochemistry-import-orca` reads, plus a log of
 every run and of each choice.
 
+ORCA works in a scratch directory under `$TMPDIR` -- node-local on a cluster --
+and only `orca.out` and `orca.gbw` are kept in the run directories. With
+hundreds of runs at once, ORCA's temporary files on a shared filesystem made the
+runs I/O-bound and many times slower. A run always starts from its own guess:
+orbitals left by an earlier, unfinished attempt are not picked up.
+
 One known simplification: the `settings` column is a single free-form
 string (e.g. `"encut=700eV"`) rather than normalized basis/cutoff columns
 -- fine across today's producers, may want normalizing if that stops being

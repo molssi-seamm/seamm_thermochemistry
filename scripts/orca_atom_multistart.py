@@ -77,6 +77,7 @@ import signal
 import sqlite3
 import subprocess
 import sys
+import tempfile
 import threading
 import time
 
@@ -264,7 +265,15 @@ def _watch_parent(interval=5):
 
 
 def run_orca(orca, workdir, timeout):
-    """Run ORCA in workdir unless a finished output is already there."""
+    """Run ORCA for workdir unless a finished output is already there.
+
+    ORCA works in a scratch directory under $TMPDIR, node-local on a cluster, so
+    its large temporary files stay off the shared filesystem: with hundreds of runs
+    at once on GPFS they made the runs I/O-bound, ~18x slower. Only orca.inp and
+    the starting orbitals (guess.gbw) go in, and orca.gbw comes back; orca.out is
+    written to workdir directly, so a run killed part-way still leaves its partial
+    output there. An orca.gbw left by an earlier, unfinished attempt is not used:
+    the run starts from its own guess, as its start name says."""
     out = workdir / "orca.out"
     done = parse(out)
     if done["status"] not in ("missing", "incomplete"):
@@ -272,25 +281,34 @@ def run_orca(orca, workdir, timeout):
     if _STOPPING.is_set():
         return {"status": "stopped"}
     t0 = time.perf_counter()
-    with out.open("w") as fh:
-        proc = subprocess.Popen(
-            [orca, "orca.inp"],
-            cwd=workdir,
-            stdout=fh,
-            stderr=subprocess.STDOUT,
-            start_new_session=True,
-        )
-        with _RUNNING_LOCK:
-            _RUNNING.add(proc)
-        try:
-            proc.wait(timeout=timeout)
-        except subprocess.TimeoutExpired:
-            os.killpg(proc.pid, signal.SIGKILL)
-            proc.wait()
-            (workdir / "TIMEOUT").write_text(f"killed after {timeout} s\n")
-        finally:
+    with tempfile.TemporaryDirectory(
+        prefix="orca_", dir=os.environ.get("TMPDIR")
+    ) as tmp:
+        scratch = Path(tmp)
+        for name in ("orca.inp", "guess.gbw"):
+            if (workdir / name).exists():
+                shutil.copy(workdir / name, scratch / name)
+        with out.open("w") as fh:
+            proc = subprocess.Popen(
+                [orca, "orca.inp"],
+                cwd=scratch,
+                stdout=fh,
+                stderr=subprocess.STDOUT,
+                start_new_session=True,
+            )
             with _RUNNING_LOCK:
-                _RUNNING.discard(proc)
+                _RUNNING.add(proc)
+            try:
+                proc.wait(timeout=timeout)
+            except subprocess.TimeoutExpired:
+                os.killpg(proc.pid, signal.SIGKILL)
+                proc.wait()
+                (workdir / "TIMEOUT").write_text(f"killed after {timeout} s\n")
+            finally:
+                with _RUNNING_LOCK:
+                    _RUNNING.discard(proc)
+        if (scratch / "orca.gbw").exists():
+            shutil.copy(scratch / "orca.gbw", workdir / "orca.gbw")
     r = parse(out)
     r["seconds"] = round(time.perf_counter() - t0, 1)
     # Keep orca.inp/orca.out (the record) and orca.gbw (needed to share states
