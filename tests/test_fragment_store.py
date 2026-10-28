@@ -158,8 +158,9 @@ def job(tmp_path):
         f"total energy#Thermochemistry#{model}", "float", units="E_h", noerror=True
     )
     c.properties.put(f"total energy#Thermochemistry#{model}", -230.0 / 2625.4996394799)
-    # A system that is not a CBH species
-    system = db.create_system(name="water", make_current=True)
+    # A system that is not a CBH species (named by SMILES, as Read Structure
+    # does): skipped unless all systems are harvested
+    system = db.create_system(name="O", make_current=True)
     system.create_configuration(name="initial", make_current=True).from_smiles("O")
     db.close()
     (job_dir / "job_data.json").write_text(json.dumps({"job id": 42}))
@@ -188,6 +189,12 @@ def test_harvest(job, store):
         -262.0
     )
     assert store.get("C", energy_fingerprint="mopac:deadbeef")["ZPE"] == 115.0
+
+
+def test_harvest_all_systems(job, store):
+    counts = harvest_job(job, store, all_systems=True)
+    assert counts["inserted"] == 4
+    assert "O: no property matching" in counts["skipped"][0]
 
 
 def test_harvest_missing_job(store, tmp_path):

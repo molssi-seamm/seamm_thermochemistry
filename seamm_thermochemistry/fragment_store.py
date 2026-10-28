@@ -483,12 +483,16 @@ def harvest_job(
     fingerprint="settings fingerprint#*#*",
     frequency_fingerprint="frequency fingerprint#*#*",
     name_prefix="CBH:",
+    all_systems=False,
     database="seamm.db",
 ):
     """Promote the species energies of one job into the store.
 
     Every system whose name starts with `name_prefix` (``CBH:<SMILES>``: the
-    SMILES is the species identity) contributes one record per energy
+    SMILES is the species identity), or every system when `all_systems`
+    (the name, less the prefix if present, canonicalized, is the species, as
+    for systems that Read Structure named by SMILES), contributes one record
+    per energy
     property found on its current configuration, with the ZPE and enthalpy
     of the same level when present, the fingerprints if the QC step stored
     them, and the provenance (job directory, configuration id, geometry
@@ -520,9 +524,12 @@ def harvest_job(
     db = SystemDB(filename=f"file:{path}?mode=ro")
     try:
         for system in db.get_systems():
-            if not system.name.startswith(name_prefix):
+            if system.name.startswith(name_prefix):
+                species = system.name[len(name_prefix) :].strip()
+            elif all_systems:
+                species = system.name.strip()
+            else:
                 continue
-            species = system.name[len(name_prefix) :].strip()
             try:  # the store is keyed on RDKit's canonical SMILES
                 from .atct import canonical_smiles
 
