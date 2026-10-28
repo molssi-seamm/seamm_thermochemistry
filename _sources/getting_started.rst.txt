@@ -89,6 +89,19 @@ energy excludes the zero-point energy and the 0 K anchor is used).
 ``formation_energy(..., anchor=False)`` matches ``vasp_step``'s existing
 ``DfE0`` convention exactly.
 
+``formation_enthalpy`` and ``formation_gibbs_energy`` take the system's total
+enthalpy H(T) or Gibbs energy G(T) (electronic energy + ZPE + thermal
+correction, on the same absolute scale as the atom energies) and reference it
+to the elements in their standard states at T. Besides the 0 K anchor they need
+each element's standard-state H(298.15 K)-H(0 K)
+(``element.h298_minus_h0_std_state``, tabulated per formula unit of the
+standard state and halved for the diatomic gases) and, for G, the
+standard-state entropy (``element.s298_std_state``). The result is exact at
+298.15 K; at other temperatures the standard-state thermal enthalpy is scaled
+linearly in T, which is accurate for gaseous standard states and approximate
+for solids far from 298 K. As a check, water's ΔfH(298.15 K) - ΔfH(0 K) comes
+out as -2.90 kJ/mol with the JANAF data, matching experiment.
+
 Importing ORCA results
 ------------------------
 
