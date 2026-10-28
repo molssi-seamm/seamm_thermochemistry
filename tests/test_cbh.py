@@ -232,3 +232,33 @@ def test_reaction_to_dict_and_bad_input():
         cbh.cbh_reactions("not smiles", rungs=[1])
     with pytest.raises(cbh.CBHError, match="SMARTS"):
         cbh.cbh_reactions("CCO", rungs=[1], protect=["[[["])
+
+
+def _dihedral(p0, p1, p2, p3):
+    import numpy as np
+
+    p0, p1, p2, p3 = (np.asarray(p) for p in (p0, p1, p2, p3))
+    b0, b1, b2 = p0 - p1, p2 - p1, p3 - p2
+    b1n = b1 / np.linalg.norm(b1)
+    v = b0 - np.dot(b0, b1n) * b1n
+    w = b2 - np.dot(b2, b1n) * b1n
+    return abs(np.degrees(np.arctan2(np.dot(np.cross(b1n, v), w), np.dot(v, w))))
+
+
+def test_lowest_conformer_is_all_anti():
+    """The lowest MMFF conformer of the n-alkanes is all-anti (a single
+    embedding of pentane or heptane is gauche)."""
+    for n in (5, 6, 7, 8):
+        symbols, xyz, energies, best = cbh.lowest_conformer("C" * n, n=20)
+        assert len(energies) > 1 and energies[best] == min(energies)
+        carbons = [i for i, s in enumerate(symbols) if s == "C"]
+        for i in range(n - 3):
+            d = _dihedral(*[xyz[carbons[i + k]] for k in range(4)])
+            assert d > 165.0, f"C{n}: dihedral {i} is {d:.1f}"
+    # Dimethyl carbonate: the cis-cis conformer (both methyls syn to C=O)
+    symbols, xyz, energies, best = cbh.lowest_conformer("COC(=O)OC", n=20)
+    heavy = [i for i, s in enumerate(symbols) if s != "H"]
+    assert len(heavy) == 6
+    # Radical and ion still embed (UFF fallback when MMFF has no parameters)
+    symbols, xyz, energies, best = cbh.lowest_conformer("[CH2]CC", n=5)
+    assert len(symbols) == 10

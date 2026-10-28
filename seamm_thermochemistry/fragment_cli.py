@@ -40,6 +40,11 @@ def main(argv=None):
     harvest.add_argument("--enthalpy", default="H(298.15 K)#*#*")
     harvest.add_argument("--fingerprint", default="settings fingerprint#*#*")
     harvest.add_argument("--prefix", default="CBH:", help="System-name prefix.")
+    harvest.add_argument(
+        "--all-systems",
+        action="store_true",
+        help="Harvest every system, its name (less the prefix) being the SMILES.",
+    )
 
     lst = sub.add_parser("list", help="List the records, or those of one species.")
     lst.add_argument("species", nargs="?", help="Canonical SMILES.")
@@ -68,6 +73,7 @@ def main(argv=None):
                         enthalpy=args.enthalpy,
                         fingerprint=args.fingerprint,
                         name_prefix=args.prefix,
+                        all_systems=args.all_systems,
                     )
                     print(
                         f"{job}: {counts['inserted']} inserted, "

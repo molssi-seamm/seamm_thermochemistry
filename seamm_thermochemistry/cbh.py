@@ -678,3 +678,55 @@ def unique_fragments(reactions):
         for can in reaction.references:
             result.setdefault(can, reaction.fragments.get(can, can))
     return result
+
+
+def lowest_conformer(smiles, n=20, seed=0xF00D, return_mol=False):
+    """The lowest-energy conformer of `n` ETKDG embeddings optimized with
+    MMFF94: the starting structure for a species whose lowest rotamer is
+    wanted (all-anti n-alkanes, anti ethanol, cis-cis dimethyl carbonate), as
+    CBH-ANL starts every species from its lowest rotamer. A single embedding
+    of a long chain is often gauche.
+
+    Returns (symbols, coordinates in Å, mmff energies of all embeddings in
+    kcal/mol, lowest index), or with `return_mol` the RDKit molecule (with
+    explicit hydrogens and the chosen conformer only) first.
+    """
+    from rdkit import Chem
+    from rdkit.Chem import AllChem
+
+    mol = Chem.AddHs(Chem.MolFromSmiles(smiles))
+    if mol is None:
+        raise CBHError(f"RDKit cannot parse '{smiles}'")
+    params = AllChem.ETKDGv3()
+    params.randomSeed = seed
+    params.pruneRmsThresh = 0.1
+    ids = list(AllChem.EmbedMultipleConfs(mol, numConfs=max(1, int(n)), params=params))
+    if not ids:
+        params.useRandomCoords = True
+        ids = list(
+            AllChem.EmbedMultipleConfs(mol, numConfs=max(1, int(n)), params=params)
+        )
+    if not ids:
+        raise CBHError(f"RDKit could not embed '{smiles}'")
+    energies = {}
+    if AllChem.MMFFHasAllMoleculeParams(mol):
+        props = AllChem.MMFFGetMoleculeProperties(mol)
+        for cid in ids:
+            ff = AllChem.MMFFGetMoleculeForceField(mol, props, confId=cid)
+            ff.Minimize(maxIts=2000)
+            energies[cid] = ff.CalcEnergy()
+    else:  # no MMFF parameters (some radicals, ions): UFF
+        for cid in ids:
+            ff = AllChem.UFFGetMoleculeForceField(mol, confId=cid)
+            ff.Minimize(maxIts=2000)
+            energies[cid] = ff.CalcEnergy()
+    best = min(energies, key=energies.get)
+    conf = mol.GetConformer(best)
+    symbols = [a.GetSymbol() for a in mol.GetAtoms()]
+    coordinates = [list(conf.GetAtomPosition(i)) for i in range(mol.GetNumAtoms())]
+    if return_mol:
+        keep = Chem.Mol(mol)
+        keep.RemoveAllConformers()
+        keep.AddConformer(Chem.Conformer(conf), assignId=True)
+        return keep, symbols, coordinates, [energies[c] for c in ids], ids.index(best)
+    return symbols, coordinates, [energies[c] for c in ids], ids.index(best)

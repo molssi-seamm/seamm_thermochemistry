@@ -2,6 +2,15 @@
 History
 =======
 
+2026.10.28.4 -- Lowest conformer for CBH species; harvest of every system
+    * ``cbh.lowest_conformer(smiles, n)``: the lowest MMFF94 conformer of n RDKit
+      embeddings, the starting structure for a species whose lowest rotamer is wanted
+      (all-anti n-alkanes, anti ethanol), as CBH-ANL starts every species from its
+      lowest rotamer; a single embedding of pentane to octane is gauche.
+    * ``seamm-thermochemistry-fragments harvest --all-systems``: every system, its name
+      (less the ``CBH:`` prefix) being the species, canonicalized; for jobs whose
+      systems Read Structure named by SMILES.
+
 2026.10.28.3 -- The fragment-energy store and CBH-ANL laddered reference values
     * ``seamm-thermochemistry-fragments harvest|list|lookup|duplicates``: a store of
       the energies of CBH species computed earlier, one SQLite file next to the ATcT
