@@ -213,7 +213,7 @@ def normalize_entry(raw):
         "dfH0_298K": _number(entry.get("dfH0_298K")),
         "uncertainty_298K": 0.0 if exact else _number(uncertainty),
         "exact": exact,
-        "units": str(entry.get("units", "kJ/mol")),
+        "units": str(entry.get("units") or "kJ/mol"),
         "smiles": str(entry.get("smiles", "")).strip(),
         "casrn": str(entry.get("casrn", "")).strip(),
         "inchi": entry.get("inchi"),

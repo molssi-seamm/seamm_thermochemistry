@@ -55,6 +55,12 @@ def test_normalize_all_style_keys():
     assert e["charge"] == 0
 
 
+def test_normalize_missing_unit_defaults_to_kJ_per_mol():
+    # The real /all/ file has "unit": null for the 20 exact element entries
+    e = A.normalize_entry({"Formula": "H2  (g)", "unit": None})
+    assert e["units"] == "kJ/mol"
+
+
 def test_normalize_species_route_keys():
     raw = {
         "ATcT_TN_Version": "1.220",
