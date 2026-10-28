@@ -4,6 +4,30 @@ seamm\_thermochemistry package
 Submodules
 ----------
 
+seamm\_thermochemistry.atct module
+----------------------------------
+
+.. automodule:: seamm_thermochemistry.atct
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+seamm\_thermochemistry.atct\_cli module
+---------------------------------------
+
+.. automodule:: seamm_thermochemistry.atct_cli
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+seamm\_thermochemistry.cbh module
+---------------------------------
+
+.. automodule:: seamm_thermochemistry.cbh
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 seamm\_thermochemistry.db module
 --------------------------------
 

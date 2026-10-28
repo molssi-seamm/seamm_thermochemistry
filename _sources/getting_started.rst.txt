@@ -117,3 +117,75 @@ unless they conflict -- see
 full vetting and conflict-resolution rules, including
 ``--prefer-lower-energy`` for the hard-atom case where two runs converge
 to different, equally spin-clean self-consistent solutions.
+
+Active Thermochemical Tables
+----------------------------
+
+``seamm_thermochemistry.atct`` holds a local copy of one version of the Active
+Thermochemical Tables (ATcT, https://atct.anl.gov), the mutually consistent
+enthalpies of formation that the isodesmic (CBH) thermochemistry in SEAMM uses as
+references. Each installation downloads its own copy::
+
+    seamm-thermochemistry-atct download            # from atct.anl.gov
+    seamm-thermochemistry-atct download --from all.json   # a copy saved in a browser
+    seamm-thermochemistry-atct list
+    seamm-thermochemistry-atct lookup "C/C=C/C"
+
+The copy lives in ``Parameters/thermochemistry/ATcT/<version>/`` and is never
+modified; a newer version goes in its own directory, so earlier results stay
+reproducible. In Python::
+
+    from seamm_thermochemistry import ATcT, reaction_uncertainty
+
+    tables = ATcT()                      # the newest cached version
+    entry = tables.lookup("CCF")         # fluoroethane, plain gas-phase entry
+    entry["dfH0_298K"], entry["uncertainty_298K"], tables.version
+
+The selection rules follow how ATcT labels its entries: gas phase with the right
+charge; double-bond stereochemistry must match (cis and trans are separate
+species), while a lone stereocentre is ignored (enantiomers share a value); the
+plain ``*0`` entry is used over conformer entries unless ``conformer=`` names
+one; a labelled spin state is used when ``multiplicity=`` matches it; and the
+ortho/para nuclear-spin entries are never used. Anything still ambiguous stops
+with the candidates listed; ``atct_id=`` overrides everything.
+
+ATcT uncertainties are 95 % confidence limits at 298.15 K, and the values of
+different species are correlated. ``tables.covariance(ids)`` fetches and caches
+the covariance block, and ``reaction_uncertainty(coefficients, uncertainties,
+covariance)`` gives the 95 % uncertainty of a reaction enthalpy. As with the
+tables, a block can be saved from a browser (the response of
+``https://atct.anl.gov/api/v1/covariance/species/?atctids=74-84-0*0,74-98-6*0``)
+and cached with ``seamm-thermochemistry-atct covariance --from FILE``; the
+diagonal is checked against the listed uncertainties, which ATcT rounds up to
+0.01 kJ/mol. The correlations matter: for the CBH-2 reactions of the n-alkanes
+the covariance gives reference uncertainties about 40 % smaller than
+quadrature. Never convert an
+ATcT value between 0 K and 298.15 K yourself, and never mix TN versions in one
+reaction. The index needs RDKit (``pip install seamm-thermochemistry[cbh]``).
+
+Connectivity-based hierarchy (CBH) reactions
+--------------------------------------------
+
+``seamm_thermochemistry.cbh`` builds the error-cancelling reactions of
+Ramabhadran and Raghavachari's connectivity-based hierarchy from a SMILES::
+
+    from seamm_thermochemistry import cbh
+
+    reactions = cbh.cbh_reactions("CSCCC(N)C(=O)O", rungs=[1, 2, 3])
+    for rung, reaction in reactions.items():
+        print(reaction)                 # CBH-2: ... -> ...
+        reaction.coefficients           # {canonical SMILES: coefficient}
+        reaction.references             # the species other than the target
+        reaction.balanced, reaction.trivial
+
+Products have positive coefficients, reactants negative and the target -1.
+Every fragment keeps the bond orders, charges, unpaired electrons and
+stereochemistry it has in the parent, and every cut bond is replaced by
+hydrogens. By default aromatic ring systems, three- and four-membered rings and
+charge-separated or hypervalent groups are kept whole (``protect="default"``;
+``protect="none"`` gives the plain Kekulé hierarchy, and a sequence of
+``"aromatic"``, ``"small rings"``, ``"groups"``, ``"all rings"`` or SMARTS
+patterns chooses). A rung that reproduces the target is ``trivial``; a rung
+the formula cannot build raises ``RungUnavailable``. ``cbh.unique_fragments``
+gives the union of the reference species over several reactions, so that a
+batch of targets computes each fragment once.

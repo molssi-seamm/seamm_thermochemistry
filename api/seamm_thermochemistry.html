@@ -7,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>seamm_thermochemistry package &#8212; SEAMM thermochemistry Plug-in 2026.10.28.1 documentation</title>
+    <title>seamm_thermochemistry package &#8212; SEAMM thermochemistry Plug-in 2026.10.28.2 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../_static/documentation_options.js?v=e3e63ff4"></script>
+    <script src="../_static/documentation_options.js?v=d41eb59e"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -54,7 +54,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.10.28.1" />
+  <meta name="docsearch:version" content="2026.10.28.2" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -444,6 +444,558 @@
 <h1>seamm_thermochemistry package<a class="headerlink" href="#seamm-thermochemistry-package" title="Link to this heading">#</a></h1>
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">#</a></h2>
+</section>
+<section id="module-seamm_thermochemistry.atct">
+<span id="seamm-thermochemistry-atct-module"></span><h2>seamm_thermochemistry.atct module<a class="headerlink" href="#module-seamm_thermochemistry.atct" title="Link to this heading">#</a></h2>
+<p>A local copy of the Active Thermochemical Tables (ATcT) and the rules for
+choosing an entry.</p>
+<p>ATcT (<a class="reference external" href="https://atct.anl.gov">https://atct.anl.gov</a>) publishes enthalpies of formation at 0 K and 298.15
+K for a few thousand species, derived from one thermochemical network (TN), so
+the values are mutually consistent and correlated. This module keeps a complete
+copy of one version of the tables on disk, builds an index from canonical
+SMILES to the ATcT entries, chooses the right entry for a molecule, and
+propagates the network covariance through a reaction.</p>
+<p>Layout of the cache, one directory per TN version:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">base</span><span class="o">&gt;/</span><span class="n">ATcT</span><span class="o">/&lt;</span><span class="n">version</span><span class="o">&gt;/</span>
+    <span class="n">atct_all</span><span class="o">.</span><span class="n">json</span>       <span class="n">the</span> <span class="o">/</span><span class="n">api</span><span class="o">/</span><span class="n">v1</span><span class="o">/</span><span class="nb">all</span><span class="o">/</span> <span class="n">download</span><span class="p">,</span> <span class="n">unmodified</span>
+    <span class="n">metadata</span><span class="o">.</span><span class="n">json</span>       <span class="n">version</span><span class="p">,</span> <span class="n">source</span> <span class="n">URL</span><span class="p">,</span> <span class="n">download</span> <span class="n">date</span><span class="p">,</span> <span class="n">SHA</span><span class="o">-</span><span class="mi">256</span>
+    <span class="n">index</span><span class="o">.</span><span class="n">json</span>          <span class="n">canonical</span> <span class="n">SMILES</span> <span class="o">-&gt;</span> <span class="n">ATcT</span> <span class="n">IDs</span><span class="p">,</span> <span class="n">built</span> <span class="n">locally</span>
+    <span class="n">covariance</span><span class="o">.</span><span class="n">json</span>     <span class="n">covariance</span> <span class="n">blocks</span> <span class="n">fetched</span> <span class="n">so</span> <span class="n">far</span><span class="p">,</span> <span class="n">by</span> <span class="n">version</span>
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">&lt;base&gt;</span></code> is the installation’s <code class="docutils literal notranslate"><span class="pre">Parameters/thermochemistry</span></code> directory
+by default. Nothing here is distributed with SEAMM: each installation downloads
+its own copy, and the copy is never modified, so results can be reproduced.</p>
+<p>Conventions that matter (Ruscic 2004, 2005; Ruscic &amp; Bross 2025):</p>
+<ul class="simple">
+<li><p>The listed uncertainties, and the covariance matrix, are 95 % confidence
+limits, valid at 298.15 K only. There is no 0 K uncertainty.</p></li>
+<li><p>A plain <code class="docutils literal notranslate"><span class="pre">(g)</span></code> entry is the species in its ground state: at 0 K the lowest
+level of the lowest conformer; at 298.15 K a thermal average over conformers.
+Conformers, stereoisomers, spin states and nuclear-spin isomers are
+separate entries, labelled in the formula’s state, e.g. <code class="docutils literal notranslate"><span class="pre">(g,</span> <span class="pre">trans)</span></code>,
+<code class="docutils literal notranslate"><span class="pre">(g,</span> <span class="pre">triplet)</span></code>, <code class="docutils literal notranslate"><span class="pre">(g,</span> <span class="pre">para)</span></code>.</p></li>
+<li><p>Ions use the stationary-electron convention.</p></li>
+<li><p>Never mix TN versions in one reaction.</p></li>
+</ul>
+<p>RDKit is needed only to build the index and to canonicalize query SMILES; it
+is imported lazily, so the rest of the package does not depend on it.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="seamm_thermochemistry.atct.ATcT">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.atct.</span></span><span class="sig-name descname"><span class="pre">ATcT</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/atct.html#ATcT"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.atct.ATcT" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>One version of the ATcT tables, from the local cache.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>version</strong> (<em>str</em><em>, </em><em>optional</em>) – The TN version, e.g. “1.220”. The newest cached version by default.</p></li>
+<li><p><strong>base</strong> (<em>path-like</em><em>, </em><em>optional</em>) – The cache directory; see <cite>atct_directory</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.atct.ATcT.available">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">available</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/atct.html#ATcT.available"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.atct.ATcT.available" title="Link to this definition">#</a></dt>
+<dd><p>The cached TN versions, oldest first.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.atct.ATcT.build_index">
+<span class="sig-name descname"><span class="pre">build_index</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/atct.html#ATcT.build_index"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.atct.ATcT.build_index" title="Link to this definition">#</a></dt>
+<dd><p>Canonicalize every entry’s SMILES with RDKit.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.atct.ATcT.candidates">
+<span class="sig-name descname"><span class="pre">candidates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">smiles</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">charge</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gas_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/atct.html#ATcT.candidates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.atct.ATcT.candidates" title="Link to this definition">#</a></dt>
+<dd><p>All entries whose canonical SMILES matches, as ATcTEntry objects.</p>
+<p>If <cite>smiles</cite> carries no double-bond or tetrahedral stereo but matching
+entries do, those entries are returned too (they come from the
+stereo-free index), so that the caller can see them.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="seamm_thermochemistry.atct.ATcT.citation">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">citation</span></span><a class="headerlink" href="#seamm_thermochemistry.atct.ATcT.citation" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.atct.ATcT.covariance">
+<span class="sig-name descname"><span class="pre">covariance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ids</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">fetch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_agent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'SEAMM-thermochemistry/2026.10.28.2</span> <span class="pre">(+https://molssi-seamm.github.io;</span> <span class="pre">contact</span> <span class="pre">seamm&#64;molssi.org)'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/atct.html#ATcT.covariance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.atct.ATcT.covariance" title="Link to this definition">#</a></dt>
+<dd><p>The covariance matrix (kJ²/mol², 95 % scale, 298.15 K) for the
+given ATcT IDs, in the order given.</p>
+<p>A cached block that contains every ID is used; otherwise the block is
+fetched from <code class="docutils literal notranslate"><span class="pre">/covariance/species/</span></code> (one request for all IDs),
+checked against the listed uncertainties, and cached.</p>
+<p>Returns None if the block is not cached and <cite>fetch</cite> is False or the
+request fails; callers then fall back to independent uncertainties.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="seamm_thermochemistry.atct.ATcT.covariance_cache">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">covariance_cache</span></span><a class="headerlink" href="#seamm_thermochemistry.atct.ATcT.covariance_cache" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.atct.ATcT.fetch_covariance">
+<span class="sig-name descname"><span class="pre">fetch_covariance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ids</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_agent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'SEAMM-thermochemistry/2026.10.28.2</span> <span class="pre">(+https://molssi-seamm.github.io;</span> <span class="pre">contact</span> <span class="pre">seamm&#64;molssi.org)'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/atct.html#ATcT.fetch_covariance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.atct.ATcT.fetch_covariance" title="Link to this definition">#</a></dt>
+<dd><p>Fetch and cache the covariance block for <cite>ids</cite>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.atct.ATcT.import_covariance">
+<span class="sig-name descname"><span class="pre">import_covariance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/atct.html#ATcT.import_covariance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.atct.ATcT.import_covariance" title="Link to this definition">#</a></dt>
+<dd><p>Add a covariance block saved from a browser, e.g. the response of
+<code class="docutils literal notranslate"><span class="pre">/api/v1/covariance/species/?atctids=...</span></code> saved to a file. The block
+is checked like a fetched one; a block already cached with exactly the
+same IDs is replaced.</p>
+<p>Returns the block.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="seamm_thermochemistry.atct.ATcT.index">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">index</span></span><a class="headerlink" href="#seamm_thermochemistry.atct.ATcT.index" title="Link to this definition">#</a></dt>
+<dd><p>[ids]}, “flat”: {SMILES without
+stereo: [ids]}, “inchikey”: {key: [ids]}, “unparsed”: [ids]}, built
+with RDKit on first use and kept in <code class="docutils literal notranslate"><span class="pre">index.json</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>{“stereo”</p>
+</dd>
+<dt class="field-even">Type<span class="colon">:</span></dt>
+<dd class="field-even"><p>{canonical SMILES</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.atct.ATcT.lookup">
+<span class="sig-name descname"><span class="pre">lookup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">smiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">atct_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">charge</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multiplicity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conformer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/atct.html#ATcT.lookup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.atct.ATcT.lookup" title="Link to this definition">#</a></dt>
+<dd><p>The ATcT entry for a molecule, by the selection rules.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>smiles</strong> (<em>str</em>) – The molecule, with double-bond stereo if it has any.</p></li>
+<li><p><strong>atct_id</strong> (<em>str</em><em>, </em><em>optional</em>) – An explicit ATcT ID, which overrides every rule.</p></li>
+<li><p><strong>charge</strong> (<em>int</em>) – The net charge; ATcT lists ions separately.</p></li>
+<li><p><strong>multiplicity</strong> (<em>int</em><em>, </em><em>optional</em>) – The spin multiplicity. A labelled spin-state entry is used when it
+matches; otherwise the plain entry, assumed to be the ground state.</p></li>
+<li><p><strong>conformer</strong> (<em>str</em><em>, </em><em>optional</em>) – A conformer or isomer label to select (<code class="docutils literal notranslate"><span class="pre">syn</span></code>, <code class="docutils literal notranslate"><span class="pre">anti</span></code>, <code class="docutils literal notranslate"><span class="pre">cis</span></code>,
+<code class="docutils literal notranslate"><span class="pre">trans</span></code>, …) instead of the plain entry.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#seamm_thermochemistry.atct.ATcTEntry" title="seamm_thermochemistry.atct.ATcTEntry">ATcTEntry</a></p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#seamm_thermochemistry.atct.MissingEntry" title="seamm_thermochemistry.atct.MissingEntry"><strong>MissingEntry</strong></a><strong>, </strong><a class="reference internal" href="#seamm_thermochemistry.atct.AmbiguousEntry" title="seamm_thermochemistry.atct.AmbiguousEntry"><strong>AmbiguousEntry</strong></a> – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.atct.ATcT.parse_covariance">
+<span class="sig-name descname"><span class="pre">parse_covariance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/atct.html#ATcT.parse_covariance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.atct.ATcT.parse_covariance" title="Link to this definition">#</a></dt>
+<dd><p>The API’s covariance response as {“ids”: […], “matrix”: [[…]]}.</p>
+<p>The rows come back in the API’s own order (<code class="docutils literal notranslate"><span class="pre">species_atctids</span></code>), not
+the request order. The square root of each diagonal element must agree
+with the listed 298.15 K uncertainty, which confirms that the matrix is
+on the 95 % scale; a mismatch is an error. ATcT lists the uncertainties
+rounded <em>up</em> to 0.01 kJ/mol (0.1118 is listed as 0.12), so the listed
+value may exceed the diagonal by up to 0.01.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="seamm_thermochemistry.atct.ATcTEntry">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.atct.</span></span><span class="sig-name descname"><span class="pre">ATcTEntry</span></span><a class="reference internal" href="../_modules/seamm_thermochemistry/atct.html#ATcTEntry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.atct.ATcTEntry" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></p>
+<p>A normalized ATcT entry (a dict) with a few conveniences.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="seamm_thermochemistry.atct.ATcTEntry.casrn_group">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">casrn_group</span></span><a class="headerlink" href="#seamm_thermochemistry.atct.ATcTEntry.casrn_group" title="Link to this definition">#</a></dt>
+<dd><p>conformers and states of one species
+share it (<code class="docutils literal notranslate"><span class="pre">74-82-8*0</span></code>, <code class="docutils literal notranslate"><span class="pre">74-82-8*1</span></code> …).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The CAS number part of the ID</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="seamm_thermochemistry.atct.ATcTEntry.index">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">index</span></span><a class="headerlink" href="#seamm_thermochemistry.atct.ATcTEntry.index" title="Link to this definition">#</a></dt>
+<dd><p>0 is the plain entry.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The <code class="docutils literal notranslate"><span class="pre">*n</span></code> index of the ID</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="seamm_thermochemistry.atct.ATcTEntry.is_gas">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">is_gas</span></span><a class="headerlink" href="#seamm_thermochemistry.atct.ATcTEntry.is_gas" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="seamm_thermochemistry.atct.ATcTEntry.is_nuclear_spin_isomer">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">is_nuclear_spin_isomer</span></span><a class="headerlink" href="#seamm_thermochemistry.atct.ATcTEntry.is_nuclear_spin_isomer" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="seamm_thermochemistry.atct.ATcTEntry.is_plain">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">is_plain</span></span><a class="headerlink" href="#seamm_thermochemistry.atct.ATcTEntry.is_plain" title="Link to this definition">#</a></dt>
+<dd><p>A plain entry, no conformer, state or isomer label.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.atct.ATcTEntry.label">
+<span class="sig-name descname"><span class="pre">label</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/atct.html#ATcTEntry.label"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.atct.ATcTEntry.label" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="seamm_thermochemistry.atct.ATcTEntry.multiplicity">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">multiplicity</span></span><a class="headerlink" href="#seamm_thermochemistry.atct.ATcTEntry.multiplicity" title="Link to this definition">#</a></dt>
+<dd><p>The spin multiplicity named in the descriptor, or None.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="seamm_thermochemistry.atct.ATcTError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.atct.</span></span><span class="sig-name descname"><span class="pre">ATcTError</span></span><a class="reference internal" href="../_modules/seamm_thermochemistry/atct.html#ATcTError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.atct.ATcTError" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>Base class for errors from the ATcT cache.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="seamm_thermochemistry.atct.AmbiguousEntry">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.atct.</span></span><span class="sig-name descname"><span class="pre">AmbiguousEntry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">candidates</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/atct.html#AmbiguousEntry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.atct.AmbiguousEntry" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#seamm_thermochemistry.atct.ATcTError" title="seamm_thermochemistry.atct.ATcTError"><code class="xref py py-class docutils literal notranslate"><span class="pre">ATcTError</span></code></a></p>
+<p>More than one ATcT entry matches; the candidates are listed.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="seamm_thermochemistry.atct.MissingEntry">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.atct.</span></span><span class="sig-name descname"><span class="pre">MissingEntry</span></span><a class="reference internal" href="../_modules/seamm_thermochemistry/atct.html#MissingEntry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.atct.MissingEntry" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#seamm_thermochemistry.atct.ATcTError" title="seamm_thermochemistry.atct.ATcTError"><code class="xref py py-class docutils literal notranslate"><span class="pre">ATcTError</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">KeyError</span></code></p>
+<p>No ATcT entry matches.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="seamm_thermochemistry.atct.atct_directory">
+<span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.atct.</span></span><span class="sig-name descname"><span class="pre">atct_directory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/atct.html#atct_directory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.atct.atct_directory" title="Link to this definition">#</a></dt>
+<dd><p>The directory holding the ATcT versions.</p>
+<p><cite>base</cite> overrides everything. Otherwise the installation’s
+<code class="docutils literal notranslate"><span class="pre">Parameters/thermochemistry/ATcT</span></code>, found as <code class="docutils literal notranslate"><span class="pre">db.py</span></code> finds the
+reference database: the current root first, then the directory of the
+database registered in seamm.ini, then <code class="docutils literal notranslate"><span class="pre">~/SEAMM/Parameters/thermochemistry</span></code>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="seamm_thermochemistry.atct.canonical_smiles">
+<span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.atct.</span></span><span class="sig-name descname"><span class="pre">canonical_smiles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">smiles</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">stereo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keep_single_center</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/atct.html#canonical_smiles"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.atct.canonical_smiles" title="Link to this definition">#</a></dt>
+<dd><p>RDKit canonical SMILES for matching.</p>
+<p>Double-bond stereochemistry is kept (ATcT lists cis and trans isomers as
+separate species). Tetrahedral stereocentres are dropped when the molecule
+has only one, since enantiomers have the same enthalpy of formation and
+ATcT has no enantiomer entries; with two or more, the relative
+configuration is kept. Returns None if RDKit cannot parse the SMILES.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="seamm_thermochemistry.atct.download_all">
+<span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.atct.</span></span><span class="sig-name descname"><span class="pre">download_all</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_agent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'SEAMM-thermochemistry/2026.10.28.2</span> <span class="pre">(+https://molssi-seamm.github.io;</span> <span class="pre">contact</span> <span class="pre">seamm&#64;molssi.org)'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/atct.html#download_all"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.atct.download_all" title="Link to this definition">#</a></dt>
+<dd><p>Download <code class="docutils literal notranslate"><span class="pre">/all/</span></code> into <code class="docutils literal notranslate"><span class="pre">&lt;base&gt;/&lt;version&gt;/atct_all.json</span></code> and write its
+metadata. An existing version is never overwritten. <cite>source</cite> may be a local
+file (a copy saved from a browser) instead of the API.</p>
+<p>Returns the version directory.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="seamm_thermochemistry.atct.normalize_entry">
+<span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.atct.</span></span><span class="sig-name descname"><span class="pre">normalize_entry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">raw</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/atct.html#normalize_entry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.atct.normalize_entry" title="Link to this definition">#</a></dt>
+<dd><p>One ATcT record, from <code class="docutils literal notranslate"><span class="pre">/all/</span></code> or a per-species route, as a dict with
+fixed keys: <code class="docutils literal notranslate"><span class="pre">version,</span> <span class="pre">id,</span> <span class="pre">name,</span> <span class="pre">formula,</span> <span class="pre">phase,</span> <span class="pre">descriptor,</span> <span class="pre">charge,</span>
+<span class="pre">dfH0_0K,</span> <span class="pre">dfH0_298K,</span> <span class="pre">uncertainty_298K</span> <span class="pre">(None</span> <span class="pre">if</span> <span class="pre">exact),</span> <span class="pre">exact,</span> <span class="pre">units,</span>
+<span class="pre">smiles,</span> <span class="pre">casrn,</span> <span class="pre">inchi,</span> <span class="pre">inchikey,</span> <span class="pre">mass</span></code>.</p>
+<p>The formula column carries the state, e.g. <code class="docutils literal notranslate"><span class="pre">CH4</span>&#160; <span class="pre">(g)</span></code> or
+<code class="docutils literal notranslate"><span class="pre">C2H2Cl2</span>&#160; <span class="pre">(g,</span> <span class="pre">trans)</span></code>. It is split into <code class="docutils literal notranslate"><span class="pre">formula</span></code>, <code class="docutils literal notranslate"><span class="pre">phase</span></code> (<code class="docutils literal notranslate"><span class="pre">g</span></code>,
+<code class="docutils literal notranslate"><span class="pre">cr</span></code>, <code class="docutils literal notranslate"><span class="pre">l</span></code>, <code class="docutils literal notranslate"><span class="pre">cr,l</span></code>, <code class="docutils literal notranslate"><span class="pre">aq</span></code>, …) and <code class="docutils literal notranslate"><span class="pre">descriptor</span></code> (<code class="docutils literal notranslate"><span class="pre">trans</span></code>,
+<code class="docutils literal notranslate"><span class="pre">triplet</span></code>, <code class="docutils literal notranslate"><span class="pre">ortho</span></code>, <code class="docutils literal notranslate"><span class="pre">syn</span></code>, … or <code class="docutils literal notranslate"><span class="pre">&quot;&quot;</span></code>).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="seamm_thermochemistry.atct.reaction_uncertainty">
+<span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.atct.</span></span><span class="sig-name descname"><span class="pre">reaction_uncertainty</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coefficients</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uncertainties</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">covariance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/atct.html#reaction_uncertainty"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.atct.reaction_uncertainty" title="Link to this definition">#</a></dt>
+<dd><p>The 95 % uncertainty of Σ νᵢ ΔfHᵢ at 298.15 K.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>coefficients</strong> (<em>[</em><em>float</em><em>]</em>) – The stoichiometric coefficients ν of the reference species.</p></li>
+<li><p><strong>uncertainties</strong> (<em>[</em><em>float</em><em>]</em>) – Their listed 95 % uncertainties, same order.</p></li>
+<li><p><strong>covariance</strong> (<em>[</em><em>[</em><em>float</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – Their covariance matrix, same order. If None the uncertainties are
+combined in quadrature, which ignores the correlations.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The uncertainty, and whether the covariance was used.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(float, bool)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-seamm_thermochemistry.atct_cli">
+<span id="seamm-thermochemistry-atct-cli-module"></span><h2>seamm_thermochemistry.atct_cli module<a class="headerlink" href="#module-seamm_thermochemistry.atct_cli" title="Link to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">seamm-thermochemistry-atct</span></code>: manage the local copy of the Active
+Thermochemical Tables and look entries up from the command line:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">seamm</span><span class="o">-</span><span class="n">thermochemistry</span><span class="o">-</span><span class="n">atct</span> <span class="n">download</span> <span class="p">[</span><span class="o">--</span><span class="kn">from</span><span class="w"> </span><span class="nn">FILE</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">base</span> <span class="n">DIR</span><span class="p">]</span>
+<span class="n">seamm</span><span class="o">-</span><span class="n">thermochemistry</span><span class="o">-</span><span class="n">atct</span> <span class="nb">list</span> <span class="p">[</span><span class="o">--</span><span class="n">base</span> <span class="n">DIR</span><span class="p">]</span>
+<span class="n">seamm</span><span class="o">-</span><span class="n">thermochemistry</span><span class="o">-</span><span class="n">atct</span> <span class="n">lookup</span> <span class="n">SMILES</span> <span class="p">[</span><span class="o">--</span><span class="n">charge</span> <span class="n">Q</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">multiplicity</span> <span class="n">M</span><span class="p">]</span>
+                                  <span class="p">[</span><span class="o">--</span><span class="n">conformer</span> <span class="n">LABEL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">version</span> <span class="n">V</span><span class="p">]</span>
+<span class="n">seamm</span><span class="o">-</span><span class="n">thermochemistry</span><span class="o">-</span><span class="n">atct</span> <span class="n">index</span> <span class="p">[</span><span class="o">--</span><span class="n">version</span> <span class="n">V</span><span class="p">]</span>   <span class="p">(</span><span class="n">rebuild</span> <span class="n">the</span> <span class="n">index</span><span class="p">)</span>
+<span class="n">seamm</span><span class="o">-</span><span class="n">thermochemistry</span><span class="o">-</span><span class="n">atct</span> <span class="n">covariance</span> <span class="p">[</span><span class="o">--</span><span class="kn">from</span><span class="w"> </span><span class="nn">FILE</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">version</span> <span class="n">V</span><span class="p">]</span>
+                                  <span class="p">[</span><span class="n">SMILES</span><span class="o">-</span><span class="ow">or</span><span class="o">-</span><span class="n">ATcT</span><span class="o">-</span><span class="n">ID</span> <span class="o">...</span><span class="p">]</span>
+</pre></div>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="seamm_thermochemistry.atct_cli.main">
+<span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.atct_cli.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">argv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/atct_cli.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.atct_cli.main" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-seamm_thermochemistry.cbh">
+<span id="seamm-thermochemistry-cbh-module"></span><h2>seamm_thermochemistry.cbh module<a class="headerlink" href="#module-seamm_thermochemistry.cbh" title="Link to this heading">#</a></h2>
+<p>Connectivity-based hierarchy (CBH) reactions for a molecule.</p>
+<p>The CBH of Ramabhadran and Raghavachari (J. Chem. Theory Comput. 7, 2094
+(2011); Raghavachari et al., J. Chem. Theory Comput. 19, 3763 (2023)) builds,
+from the hydrogen-suppressed molecular graph alone, one error-cancelling
+reaction per rung:</p>
+<div class="pst-scrollable-table-container"><table class="table">
+<thead>
+<tr class="row-odd"><th class="head"><p>Rung</p></th>
+<th class="head"><p>Products (capped with H to the parent’s valence)</p></th>
+<th class="head"><p>Reactants</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>CBH-0</p></td>
+<td><p>the hydride of every heavy atom</p></td>
+<td><p>H2, to balance H</p></td>
+</tr>
+<tr class="row-odd"><td><p>CBH-1</p></td>
+<td><p>every heavy-atom bond</p></td>
+<td><p>N0(atom) x (deg-1)</p></td>
+</tr>
+<tr class="row-even"><td><p>CBH-2</p></td>
+<td><p>every heavy atom with its heavy neighbours</p></td>
+<td><p>N0(bond) per bond</p></td>
+</tr>
+<tr class="row-odd"><td><p>CBH-3</p></td>
+<td><p>every bond with the neighbours of both atoms</p></td>
+<td><p>N1(atom) x (deg-1)</p></td>
+</tr>
+<tr class="row-even"><td><p>CBH-4</p></td>
+<td><p>every atom with two shells of neighbours</p></td>
+<td><p>N1(bond) per bond</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Here N_k(atom) is the atom with all heavy atoms within k bonds, N_k(bond) is
+the bond’s two atoms with all heavy atoms within k bonds of either, and deg
+is the number of heavy neighbours. Odd rungs (2k+1) have N_k(bond) products
+and N_k(atom) reactants with coefficient (deg - 1); even rungs (2k &gt;= 2) have
+N_k(atom) products and N_{k-1}(bond) reactants with coefficient 1. Identical
+fragments are merged and species on both sides cancel. The target itself has
+coefficient -1. This reproduces every published reaction we checked (see
+tests/test_cbh.py).</p>
+<p>Every fragment is the induced subgraph: it keeps the bonds, bond orders,
+formal charges and unpaired electrons its atoms have in the parent, and every
+cut bond is replaced by hydrogens that restore the atom’s valence in the
+parent. Double-bond stereochemistry and the relative configuration of
+stereocentres are kept, so cis and trans fragments are different species.</p>
+<p>Groups that should not be broken (aromatic ring systems, three- and
+four-membered rings, charge-separated or hypervalent groups such as nitro and
+sulfonyl, and whole inorganic ions) are contracted into single nodes of the
+graph first (“coarse-grained” or “ring-preserved” CBH). The hierarchy on the
+contracted graph is shallower: for 4-chlorotoluene with the ring protected,
+CBH-1 is Cl-C6H4-CH3 + C6H6 -&gt; C6H5Cl + C6H5CH3 and CBH-2 is already trivial.</p>
+<p>Limitations: the simple overlap formula is valid only when every unprotected
+ring of size r satisfies rung &lt;= r - 2; such a rung is reported as
+unavailable. Aromatic rings that are not protected are Kekulized, which makes
+CBH-3 and higher depend on the Kekule structure chosen. A delocalized charge
+or spin must be localized on one atom by the input SMILES.</p>
+<dl class="py exception">
+<dt class="sig sig-object py" id="seamm_thermochemistry.cbh.CBHError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.cbh.</span></span><span class="sig-name descname"><span class="pre">CBHError</span></span><a class="reference internal" href="../_modules/seamm_thermochemistry/cbh.html#CBHError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.cbh.CBHError" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>A problem generating a CBH reaction.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="seamm_thermochemistry.cbh.Reaction">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.cbh.</span></span><span class="sig-name descname"><span class="pre">Reaction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rung</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/cbh.html#Reaction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.cbh.Reaction" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>One CBH reaction.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="seamm_thermochemistry.cbh.Reaction.rung">
+<span class="sig-name descname"><span class="pre">rung</span></span><a class="headerlink" href="#seamm_thermochemistry.cbh.Reaction.rung" title="Link to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="seamm_thermochemistry.cbh.Reaction.coefficients">
+<span class="sig-name descname"><span class="pre">coefficients</span></span><a class="headerlink" href="#seamm_thermochemistry.cbh.Reaction.coefficients" title="Link to this definition">#</a></dt>
+<dd><p>Stoichiometric coefficients by canonical SMILES (products positive,
+reactants negative, the target -1). Empty if the rung is trivial.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>{str: int}</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="seamm_thermochemistry.cbh.Reaction.fragments">
+<span class="sig-name descname"><span class="pre">fragments</span></span><a class="headerlink" href="#seamm_thermochemistry.cbh.Reaction.fragments" title="Link to this definition">#</a></dt>
+<dd><p>The fragment SMILES as generated (with stereo) by canonical SMILES.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>{str: str}</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="seamm_thermochemistry.cbh.Reaction.trivial">
+<span class="sig-name descname"><span class="pre">trivial</span></span><a class="headerlink" href="#seamm_thermochemistry.cbh.Reaction.trivial" title="Link to this definition">#</a></dt>
+<dd><p>The net reaction is empty: the rung reproduces the target.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="seamm_thermochemistry.cbh.Reaction.balanced">
+<span class="sig-name descname"><span class="pre">balanced</span></span><a class="headerlink" href="#seamm_thermochemistry.cbh.Reaction.balanced" title="Link to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="seamm_thermochemistry.cbh.Reaction.balance_errors">
+<span class="sig-name descname"><span class="pre">balance_errors</span></span><a class="headerlink" href="#seamm_thermochemistry.cbh.Reaction.balance_errors" title="Link to this definition">#</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="seamm_thermochemistry.cbh.Reaction.protected">
+<span class="sig-name descname"><span class="pre">protected</span></span><a class="headerlink" href="#seamm_thermochemistry.cbh.Reaction.protected" title="Link to this definition">#</a></dt>
+<dd><p>Descriptions of the groups contracted into single nodes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="seamm_thermochemistry.cbh.Reaction.products">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">products</span></span><a class="headerlink" href="#seamm_thermochemistry.cbh.Reaction.products" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="seamm_thermochemistry.cbh.Reaction.reactants">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">reactants</span></span><a class="headerlink" href="#seamm_thermochemistry.cbh.Reaction.reactants" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="seamm_thermochemistry.cbh.Reaction.references">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">references</span></span><a class="headerlink" href="#seamm_thermochemistry.cbh.Reaction.references" title="Link to this definition">#</a></dt>
+<dd><p>The species other than the target, with their coefficients.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.cbh.Reaction.to_dict">
+<span class="sig-name descname"><span class="pre">to_dict</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/cbh.html#Reaction.to_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.cbh.Reaction.to_dict" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="seamm_thermochemistry.cbh.RungUnavailable">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.cbh.</span></span><span class="sig-name descname"><span class="pre">RungUnavailable</span></span><a class="reference internal" href="../_modules/seamm_thermochemistry/cbh.html#RungUnavailable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.cbh.RungUnavailable" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#seamm_thermochemistry.cbh.CBHError" title="seamm_thermochemistry.cbh.CBHError"><code class="xref py py-class docutils literal notranslate"><span class="pre">CBHError</span></code></a></p>
+<p>The rung cannot be built for this molecule (small unprotected rings or
+parallel edges in the contracted graph).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="seamm_thermochemistry.cbh.cbh_reactions">
+<span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.cbh.</span></span><span class="sig-name descname"><span class="pre">cbh_reactions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">smiles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rungs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(0,</span> <span class="pre">1,</span> <span class="pre">2,</span> <span class="pre">3,</span> <span class="pre">4)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">protect</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'default'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/cbh.html#cbh_reactions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.cbh.cbh_reactions" title="Link to this definition">#</a></dt>
+<dd><p>The CBH reactions of a molecule.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>smiles</strong> (<em>str</em>) – The target, with its double-bond stereochemistry, formal charges and
+radical centres. Aromatic rings may be written aromatic.</p></li>
+<li><p><strong>rungs</strong> (<em>iterable</em><em> of </em><em>int</em>) – The rungs wanted.</p></li>
+<li><p><strong>protect</strong> (<em>&quot;default&quot;</em><em> | </em><em>&quot;none&quot;</em><em> | </em><em>sequence</em>) – Which groups to contract into single nodes: “aromatic” (aromatic ring
+systems, fused rings merged), “small rings” (3- and 4-membered),
+“groups” (the charge-separated and hypervalent groups in
+<cite>PROTECT_SMARTS</cite>), “all rings”, or SMARTS patterns. “default” is
+aromatic + small rings + groups.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>{int</strong> – A Reaction for each rung. A rung that cannot be built on this graph
+raises <cite>RungUnavailable</cite> unless it is above a trivial rung, in which
+case it is trivial too.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Reaction}</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="seamm_thermochemistry.cbh.unique_fragments">
+<span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.cbh.</span></span><span class="sig-name descname"><span class="pre">unique_fragments</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reactions</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/cbh.html#unique_fragments"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.cbh.unique_fragments" title="Link to this definition">#</a></dt>
+<dd><p>The union of the reference species over several reactions, with the
+generated (stereo) SMILES, so that a batch computes each fragment once.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>reactions</strong> (<em>iterable</em><em> of </em><a class="reference internal" href="#seamm_thermochemistry.cbh.Reaction" title="seamm_thermochemistry.cbh.Reaction"><em>Reaction</em></a>)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>{str</strong> – canonical SMILES -&gt; generated SMILES</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str}</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 <section id="module-seamm_thermochemistry.db">
 <span id="seamm-thermochemistry-db-module"></span><h2>seamm_thermochemistry.db module<a class="headerlink" href="#module-seamm_thermochemistry.db" title="Link to this heading">#</a></h2>
@@ -1130,85 +1682,8 @@ explicit list for anything but a one-off full import.</p></li>
 </dd></dl>
 
 </section>
-<section id="module-seamm_thermochemistry.installer">
-<span id="seamm-thermochemistry-installer-module"></span><h2>seamm_thermochemistry.installer module<a class="headerlink" href="#module-seamm_thermochemistry.installer" title="Link to this heading">#</a></h2>
-<p>Installer for seamm_thermochemistry: fetches the shared atomic
-reference-energy database from its Zenodo record.</p>
-<p>This package has no external executable and no conda environment – the
-only “installation” step is downloading <cite>thermochemistry.db</cite>, which is not
-shipped in the pip package (see the design doc at
-~/Sites/reference-energy/2026-07-24_reference-energy/: the database is
-regenerated from external master files and will keep growing). It lives
-outside the package instead, in a configured SEAMM-root directory –
-the same pattern used for DFTB+’s Slater-Koster parameter sets
-(~/SEAMM/Parameters/slako) – registered in seamm.ini’s [thermochemistry]
-section as <cite>database-path</cite>.</p>
-<p>Because there is no executable/environment to manage, this installer does
-NOT call <cite>super().check()</cite> / <cite>super().install()</cite> – those are entirely
-about the executables/conda-environment machinery <cite>InstallerBase</cite> provides
-for a typical plug-in, which doesn’t apply here. <cite>check</cite>/<cite>install</cite>/
-<cite>update</cite>/<cite>uninstall</cite> are implemented directly instead.</p>
-<dl class="py class">
-<dt class="sig sig-object py" id="seamm_thermochemistry.installer.Installer">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.installer.</span></span><span class="sig-name descname"><span class="pre">Installer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&lt;Logger</span> <span class="pre">seamm_thermochemistry.installer</span> <span class="pre">(WARNING)&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/installer.html#Installer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.installer.Installer" title="Link to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">InstallerBase</span></code></p>
-<p>Install/update/remove the seamm_thermochemistry reference database.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="seamm_thermochemistry.installer.Installer.check">
-<span class="sig-name descname"><span class="pre">check</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/installer.html#Installer.check"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.installer.Installer.check" title="Link to this definition">#</a></dt>
-<dd><p>Check that the reference database is installed, offering to
-install it if not.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>True if the database is present (installing it first if asked
-and needed), False if it’s missing and installation was
-declined.</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>bool</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="seamm_thermochemistry.installer.Installer.database_filename">
-<span class="sig-name descname"><span class="pre">database_filename</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'thermochemistry.db'</span></span><a class="headerlink" href="#seamm_thermochemistry.installer.Installer.database_filename" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="seamm_thermochemistry.installer.Installer.install">
-<span class="sig-name descname"><span class="pre">install</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/installer.html#Installer.install"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.installer.Installer.install" title="Link to this definition">#</a></dt>
-<dd><p>Download the reference database from Zenodo and register its
-location in seamm.ini’s [thermochemistry] section.</p>
-<p>An existing database is never overwritten here; see <cite>update</cite>.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="seamm_thermochemistry.installer.Installer.uninstall">
-<span class="sig-name descname"><span class="pre">uninstall</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/installer.html#Installer.uninstall"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.installer.Installer.uninstall" title="Link to this definition">#</a></dt>
-<dd><p>Remove the installed reference database and clear the config.</p>
-<p>A database with local changes is left in place (only the configuration is
-cleared) unless <code class="docutils literal notranslate"><span class="pre">uninstall</span> <span class="pre">--force</span></code> is given.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="seamm_thermochemistry.installer.Installer.update">
-<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/installer.html#Installer.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.installer.Installer.update" title="Link to this definition">#</a></dt>
-<dd><p>Bring the database up to the latest published version – unless it has
-local changes.</p>
-<p>The database is replaced only if the local file is exactly one of the
-published versions (or the copy this installer installed). A database that
-has been edited, e.g. with curated reference energies, is kept as it is and
-reported; <code class="docutils literal notranslate"><span class="pre">update</span> <span class="pre">--force</span></code> replaces it, keeping a backup.</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="seamm_thermochemistry.installer.Installer.zenodo_concept_id">
-<span class="sig-name descname"><span class="pre">zenodo_concept_id</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">21612187</span></span><a class="headerlink" href="#seamm_thermochemistry.installer.Installer.zenodo_concept_id" title="Link to this definition">#</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
+<section id="seamm-thermochemistry-installer-module">
+<h2>seamm_thermochemistry.installer module<a class="headerlink" href="#seamm-thermochemistry-installer-module" title="Link to this heading">#</a></h2>
 </section>
 <section id="module-seamm_thermochemistry.report">
 <span id="seamm-thermochemistry-report-module"></span><h2>seamm_thermochemistry.report module<a class="headerlink" href="#module-seamm_thermochemistry.report" title="Link to this heading">#</a></h2>
@@ -1274,6 +1749,211 @@ arbitrary, code-dependent zero that means nothing to a non-expert user and
 cannot be compared across codes. This package holds the one shared table of
 atomic reference energies, and the arithmetic to turn a system’s electronic
 energy into a physically meaningful energy or enthalpy of formation.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="seamm_thermochemistry.ATcT">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.</span></span><span class="sig-name descname"><span class="pre">ATcT</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/atct.html#ATcT"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.ATcT" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>One version of the ATcT tables, from the local cache.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>version</strong> (<em>str</em><em>, </em><em>optional</em>) – The TN version, e.g. “1.220”. The newest cached version by default.</p></li>
+<li><p><strong>base</strong> (<em>path-like</em><em>, </em><em>optional</em>) – The cache directory; see <cite>atct_directory</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.ATcT.available">
+<span class="property"><span class="k"><span class="pre">static</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">available</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/atct.html#ATcT.available"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.ATcT.available" title="Link to this definition">#</a></dt>
+<dd><p>The cached TN versions, oldest first.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.ATcT.build_index">
+<span class="sig-name descname"><span class="pre">build_index</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/atct.html#ATcT.build_index"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.ATcT.build_index" title="Link to this definition">#</a></dt>
+<dd><p>Canonicalize every entry’s SMILES with RDKit.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.ATcT.candidates">
+<span class="sig-name descname"><span class="pre">candidates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">smiles</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">charge</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gas_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/atct.html#ATcT.candidates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.ATcT.candidates" title="Link to this definition">#</a></dt>
+<dd><p>All entries whose canonical SMILES matches, as ATcTEntry objects.</p>
+<p>If <cite>smiles</cite> carries no double-bond or tetrahedral stereo but matching
+entries do, those entries are returned too (they come from the
+stereo-free index), so that the caller can see them.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="seamm_thermochemistry.ATcT.citation">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">citation</span></span><a class="headerlink" href="#seamm_thermochemistry.ATcT.citation" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.ATcT.covariance">
+<span class="sig-name descname"><span class="pre">covariance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ids</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">fetch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_agent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'SEAMM-thermochemistry/2026.10.28.2</span> <span class="pre">(+https://molssi-seamm.github.io;</span> <span class="pre">contact</span> <span class="pre">seamm&#64;molssi.org)'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/atct.html#ATcT.covariance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.ATcT.covariance" title="Link to this definition">#</a></dt>
+<dd><p>The covariance matrix (kJ²/mol², 95 % scale, 298.15 K) for the
+given ATcT IDs, in the order given.</p>
+<p>A cached block that contains every ID is used; otherwise the block is
+fetched from <code class="docutils literal notranslate"><span class="pre">/covariance/species/</span></code> (one request for all IDs),
+checked against the listed uncertainties, and cached.</p>
+<p>Returns None if the block is not cached and <cite>fetch</cite> is False or the
+request fails; callers then fall back to independent uncertainties.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="seamm_thermochemistry.ATcT.covariance_cache">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">covariance_cache</span></span><a class="headerlink" href="#seamm_thermochemistry.ATcT.covariance_cache" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.ATcT.fetch_covariance">
+<span class="sig-name descname"><span class="pre">fetch_covariance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ids</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_agent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'SEAMM-thermochemistry/2026.10.28.2</span> <span class="pre">(+https://molssi-seamm.github.io;</span> <span class="pre">contact</span> <span class="pre">seamm&#64;molssi.org)'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/atct.html#ATcT.fetch_covariance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.ATcT.fetch_covariance" title="Link to this definition">#</a></dt>
+<dd><p>Fetch and cache the covariance block for <cite>ids</cite>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.ATcT.import_covariance">
+<span class="sig-name descname"><span class="pre">import_covariance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/atct.html#ATcT.import_covariance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.ATcT.import_covariance" title="Link to this definition">#</a></dt>
+<dd><p>Add a covariance block saved from a browser, e.g. the response of
+<code class="docutils literal notranslate"><span class="pre">/api/v1/covariance/species/?atctids=...</span></code> saved to a file. The block
+is checked like a fetched one; a block already cached with exactly the
+same IDs is replaced.</p>
+<p>Returns the block.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="seamm_thermochemistry.ATcT.index">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">index</span></span><a class="headerlink" href="#seamm_thermochemistry.ATcT.index" title="Link to this definition">#</a></dt>
+<dd><p>[ids]}, “flat”: {SMILES without
+stereo: [ids]}, “inchikey”: {key: [ids]}, “unparsed”: [ids]}, built
+with RDKit on first use and kept in <code class="docutils literal notranslate"><span class="pre">index.json</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>{“stereo”</p>
+</dd>
+<dt class="field-even">Type<span class="colon">:</span></dt>
+<dd class="field-even"><p>{canonical SMILES</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.ATcT.lookup">
+<span class="sig-name descname"><span class="pre">lookup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">smiles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">atct_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">charge</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multiplicity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conformer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/atct.html#ATcT.lookup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.ATcT.lookup" title="Link to this definition">#</a></dt>
+<dd><p>The ATcT entry for a molecule, by the selection rules.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>smiles</strong> (<em>str</em>) – The molecule, with double-bond stereo if it has any.</p></li>
+<li><p><strong>atct_id</strong> (<em>str</em><em>, </em><em>optional</em>) – An explicit ATcT ID, which overrides every rule.</p></li>
+<li><p><strong>charge</strong> (<em>int</em>) – The net charge; ATcT lists ions separately.</p></li>
+<li><p><strong>multiplicity</strong> (<em>int</em><em>, </em><em>optional</em>) – The spin multiplicity. A labelled spin-state entry is used when it
+matches; otherwise the plain entry, assumed to be the ground state.</p></li>
+<li><p><strong>conformer</strong> (<em>str</em><em>, </em><em>optional</em>) – A conformer or isomer label to select (<code class="docutils literal notranslate"><span class="pre">syn</span></code>, <code class="docutils literal notranslate"><span class="pre">anti</span></code>, <code class="docutils literal notranslate"><span class="pre">cis</span></code>,
+<code class="docutils literal notranslate"><span class="pre">trans</span></code>, …) instead of the plain entry.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#seamm_thermochemistry.ATcTEntry" title="seamm_thermochemistry.ATcTEntry">ATcTEntry</a></p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#seamm_thermochemistry.MissingEntry" title="seamm_thermochemistry.MissingEntry"><strong>MissingEntry</strong></a><strong>, </strong><a class="reference internal" href="#seamm_thermochemistry.AmbiguousEntry" title="seamm_thermochemistry.AmbiguousEntry"><strong>AmbiguousEntry</strong></a> – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.ATcT.parse_covariance">
+<span class="sig-name descname"><span class="pre">parse_covariance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/atct.html#ATcT.parse_covariance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.ATcT.parse_covariance" title="Link to this definition">#</a></dt>
+<dd><p>The API’s covariance response as {“ids”: […], “matrix”: [[…]]}.</p>
+<p>The rows come back in the API’s own order (<code class="docutils literal notranslate"><span class="pre">species_atctids</span></code>), not
+the request order. The square root of each diagonal element must agree
+with the listed 298.15 K uncertainty, which confirms that the matrix is
+on the 95 % scale; a mismatch is an error. ATcT lists the uncertainties
+rounded <em>up</em> to 0.01 kJ/mol (0.1118 is listed as 0.12), so the listed
+value may exceed the diagonal by up to 0.01.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="seamm_thermochemistry.ATcTEntry">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.</span></span><span class="sig-name descname"><span class="pre">ATcTEntry</span></span><a class="reference internal" href="../_modules/seamm_thermochemistry/atct.html#ATcTEntry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.ATcTEntry" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></p>
+<p>A normalized ATcT entry (a dict) with a few conveniences.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="seamm_thermochemistry.ATcTEntry.casrn_group">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">casrn_group</span></span><a class="headerlink" href="#seamm_thermochemistry.ATcTEntry.casrn_group" title="Link to this definition">#</a></dt>
+<dd><p>conformers and states of one species
+share it (<code class="docutils literal notranslate"><span class="pre">74-82-8*0</span></code>, <code class="docutils literal notranslate"><span class="pre">74-82-8*1</span></code> …).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The CAS number part of the ID</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="seamm_thermochemistry.ATcTEntry.index">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">index</span></span><a class="headerlink" href="#seamm_thermochemistry.ATcTEntry.index" title="Link to this definition">#</a></dt>
+<dd><p>0 is the plain entry.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The <code class="docutils literal notranslate"><span class="pre">*n</span></code> index of the ID</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="seamm_thermochemistry.ATcTEntry.is_gas">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">is_gas</span></span><a class="headerlink" href="#seamm_thermochemistry.ATcTEntry.is_gas" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="seamm_thermochemistry.ATcTEntry.is_nuclear_spin_isomer">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">is_nuclear_spin_isomer</span></span><a class="headerlink" href="#seamm_thermochemistry.ATcTEntry.is_nuclear_spin_isomer" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="seamm_thermochemistry.ATcTEntry.is_plain">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">is_plain</span></span><a class="headerlink" href="#seamm_thermochemistry.ATcTEntry.is_plain" title="Link to this definition">#</a></dt>
+<dd><p>A plain entry, no conformer, state or isomer label.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.ATcTEntry.label">
+<span class="sig-name descname"><span class="pre">label</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/atct.html#ATcTEntry.label"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.ATcTEntry.label" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="seamm_thermochemistry.ATcTEntry.multiplicity">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">multiplicity</span></span><a class="headerlink" href="#seamm_thermochemistry.ATcTEntry.multiplicity" title="Link to this definition">#</a></dt>
+<dd><p>The spin multiplicity named in the descriptor, or None.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="seamm_thermochemistry.ATcTError">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.</span></span><span class="sig-name descname"><span class="pre">ATcTError</span></span><a class="reference internal" href="../_modules/seamm_thermochemistry/atct.html#ATcTError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.ATcTError" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>Base class for errors from the ATcT cache.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="seamm_thermochemistry.AmbiguousEntry">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.</span></span><span class="sig-name descname"><span class="pre">AmbiguousEntry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">message</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">candidates</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/atct.html#AmbiguousEntry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.AmbiguousEntry" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#seamm_thermochemistry.atct.ATcTError" title="seamm_thermochemistry.atct.ATcTError"><code class="xref py py-class docutils literal notranslate"><span class="pre">ATcTError</span></code></a></p>
+<p>More than one ATcT entry matches; the candidates are listed.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="seamm_thermochemistry.MissingEntry">
+<span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.</span></span><span class="sig-name descname"><span class="pre">MissingEntry</span></span><a class="reference internal" href="../_modules/seamm_thermochemistry/atct.html#MissingEntry"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.MissingEntry" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#seamm_thermochemistry.atct.ATcTError" title="seamm_thermochemistry.atct.ATcTError"><code class="xref py py-class docutils literal notranslate"><span class="pre">ATcTError</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">KeyError</span></code></p>
+<p>No ATcT entry matches.</p>
+</dd></dl>
+
 <dl class="py exception">
 <dt class="sig sig-object py" id="seamm_thermochemistry.MissingReferenceData">
 <span class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.</span></span><span class="sig-name descname"><span class="pre">MissingReferenceData</span></span><a class="reference internal" href="../_modules/seamm_thermochemistry/formation.html#MissingReferenceData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.MissingReferenceData" title="Link to this definition">#</a></dt>
@@ -1725,6 +2405,28 @@ scale as the electronic energy, in <cite>units</cite>.</p></li>
 </dl>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="seamm_thermochemistry.reaction_uncertainty">
+<span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.</span></span><span class="sig-name descname"><span class="pre">reaction_uncertainty</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coefficients</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uncertainties</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">covariance</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/atct.html#reaction_uncertainty"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.reaction_uncertainty" title="Link to this definition">#</a></dt>
+<dd><p>The 95 % uncertainty of Σ νᵢ ΔfHᵢ at 298.15 K.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>coefficients</strong> (<em>[</em><em>float</em><em>]</em>) – The stoichiometric coefficients ν of the reference species.</p></li>
+<li><p><strong>uncertainties</strong> (<em>[</em><em>float</em><em>]</em>) – Their listed 95 % uncertainties, same order.</p></li>
+<li><p><strong>covariance</strong> (<em>[</em><em>[</em><em>float</em><em>]</em><em>]</em><em>, </em><em>optional</em>) – Their covariance matrix, same order. If None the uncertainties are
+combined in quadrature, which ignores the correlations.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The uncertainty, and whether the covariance was used.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(float, bool)</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 </section>
 
@@ -1767,6 +2469,66 @@ scale as the electronic energy, in <cite>units</cite>.</p></li>
   <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
     <ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#submodules">Submodules</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-seamm_thermochemistry.atct">seamm_thermochemistry.atct module</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.atct.ATcT"><code class="docutils literal notranslate"><span class="pre">ATcT</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.atct.ATcT.available"><code class="docutils literal notranslate"><span class="pre">ATcT.available()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.atct.ATcT.build_index"><code class="docutils literal notranslate"><span class="pre">ATcT.build_index()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.atct.ATcT.candidates"><code class="docutils literal notranslate"><span class="pre">ATcT.candidates()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.atct.ATcT.citation"><code class="docutils literal notranslate"><span class="pre">ATcT.citation</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.atct.ATcT.covariance"><code class="docutils literal notranslate"><span class="pre">ATcT.covariance()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.atct.ATcT.covariance_cache"><code class="docutils literal notranslate"><span class="pre">ATcT.covariance_cache</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.atct.ATcT.fetch_covariance"><code class="docutils literal notranslate"><span class="pre">ATcT.fetch_covariance()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.atct.ATcT.import_covariance"><code class="docutils literal notranslate"><span class="pre">ATcT.import_covariance()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.atct.ATcT.index"><code class="docutils literal notranslate"><span class="pre">ATcT.index</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.atct.ATcT.lookup"><code class="docutils literal notranslate"><span class="pre">ATcT.lookup()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.atct.ATcT.parse_covariance"><code class="docutils literal notranslate"><span class="pre">ATcT.parse_covariance()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.atct.ATcTEntry"><code class="docutils literal notranslate"><span class="pre">ATcTEntry</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.atct.ATcTEntry.casrn_group"><code class="docutils literal notranslate"><span class="pre">ATcTEntry.casrn_group</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.atct.ATcTEntry.index"><code class="docutils literal notranslate"><span class="pre">ATcTEntry.index</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.atct.ATcTEntry.is_gas"><code class="docutils literal notranslate"><span class="pre">ATcTEntry.is_gas</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.atct.ATcTEntry.is_nuclear_spin_isomer"><code class="docutils literal notranslate"><span class="pre">ATcTEntry.is_nuclear_spin_isomer</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.atct.ATcTEntry.is_plain"><code class="docutils literal notranslate"><span class="pre">ATcTEntry.is_plain</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.atct.ATcTEntry.label"><code class="docutils literal notranslate"><span class="pre">ATcTEntry.label()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.atct.ATcTEntry.multiplicity"><code class="docutils literal notranslate"><span class="pre">ATcTEntry.multiplicity</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.atct.ATcTError"><code class="docutils literal notranslate"><span class="pre">ATcTError</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.atct.AmbiguousEntry"><code class="docutils literal notranslate"><span class="pre">AmbiguousEntry</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.atct.MissingEntry"><code class="docutils literal notranslate"><span class="pre">MissingEntry</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.atct.atct_directory"><code class="docutils literal notranslate"><span class="pre">atct_directory()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.atct.canonical_smiles"><code class="docutils literal notranslate"><span class="pre">canonical_smiles()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.atct.download_all"><code class="docutils literal notranslate"><span class="pre">download_all()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.atct.normalize_entry"><code class="docutils literal notranslate"><span class="pre">normalize_entry()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.atct.reaction_uncertainty"><code class="docutils literal notranslate"><span class="pre">reaction_uncertainty()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-seamm_thermochemistry.atct_cli">seamm_thermochemistry.atct_cli module</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.atct_cli.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-seamm_thermochemistry.cbh">seamm_thermochemistry.cbh module</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.cbh.CBHError"><code class="docutils literal notranslate"><span class="pre">CBHError</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.cbh.Reaction"><code class="docutils literal notranslate"><span class="pre">Reaction</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.cbh.Reaction.rung"><code class="docutils literal notranslate"><span class="pre">Reaction.rung</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.cbh.Reaction.coefficients"><code class="docutils literal notranslate"><span class="pre">Reaction.coefficients</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.cbh.Reaction.fragments"><code class="docutils literal notranslate"><span class="pre">Reaction.fragments</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.cbh.Reaction.trivial"><code class="docutils literal notranslate"><span class="pre">Reaction.trivial</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.cbh.Reaction.balanced"><code class="docutils literal notranslate"><span class="pre">Reaction.balanced</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.cbh.Reaction.balance_errors"><code class="docutils literal notranslate"><span class="pre">Reaction.balance_errors</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.cbh.Reaction.protected"><code class="docutils literal notranslate"><span class="pre">Reaction.protected</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.cbh.Reaction.products"><code class="docutils literal notranslate"><span class="pre">Reaction.products</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.cbh.Reaction.reactants"><code class="docutils literal notranslate"><span class="pre">Reaction.reactants</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.cbh.Reaction.references"><code class="docutils literal notranslate"><span class="pre">Reaction.references</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.cbh.Reaction.to_dict"><code class="docutils literal notranslate"><span class="pre">Reaction.to_dict()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.cbh.RungUnavailable"><code class="docutils literal notranslate"><span class="pre">RungUnavailable</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.cbh.cbh_reactions"><code class="docutils literal notranslate"><span class="pre">cbh_reactions()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.cbh.unique_fragments"><code class="docutils literal notranslate"><span class="pre">unique_fragments()</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-seamm_thermochemistry.db">seamm_thermochemistry.db module</a><ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.db.ThermoDB"><code class="docutils literal notranslate"><span class="pre">ThermoDB</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.db.ThermoDB.add_atom_energy"><code class="docutils literal notranslate"><span class="pre">ThermoDB.add_atom_energy()</span></code></a></li>
@@ -1819,23 +2581,39 @@ scale as the electronic energy, in <cite>units</cite>.</p></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.importers.import_wide_method_csv"><code class="docutils literal notranslate"><span class="pre">import_wide_method_csv()</span></code></a></li>
 </ul>
 </li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-seamm_thermochemistry.installer">seamm_thermochemistry.installer module</a><ul class="pst-show_toc_level nav section-nav flex-column">
-<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.installer.Installer"><code class="docutils literal notranslate"><span class="pre">Installer</span></code></a><ul class="nav section-nav flex-column">
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.installer.Installer.check"><code class="docutils literal notranslate"><span class="pre">Installer.check()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.installer.Installer.database_filename"><code class="docutils literal notranslate"><span class="pre">Installer.database_filename</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.installer.Installer.install"><code class="docutils literal notranslate"><span class="pre">Installer.install()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.installer.Installer.uninstall"><code class="docutils literal notranslate"><span class="pre">Installer.uninstall()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.installer.Installer.update"><code class="docutils literal notranslate"><span class="pre">Installer.update()</span></code></a></li>
-<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.installer.Installer.zenodo_concept_id"><code class="docutils literal notranslate"><span class="pre">Installer.zenodo_concept_id</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm-thermochemistry-installer-module">seamm_thermochemistry.installer module</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-seamm_thermochemistry.report">seamm_thermochemistry.report module</a><ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.report.format_report"><code class="docutils literal notranslate"><span class="pre">format_report()</span></code></a></li>
 </ul>
 </li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-seamm_thermochemistry">Module contents</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.ATcT"><code class="docutils literal notranslate"><span class="pre">ATcT</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.ATcT.available"><code class="docutils literal notranslate"><span class="pre">ATcT.available()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.ATcT.build_index"><code class="docutils literal notranslate"><span class="pre">ATcT.build_index()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.ATcT.candidates"><code class="docutils literal notranslate"><span class="pre">ATcT.candidates()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.ATcT.citation"><code class="docutils literal notranslate"><span class="pre">ATcT.citation</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.ATcT.covariance"><code class="docutils literal notranslate"><span class="pre">ATcT.covariance()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.ATcT.covariance_cache"><code class="docutils literal notranslate"><span class="pre">ATcT.covariance_cache</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.ATcT.fetch_covariance"><code class="docutils literal notranslate"><span class="pre">ATcT.fetch_covariance()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.ATcT.import_covariance"><code class="docutils literal notranslate"><span class="pre">ATcT.import_covariance()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.ATcT.index"><code class="docutils literal notranslate"><span class="pre">ATcT.index</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.ATcT.lookup"><code class="docutils literal notranslate"><span class="pre">ATcT.lookup()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.ATcT.parse_covariance"><code class="docutils literal notranslate"><span class="pre">ATcT.parse_covariance()</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.ATcTEntry"><code class="docutils literal notranslate"><span class="pre">ATcTEntry</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.ATcTEntry.casrn_group"><code class="docutils literal notranslate"><span class="pre">ATcTEntry.casrn_group</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.ATcTEntry.index"><code class="docutils literal notranslate"><span class="pre">ATcTEntry.index</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.ATcTEntry.is_gas"><code class="docutils literal notranslate"><span class="pre">ATcTEntry.is_gas</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.ATcTEntry.is_nuclear_spin_isomer"><code class="docutils literal notranslate"><span class="pre">ATcTEntry.is_nuclear_spin_isomer</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.ATcTEntry.is_plain"><code class="docutils literal notranslate"><span class="pre">ATcTEntry.is_plain</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.ATcTEntry.label"><code class="docutils literal notranslate"><span class="pre">ATcTEntry.label()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.ATcTEntry.multiplicity"><code class="docutils literal notranslate"><span class="pre">ATcTEntry.multiplicity</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.ATcTError"><code class="docutils literal notranslate"><span class="pre">ATcTError</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.AmbiguousEntry"><code class="docutils literal notranslate"><span class="pre">AmbiguousEntry</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.MissingEntry"><code class="docutils literal notranslate"><span class="pre">MissingEntry</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.MissingReferenceData"><code class="docutils literal notranslate"><span class="pre">MissingReferenceData</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.ThermoDB"><code class="docutils literal notranslate"><span class="pre">ThermoDB</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.ThermoDB.add_atom_energy"><code class="docutils literal notranslate"><span class="pre">ThermoDB.add_atom_energy()</span></code></a></li>
@@ -1867,6 +2645,7 @@ scale as the electronic energy, in <cite>units</cite>.</p></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.formation_energy"><code class="docutils literal notranslate"><span class="pre">formation_energy()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.formation_enthalpy"><code class="docutils literal notranslate"><span class="pre">formation_enthalpy()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.formation_gibbs_energy"><code class="docutils literal notranslate"><span class="pre">formation_gibbs_energy()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.reaction_uncertainty"><code class="docutils literal notranslate"><span class="pre">reaction_uncertainty()</span></code></a></li>
 </ul>
 </li>
 </ul>
