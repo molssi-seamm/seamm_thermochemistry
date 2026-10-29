@@ -262,3 +262,28 @@ def test_lowest_conformer_is_all_anti():
     # Radical and ion still embed (UFF fallback when MMFF has no parameters)
     symbols, xyz, energies, best = cbh.lowest_conformer("[CH2]CC", n=5)
     assert len(symbols) == 10
+
+
+def test_ring_closure_cut_twice_is_capped_twice():
+    """A cut atom bonded to two kept atoms (a ring closure) must cap both of
+    them. It used to cap only the first; the second lost a hydrogen, which
+    RDKit refilled silently for a plain atom but left as a radical on a
+    stereocentre (bicyclo[1.1.0]butane, propylene carbonate from a system's
+    stereo SMILES)."""
+    for smiles in (
+        "C1[C@H]2C[C@@H]12",
+        "C1C2CC12",
+        "C[C@H]1COC(=O)O1",
+        "O=C1OC[C@H](F)O1",
+    ):
+        for rung in (0, 1, 2, 3):
+            try:
+                reaction = cbh.cbh_reactions(smiles, rungs=(rung,), protect=None)[rung]
+            except cbh.CBHError:
+                break  # the ring is too small for this rung
+            assert reaction.balanced, (smiles, rung, reaction.balance_errors)
+            assert all(
+                "[CH" not in s and "[C]" not in s for s in reaction.coefficients
+            ), str(reaction)
+    r = cbh.cbh_reactions("C1C2CC12", rungs=(1,), protect=None)[1]
+    assert str(r) == "CBH-1: C1C2CC12 + 6 C -> 5 CC"

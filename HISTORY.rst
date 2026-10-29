@@ -2,6 +2,15 @@
 History
 =======
 
+2026.10.29 -- Bugfix: ring-closure atoms in CBH fragments
+    * A cut atom bonded to two kept atoms (a ring closure, so rings opened with
+      ``protect="none"`` or small-ring/aromatic protection off) capped only the first of
+      them; the second lost a hydrogen. RDKit refilled it silently for an ordinary atom,
+      but a stereocentre (a system's SMILES carries stereo tags) became a radical and the
+      reaction failed to balance (propylene carbonate, FEC, bicyclo[1.1.0]butane). Both
+      kept atoms are now capped, and a former stereocentre that ends up with two or more
+      hydrogens loses its stereo tag.
+
 2026.10.28.4 -- Lowest conformer for CBH species; harvest of every system
     * ``cbh.lowest_conformer(smiles, n)``: the lowest MMFF94 conformer of n RDKit
       embeddings, the starting structure for a species whose lowest rotamer is wanted

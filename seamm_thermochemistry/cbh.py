@@ -358,13 +358,14 @@ def _fragment_smiles(mol_h, keep):
             if (
                 a.GetIdx() in keep
                 and other.GetIdx() not in keep
-                and other.GetAtomicNum() > 1
+                and (other.GetAtomicNum() > 1 or other.GetIdx() in anchor)
             ):
                 order = int(round(bond.GetBondTypeAsDouble()))
                 if other.GetIdx() in anchor:
-                    # Already a cap for another kept atom (a ring closure):
-                    # this kept atom gets fresh hydrogens instead
-                    extra_bonds.append((bond.GetIdx(), a.GetIdx(), order))
+                    # Already a cap for another kept atom (a ring closure,
+                    # and so already turned into a hydrogen): this kept atom
+                    # gets fresh hydrogens instead
+                    extra_bonds.append((a.GetIdx(), other.GetIdx(), order))
                     continue
                 anchor[other.GetIdx()] = a.GetIdx()
                 other.SetAtomicNum(1)
@@ -379,9 +380,8 @@ def _fragment_smiles(mol_h, keep):
                 for _ in range(order - 1):
                     h = rw.AddAtom(Chem.Atom(1))
                     rw.AddBond(a.GetIdx(), h, Chem.BondType.SINGLE)
-    for bond_idx, a_idx, order in extra_bonds:
-        bond = rw.GetBondWithIdx(bond_idx)
-        rw.RemoveBond(bond.GetBeginAtomIdx(), bond.GetEndAtomIdx())
+    for a_idx, cap_idx, order in extra_bonds:
+        rw.RemoveBond(a_idx, cap_idx)
         for _ in range(order):
             h = rw.AddAtom(Chem.Atom(1))
             rw.AddBond(a_idx, h, Chem.BondType.SINGLE)
@@ -390,6 +390,14 @@ def _fragment_smiles(mol_h, keep):
         for nb in list(rw.GetAtomWithIdx(cap).GetNeighbors()):
             if nb.GetIdx() != a_idx:
                 rw.RemoveBond(cap, nb.GetIdx())
+    # A kept atom that was a stereocentre in the parent but now carries two
+    # or more hydrogens is no longer one
+    for idx in keep:
+        atom = rw.GetAtomWithIdx(idx)
+        if atom.GetChiralTag() != Chem.ChiralType.CHI_UNSPECIFIED:
+            n_h = sum(1 for nb in atom.GetNeighbors() if nb.GetAtomicNum() == 1)
+            if n_h >= 2:
+                atom.SetChiralTag(Chem.ChiralType.CHI_UNSPECIFIED)
     keep_all = set(keep) | set(anchor)
     for idx in keep:
         for nb in rw.GetAtomWithIdx(idx).GetNeighbors():
