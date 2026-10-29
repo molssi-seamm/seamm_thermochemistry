@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.cbh &#8212; SEAMM thermochemistry Plug-in 2026.10.28.4 documentation</title>
+    <title>seamm_thermochemistry.cbh &#8212; SEAMM thermochemistry Plug-in 2026.10.29 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../_static/documentation_options.js?v=bbefa14a"></script>
+    <script src="../../_static/documentation_options.js?v=1fe4c37e"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.10.28.4" />
+  <meta name="docsearch:version" content="2026.10.29" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -783,13 +783,14 @@
             <span class="k">if</span> <span class="p">(</span>
                 <span class="n">a</span><span class="o">.</span><span class="n">GetIdx</span><span class="p">()</span> <span class="ow">in</span> <span class="n">keep</span>
                 <span class="ow">and</span> <span class="n">other</span><span class="o">.</span><span class="n">GetIdx</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">keep</span>
-                <span class="ow">and</span> <span class="n">other</span><span class="o">.</span><span class="n">GetAtomicNum</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">1</span>
+                <span class="ow">and</span> <span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">GetAtomicNum</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">or</span> <span class="n">other</span><span class="o">.</span><span class="n">GetIdx</span><span class="p">()</span> <span class="ow">in</span> <span class="n">anchor</span><span class="p">)</span>
             <span class="p">):</span>
                 <span class="n">order</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">bond</span><span class="o">.</span><span class="n">GetBondTypeAsDouble</span><span class="p">()))</span>
                 <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">GetIdx</span><span class="p">()</span> <span class="ow">in</span> <span class="n">anchor</span><span class="p">:</span>
-                    <span class="c1"># Already a cap for another kept atom (a ring closure):</span>
-                    <span class="c1"># this kept atom gets fresh hydrogens instead</span>
-                    <span class="n">extra_bonds</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">bond</span><span class="o">.</span><span class="n">GetIdx</span><span class="p">(),</span> <span class="n">a</span><span class="o">.</span><span class="n">GetIdx</span><span class="p">(),</span> <span class="n">order</span><span class="p">))</span>
+                    <span class="c1"># Already a cap for another kept atom (a ring closure,</span>
+                    <span class="c1"># and so already turned into a hydrogen): this kept atom</span>
+                    <span class="c1"># gets fresh hydrogens instead</span>
+                    <span class="n">extra_bonds</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">a</span><span class="o">.</span><span class="n">GetIdx</span><span class="p">(),</span> <span class="n">other</span><span class="o">.</span><span class="n">GetIdx</span><span class="p">(),</span> <span class="n">order</span><span class="p">))</span>
                     <span class="k">continue</span>
                 <span class="n">anchor</span><span class="p">[</span><span class="n">other</span><span class="o">.</span><span class="n">GetIdx</span><span class="p">()]</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">GetIdx</span><span class="p">()</span>
                 <span class="n">other</span><span class="o">.</span><span class="n">SetAtomicNum</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
@@ -804,9 +805,8 @@
                 <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">order</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
                     <span class="n">h</span> <span class="o">=</span> <span class="n">rw</span><span class="o">.</span><span class="n">AddAtom</span><span class="p">(</span><span class="n">Chem</span><span class="o">.</span><span class="n">Atom</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
                     <span class="n">rw</span><span class="o">.</span><span class="n">AddBond</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">GetIdx</span><span class="p">(),</span> <span class="n">h</span><span class="p">,</span> <span class="n">Chem</span><span class="o">.</span><span class="n">BondType</span><span class="o">.</span><span class="n">SINGLE</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">bond_idx</span><span class="p">,</span> <span class="n">a_idx</span><span class="p">,</span> <span class="n">order</span> <span class="ow">in</span> <span class="n">extra_bonds</span><span class="p">:</span>
-        <span class="n">bond</span> <span class="o">=</span> <span class="n">rw</span><span class="o">.</span><span class="n">GetBondWithIdx</span><span class="p">(</span><span class="n">bond_idx</span><span class="p">)</span>
-        <span class="n">rw</span><span class="o">.</span><span class="n">RemoveBond</span><span class="p">(</span><span class="n">bond</span><span class="o">.</span><span class="n">GetBeginAtomIdx</span><span class="p">(),</span> <span class="n">bond</span><span class="o">.</span><span class="n">GetEndAtomIdx</span><span class="p">())</span>
+    <span class="k">for</span> <span class="n">a_idx</span><span class="p">,</span> <span class="n">cap_idx</span><span class="p">,</span> <span class="n">order</span> <span class="ow">in</span> <span class="n">extra_bonds</span><span class="p">:</span>
+        <span class="n">rw</span><span class="o">.</span><span class="n">RemoveBond</span><span class="p">(</span><span class="n">a_idx</span><span class="p">,</span> <span class="n">cap_idx</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">order</span><span class="p">):</span>
             <span class="n">h</span> <span class="o">=</span> <span class="n">rw</span><span class="o">.</span><span class="n">AddAtom</span><span class="p">(</span><span class="n">Chem</span><span class="o">.</span><span class="n">Atom</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
             <span class="n">rw</span><span class="o">.</span><span class="n">AddBond</span><span class="p">(</span><span class="n">a_idx</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">Chem</span><span class="o">.</span><span class="n">BondType</span><span class="o">.</span><span class="n">SINGLE</span><span class="p">)</span>
@@ -815,6 +815,14 @@
         <span class="k">for</span> <span class="n">nb</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">rw</span><span class="o">.</span><span class="n">GetAtomWithIdx</span><span class="p">(</span><span class="n">cap</span><span class="p">)</span><span class="o">.</span><span class="n">GetNeighbors</span><span class="p">()):</span>
             <span class="k">if</span> <span class="n">nb</span><span class="o">.</span><span class="n">GetIdx</span><span class="p">()</span> <span class="o">!=</span> <span class="n">a_idx</span><span class="p">:</span>
                 <span class="n">rw</span><span class="o">.</span><span class="n">RemoveBond</span><span class="p">(</span><span class="n">cap</span><span class="p">,</span> <span class="n">nb</span><span class="o">.</span><span class="n">GetIdx</span><span class="p">())</span>
+    <span class="c1"># A kept atom that was a stereocentre in the parent but now carries two</span>
+    <span class="c1"># or more hydrogens is no longer one</span>
+    <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">keep</span><span class="p">:</span>
+        <span class="n">atom</span> <span class="o">=</span> <span class="n">rw</span><span class="o">.</span><span class="n">GetAtomWithIdx</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">atom</span><span class="o">.</span><span class="n">GetChiralTag</span><span class="p">()</span> <span class="o">!=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">ChiralType</span><span class="o">.</span><span class="n">CHI_UNSPECIFIED</span><span class="p">:</span>
+            <span class="n">n_h</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">nb</span> <span class="ow">in</span> <span class="n">atom</span><span class="o">.</span><span class="n">GetNeighbors</span><span class="p">()</span> <span class="k">if</span> <span class="n">nb</span><span class="o">.</span><span class="n">GetAtomicNum</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">n_h</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">atom</span><span class="o">.</span><span class="n">SetChiralTag</span><span class="p">(</span><span class="n">Chem</span><span class="o">.</span><span class="n">ChiralType</span><span class="o">.</span><span class="n">CHI_UNSPECIFIED</span><span class="p">)</span>
     <span class="n">keep_all</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">keep</span><span class="p">)</span> <span class="o">|</span> <span class="nb">set</span><span class="p">(</span><span class="n">anchor</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">keep</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">nb</span> <span class="ow">in</span> <span class="n">rw</span><span class="o">.</span><span class="n">GetAtomWithIdx</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span><span class="o">.</span><span class="n">GetNeighbors</span><span class="p">():</span>
