@@ -183,7 +183,13 @@ def test_harvest(job, store):
     assert c["geometry_hash"] and c["source"].startswith("total energy#")
     # Harvesting again changes nothing
     counts = harvest_job(job, store)
-    assert counts == {"inserted": 0, "duplicate": 4, "logged": 0, "skipped": []}
+    assert counts == {
+        "inserted": 0,
+        "duplicate": 4,
+        "logged": 0,
+        "superseded": 0,
+        "skipped": [],
+    }
     # and the step's lookup finds them
     assert store.get("CCF", model_chemistry="MOPAC:SQM@PM7")["E"] == pytest.approx(
         -262.0
@@ -224,3 +230,110 @@ def test_geometry_hash():
     h2 = F.geometry_hash(["O", "H"], [[0, 0, 0], [0.96004, 0, 0]])
     h3 = F.geometry_hash(["O", "H"], [[0, 0, 0], [0.97, 0, 0]])
     assert h1 == h2 != h3
+
+
+def test_supersede_keeps_the_old_values(store):
+    """A value known to be wrong is replaced only explicitly; the old values
+    stay in the superseded table with the date and the reason."""
+    old = _record(ZPE=10.0, H=-90.0, frequency_fingerprint="orca:freq1", job="1")
+    assert store.put(old) == "inserted"
+    better = _record(
+        E=-103.0, ZPE=10.2, H=-92.0, frequency_fingerprint="orca:freq1", job="7"
+    )
+    # Without supersede a differing value is only logged
+    assert store.put(better) == "logged"
+    assert store.get("CC", energy_fingerprint="orca:abc123")["E"] == -100.0
+    with pytest.raises(ValueError):
+        store.supersede(better, "")
+    assert store.supersede(better, "lowest conformer from B2PLYP geometries") == (
+        "superseded"
+    )
+    assert len(store) == 1  # same key, same record
+    got = store.get("CC", energy_fingerprint="orca:abc123")
+    assert got["E"] == -103.0 and got["job"] == "7"
+    history = store.superseded("CC")
+    assert len(history) == 1
+    h = history[0]
+    assert h["E"] == -100.0 and h["job"] == "1" and h["current_E"] == -103.0
+    assert h["reason"] == "lowest conformer from B2PLYP geometries"
+    assert h["superseded_on"]
+    # The same values again: nothing to replace
+    assert store.supersede(better, "again") == "unchanged"
+    assert len(store.superseded()) == 1
+    # A new key is just inserted
+    assert store.supersede(_record("CCC", E=-150.0), "new") == "inserted"
+    assert store.superseded("CCC") == []
+
+
+def test_supersede_keeps_values_the_new_record_lacks(store):
+    """A corrected energy without a ZPE or H keeps the stored ones; a plain
+    dict is normalized like FragmentRecord.make."""
+    store.put(_record(ZPE=10.0, H=-90.0, frequency_fingerprint="orca:freq1"))
+    new = _record(E=-105.0, ZPE=10.0, H=-90.0, frequency_fingerprint="orca:freq1")
+    new["ZPE"] = None
+    new["H"] = None
+    assert store.supersede(new, "corrected energy only") == "superseded"
+    got = store.get("CC", energy_fingerprint="orca:abc123")
+    assert got["E"] == -105.0 and got["ZPE"] == 10.0 and got["H"] == -90.0
+    # A plain dict with a None frequency fingerprint finds the same key
+    plain = {
+        "species": "CCC",
+        "charge": 0,
+        "multiplicity": 1,
+        "energy_fingerprint": "orca:abc123",
+        "frequency_fingerprint": None,
+        "E": -1.0,
+    }
+    store.put(_record("CCC", E=-2.0))
+    assert store.supersede(plain, "plain dict") == "superseded"
+    assert len(store) == 2
+    with pytest.raises(ValueError):
+        store.supersede({"species": "C", "E": 1.0}, "no fingerprint")
+
+
+def test_superseded_on_an_old_store(tmp_path):
+    """A store made before the superseded table existed reads as nothing
+    superseded, and gains the table when opened for writing."""
+    path = tmp_path / "old.db"
+    db = sqlite3.connect(path)
+    db.executescript(F._SCHEMA.split("CREATE TABLE IF NOT EXISTS superseded")[0])
+    db.commit()
+    db.close()
+    assert FragmentStore(path).superseded() == []
+    with FragmentStore(path, create=True) as s:
+        s.put(_record(E=-1.0))
+        assert s.supersede(_record(E=-2.0), "test") == "superseded"
+        assert len(s.superseded()) == 1
+
+
+def test_harvest_supersede(job, store):
+    harvest_job(job, store)
+    # A corrected job: CCF's energy changed
+    from molsystem import SystemDB
+
+    db = SystemDB(filename=str(job / "seamm.db"))
+    for system in db.systems:
+        if system.name == "CBH:CCF":
+            c = system.configuration
+            name = next(k for k in c.properties.get("total energy*").keys())
+            c.properties.put(name, -263.0 / 2625.4996394799)
+    db.close()
+    counts = harvest_job(job, store)
+    assert counts["logged"] == 1 and counts["superseded"] == 0
+    counts = harvest_job(job, store, supersede="corrected conformer")
+    assert counts["superseded"] == 1 and counts["duplicate"] == 3
+    assert store.get("CCF", model_chemistry="MOPAC:SQM@PM7")["E"] == pytest.approx(
+        -263.0
+    )
+    assert store.superseded("CCF")[0]["E"] == pytest.approx(-262.0)
+
+
+def test_cli_supersede(job, tmp_path, capsys):
+    from seamm_thermochemistry.fragment_cli import main
+
+    path = str(tmp_path / "cli.db")
+    assert main(["--store", path, "harvest", str(job)]) == 0
+    assert main(["--store", path, "superseded"]) == 0
+    assert "Nothing superseded." in capsys.readouterr().out
+    assert main(["--store", path, "harvest", str(job), "--supersede", "why"]) == 0
+    assert "0 superseded" in capsys.readouterr().out

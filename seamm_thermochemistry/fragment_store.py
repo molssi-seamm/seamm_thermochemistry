@@ -26,7 +26,11 @@ verified exists, and the caller is told.
 E, ZPE and H(T) are separate fields in kJ/mol. A record whose key already
 exists is ignored (first value wins); if its values differ from the stored
 ones by more than 0.1 kJ/mol the attempt is logged in ``duplicate_log``, never
-overwritten, which catches a different conformer or SCF solution.
+overwritten, which catches a different conformer or SCF solution. A value
+known to be wrong (a wrong conformer, say) is replaced only explicitly, with
+``supersede``: the old values move to the ``superseded`` table with the date
+and the reason, and the record keeps its key and id, so nothing is lost and
+the replacement is visible.
 
 Reads are best effort: a missing, locked or corrupt store gives None and a
 log message, and the caller computes the species.
@@ -84,6 +88,26 @@ CREATE TABLE IF NOT EXISTS fragment (
     UNIQUE (species, charge, multiplicity, energy_fingerprint, frequency_fingerprint)
 );
 CREATE INDEX IF NOT EXISTS fragment_species ON fragment (species, charge, multiplicity);
+CREATE TABLE IF NOT EXISTS superseded (
+    id INTEGER PRIMARY KEY,
+    fragment INTEGER NOT NULL REFERENCES fragment (id),
+    verified INTEGER,
+    model_chemistry TEXT,
+    frequency_model_chemistry TEXT,
+    program TEXT,
+    version TEXT,
+    E REAL,
+    ZPE REAL,
+    H REAL,
+    T REAL,
+    geometry_hash TEXT,
+    job TEXT,
+    configuration TEXT,
+    source TEXT,
+    date TEXT,
+    superseded_on TEXT,
+    reason TEXT
+);
 CREATE TABLE IF NOT EXISTS duplicate_log (
     id INTEGER PRIMARY KEY,
     fragment INTEGER NOT NULL REFERENCES fragment (id),
@@ -336,6 +360,115 @@ class FragmentStore:
         )
         return "logged"
 
+    _VALUE_COLUMNS = (
+        "verified",
+        "model_chemistry",
+        "frequency_model_chemistry",
+        "program",
+        "version",
+        "E",
+        "ZPE",
+        "H",
+        "T",
+        "geometry_hash",
+        "job",
+        "configuration",
+        "source",
+        "date",
+    )
+
+    def supersede(self, record, reason):
+        """Replace the stored values for the record's key, keeping the old ones.
+
+        The old values go to the ``superseded`` table with today's date and
+        `reason`; the record keeps its key and id. A key not yet in the store
+        is simply inserted. A value the new record lacks (None) keeps the
+        stored one, so a corrected energy does not erase a stored ZPE or H.
+
+        Returns "inserted", "unchanged" (same values within 0.1 kJ/mol: nothing
+        to replace) or "superseded".
+        """
+        if self._readonly:
+            raise PermissionError("The fragment store was opened read-only.")
+        if not reason:
+            raise ValueError("Superseding a record needs a reason.")
+        db = self._connect(create=True)
+        if not isinstance(record, FragmentRecord):
+            # The same key normalization as FragmentRecord.make (NULL never
+            # matches in SQL, and UNIQUE treats NULLs as distinct)
+            record = FragmentRecord(record)
+            if not record.get("energy_fingerprint"):
+                raise ValueError(
+                    "A plain dict needs its energy fingerprint; build records with "
+                    "FragmentRecord.make()."
+                )
+            record["frequency_fingerprint"] = record.get("frequency_fingerprint") or ""
+            record["charge"] = int(record.get("charge") or 0)
+            record["multiplicity"] = int(record.get("multiplicity") or 1)
+        key = record.key
+        existing = db.execute(
+            "SELECT * FROM fragment WHERE species = ? AND charge = ? AND "
+            "multiplicity = ? AND energy_fingerprint = ? AND frequency_fingerprint = ?",
+            key,
+        ).fetchone()
+        if existing is None:
+            return self.put(record)
+        difference = 0.0
+        for field in ("E", "ZPE", "H"):
+            a, b = existing[field], record.get(field)
+            if b is None:
+                continue  # the stored value is kept
+            if a is None:
+                difference = float("inf")  # the new record adds a value
+            else:
+                difference = max(difference, abs(float(a) - float(b)))
+        if difference <= DUPLICATE_TOLERANCE:
+            return "unchanged"
+        columns = self._VALUE_COLUMNS
+        now = datetime.datetime.now().isoformat(timespec="seconds")
+        db.execute(
+            f"INSERT INTO superseded (fragment, {', '.join(columns)}, superseded_on, "
+            f"reason) VALUES ({', '.join('?' * (len(columns) + 3))})",
+            [existing["id"]] + [existing[c] for c in columns] + [now, reason],
+        )
+        values = [record.get(c) for c in columns]
+        values[0] = 1 if record.get("verified", True) else 0
+        for i, c in enumerate(columns):
+            if c in ("E", "ZPE", "H", "T") and values[i] is None:
+                values[i] = existing[c]
+        assignments = ", ".join(f"{c} = ?" for c in columns)
+        db.execute(
+            f"UPDATE fragment SET {assignments} WHERE id = ?",
+            values + [existing["id"]],
+        )
+        db.commit()
+        logger.info(
+            f"Superseded {record['species']} (record {existing['id']}): {reason}"
+        )
+        return "superseded"
+
+    def superseded(self, species=None):
+        """The superseded values, newest first, each with the species and the
+        values that replaced them; all, or those of one species."""
+        try:
+            db = self._connect()
+        except FileNotFoundError:
+            return []
+        try:
+            sql = (
+                "SELECT s.*, f.species, f.charge, f.multiplicity, f.E AS current_E, "
+                "f.ZPE AS current_ZPE, f.H AS current_H FROM superseded s "
+                "JOIN fragment f ON f.id = s.fragment"
+            )
+            args = ()
+            if species is not None:
+                sql += " WHERE f.species = ?"
+                args = (species,)
+            rows = db.execute(sql + " ORDER BY s.id DESC", args).fetchall()
+        except sqlite3.OperationalError:  # a store from before the table existed
+            return []
+        return [dict(r) for r in rows]
+
     # -- reading --------------------------------------------------------------
 
     def get(
@@ -485,6 +618,7 @@ def harvest_job(
     name_prefix="CBH:",
     all_systems=False,
     database="seamm.db",
+    supersede=None,
 ):
     """Promote the species energies of one job into the store.
 
@@ -499,7 +633,13 @@ def harvest_job(
     hash, date). The model chemistry is the third ``#`` field of the energy
     property's name.
 
-    Returns {"inserted": n, "duplicate": n, "logged": n, "skipped": [reasons]}.
+    With `supersede` (the reason, e.g. "lowest conformer from B2PLYP
+    geometries"), a record whose key is already stored with different values
+    replaces them, the old values kept in the ``superseded`` table, instead of
+    being logged as a differing duplicate.
+
+    Returns {"inserted": n, "duplicate": n, "logged": n, "superseded": n,
+    "skipped": [reasons]}.
     """
     job_directory = Path(job_directory).expanduser().resolve()
     path = job_directory / database
@@ -520,7 +660,13 @@ def harvest_job(
         pass
     job = f"{job_id}:{job_directory}" if job_id is not None else str(job_directory)
 
-    counts = {"inserted": 0, "duplicate": 0, "logged": 0, "skipped": []}
+    counts = {
+        "inserted": 0,
+        "duplicate": 0,
+        "logged": 0,
+        "superseded": 0,
+        "skipped": [],
+    }
     db = SystemDB(filename=f"file:{path}?mode=ro")
     try:
         for system in db.get_systems():
@@ -583,7 +729,11 @@ def harvest_job(
                     configuration=configuration.id,
                     source=name,
                 )
-                counts[store.put(record)] += 1
+                if supersede:
+                    outcome = store.supersede(record, supersede)
+                    counts["duplicate" if outcome == "unchanged" else outcome] += 1
+                else:
+                    counts[store.put(record)] += 1
     finally:
         db.close()
     return counts
