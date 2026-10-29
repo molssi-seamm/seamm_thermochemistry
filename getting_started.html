@@ -7,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.10.29 documentation</title>
+    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.10.29.1 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="_static/documentation_options.js?v=1fe4c37e"></script>
+    <script src="_static/documentation_options.js?v=923375ad"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -55,7 +55,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.10.29" />
+  <meta name="docsearch:version" content="2026.10.29.1" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -595,6 +595,7 @@ node, and never with the store on GPFS or NFS), promote them:</p>
 <span class="n">seamm</span><span class="o">-</span><span class="n">thermochemistry</span><span class="o">-</span><span class="n">fragments</span> <span class="nb">list</span> <span class="p">[</span><span class="n">SMILES</span><span class="p">]</span>
 <span class="n">seamm</span><span class="o">-</span><span class="n">thermochemistry</span><span class="o">-</span><span class="n">fragments</span> <span class="n">lookup</span> <span class="n">CC</span> <span class="o">--</span><span class="n">model</span><span class="o">-</span><span class="n">chemistry</span> <span class="n">MOPAC</span><span class="p">:</span><span class="n">SQM</span><span class="nd">@PM7</span>
 <span class="n">seamm</span><span class="o">-</span><span class="n">thermochemistry</span><span class="o">-</span><span class="n">fragments</span> <span class="n">duplicates</span>
+<span class="n">seamm</span><span class="o">-</span><span class="n">thermochemistry</span><span class="o">-</span><span class="n">fragments</span> <span class="n">superseded</span> <span class="p">[</span><span class="n">SMILES</span><span class="p">]</span>
 </pre></div>
 </div>
 <p>The harvest is insert-or-ignore with provenance (job, configuration, geometry
@@ -605,8 +606,19 @@ multiplicity) and the <em>fingerprints</em> of the calculations that gave the en
 and the frequencies, opaque strings that the QC step writes next to its
 results; E, ZPE and H(298.15 K) are separate fields, since the levels can
 differ. A record with no fingerprint is keyed on the model chemistry and
-code version, flagged unverified, and used only when nothing verified exists.
-In Python:</p>
+code version, flagged unverified, and used only when nothing verified exists.</p>
+<p>The conformer is not part of the key, so a value found later to be wrong (a
+fragment harvested in a higher-energy conformer, say) is replaced only on
+purpose: harvest the corrected job with <code class="docutils literal notranslate"><span class="pre">--supersede</span> <span class="pre">&quot;REASON&quot;</span></code>. The stored
+values that differ are then replaced, and the old ones move to the
+<code class="docutils literal notranslate"><span class="pre">superseded</span></code> table with the date and the reason, where <code class="docutils literal notranslate"><span class="pre">superseded</span></code> lists
+them; the record keeps its key, so lookups find the new values. In Python,
+<code class="docutils literal notranslate"><span class="pre">store.supersede(record,</span> <span class="pre">reason)</span></code> does the same for one record.</p>
+<p>The store keeps E, ZPE and H unscaled, as the calculation gave them. A ZPE
+scale factor is applied when the values are used (for example
+<code class="docutils literal notranslate"><span class="pre">seamm-thermochemistry-ladder</span> <span class="pre">build</span> <span class="pre">...</span> <span class="pre">--zpe-scale</span> <span class="pre">0.9863</span></code>), so changing a
+factor never needs a new harvest.</p>
+<p>In Python:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">seamm_thermochemistry</span><span class="w"> </span><span class="kn">import</span> <span class="n">FragmentStore</span>
 <span class="n">store</span> <span class="o">=</span> <span class="n">FragmentStore</span><span class="p">()</span>                 <span class="c1"># read-only, empty if no file</span>
 <span class="n">record</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"CC"</span><span class="p">,</span> <span class="n">energy_fingerprint</span><span class="o">=</span><span class="n">fp</span><span class="p">,</span> <span class="n">model_chemistry</span><span class="o">=</span><span class="n">mc</span><span class="p">)</span>

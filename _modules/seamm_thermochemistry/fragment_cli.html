@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.fragment_cli &#8212; SEAMM thermochemistry Plug-in 2026.10.29 documentation</title>
+    <title>seamm_thermochemistry.fragment_cli &#8212; SEAMM thermochemistry Plug-in 2026.10.29.1 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../_static/documentation_options.js?v=1fe4c37e"></script>
+    <script src="../../_static/documentation_options.js?v=923375ad"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.10.29" />
+  <meta name="docsearch:version" content="2026.10.29.1" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -421,6 +421,8 @@
 <span class="sd">    seamm-thermochemistry-fragments lookup SMILES [--charge Q] [--multiplicity M]</span>
 <span class="sd">                                           [--model-chemistry MC] [--fingerprint FP]</span>
 <span class="sd">    seamm-thermochemistry-fragments duplicates [--store FILE]</span>
+<span class="sd">    seamm-thermochemistry-fragments harvest JOB_DIR ... --supersede "REASON"</span>
+<span class="sd">    seamm-thermochemistry-fragments superseded [SMILES] [--store FILE]</span>
 
 <span class="sd">``harvest`` is the single writer: run it on the host after a job has</span>
 <span class="sd">finished, never on a compute node.</span>
@@ -460,6 +462,13 @@
         <span class="n">action</span><span class="o">=</span><span class="s2">"store_true"</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s2">"Harvest every system, its name (less the prefix) being the SMILES."</span><span class="p">,</span>
     <span class="p">)</span>
+    <span class="n">harvest</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">"--supersede"</span><span class="p">,</span>
+        <span class="n">metavar</span><span class="o">=</span><span class="s2">"REASON"</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">"Replace stored values that differ (a corrected conformer, say), keeping "</span>
+        <span class="s2">"the old ones in the superseded table with this reason. Without it a "</span>
+        <span class="s2">"differing value is only logged."</span><span class="p">,</span>
+    <span class="p">)</span>
 
     <span class="n">lst</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="s2">"list"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"List the records, or those of one species."</span><span class="p">)</span>
     <span class="n">lst</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"species"</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s2">"?"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Canonical SMILES."</span><span class="p">)</span>
@@ -472,6 +481,9 @@
     <span class="n">lookup</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--fingerprint"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"The energy fingerprint."</span><span class="p">)</span>
 
     <span class="n">sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="s2">"duplicates"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Show the duplicate log."</span><span class="p">)</span>
+
+    <span class="n">sup</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="s2">"superseded"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Show the superseded values."</span><span class="p">)</span>
+    <span class="n">sup</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"species"</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s2">"?"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Canonical SMILES."</span><span class="p">)</span>
 
     <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">(</span><span class="n">argv</span><span class="p">)</span>
 
@@ -489,11 +501,13 @@
                         <span class="n">fingerprint</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">fingerprint</span><span class="p">,</span>
                         <span class="n">name_prefix</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">prefix</span><span class="p">,</span>
                         <span class="n">all_systems</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">all_systems</span><span class="p">,</span>
+                        <span class="n">supersede</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">supersede</span><span class="p">,</span>
                     <span class="p">)</span>
                     <span class="nb">print</span><span class="p">(</span>
                         <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">job</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">counts</span><span class="p">[</span><span class="s1">'inserted'</span><span class="p">]</span><span class="si">}</span><span class="s2"> inserted, "</span>
                         <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">counts</span><span class="p">[</span><span class="s1">'duplicate'</span><span class="p">]</span><span class="si">}</span><span class="s2"> already there, "</span>
-                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">counts</span><span class="p">[</span><span class="s1">'logged'</span><span class="p">]</span><span class="si">}</span><span class="s2"> differing (logged)"</span>
+                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">counts</span><span class="p">[</span><span class="s1">'logged'</span><span class="p">]</span><span class="si">}</span><span class="s2"> differing (logged), "</span>
+                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">counts</span><span class="p">[</span><span class="s1">'superseded'</span><span class="p">]</span><span class="si">}</span><span class="s2"> superseded"</span>
                     <span class="p">)</span>
                     <span class="k">for</span> <span class="n">reason</span> <span class="ow">in</span> <span class="n">counts</span><span class="p">[</span><span class="s2">"skipped"</span><span class="p">]:</span>
                         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"    skipped </span><span class="si">{</span><span class="n">reason</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
@@ -518,6 +532,24 @@
                 <span class="nb">print</span><span class="p">(</span><span class="s2">"No record."</span><span class="p">)</span>
                 <span class="k">return</span> <span class="mi">1</span>
             <span class="n">_print</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">command</span> <span class="o">==</span> <span class="s2">"superseded"</span><span class="p">:</span>
+            <span class="n">store</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">FragmentStore</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">store</span><span class="p">)</span>
+            <span class="n">rows</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">superseded</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">species</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">rows</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">"Nothing superseded."</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+                <span class="n">old</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"E"</span><span class="p">,</span> <span class="s2">"ZPE"</span><span class="p">,</span> <span class="s2">"H"</span><span class="p">)</span> <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="p">)</span>
+                <span class="n">new</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">'current_'</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">k</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">"</span>
+                    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"E"</span><span class="p">,</span> <span class="s2">"ZPE"</span><span class="p">,</span> <span class="s2">"H"</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"current_"</span> <span class="o">+</span> <span class="n">k</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">'species'</span><span class="p">]</span><span class="si">}</span><span class="s2"> on </span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">'superseded_on'</span><span class="p">]</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">old</span><span class="si">}</span><span class="s2"> (from </span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">'job'</span><span class="p">]</span><span class="si">}</span><span class="s2">) "</span>
+                    <span class="sa">f</span><span class="s2">"replaced by </span><span class="si">{</span><span class="n">new</span><span class="si">}</span><span class="s2">; reason: </span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">'reason'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+                <span class="p">)</span>
         <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">command</span> <span class="o">==</span> <span class="s2">"duplicates"</span><span class="p">:</span>
             <span class="n">store</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">FragmentStore</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">store</span><span class="p">)</span>
             <span class="n">rows</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">duplicates</span><span class="p">()</span>
