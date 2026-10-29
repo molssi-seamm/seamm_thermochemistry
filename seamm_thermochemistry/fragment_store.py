@@ -382,7 +382,8 @@ class FragmentStore:
 
         The old values go to the ``superseded`` table with today's date and
         `reason`; the record keeps its key and id. A key not yet in the store
-        is simply inserted.
+        is simply inserted. A value the new record lacks (None) keeps the
+        stored one, so a corrected energy does not erase a stored ZPE or H.
 
         Returns "inserted", "unchanged" (same values within 0.1 kJ/mol: nothing
         to replace) or "superseded".
@@ -392,17 +393,19 @@ class FragmentStore:
         if not reason:
             raise ValueError("Superseding a record needs a reason.")
         db = self._connect(create=True)
-        key = (
-            record.key
-            if isinstance(record, FragmentRecord)
-            else (
-                record["species"],
-                record["charge"],
-                record["multiplicity"],
-                record["energy_fingerprint"],
-                record["frequency_fingerprint"],
-            )
-        )
+        if not isinstance(record, FragmentRecord):
+            # The same key normalization as FragmentRecord.make (NULL never
+            # matches in SQL, and UNIQUE treats NULLs as distinct)
+            record = FragmentRecord(record)
+            if not record.get("energy_fingerprint"):
+                raise ValueError(
+                    "A plain dict needs its energy fingerprint; build records with "
+                    "FragmentRecord.make()."
+                )
+            record["frequency_fingerprint"] = record.get("frequency_fingerprint") or ""
+            record["charge"] = int(record.get("charge") or 0)
+            record["multiplicity"] = int(record.get("multiplicity") or 1)
+        key = record.key
         existing = db.execute(
             "SELECT * FROM fragment WHERE species = ? AND charge = ? AND "
             "multiplicity = ? AND energy_fingerprint = ? AND frequency_fingerprint = ?",
@@ -413,9 +416,11 @@ class FragmentStore:
         difference = 0.0
         for field in ("E", "ZPE", "H"):
             a, b = existing[field], record.get(field)
-            if (a is None) != (b is None):
-                difference = float("inf")
-            elif a is not None:
+            if b is None:
+                continue  # the stored value is kept
+            if a is None:
+                difference = float("inf")  # the new record adds a value
+            else:
                 difference = max(difference, abs(float(a) - float(b)))
         if difference <= DUPLICATE_TOLERANCE:
             return "unchanged"
@@ -428,6 +433,9 @@ class FragmentStore:
         )
         values = [record.get(c) for c in columns]
         values[0] = 1 if record.get("verified", True) else 0
+        for i, c in enumerate(columns):
+            if c in ("E", "ZPE", "H", "T") and values[i] is None:
+                values[i] = existing[c]
         assignments = ", ".join(f"{c} = ?" for c in columns)
         db.execute(
             f"UPDATE fragment SET {assignments} WHERE id = ?",

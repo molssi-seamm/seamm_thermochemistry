@@ -265,6 +265,32 @@ def test_supersede_keeps_the_old_values(store):
     assert store.superseded("CCC") == []
 
 
+def test_supersede_keeps_values_the_new_record_lacks(store):
+    """A corrected energy without a ZPE or H keeps the stored ones; a plain
+    dict is normalized like FragmentRecord.make."""
+    store.put(_record(ZPE=10.0, H=-90.0, frequency_fingerprint="orca:freq1"))
+    new = _record(E=-105.0, ZPE=10.0, H=-90.0, frequency_fingerprint="orca:freq1")
+    new["ZPE"] = None
+    new["H"] = None
+    assert store.supersede(new, "corrected energy only") == "superseded"
+    got = store.get("CC", energy_fingerprint="orca:abc123")
+    assert got["E"] == -105.0 and got["ZPE"] == 10.0 and got["H"] == -90.0
+    # A plain dict with a None frequency fingerprint finds the same key
+    plain = {
+        "species": "CCC",
+        "charge": 0,
+        "multiplicity": 1,
+        "energy_fingerprint": "orca:abc123",
+        "frequency_fingerprint": None,
+        "E": -1.0,
+    }
+    store.put(_record("CCC", E=-2.0))
+    assert store.supersede(plain, "plain dict") == "superseded"
+    assert len(store) == 2
+    with pytest.raises(ValueError):
+        store.supersede({"species": "C", "E": 1.0}, "no fingerprint")
+
+
 def test_superseded_on_an_old_store(tmp_path):
     """A store made before the superseded table existed reads as nothing
     superseded, and gains the table when opened for writing."""
