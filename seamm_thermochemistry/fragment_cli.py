@@ -8,6 +8,8 @@ command line::
     seamm-thermochemistry-fragments lookup SMILES [--charge Q] [--multiplicity M]
                                            [--model-chemistry MC] [--fingerprint FP]
     seamm-thermochemistry-fragments duplicates [--store FILE]
+    seamm-thermochemistry-fragments harvest JOB_DIR ... --supersede "REASON"
+    seamm-thermochemistry-fragments superseded [SMILES] [--store FILE]
 
 ``harvest`` is the single writer: run it on the host after a job has
 finished, never on a compute node.
@@ -45,6 +47,13 @@ def main(argv=None):
         action="store_true",
         help="Harvest every system, its name (less the prefix) being the SMILES.",
     )
+    harvest.add_argument(
+        "--supersede",
+        metavar="REASON",
+        help="Replace stored values that differ (a corrected conformer, say), keeping "
+        "the old ones in the superseded table with this reason. Without it a "
+        "differing value is only logged.",
+    )
 
     lst = sub.add_parser("list", help="List the records, or those of one species.")
     lst.add_argument("species", nargs="?", help="Canonical SMILES.")
@@ -57,6 +66,9 @@ def main(argv=None):
     lookup.add_argument("--fingerprint", help="The energy fingerprint.")
 
     sub.add_parser("duplicates", help="Show the duplicate log.")
+
+    sup = sub.add_parser("superseded", help="Show the superseded values.")
+    sup.add_argument("species", nargs="?", help="Canonical SMILES.")
 
     args = parser.parse_args(argv)
 
@@ -74,11 +86,13 @@ def main(argv=None):
                         fingerprint=args.fingerprint,
                         name_prefix=args.prefix,
                         all_systems=args.all_systems,
+                        supersede=args.supersede,
                     )
                     print(
                         f"{job}: {counts['inserted']} inserted, "
                         f"{counts['duplicate']} already there, "
-                        f"{counts['logged']} differing (logged)"
+                        f"{counts['logged']} differing (logged), "
+                        f"{counts['superseded']} superseded"
                     )
                     for reason in counts["skipped"]:
                         print(f"    skipped {reason}")
@@ -103,6 +117,24 @@ def main(argv=None):
                 print("No record.")
                 return 1
             _print(r)
+        elif args.command == "superseded":
+            store = F.FragmentStore(args.store)
+            rows = store.superseded(args.species)
+            if not rows:
+                print("Nothing superseded.")
+            for d in rows:
+                old = ", ".join(
+                    f"{k} {d[k]:.3f}" for k in ("E", "ZPE", "H") if d.get(k) is not None
+                )
+                new = ", ".join(
+                    f"{k} {d['current_' + k]:.3f}"
+                    for k in ("E", "ZPE", "H")
+                    if d.get("current_" + k) is not None
+                )
+                print(
+                    f"{d['species']} on {d['superseded_on']}: {old} (from {d['job']}) "
+                    f"replaced by {new}; reason: {d['reason']}"
+                )
         elif args.command == "duplicates":
             store = F.FragmentStore(args.store)
             rows = store.duplicates()

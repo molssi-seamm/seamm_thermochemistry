@@ -176,6 +176,7 @@ node, and never with the store on GPFS or NFS), promote them::
     seamm-thermochemistry-fragments list [SMILES]
     seamm-thermochemistry-fragments lookup CC --model-chemistry MOPAC:SQM@PM7
     seamm-thermochemistry-fragments duplicates
+    seamm-thermochemistry-fragments superseded [SMILES]
 
 The harvest is insert-or-ignore with provenance (job, configuration, geometry
 hash, date): the first value wins, and an attempt whose values differ by more
@@ -186,6 +187,20 @@ and the frequencies, opaque strings that the QC step writes next to its
 results; E, ZPE and H(298.15 K) are separate fields, since the levels can
 differ. A record with no fingerprint is keyed on the model chemistry and
 code version, flagged unverified, and used only when nothing verified exists.
+
+The conformer is not part of the key, so a value found later to be wrong (a
+fragment harvested in a higher-energy conformer, say) is replaced only on
+purpose: harvest the corrected job with ``--supersede "REASON"``. The stored
+values that differ are then replaced, and the old ones move to the
+``superseded`` table with the date and the reason, where ``superseded`` lists
+them; the record keeps its key, so lookups find the new values. In Python,
+``store.supersede(record, reason)`` does the same for one record.
+
+The store keeps E, ZPE and H unscaled, as the calculation gave them. A ZPE
+scale factor is applied when the values are used (for example
+``seamm-thermochemistry-ladder build ... --zpe-scale 0.9863``), so changing a
+factor never needs a new harvest.
+
 In Python::
 
     from seamm_thermochemistry import FragmentStore

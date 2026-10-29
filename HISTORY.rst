@@ -2,6 +2,18 @@
 History
 =======
 
+2026.10.29.1 -- Superseding a stored fragment value
+    * ``seamm-thermochemistry-fragments harvest --supersede "REASON"`` replaces stored
+      values that differ (a fragment first harvested in the wrong conformer, say)
+      instead of only logging them. The old values move to a new ``superseded`` table
+      with the date and the reason, and the record keeps its key, so lookups find the
+      new values. ``seamm-thermochemistry-fragments superseded [SMILES]`` lists them,
+      and ``FragmentStore.supersede(record, reason)`` does it from Python.
+    * Stores made by earlier versions gain the table when next opened for writing and
+      read as having nothing superseded until then.
+    * The documentation now says that the store keeps ZPEs unscaled; a ZPE scale
+      factor is applied where the values are used.
+
 2026.10.29 -- Bugfix: ring-closure atoms in CBH fragments
     * A cut atom bonded to two kept atoms (a ring closure, so rings opened with
       ``protect="none"`` or small-ring/aromatic protection off) capped only the first of
