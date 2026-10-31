@@ -54,6 +54,13 @@ def main(argv=None):
         "the old ones in the superseded table with this reason. Without it a "
         "differing value is only logged.",
     )
+    harvest.add_argument(
+        "--force",
+        action="store_true",
+        help="With --supersede, also replace values that differ by less than the "
+        "duplicate tolerance (0.1 kJ/mol), e.g. to apply a correction to every "
+        "record of a level of theory. Identical values are left alone.",
+    )
 
     lst = sub.add_parser("list", help="List the records, or those of one species.")
     lst.add_argument("species", nargs="?", help="Canonical SMILES.")
@@ -71,6 +78,8 @@ def main(argv=None):
     sup.add_argument("species", nargs="?", help="Canonical SMILES.")
 
     args = parser.parse_args(argv)
+    if getattr(args, "force", False) and not args.supersede:
+        parser.error("--force needs --supersede REASON")
 
     try:
         if args.command == "harvest":
@@ -87,6 +96,7 @@ def main(argv=None):
                         name_prefix=args.prefix,
                         all_systems=args.all_systems,
                         supersede=args.supersede,
+                        force=args.force,
                     )
                     print(
                         f"{job}: {counts['inserted']} inserted, "
