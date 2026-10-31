@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.fragment_store &#8212; SEAMM thermochemistry Plug-in 2026.10.29.1 documentation</title>
+    <title>seamm_thermochemistry.fragment_store &#8212; SEAMM thermochemistry Plug-in 2026.10.31 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=18bd87630a240e9c25be" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=18bd87630a240e9c25be" />
 
-    <script src="../../_static/documentation_options.js?v=923375ad"></script>
+    <script src="../../_static/documentation_options.js?v=58b82035"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.10.29.1" />
+  <meta name="docsearch:version" content="2026.10.31" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -809,7 +809,7 @@
 
 <div class="viewcode-block" id="FragmentStore.supersede">
 <a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.fragment_store.FragmentStore.supersede">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">supersede</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">,</span> <span class="n">reason</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">supersede</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">,</span> <span class="n">reason</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">"""Replace the stored values for the record's key, keeping the old ones.</span>
 
 <span class="sd">        The old values go to the ``superseded`` table with today's date and</span>
@@ -817,8 +817,13 @@
 <span class="sd">        is simply inserted. A value the new record lacks (None) keeps the</span>
 <span class="sd">        stored one, so a corrected energy does not erase a stored ZPE or H.</span>
 
-<span class="sd">        Returns "inserted", "unchanged" (same values within 0.1 kJ/mol: nothing</span>
-<span class="sd">        to replace) or "superseded".</span>
+<span class="sd">        With `force`, values that differ by less than the duplicate tolerance</span>
+<span class="sd">        (0.1 kJ/mol) are replaced too, so that a correction applied to a whole</span>
+<span class="sd">        level of theory reaches every record, however small; identical values</span>
+<span class="sd">        are still left alone.</span>
+
+<span class="sd">        Returns "inserted", "unchanged" (same values within 0.1 kJ/mol, or</span>
+<span class="sd">        identical with `force`: nothing to replace) or "superseded".</span>
 <span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_readonly</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">PermissionError</span><span class="p">(</span><span class="s2">"The fragment store was opened read-only."</span><span class="p">)</span>
@@ -854,7 +859,7 @@
                 <span class="n">difference</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s2">"inf"</span><span class="p">)</span>  <span class="c1"># the new record adds a value</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">difference</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">difference</span><span class="p">,</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">b</span><span class="p">)))</span>
-        <span class="k">if</span> <span class="n">difference</span> <span class="o">&lt;=</span> <span class="n">DUPLICATE_TOLERANCE</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">difference</span> <span class="o">==</span> <span class="mf">0.0</span> <span class="ow">or</span> <span class="p">(</span><span class="n">difference</span> <span class="o">&lt;=</span> <span class="n">DUPLICATE_TOLERANCE</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">force</span><span class="p">):</span>
             <span class="k">return</span> <span class="s2">"unchanged"</span>
         <span class="n">columns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_VALUE_COLUMNS</span>
         <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(</span><span class="n">timespec</span><span class="o">=</span><span class="s2">"seconds"</span><span class="p">)</span>
@@ -1067,6 +1072,7 @@
     <span class="n">all_systems</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="n">database</span><span class="o">=</span><span class="s2">"seamm.db"</span><span class="p">,</span>
     <span class="n">supersede</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">force</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Promote the species energies of one job into the store.</span>
 
@@ -1085,6 +1091,8 @@
 <span class="sd">    geometries"), a record whose key is already stored with different values</span>
 <span class="sd">    replaces them, the old values kept in the ``superseded`` table, instead of</span>
 <span class="sd">    being logged as a differing duplicate.</span>
+<span class="sd">    With `force` as well, values within the duplicate tolerance are replaced too</span>
+<span class="sd">    (see :meth:`FragmentStore.supersede`).</span>
 
 <span class="sd">    Returns {"inserted": n, "duplicate": n, "logged": n, "superseded": n,</span>
 <span class="sd">    "skipped": [reasons]}.</span>
@@ -1178,7 +1186,7 @@
                     <span class="n">source</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
                 <span class="p">)</span>
                 <span class="k">if</span> <span class="n">supersede</span><span class="p">:</span>
-                    <span class="n">outcome</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">supersede</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="n">supersede</span><span class="p">)</span>
+                    <span class="n">outcome</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">supersede</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="n">supersede</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="n">force</span><span class="p">)</span>
                     <span class="n">counts</span><span class="p">[</span><span class="s2">"duplicate"</span> <span class="k">if</span> <span class="n">outcome</span> <span class="o">==</span> <span class="s2">"unchanged"</span> <span class="k">else</span> <span class="n">outcome</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">counts</span><span class="p">[</span><span class="n">store</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">record</span><span class="p">)]</span> <span class="o">+=</span> <span class="mi">1</span>
