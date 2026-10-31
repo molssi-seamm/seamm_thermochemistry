@@ -196,6 +196,12 @@ values that differ are then replaced, and the old ones move to the
 them; the record keeps its key, so lookups find the new values. In Python,
 ``store.supersede(record, reason)`` does the same for one record.
 
+Values that differ by less than 0.1 kJ/mol count as duplicates and are not replaced.
+When a correction must reach every record of a level of theory, however small (a
+dispersion correction applied to all species, say), add ``--force`` to
+``--supersede "REASON"``, or ``force=True`` in Python: every value that differs at
+all is replaced, with the old ones kept in ``superseded`` as before.
+
 The store keeps E, ZPE and H unscaled, as the calculation gave them. A ZPE
 scale factor is applied when the values are used (for example
 ``seamm-thermochemistry-ladder build ... --zpe-scale 0.9863``), so changing a

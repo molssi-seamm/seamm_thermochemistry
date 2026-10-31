@@ -2,6 +2,15 @@
 History
 =======
 
+2026.10.31 -- Superseding values within the duplicate tolerance
+    * ``FragmentStore.supersede(record, reason, force=True)`` and
+      ``seamm-thermochemistry-fragments harvest ... --supersede "REASON" --force``
+      also replace values that differ by less than the 0.1 kJ/mol duplicate tolerance,
+      so that a correction applied to a whole level of theory, such as a dispersion
+      correction, reaches every record. The old values and the reason are kept in the
+      superseded table as before; identical values are left alone, and ``--force``
+      needs ``--supersede``.
+
 2026.10.29.1 -- Superseding a stored fragment value
     * ``seamm-thermochemistry-fragments harvest --supersede "REASON"`` replaces stored
       values that differ (a fragment first harvested in the wrong conformer, say)

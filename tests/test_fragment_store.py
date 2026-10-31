@@ -265,6 +265,38 @@ def test_supersede_keeps_the_old_values(store):
     assert store.superseded("CCC") == []
 
 
+def test_supersede_force_below_the_tolerance(store):
+    """A correction applied to a whole level of theory must reach every record,
+    however small: with force, a change within the 0.1 kJ/mol duplicate tolerance
+    is superseded too, with the old values and the reason kept (thermo's G09
+    B2PLYP-D3 s6 corrections, 0.0008-0.081 kJ/mol for the small fragments,
+    2026-10-31)."""
+    store.put(_record(E=-100.0, job="1"))
+    small = _record(E=-100.05, job="2")  # 0.05 kJ/mol
+    assert store.supersede(small, "G09 s6 correction") == "unchanged"
+    assert store.get("CC", energy_fingerprint="orca:abc123")["E"] == -100.0
+    with pytest.raises(ValueError):
+        store.supersede(small, "", force=True)
+    assert store.supersede(small, "G09 s6 correction", force=True) == "superseded"
+    got = store.get("CC", energy_fingerprint="orca:abc123")
+    assert got["E"] == -100.05 and got["job"] == "2"
+    (h,) = store.superseded("CC")
+    assert h["E"] == -100.0 and h["reason"] == "G09 s6 correction"
+    # Identical values are still left alone
+    assert store.supersede(small, "again", force=True) == "unchanged"
+    assert len(store.superseded()) == 1
+
+
+def test_cli_force_needs_supersede(tmp_path, capsys):
+    from seamm_thermochemistry import fragment_cli
+
+    with pytest.raises(SystemExit):
+        fragment_cli.main(
+            ["--store", str(tmp_path / "s.db"), "harvest", str(tmp_path), "--force"]
+        )
+    assert "--force needs --supersede" in capsys.readouterr().err
+
+
 def test_supersede_keeps_values_the_new_record_lacks(store):
     """A corrected energy without a ZPE or H keeps the stored ones; a plain
     dict is normalized like FragmentRecord.make."""

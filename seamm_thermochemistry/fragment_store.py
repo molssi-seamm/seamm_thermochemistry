@@ -377,7 +377,7 @@ class FragmentStore:
         "date",
     )
 
-    def supersede(self, record, reason):
+    def supersede(self, record, reason, force=False):
         """Replace the stored values for the record's key, keeping the old ones.
 
         The old values go to the ``superseded`` table with today's date and
@@ -385,8 +385,13 @@ class FragmentStore:
         is simply inserted. A value the new record lacks (None) keeps the
         stored one, so a corrected energy does not erase a stored ZPE or H.
 
-        Returns "inserted", "unchanged" (same values within 0.1 kJ/mol: nothing
-        to replace) or "superseded".
+        With `force`, values that differ by less than the duplicate tolerance
+        (0.1 kJ/mol) are replaced too, so that a correction applied to a whole
+        level of theory reaches every record, however small; identical values
+        are still left alone.
+
+        Returns "inserted", "unchanged" (same values within 0.1 kJ/mol, or
+        identical with `force`: nothing to replace) or "superseded".
         """
         if self._readonly:
             raise PermissionError("The fragment store was opened read-only.")
@@ -422,7 +427,7 @@ class FragmentStore:
                 difference = float("inf")  # the new record adds a value
             else:
                 difference = max(difference, abs(float(a) - float(b)))
-        if difference <= DUPLICATE_TOLERANCE:
+        if difference == 0.0 or (difference <= DUPLICATE_TOLERANCE and not force):
             return "unchanged"
         columns = self._VALUE_COLUMNS
         now = datetime.datetime.now().isoformat(timespec="seconds")
@@ -619,6 +624,7 @@ def harvest_job(
     all_systems=False,
     database="seamm.db",
     supersede=None,
+    force=False,
 ):
     """Promote the species energies of one job into the store.
 
@@ -637,6 +643,8 @@ def harvest_job(
     geometries"), a record whose key is already stored with different values
     replaces them, the old values kept in the ``superseded`` table, instead of
     being logged as a differing duplicate.
+    With `force` as well, values within the duplicate tolerance are replaced too
+    (see :meth:`FragmentStore.supersede`).
 
     Returns {"inserted": n, "duplicate": n, "logged": n, "superseded": n,
     "skipped": [reasons]}.
@@ -730,7 +738,7 @@ def harvest_job(
                     source=name,
                 )
                 if supersede:
-                    outcome = store.supersede(record, supersede)
+                    outcome = store.supersede(record, supersede, force=force)
                     counts["duplicate" if outcome == "unchanged" else outcome] += 1
                 else:
                     counts[store.put(record)] += 1
