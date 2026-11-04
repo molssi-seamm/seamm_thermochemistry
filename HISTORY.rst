@@ -2,6 +2,14 @@
 History
 =======
 
+2026.11.4 -- Bugfix: ATcT lookup missed ortho/para positional isomers
+    * ATcT labels positional isomers "ortho" and "para" as well as nuclear-spin isomers.
+      The lookup dropped every such entry as a nuclear-spin isomer, so o- and
+      p-tolualdehyde, o-benzyne, the o- and p-chlorophenyl series and similar species
+      could not be found, and the error listed no candidates. Only species with at most
+      three heavy atoms (H2, H2O, H2O2, CH2O, ketene ...) are now treated as nuclear-spin
+      isomers; when a molecule has only such entries, the error says so and lists them.
+
 2026.10.31 -- Superseding values within the duplicate tolerance
     * ``FragmentStore.supersede(record, reason, force=True)`` and
       ``seamm-thermochemistry-fragments harvest ... --supersede "REASON" --force``

@@ -427,3 +427,77 @@ def test_reaction_uncertainty():
             expected += coef[i] * cov[i][j] * coef[j]
     assert full == pytest.approx(math.sqrt(expected))
     assert full != pytest.approx(quad)
+
+
+# -- ortho/para: nuclear spin only for small species -------------------------
+# ATcT labels positional isomers "ortho"/"para" too (o-tolualdehyde, o-benzyne);
+# they were taken for nuclear-spin isomers and lookup failed with an empty
+# AmbiguousEntry (thermo's census, 2026-11-04).
+
+
+def _entry(atct_id, name, formula, smiles, casrn):
+    return {
+        "ATcT_TN_Version": "9.999",
+        "ATcT_ID": atct_id,
+        "Name": name,
+        "Formula": formula,
+        "Delta_Hf_0K": "1.0",
+        "Delta_Hf_298K": "1.0",
+        "Delta_Hf298K_uncertainty": "1.0",
+        "unit": "kJ/mol",
+        "SMILES": smiles,
+        "CASRN": casrn,
+        "charge": "0",
+    }
+
+
+@pytest.fixture(scope="module")
+def positional(tmp_path_factory):
+    entries = [
+        _entry(
+            "529-20-4*0",
+            "o-tolualdehyde",
+            "C8H8O  (g, ortho)",
+            "Cc1ccccc1C=O",
+            "529-20-4",
+        ),
+        _entry(
+            "104-87-0*0",
+            "p-tolualdehyde",
+            "C8H8O  (g, para)",
+            "Cc1ccc(cc1)C=O",
+            "104-87-0",
+        ),
+        _entry(
+            "462-80-6*0", "o-benzyne", "C6H4  (g, ortho)", "C1=CC#CC=C1", "462-80-6"
+        ),
+        _entry("7732-18-5*1", "Water", "H2O  (g, ortho)", "O", "7732-18-5"),
+        _entry("7732-18-5*2", "Water", "H2O  (g, para)", "O", "7732-18-5"),
+    ]
+    source = tmp_path_factory.mktemp("positional") / "all.json"
+    source.write_text(json.dumps(entries))
+    base = tmp_path_factory.mktemp("atct_positional")
+    A.download_all(base, source=source)
+    return A.ATcT(base=base)
+
+
+@pytest.mark.parametrize(
+    "smiles, atct_id",
+    [
+        ("Cc1ccccc1C=O", "529-20-4*0"),
+        ("Cc1ccc(cc1)C=O", "104-87-0*0"),
+        ("C1=CC#CC=C1", "462-80-6*0"),
+    ],
+)
+def test_positional_ortho_para_are_found(positional, smiles, atct_id):
+    assert positional.lookup(smiles)["id"] == atct_id
+
+
+def test_small_ortho_para_are_still_nuclear_spin(positional):
+    e = A.ATcTEntry(
+        A.normalize_entry(_entry("x*1", "Water", "H2O  (g, ortho)", "O", "x"))
+    )
+    assert e.heavy_atoms == 1 and e.is_nuclear_spin_isomer
+    # Only nuclear-spin isomers: a clear MissingEntry, not an empty AmbiguousEntry
+    with pytest.raises(A.MissingEntry, match="only nuclear-spin isomers"):
+        positional.lookup("O")

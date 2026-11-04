@@ -146,7 +146,9 @@ charge; double-bond stereochemistry must match (cis and trans are separate
 species), while a lone stereocentre is ignored (enantiomers share a value); the
 plain ``*0`` entry is used over conformer entries unless ``conformer=`` names
 one; a labelled spin state is used when ``multiplicity=`` matches it; and the
-ortho/para nuclear-spin entries are never used. Anything still ambiguous stops
+ortho/para nuclear-spin entries of small species (H2, H2O, H2O2, CH2O, ketene: at most
+three heavy atoms) are never used, while on bigger species "ortho" and "para" name
+positional isomers (o-tolualdehyde, p-benzyne), which are. Anything still ambiguous stops
 with the candidates listed; ``atct_id=`` overrides everything.
 
 ATcT uncertainties are 95 % confidence limits at 298.15 K, and the values of
