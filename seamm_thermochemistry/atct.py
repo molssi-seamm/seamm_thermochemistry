@@ -74,6 +74,10 @@ USER_AGENT = (
 
 # State descriptors that name nuclear-spin isomers; never selected.
 _NUCLEAR_SPIN = {"ortho", "para", "normal"}
+#: Nuclear-spin isomers (H2, H3+, H2O, H2O2, CH2O, ketene ...) are small: "ortho" and
+#: "para" on a bigger species name positional isomers (o-tolualdehyde, p-benzyne)
+_NUCLEAR_SPIN_MAX_HEAVY = 3
+_FORMULA_RE = re.compile(r"([A-Z][a-z]?)(\d*)")
 # ... spin states, keyed by multiplicity
 _SPIN_STATES = {
     1: "singlet",
@@ -257,11 +261,23 @@ class ATcTEntry(dict):
         return None
 
     @property
+    def heavy_atoms(self):
+        """The number of atoms other than hydrogen, from the formula."""
+        n = 0
+        for element, count in _FORMULA_RE.findall(self["formula"]):
+            if element not in ("H", "D", "T"):
+                n += int(count) if count else 1
+        return n
+
+    @property
     def is_nuclear_spin_isomer(self):
-        """ortho/para entries, also when combined with a spin state
-        ("para singlet" formaldehyde)."""
+        """ortho/para entries of small species, also when combined with a spin
+        state ("para singlet" formaldehyde). On a bigger species "ortho" and "para"
+        name positional isomers (o-tolualdehyde), which are wanted."""
         words = {w.lower() for w in self["descriptor"].replace(",", " ").split()}
-        return bool(words & _NUCLEAR_SPIN)
+        return bool(words & _NUCLEAR_SPIN) and (
+            self.heavy_atoms <= _NUCLEAR_SPIN_MAX_HEAVY
+        )
 
     def label(self):
         state = self["phase"]
@@ -642,7 +658,14 @@ class ATcT:
             )
 
         # Nuclear-spin isomers are never wanted
+        spin_isomers = [e for e in candidates if e.is_nuclear_spin_isomer]
         candidates = [e for e in candidates if not e.is_nuclear_spin_isomer]
+        if not candidates:
+            raise MissingEntry(
+                f"ATcT (ver. {self.version}) has only nuclear-spin isomers for "
+                f"'{smiles}', which are not used; give an ATcT ID to use one:\n  "
+                + "\n  ".join(e.label() for e in spin_isomers)
+            )
 
         # A requested conformer or isomer label
         if conformer is not None:
