@@ -72,6 +72,21 @@ def main(argv=None):
     lookup.add_argument("--model-chemistry")
     lookup.add_argument("--fingerprint", help="The energy fingerprint.")
 
+    geo = sub.add_parser(
+        "geometries",
+        help="The geometries of a species and the energies on each.",
+    )
+    geo.add_argument("species", help="Canonical SMILES.")
+    geo.add_argument("--charge", type=int, default=0)
+    geo.add_argument("--multiplicity", type=int, default=1)
+    geo.add_argument("--model-chemistry", help="The frequency level.")
+    geo.add_argument("--fingerprint", help="The frequency fingerprint.")
+    geo.add_argument(
+        "--include-imaginary",
+        action="store_true",
+        help="Also geometries with imaginary modes.",
+    )
+
     sub.add_parser("duplicates", help="Show the duplicate log.")
 
     sup = sub.add_parser("superseded", help="Show the superseded values.")
@@ -104,6 +119,15 @@ def main(argv=None):
                         f"{counts['logged']} differing (logged), "
                         f"{counts['superseded']} superseded"
                     )
+                    for table in ("geometry", "energy"):
+                        tally = counts.get(table) or {}
+                        if tally:
+                            print(
+                                f"    {table} rows: "
+                                + ", ".join(
+                                    f"{n} {k}" for k, n in sorted(tally.items())
+                                )
+                            )
                     for reason in counts["skipped"]:
                         print(f"    skipped {reason}")
             print(f"Store: {store.path}")
@@ -127,6 +151,36 @@ def main(argv=None):
                 print("No record.")
                 return 1
             _print(r)
+        elif args.command == "geometries":
+            store = F.FragmentStore(args.store)
+            rows = store.geometries(
+                args.species,
+                charge=args.charge,
+                multiplicity=args.multiplicity,
+                frequency_fingerprint=args.fingerprint,
+                model_chemistry=args.model_chemistry,
+                include_imaginary=args.include_imaginary,
+            )
+            if not rows:
+                print("No geometry.")
+                return 1
+            for g in rows:
+                flag = "" if g["verified"] else " [unverified]"
+                imaginary = (
+                    f", {g['n_imaginary']} imaginary" if g.get("n_imaginary") else ""
+                )
+                label = f" conformer '{g['conformer']}'" if g["conformer"] else ""
+                print(
+                    f"{g['species']}{label} at {g['model_chemistry']}{flag}: "
+                    f"E = {g['E']:.3f}, ZPE = {g['ZPE']}, H = {g['H']} kJ/mol"
+                    f"{imaginary}; {g['geometry_hash']} from {g['job']}"
+                )
+                for e in store.energies(g["geometry_hash"]):
+                    eflag = "" if e["verified"] else " [unverified]"
+                    print(
+                        f"    {e['model_chemistry']}{eflag}: E = {e['E']:.3f} kJ/mol "
+                        f"from {e['job']}"
+                    )
         elif args.command == "superseded":
             store = F.FragmentStore(args.store)
             rows = store.superseded(args.species)

@@ -189,6 +189,8 @@ def test_harvest(job, store):
         "logged": 0,
         "superseded": 0,
         "skipped": [],
+        "geometry": {"duplicate": 1},
+        "energy": {"duplicate": 4},
     }
     # and the step's lookup finds them
     assert store.get("CCF", model_chemistry="MOPAC:SQM@PM7")["E"] == pytest.approx(

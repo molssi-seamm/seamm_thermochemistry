@@ -2,6 +2,22 @@
 History
 =======
 
+2026.11.8 -- Geometries and energies at different levels in the fragment store
+    * The fragment store has two new tables: ``geometry``, one row per conformer of a
+      species at a geometry/frequency level (coordinates, energy, unscaled ZPE and
+      H(298.15 K), and the frequencies, symmetry number and moments of inertia when
+      the job stored them), and ``energy``, one row per single point on a geometry,
+      keyed by the geometry's hash and the calculation's fingerprint. An energy at a
+      costly level is combined with the ZPE and thermal correction of a cheaper
+      level's geometry when used, never stored combined.
+    * ``harvest`` fills them from the same properties as before, refusing an energy
+      computed on a different geometry and a geometry optimized at another level, and
+      the ladder reads them first. Geometries with imaginary modes are kept but not
+      reused.
+    * ``seamm-thermochemistry-fragments geometries SMILES`` lists a species'
+      geometries and the energies on each. Existing stores gain the tables the next
+      time they are written; readers of an older store see none.
+
 2026.11.4 -- Bugfix: ATcT lookup missed ortho/para positional isomers
     * ATcT labels positional isomers "ortho" and "para" as well as nuclear-spin isomers.
       The lookup dropped every such entry as a nuclear-spin isomer, so o- and
