@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.ladder &#8212; SEAMM thermochemistry Plug-in 2026.11.4 documentation</title>
+    <title>seamm_thermochemistry.ladder &#8212; SEAMM thermochemistry Plug-in 2026.11.8 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=4c137905"></script>
+    <script src="../../_static/documentation_options.js?v=93f150ad"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.4" />
+  <meta name="docsearch:version" content="2026.11.8" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -660,7 +660,7 @@
 
     <span class="n">tables</span> <span class="o">=</span> <span class="n">ATcT</span><span class="p">(</span><span class="n">version</span><span class="o">=</span><span class="n">atct_version</span><span class="p">,</span> <span class="n">base</span><span class="o">=</span><span class="n">atct_base</span><span class="p">)</span>
     <span class="n">store</span> <span class="o">=</span> <span class="n">FragmentStore</span><span class="p">(</span><span class="n">store_path</span><span class="p">)</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">store</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">store</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">store</span><span class="o">.</span><span class="n">n_geometries</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">LadderError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"The fragment store </span><span class="si">{</span><span class="n">store</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2"> is empty or missing"</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">record</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="n">level</span><span class="p">):</span>
@@ -673,8 +673,52 @@
             <span class="n">model_chemistry</span><span class="o">=</span><span class="n">level</span><span class="p">,</span>
         <span class="p">)</span>
 
+    <span class="k">def</span><span class="w"> </span><span class="nf">split_level</span><span class="p">(</span><span class="n">smiles</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""The species from the geometry and energy tables: the energy level's</span>
+<span class="sd">        single point on the frequency level's geometry (the lowest conformer</span>
+<span class="sd">        at the energy level), or None."""</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">radicals</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">cbh</span><span class="o">.</span><span class="n">_composition</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+        <span class="n">level</span> <span class="o">=</span> <span class="n">frequency_level</span> <span class="ow">or</span> <span class="n">energy_level</span>
+        <span class="n">found</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">species_at</span><span class="p">(</span>
+            <span class="n">smiles</span><span class="p">,</span>
+            <span class="n">charge</span><span class="o">=</span><span class="n">q</span><span class="p">,</span>
+            <span class="n">multiplicity</span><span class="o">=</span><span class="n">radicals</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="n">frequency_fingerprint</span><span class="o">=</span><span class="n">level</span><span class="p">,</span>
+            <span class="n">frequency_model_chemistry</span><span class="o">=</span><span class="n">level</span><span class="p">,</span>
+            <span class="n">energy_fingerprint</span><span class="o">=</span><span class="n">energy_level</span><span class="p">,</span>
+            <span class="n">energy_model_chemistry</span><span class="o">=</span><span class="n">energy_level</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">found</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">found</span> <span class="k">if</span> <span class="n">f</span><span class="p">[</span><span class="s2">"ZPE"</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">f</span><span class="p">[</span><span class="s2">"H - E"</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">found</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">best</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">found</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">f</span><span class="p">:</span> <span class="n">f</span><span class="p">[</span><span class="s2">"E"</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="s2">"ZPE"</span><span class="p">]</span> <span class="ow">or</span> <span class="mf">0.0</span><span class="p">))</span>
+        <span class="n">g</span><span class="p">,</span> <span class="n">e</span> <span class="o">=</span> <span class="n">best</span><span class="p">[</span><span class="s2">"geometry"</span><span class="p">],</span> <span class="n">best</span><span class="p">[</span><span class="s2">"energy"</span><span class="p">]</span>
+        <span class="n">prov</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">"energy"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"job"</span><span class="p">:</span> <span class="p">(</span><span class="n">e</span> <span class="ow">or</span> <span class="n">g</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"job"</span><span class="p">),</span>
+                <span class="s2">"configuration"</span><span class="p">:</span> <span class="p">(</span><span class="n">e</span> <span class="ow">or</span> <span class="n">g</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"configuration"</span><span class="p">),</span>
+                <span class="s2">"verified"</span><span class="p">:</span> <span class="p">(</span><span class="n">e</span> <span class="ow">or</span> <span class="n">g</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"verified"</span><span class="p">),</span>
+                <span class="s2">"geometry"</span><span class="p">:</span> <span class="n">g</span><span class="p">[</span><span class="s2">"geometry_hash"</span><span class="p">],</span>
+            <span class="p">},</span>
+            <span class="s2">"frequencies"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="n">k</span><span class="p">:</span> <span class="n">g</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"job"</span><span class="p">,</span> <span class="s2">"configuration"</span><span class="p">,</span> <span class="s2">"verified"</span><span class="p">,</span> <span class="s2">"conformer"</span><span class="p">)</span>
+            <span class="p">},</span>
+        <span class="p">}</span>
+        <span class="n">H0</span> <span class="o">=</span> <span class="n">H298</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">best</span><span class="p">[</span><span class="s2">"ZPE"</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">H0</span> <span class="o">=</span> <span class="n">best</span><span class="p">[</span><span class="s2">"E"</span><span class="p">]</span> <span class="o">+</span> <span class="n">zpe_scale</span> <span class="o">*</span> <span class="n">best</span><span class="p">[</span><span class="s2">"ZPE"</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">best</span><span class="p">[</span><span class="s2">"H - E"</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">H298</span> <span class="o">=</span> <span class="n">H0</span> <span class="o">+</span> <span class="n">best</span><span class="p">[</span><span class="s2">"H - E"</span><span class="p">]</span> <span class="o">-</span> <span class="n">best</span><span class="p">[</span><span class="s2">"ZPE"</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">best</span><span class="p">[</span><span class="s2">"H - E"</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">H298</span> <span class="o">=</span> <span class="n">best</span><span class="p">[</span><span class="s2">"E"</span><span class="p">]</span> <span class="o">+</span> <span class="n">best</span><span class="p">[</span><span class="s2">"H - E"</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">H0</span><span class="p">,</span> <span class="n">H298</span><span class="p">,</span> <span class="n">prov</span>
+
     <span class="k">def</span><span class="w"> </span><span class="nf">enthalpies</span><span class="p">(</span><span class="n">smiles</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""(H0, H298, provenance) at the high level, or an error message."""</span>
+<span class="w">        </span><span class="sd">"""(H0, H298, provenance) at the high level, or an error message.</span>
+<span class="sd">        The geometry and energy tables first, then the fragment table."""</span>
+        <span class="n">split</span> <span class="o">=</span> <span class="n">split_level</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">split</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">split</span>
         <span class="n">e</span> <span class="o">=</span> <span class="n">record</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="n">energy_level</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">e</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"E"</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"no energy at '</span><span class="si">{</span><span class="n">energy_level</span><span class="si">}</span><span class="s2">' in the store"</span>

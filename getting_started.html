@@ -7,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.11.4 documentation</title>
+    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.11.8 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="_static/documentation_options.js?v=4c137905"></script>
+    <script src="_static/documentation_options.js?v=93f150ad"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -55,7 +55,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.4" />
+  <meta name="docsearch:version" content="2026.11.8" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -633,6 +633,54 @@ factor never needs a new harvest.</p>
 </pre></div>
 </div>
 <p>Reads are best effort: a missing, locked or corrupt store gives None.</p>
+<section id="geometries-and-energies-at-different-levels">
+<h3>Geometries and energies at different levels<a class="headerlink" href="#geometries-and-energies-at-different-levels" title="Link to this heading">#</a></h3>
+<p>Thermochemistry often takes the energy from a costly level of theory (for example
+revDSD-PBEP86-D4 or CCSD(T)-F12) on the geometry and frequencies of a cheaper one
+(for example r2SCAN-3c), and one geometry serves several energy levels. The store
+keeps these in two more tables, beside the records above:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">geometry</span></code>: one row per conformer of a species at a geometry/frequency level,
+keyed by the species, charge, multiplicity, the frequency fingerprint and a
+conformer label. It holds the coordinates and their hash, the energy, the
+unscaled ZPE and H(298.15 K) at that level, and, when the job stored them, the
+harmonic frequencies, the number of imaginary modes, the rotational symmetry
+number and the moments of inertia.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">energy</span></code>: one row per single point on a geometry, keyed by the geometry’s hash
+and the calculation’s fingerprint. The hash is the one QC steps record for a
+calculation (<code class="docutils literal notranslate"><span class="pre">seamm_util.fingerprint.geometry_fingerprint</span></code>), so copies of the
+store on other hosts keep working.</p></li>
+</ul>
+<p>A combined value is never stored, only its parts: the energy at one level and the
+ZPE and thermal correction of the geometry’s level are combined when they are used,
+as ZPE factors are applied at use.</p>
+<p><code class="docutils literal notranslate"><span class="pre">harvest</span></code> fills both tables from the same properties as the records: an energy
+with a ZPE or enthalpy of the same level makes a geometry row, and every energy
+makes an energy row on the configuration’s geometry. It guards the pairing:</p>
+<ul class="simple">
+<li><p>an energy whose calculation record names a different geometry is refused and
+reported;</p></li>
+<li><p>a geometry row has its geometry and frequencies at one level: a row whose
+optimization was at another model chemistry is refused;</p></li>
+<li><p>a geometry with imaginary frequencies (more than 20i cm⁻¹) is stored, but not
+offered for reuse.</p></li>
+</ul>
+<p>Duplicates and <code class="docutils literal notranslate"><span class="pre">--supersede</span></code> work as for the records, with the old values in a
+<code class="docutils literal notranslate"><span class="pre">row_history</span></code> table. To see what the store holds for a species:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">seamm</span><span class="o">-</span><span class="n">thermochemistry</span><span class="o">-</span><span class="n">fragments</span> <span class="n">geometries</span> <span class="n">CCO</span> <span class="o">--</span><span class="n">model</span><span class="o">-</span><span class="n">chemistry</span> <span class="n">ORCA</span><span class="p">:</span><span class="n">DFT</span><span class="nd">@R2SCAN</span><span class="o">-</span><span class="mi">3</span><span class="n">C</span>
+</pre></div>
+</div>
+<p>In Python:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">rows</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">species_at</span><span class="p">(</span>
+    <span class="s2">"CCO"</span><span class="p">,</span>
+    <span class="n">frequency_fingerprint</span><span class="o">=</span><span class="n">freq_fp</span><span class="p">,</span>   <span class="c1"># or frequency_model_chemistry=...</span>
+    <span class="n">energy_fingerprint</span><span class="o">=</span><span class="n">energy_fp</span><span class="p">,</span>    <span class="c1"># or energy_model_chemistry=...</span>
+<span class="p">)</span>
+<span class="n">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">"E"</span><span class="p">],</span> <span class="n">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">"ZPE"</span><span class="p">],</span> <span class="n">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">"H - E"</span><span class="p">],</span> <span class="n">rows</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">"geometry"</span><span class="p">][</span><span class="s2">"conformer"</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>The ladder (below) uses these tables first, and falls back on the records.</p>
+</section>
 </section>
 <section id="laddered-reference-values-cbh-anl">
 <h2>Laddered reference values (CBH-ANL)<a class="headerlink" href="#laddered-reference-values-cbh-anl" title="Link to this heading">#</a></h2>
@@ -744,7 +792,10 @@ batch of targets computes each fragment once.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#two-reference-conventions-one-schema">Two reference conventions, one schema</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#importing-orca-results">Importing ORCA results</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#active-thermochemical-tables">Active Thermochemical Tables</a></li>
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-fragment-energy-store">The fragment-energy store</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-fragment-energy-store">The fragment-energy store</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#geometries-and-energies-at-different-levels">Geometries and energies at different levels</a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#laddered-reference-values-cbh-anl">Laddered reference values (CBH-ANL)</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#connectivity-based-hierarchy-cbh-reactions">Connectivity-based hierarchy (CBH) reactions</a></li>
 </ul>
