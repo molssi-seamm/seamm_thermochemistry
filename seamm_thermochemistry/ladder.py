@@ -224,7 +224,7 @@ def build_ladder(
 
     tables = ATcT(version=atct_version, base=atct_base)
     store = FragmentStore(store_path)
-    if len(store) == 0:
+    if len(store) == 0 and store.n_geometries() == 0:
         raise LadderError(f"The fragment store {store.path} is empty or missing")
 
     def record(smiles, level):
@@ -237,8 +237,52 @@ def build_ladder(
             model_chemistry=level,
         )
 
+    def split_level(smiles):
+        """The species from the geometry and energy tables: the energy level's
+        single point on the frequency level's geometry (the lowest conformer
+        at the energy level), or None."""
+        _, q, radicals, _ = cbh._composition(smiles)
+        level = frequency_level or energy_level
+        found = store.species_at(
+            smiles,
+            charge=q,
+            multiplicity=radicals + 1,
+            frequency_fingerprint=level,
+            frequency_model_chemistry=level,
+            energy_fingerprint=energy_level,
+            energy_model_chemistry=energy_level,
+        )
+        found = [f for f in found if f["ZPE"] is not None or f["H - E"] is not None]
+        if not found:
+            return None
+        best = min(found, key=lambda f: f["E"] + (f["ZPE"] or 0.0))
+        g, e = best["geometry"], best["energy"]
+        prov = {
+            "energy": {
+                "job": (e or g).get("job"),
+                "configuration": (e or g).get("configuration"),
+                "verified": (e or g).get("verified"),
+                "geometry": g["geometry_hash"],
+            },
+            "frequencies": {
+                k: g.get(k) for k in ("job", "configuration", "verified", "conformer")
+            },
+        }
+        H0 = H298 = None
+        if best["ZPE"] is not None:
+            H0 = best["E"] + zpe_scale * best["ZPE"]
+            if best["H - E"] is not None:
+                H298 = H0 + best["H - E"] - best["ZPE"]
+        elif best["H - E"] is not None:
+            H298 = best["E"] + best["H - E"]
+        return H0, H298, prov
+
     def enthalpies(smiles):
-        """(H0, H298, provenance) at the high level, or an error message."""
+        """(H0, H298, provenance) at the high level, or an error message.
+        The geometry and energy tables first, then the fragment table."""
+        split = split_level(smiles)
+        if split is not None:
+            return split
         e = record(smiles, energy_level)
         if e is None or e.get("E") is None:
             return None, None, f"no energy at '{energy_level}' in the store"

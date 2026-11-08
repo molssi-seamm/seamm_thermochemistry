@@ -218,6 +218,56 @@ In Python::
 
 Reads are best effort: a missing, locked or corrupt store gives None.
 
+Geometries and energies at different levels
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Thermochemistry often takes the energy from a costly level of theory (for example
+revDSD-PBEP86-D4 or CCSD(T)-F12) on the geometry and frequencies of a cheaper one
+(for example r2SCAN-3c), and one geometry serves several energy levels. The store
+keeps these in two more tables, beside the records above:
+
+* ``geometry``: one row per conformer of a species at a geometry/frequency level,
+  keyed by the species, charge, multiplicity, the frequency fingerprint and a
+  conformer label. It holds the coordinates and their hash, the energy, the
+  unscaled ZPE and H(298.15 K) at that level, and, when the job stored them, the
+  harmonic frequencies, the number of imaginary modes, the rotational symmetry
+  number and the moments of inertia.
+* ``energy``: one row per single point on a geometry, keyed by the geometry's hash
+  and the calculation's fingerprint. The hash is the one QC steps record for a
+  calculation (``seamm_util.fingerprint.geometry_fingerprint``), so copies of the
+  store on other hosts keep working.
+
+A combined value is never stored, only its parts: the energy at one level and the
+ZPE and thermal correction of the geometry's level are combined when they are used,
+as ZPE factors are applied at use.
+
+``harvest`` fills both tables from the same properties as the records: an energy
+with a ZPE or enthalpy of the same level makes a geometry row, and every energy
+makes an energy row on the configuration's geometry. It guards the pairing:
+
+* an energy whose calculation record names a different geometry is refused and
+  reported;
+* a geometry row has its geometry and frequencies at one level: a row whose
+  optimization was at another model chemistry is refused;
+* a geometry with imaginary frequencies (more than 20i cm⁻¹) is stored, but not
+  offered for reuse.
+
+Duplicates and ``--supersede`` work as for the records, with the old values in a
+``row_history`` table. To see what the store holds for a species::
+
+    seamm-thermochemistry-fragments geometries CCO --model-chemistry ORCA:DFT@R2SCAN-3C
+
+In Python::
+
+    rows = store.species_at(
+        "CCO",
+        frequency_fingerprint=freq_fp,   # or frequency_model_chemistry=...
+        energy_fingerprint=energy_fp,    # or energy_model_chemistry=...
+    )
+    rows[0]["E"], rows[0]["ZPE"], rows[0]["H - E"], rows[0]["geometry"]["conformer"]
+
+The ladder (below) uses these tables first, and falls back on the records.
+
 Laddered reference values (CBH-ANL)
 -----------------------------------
 

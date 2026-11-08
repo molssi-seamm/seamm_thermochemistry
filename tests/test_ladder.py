@@ -187,3 +187,45 @@ def test_cli(tmp_path, base, tables, capsys):
     assert main(argv + ["list"]) == 0
     assert "demo" in capsys.readouterr().out
     assert main(argv + ["show", "nope"]) == 1
+
+
+def test_ladder_from_the_geometry_and_energy_tables(tmp_path, base, tables):
+    """The ladder reads the energy level's single points on the frequency
+    level's geometries (the split level), preferring them to fragment rows,
+    and gives the same values as the fragment table with the same numbers."""
+    from seamm_thermochemistry import EnergyRecord, GeometryRecord
+
+    h0 = {s: tables.lookup(s)["dfH0_0K"] for s in ("[H][H]", "C", "CC", "CCC")}
+    with FragmentStore(tmp_path / "f.db", create=True) as store:
+        for i, (smiles, value) in enumerate(h0.items()):
+            zpe = 10.0
+            E = value - zpe
+            g = GeometryRecord.make(
+                smiles,
+                ["C"],
+                [[0.0, 0.0, float(i)]],  # a distinct geometry per species
+                E=E + 100.0,
+                ZPE=zpe,
+                H=E + 100.0 + zpe + 5.0,
+                model_chemistry=FREQ,
+            )
+            store.put_geometry(g)
+            store.put_energy(
+                EnergyRecord.make(g["geometry_hash"], E, model_chemistry=LEVEL)
+            )
+            # A fragment row with wrong values, which the split level overrides
+            store.put(FragmentRecord.make(smiles, E=E + 50.0, model_chemistry=LEVEL))
+    ladder = L.build_ladder(
+        ["CCC"],
+        name="split",
+        energy_level=LEVEL,
+        frequency_level=FREQ,
+        atct_base=base,
+        store_path=tmp_path / "f.db",
+    )
+    for s in ("CC", "CCC"):
+        assert ladder[s]["H0"] == pytest.approx(h0[s], abs=1e-9)
+        assert ladder[s]["H298"] is not None
+    prov = ladder["CCC"]["provenance"]
+    assert prov["energy"]["geometry"].startswith("sha256:")
+    assert not prov["energy"]["verified"] and prov["frequencies"]["conformer"] == ""

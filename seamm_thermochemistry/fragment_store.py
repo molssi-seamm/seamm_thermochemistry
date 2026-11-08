@@ -43,9 +43,27 @@ import logging
 from pathlib import Path
 import sqlite3
 
+from .geometry_store import (
+    GEOMETRY_SCHEMA,
+    SCHEMA_VERSION,
+    EnergyRecord,
+    GeometryEnergyMixin,
+    GeometryRecord,
+    PairingError,
+    hash_geometry,
+)
+
 logger = logging.getLogger(__name__)
 
-__all__ = ["FragmentStore", "FragmentRecord", "fragment_store_path", "harvest_job"]
+__all__ = [
+    "FragmentStore",
+    "FragmentRecord",
+    "GeometryRecord",
+    "EnergyRecord",
+    "PairingError",
+    "fragment_store_path",
+    "harvest_job",
+]
 
 DUPLICATE_TOLERANCE = 0.1  # kJ/mol
 UNVERIFIED = "unverified"
@@ -219,8 +237,9 @@ class FragmentRecord(dict):
         )
 
 
-class FragmentStore:
-    """The fragment-energy store (see the module docstring).
+class FragmentStore(GeometryEnergyMixin):
+    """The fragment-energy store (see the module docstring), with the geometry
+    and energy tables of :mod:`.geometry_store`.
 
     Parameters
     ----------
@@ -257,7 +276,9 @@ class FragmentStore:
         db.execute("PRAGMA busy_timeout = 30000")
         if create:
             db.execute("PRAGMA journal_mode = DELETE")
-            db.executescript(_SCHEMA)
+            db.executescript(_SCHEMA + GEOMETRY_SCHEMA)
+            if db.execute("PRAGMA user_version").fetchone()[0] < SCHEMA_VERSION:
+                db.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
             db.commit()
         self._db = db
         return db
@@ -646,8 +667,19 @@ def harvest_job(
     With `force` as well, values within the duplicate tolerance are replaced too
     (see :meth:`FragmentStore.supersede`).
 
+    The same properties also fill the geometry and energy tables
+    (:mod:`.geometry_store`): an energy property with a ZPE or enthalpy of the
+    same level makes a geometry row at that level (the configuration's
+    coordinates, its energy, ZPE and H, and the frequencies, symmetry number
+    and moments of inertia when stored as ``frequencies``, ``symmetry
+    number`` and ``moments of inertia`` properties of the same level), and
+    every energy property makes an energy row on the configuration's geometry.
+    An energy whose ``calculation`` record names a different geometry is
+    refused (the pairing guard) and reported in "skipped".
+
     Returns {"inserted": n, "duplicate": n, "logged": n, "superseded": n,
-    "skipped": [reasons]}.
+    "skipped": [reasons], "geometry": {outcome: n}, "energy": {outcome: n}},
+    the first four counting the fragment rows.
     """
     job_directory = Path(job_directory).expanduser().resolve()
     path = job_directory / database
@@ -674,7 +706,13 @@ def harvest_job(
         "logged": 0,
         "superseded": 0,
         "skipped": [],
+        "geometry": {},
+        "energy": {},
     }
+
+    def tally(table, outcome):
+        counts[table][outcome] = counts[table].get(outcome, 0) + 1
+
     db = SystemDB(filename=f"file:{path}?mode=ro")
     try:
         for system in db.get_systems():
@@ -700,10 +738,14 @@ def harvest_job(
             if not energies:
                 counts["skipped"].append(f"{species}: no property matching '{energy}'")
                 continue
-            ghash = geometry_hash(
-                configuration.atoms.symbols,
-                configuration.atoms.get_coordinates(fractionals=False),
-            )
+            symbols = configuration.atoms.symbols
+            coordinates = configuration.atoms.get_coordinates(fractionals=False)
+            ghash = geometry_hash(symbols, coordinates)
+            try:
+                atomic_numbers = configuration.atoms.atomic_numbers
+            except Exception:  # pragma: no cover
+                atomic_numbers = None
+            fingerprint_hash = hash_geometry(symbols, coordinates, atomic_numbers)
             for name, value in energies.items():
                 if isinstance(value, dict):
                     value = value["value"]
@@ -742,6 +784,99 @@ def harvest_job(
                     counts["duplicate" if outcome == "unchanged" else outcome] += 1
                 else:
                     counts[store.put(record)] += 1
+
+                # The geometry and energy tables
+                def extra(base, kind="json"):
+                    if not suffix:
+                        return None
+                    full = base + suffix
+                    try:
+                        if not properties.exists(full):
+                            return None
+                        value = properties.get(full)
+                    except Exception:
+                        return None
+                    if isinstance(value, dict) and full in value:
+                        value = value[full]  # {name: {"value": ...}}
+                    if isinstance(value, dict) and "value" in value:
+                        value = value["value"]
+                    if kind == "json" and isinstance(value, str):
+                        try:
+                            value = json.loads(value)
+                        except ValueError:
+                            return None
+                    return value
+
+                calculation = extra("calculation")
+                calc_geometry = (
+                    calculation.get("geometry fingerprint")
+                    if isinstance(calculation, dict)
+                    else None
+                )
+                program = version = None
+                if isinstance(calculation, dict):
+                    program = calculation.get("program")
+                    version = calculation.get("version")
+                if ZPE or H:
+                    symmetry = extra("symmetry number", kind="int")
+                    try:
+                        geometry = GeometryRecord.make(
+                            species,
+                            symbols,
+                            coordinates,
+                            charge=configuration.charge,
+                            multiplicity=configuration.spin_multiplicity or 1,
+                            frequency_fingerprint=ffp,
+                            optimization_fingerprint=fp,
+                            model_chemistry=model,
+                            program=program,
+                            version=version,
+                            E=E,
+                            ZPE=ZPE[1] if ZPE else None,
+                            H=H[1] if H else None,
+                            frequencies=extra("frequencies"),
+                            symmetry_number=(
+                                int(symmetry) if symmetry is not None else None
+                            ),
+                            moments=extra("moments of inertia"),
+                            atomic_numbers=atomic_numbers,
+                            geometry_hash=fingerprint_hash,
+                            job=job,
+                            configuration=configuration.id,
+                            source=name,
+                        )
+                        if supersede:
+                            outcome, _ = store.supersede_geometry(
+                                geometry, supersede, force=force
+                            )
+                        else:
+                            outcome, _ = store.put_geometry(geometry)
+                        tally("geometry", outcome)
+                    except PairingError as e:
+                        counts["skipped"].append(f"{species}: {e}")
+                try:
+                    energy_row = EnergyRecord.make(
+                        fingerprint_hash,
+                        E,
+                        energy_fingerprint=fp,
+                        calculation_geometry=calc_geometry,
+                        model_chemistry=model,
+                        program=program,
+                        version=version,
+                        job=job,
+                        configuration=configuration.id,
+                        source=name,
+                    )
+                except PairingError as e:
+                    counts["skipped"].append(f"{species} ({name}): {e}")
+                    continue
+                if supersede:
+                    outcome, _ = store.supersede_energy(
+                        energy_row, supersede, force=force
+                    )
+                else:
+                    outcome, _ = store.put_energy(energy_row)
+                tally("energy", outcome)
     finally:
         db.close()
     return counts
