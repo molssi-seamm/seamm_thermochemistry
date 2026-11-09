@@ -350,3 +350,66 @@ def test_cli_geometries(job, tmp_path, capsys):
     out = capsys.readouterr().out
     assert f"O at {R2SCAN}" in out and REVDSD in out
     assert fragment_cli.main(["--store", path, "geometries", "CC"]) == 1
+
+
+def test_harvest_with_a_species_map(tmp_path, store):
+    """Systems named by id are found through a species map, which gives the
+    species (with stereo), the configuration, the conformer label and the
+    charge and multiplicity; 'geometry' fills only the geometry tables, so two
+    conformers of one species go in side by side."""
+    molsystem = pytest.importorskip("molsystem")
+    from seamm_thermochemistry import load_species_map
+
+    job_dir = tmp_path / "job"
+    job_dir.mkdir()
+    db = molsystem.SystemDB(filename=f"file:{job_dir / 'seamm.db'}")
+    s = f"#ORCA#{R2SCAN}"
+    for name, z in (("74-84-0_0", 0.0), ("74-84-0_1", 0.3), ("O_unlisted", 0.0)):
+        system = db.create_system(name=name, make_current=True)
+        first = system.create_configuration(name="initial", make_current=True)
+        first.from_smiles("CC")
+        final = system.create_configuration(
+            name=f"{name} optimized", make_current=False
+        )
+        final.from_smiles("CC")
+        xyz = final.atoms.get_coordinates(fractionals=False)
+        xyz[0][2] += z
+        final.atoms.set_coordinates(xyz, fractionals=False)
+        for n, kind, value, units in (
+            ("total energy" + s, "float", -79.0 - z, "E_h"),
+            ("ZPE" + s, "float", 190.0, "kJ/mol"),
+            (
+                "H(298.15 K)" + s,
+                "float",
+                (-79.0 - z) * 2625.4996394799 + 200.0,
+                "kJ/mol",
+            ),
+            ("settings fingerprint" + s, "str", "orca:r2scan", None),
+            ("frequency fingerprint" + s, "str", "orca:r2scan", None),
+        ):
+            final.properties.add(n, kind, units=units, noerror=True)
+            final.properties.put(n, value)
+    db.close()
+    (job_dir / "job_data.json").write_text(json.dumps({"job id": 5602}))
+    path = tmp_path / "map.csv"
+    path.write_text(
+        "job,system name,configuration name,species,charge,multiplicity,"
+        "conformer label\n"
+        "5602,74-84-0_0,74-84-0_0 optimized,CC,0,1,74-84-0_0\n"
+        "5602,74-84-0_1,74-84-0_1 optimized,CC,0,1,74-84-0_1\n"
+        "5999,O_unlisted,x,O,0,1,\n"  # another job's: not used here
+    )
+    species_map = load_species_map(path)
+    counts = harvest_job(job_dir, store, species_map=species_map, tables="geometry")
+    assert counts["inserted"] == 0  # no fragment records
+    assert counts["geometry"] == {"inserted": 2}
+    assert counts["skipped"] == ["O_unlisted: not in the species map"]
+    rows = store.geometries("CC", frequency_fingerprint="orca:r2scan")
+    assert [r["conformer"] for r in rows] == ["74-84-0_0", "74-84-0_1"]
+    # The named configuration (the optimized one), not the current one
+    assert rows[1]["coordinates"][0][2] != rows[0]["coordinates"][0][2]
+    assert len(store) == 0
+    # A duplicate key in the map is an error
+    path.write_text("job,system name,species\n5602,a,CC\n5602,a,CCC\n")
+    with pytest.raises(ValueError, match="listed twice"):
+        load_species_map(path)

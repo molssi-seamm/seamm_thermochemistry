@@ -252,6 +252,18 @@ makes an energy row on the configuration's geometry. It guards the pairing:
 * a geometry with imaginary frequencies (more than 20i cm⁻¹) is stored, but not
   offered for reuse.
 
+Jobs whose systems are not named ``CBH:<SMILES>`` (for example by an ATcT id, with
+several conformers of a species) are harvested with a species map, a CSV file with the
+columns ``job``, ``system name`` and ``species`` (the store key, with the stereo of the
+structure), and optionally ``configuration name``, ``charge``, ``multiplicity`` and
+``conformer label``::
+
+    seamm-thermochemistry-fragments harvest --species-map map.csv --tables geometry JOB ...
+
+``--tables geometry`` fills only the geometry and energy tables, which can hold several
+conformers of a species; the records cannot. Systems the map does not list are skipped
+and reported.
+
 Duplicates and ``--supersede`` work as for the records, with the old values in a
 ``row_history`` table. To see what the store holds for a species::
 

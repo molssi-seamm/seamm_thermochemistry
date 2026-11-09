@@ -48,6 +48,20 @@ def main(argv=None):
         help="Harvest every system, its name (less the prefix) being the SMILES.",
     )
     harvest.add_argument(
+        "--species-map",
+        metavar="CSV",
+        help="Find the systems by name in this map (columns: job, system name, "
+        "species; optionally configuration name, charge, multiplicity, conformer "
+        "label), which gives each one's species, instead of the system-name prefix.",
+    )
+    harvest.add_argument(
+        "--tables",
+        choices=("all", "geometry"),
+        default="all",
+        help="'geometry' fills only the geometry and energy tables (e.g. several "
+        "conformers of a species), not the fragment records.",
+    )
+    harvest.add_argument(
         "--supersede",
         metavar="REASON",
         help="Replace stored values that differ (a corrected conformer, say), keeping "
@@ -98,6 +112,9 @@ def main(argv=None):
 
     try:
         if args.command == "harvest":
+            species_map = (
+                F.load_species_map(args.species_map) if args.species_map else None
+            )
             store = F.FragmentStore(args.store, create=True)
             with store:
                 for job in args.jobs:
@@ -112,6 +129,8 @@ def main(argv=None):
                         all_systems=args.all_systems,
                         supersede=args.supersede,
                         force=args.force,
+                        species_map=species_map,
+                        tables=args.tables,
                     )
                     print(
                         f"{job}: {counts['inserted']} inserted, "
