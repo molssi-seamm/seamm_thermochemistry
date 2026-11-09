@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.fragment_store &#8212; SEAMM thermochemistry Plug-in 2026.11.8.1 documentation</title>
+    <title>seamm_thermochemistry.fragment_store &#8212; SEAMM thermochemistry Plug-in 2026.11.8.2 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=5120ad9a"></script>
+    <script src="../../_static/documentation_options.js?v=66d827f0"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.8.1" />
+  <meta name="docsearch:version" content="2026.11.8.2" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -1088,7 +1088,9 @@
 <span class="sd">    and ``species`` (the store key: the canonical SMILES, with the stereo of the</span>
 <span class="sd">    structure), and optionally ``configuration name`` (the configuration to use,</span>
 <span class="sd">    default the system's current one), ``charge``, ``multiplicity`` and</span>
-<span class="sd">    ``conformer label``. Other columns are ignored.</span>
+<span class="sd">    ``conformer label``, and the thermal corrections ``E (kJ/mol)``, ``ZPE</span>
+<span class="sd">    (kJ/mol)``, ``H298 (kJ/mol)`` and ``symmetry number`` (see</span>
+<span class="sd">    :func:`harvest_job`). Other columns are ignored.</span>
 <span class="sd">    """</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">csv</span>
 
@@ -1149,6 +1151,14 @@
 <span class="sd">    geometry and energy tables, e.g. for several conformers of a species, which</span>
 <span class="sd">    the fragment table cannot hold).</span>
 
+<span class="sd">    The species map may also carry the thermal corrections of the structures</span>
+<span class="sd">    whose jobs did not store them as properties: ``E (kJ/mol)``, ``ZPE</span>
+<span class="sd">    (kJ/mol)`` (unscaled), ``H298 (kJ/mol)`` (H at 298.15 K) and ``symmetry</span>
+<span class="sd">    number``. They are used only for an energy with no ZPE or enthalpy of its</span>
+<span class="sd">    own level, as H - E added to the job's energy, and only when the map's E</span>
+<span class="sd">    agrees with the job's within 0.1 kJ/mol (otherwise the system is reported</span>
+<span class="sd">    and gets no geometry row).</span>
+
 <span class="sd">    With `supersede` (the reason, e.g. "lowest conformer from B2PLYP</span>
 <span class="sd">    geometries"), a record whose key is already stored with different values</span>
 <span class="sd">    replaces them, the old values kept in the ``superseded`` table, instead of</span>
@@ -1183,9 +1193,11 @@
         <span class="p">)</span>
     <span class="n">job_id</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">job_directory</span> <span class="o">/</span> <span class="s2">"job_data.json"</span><span class="p">)</span> <span class="k">as</span> <span class="n">fd</span><span class="p">:</span>
-            <span class="n">job_id</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"job id"</span><span class="p">)</span>
-    <span class="k">except</span> <span class="p">(</span><span class="ne">OSError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="p">(</span><span class="n">job_directory</span> <span class="o">/</span> <span class="s2">"job_data.json"</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">text</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"!"</span><span class="p">):</span>  <span class="c1"># SEAMM's header line, "!MolSSI job_data 1.0"</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span> <span class="ow">in</span> <span class="n">text</span> <span class="k">else</span> <span class="s2">""</span>
+        <span class="n">job_id</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">text</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"job id"</span><span class="p">)</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">OSError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">):</span>
         <span class="k">pass</span>
     <span class="n">job</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">job_id</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">job_directory</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">job_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">job_directory</span><span class="p">)</span>
 
@@ -1204,6 +1216,28 @@
 
     <span class="k">if</span> <span class="n">tables</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"all"</span><span class="p">,</span> <span class="s2">"geometry"</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"tables must be 'all' or 'geometry', not '</span><span class="si">{</span><span class="n">tables</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">thermal_from_map</span><span class="p">(</span><span class="n">mapped</span><span class="p">,</span> <span class="n">E</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""(ZPE, H, symmetry number) from the map's row, or None; raises</span>
+<span class="sd">        ValueError if the map's energy is not the job's."""</span>
+        <span class="k">if</span> <span class="n">mapped</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">zpe</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">mapped</span><span class="p">[</span><span class="s2">"ZPE (kJ/mol)"</span><span class="p">])</span>
+            <span class="n">h</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">mapped</span><span class="p">[</span><span class="s2">"H298 (kJ/mol)"</span><span class="p">])</span>
+            <span class="n">e</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">mapped</span><span class="p">[</span><span class="s2">"E (kJ/mol)"</span><span class="p">])</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">e</span> <span class="o">-</span> <span class="n">E</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">DUPLICATE_TOLERANCE</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"the species map's E (</span><span class="si">{</span><span class="n">e</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> kJ/mol) is not the job's (</span><span class="si">{</span><span class="n">E</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">)"</span>
+            <span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">symmetry</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">mapped</span><span class="p">[</span><span class="s2">"symmetry number"</span><span class="p">])</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+            <span class="n">symmetry</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">zpe</span><span class="p">,</span> <span class="n">E</span> <span class="o">+</span> <span class="p">(</span><span class="n">h</span> <span class="o">-</span> <span class="n">e</span><span class="p">),</span> <span class="n">symmetry</span>
+
     <span class="n">db</span> <span class="o">=</span> <span class="n">SystemDB</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="sa">f</span><span class="s2">"file:</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">?mode=ro"</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">system</span> <span class="ow">in</span> <span class="n">db</span><span class="o">.</span><span class="n">get_systems</span><span class="p">():</span>
@@ -1280,6 +1314,19 @@
                 <span class="n">fp</span> <span class="o">=</span> <span class="n">_text_property</span><span class="p">(</span>
                     <span class="n">properties</span><span class="p">,</span> <span class="n">fingerprint</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"#"</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">suffix</span> <span class="k">if</span> <span class="n">suffix</span> <span class="k">else</span> <span class="kc">None</span>
                 <span class="p">)</span>
+                <span class="n">mapped_symmetry</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="n">from_map</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">if</span> <span class="n">ZPE</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">H</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">found</span> <span class="o">=</span> <span class="n">thermal_from_map</span><span class="p">(</span><span class="n">mapped</span><span class="p">,</span> <span class="n">E</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                        <span class="n">counts</span><span class="p">[</span><span class="s2">"skipped"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">system</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+                        <span class="n">found</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="k">if</span> <span class="n">found</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">ZPE</span> <span class="o">=</span> <span class="p">(</span><span class="n">zpe_name</span><span class="p">,</span> <span class="n">found</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                        <span class="n">H</span> <span class="o">=</span> <span class="p">(</span><span class="n">h_name</span><span class="p">,</span> <span class="n">found</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                        <span class="n">mapped_symmetry</span> <span class="o">=</span> <span class="n">found</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+                        <span class="n">from_map</span> <span class="o">=</span> <span class="kc">True</span>
                 <span class="n">ffp</span> <span class="o">=</span> <span class="n">_text_property</span><span class="p">(</span>
                     <span class="n">properties</span><span class="p">,</span>
                     <span class="p">(</span><span class="n">frequency_fingerprint</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"#"</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">suffix</span> <span class="k">if</span> <span class="n">suffix</span> <span class="k">else</span> <span class="kc">None</span><span class="p">),</span>
@@ -1341,6 +1388,8 @@
                     <span class="n">version</span> <span class="o">=</span> <span class="n">calculation</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"version"</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">ZPE</span> <span class="ow">or</span> <span class="n">H</span><span class="p">:</span>
                     <span class="n">symmetry</span> <span class="o">=</span> <span class="n">extra</span><span class="p">(</span><span class="s2">"symmetry number"</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">"int"</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">symmetry</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">symmetry</span> <span class="o">=</span> <span class="n">mapped_symmetry</span>
                     <span class="k">try</span><span class="p">:</span>
                         <span class="n">geometry</span> <span class="o">=</span> <span class="n">GeometryRecord</span><span class="o">.</span><span class="n">make</span><span class="p">(</span>
                             <span class="n">species</span><span class="p">,</span>
@@ -1349,7 +1398,9 @@
                             <span class="n">charge</span><span class="o">=</span><span class="n">charge</span><span class="p">,</span>
                             <span class="n">multiplicity</span><span class="o">=</span><span class="n">multiplicity</span><span class="p">,</span>
                             <span class="n">conformer</span><span class="o">=</span><span class="n">conformer</span><span class="p">,</span>
-                            <span class="n">frequency_fingerprint</span><span class="o">=</span><span class="n">ffp</span><span class="p">,</span>
+                            <span class="c1"># Thermal corrections from the map were computed with</span>
+                            <span class="c1"># the energy's own calculation</span>
+                            <span class="n">frequency_fingerprint</span><span class="o">=</span><span class="n">ffp</span> <span class="ow">or</span> <span class="p">(</span><span class="n">fp</span> <span class="k">if</span> <span class="n">from_map</span> <span class="k">else</span> <span class="kc">None</span><span class="p">),</span>
                             <span class="n">optimization_fingerprint</span><span class="o">=</span><span class="n">fp</span><span class="p">,</span>
                             <span class="n">model_chemistry</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
                             <span class="n">program</span><span class="o">=</span><span class="n">program</span><span class="p">,</span>

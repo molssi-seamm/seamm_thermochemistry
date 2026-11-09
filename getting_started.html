@@ -7,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.11.8.1 documentation</title>
+    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.11.8.2 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="_static/documentation_options.js?v=5120ad9a"></script>
+    <script src="_static/documentation_options.js?v=66d827f0"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -55,7 +55,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.8.1" />
+  <meta name="docsearch:version" content="2026.11.8.2" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -676,6 +676,11 @@ structure), and optionally <code class="docutils literal notranslate"><span clas
 <p><code class="docutils literal notranslate"><span class="pre">--tables</span> <span class="pre">geometry</span></code> fills only the geometry and energy tables, which can hold several
 conformers of a species; the records cannot. Systems the map does not list are skipped
 and reported.</p>
+<p>For jobs that stored only the energies, the map can also give each structure’s thermal
+corrections, in the columns <code class="docutils literal notranslate"><span class="pre">E</span> <span class="pre">(kJ/mol)</span></code>, <code class="docutils literal notranslate"><span class="pre">ZPE</span> <span class="pre">(kJ/mol)</span></code> (unscaled), <code class="docutils literal notranslate"><span class="pre">H298</span>
+<span class="pre">(kJ/mol)</span></code> (H at 298.15 K) and <code class="docutils literal notranslate"><span class="pre">symmetry</span> <span class="pre">number</span></code>. They make the geometry row, with
+H - E added to the job’s energy, provided the map’s E agrees with the job’s within
+0.1 kJ/mol; otherwise the structure is reported and gets no geometry row.</p>
 <p>Duplicates and <code class="docutils literal notranslate"><span class="pre">--supersede</span></code> work as for the records, with the old values in a
 <code class="docutils literal notranslate"><span class="pre">row_history</span></code> table. To see what the store holds for a species:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">seamm</span><span class="o">-</span><span class="n">thermochemistry</span><span class="o">-</span><span class="n">fragments</span> <span class="n">geometries</span> <span class="n">CCO</span> <span class="o">--</span><span class="n">model</span><span class="o">-</span><span class="n">chemistry</span> <span class="n">ORCA</span><span class="p">:</span><span class="n">DFT</span><span class="nd">@R2SCAN</span><span class="o">-</span><span class="mi">3</span><span class="n">C</span>
