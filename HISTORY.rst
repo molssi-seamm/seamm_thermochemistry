@@ -2,6 +2,15 @@
 History
 =======
 
+2026.11.8.1 -- Harvesting jobs through a species map
+    * ``seamm-thermochemistry-fragments harvest --species-map map.csv`` finds the
+      systems of a job by name in a CSV map (job, system name, species; optionally the
+      configuration, charge, multiplicity and conformer label) instead of by the
+      ``CBH:`` prefix, for jobs whose systems are named otherwise, e.g. by ATcT id. The
+      map gives the species with the stereo of its structure.
+    * ``--tables geometry`` fills only the geometry and energy tables, so that several
+      conformers of a species can be stored.
+
 2026.11.8 -- Geometries and energies at different levels in the fragment store
     * The fragment store has two new tables: ``geometry``, one row per conformer of a
       species at a geometry/frequency level (coordinates, energy, unscaled ZPE and

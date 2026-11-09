@@ -63,6 +63,7 @@ __all__ = [
     "PairingError",
     "fragment_store_path",
     "harvest_job",
+    "load_species_map",
 ]
 
 DUPLICATE_TOLERANCE = 0.1  # kJ/mol
@@ -632,6 +633,32 @@ def _text_property(properties, pattern):
     return str(value)
 
 
+def load_species_map(path):
+    """A species map from a CSV file: {(job, system name): row}.
+
+    The columns are ``job`` (the job id, or empty for any job), ``system name``
+    and ``species`` (the store key: the canonical SMILES, with the stereo of the
+    structure), and optionally ``configuration name`` (the configuration to use,
+    default the system's current one), ``charge``, ``multiplicity`` and
+    ``conformer label``. Other columns are ignored.
+    """
+    import csv
+
+    out = {}
+    with open(Path(path).expanduser(), newline="") as fd:
+        for row in csv.DictReader(fd):
+            name = (row.get("system name") or "").strip()
+            species = (row.get("species") or "").strip()
+            if not name or not species:
+                continue
+            job = (row.get("job") or "").strip() or None
+            key = (job, name)
+            if key in out:
+                raise ValueError(f"{path}: '{name}' of job {job} is listed twice")
+            out[key] = {k: (v or "").strip() for k, v in row.items() if k}
+    return out
+
+
 def harvest_job(
     job_directory,
     store,
@@ -646,6 +673,8 @@ def harvest_job(
     database="seamm.db",
     supersede=None,
     force=False,
+    species_map=None,
+    tables="all",
 ):
     """Promote the species energies of one job into the store.
 
@@ -659,6 +688,15 @@ def harvest_job(
     them, and the provenance (job directory, configuration id, geometry
     hash, date). The model chemistry is the third ``#`` field of the energy
     property's name.
+
+    With a `species_map` ({(job, system name): row}, see
+    :func:`load_species_map`) the systems are found by their names in the map
+    instead of by the prefix: the map gives each one's species (the store key,
+    with the stereo of its structure), and optionally its configuration,
+    charge, multiplicity and conformer label. Systems the map does not list are
+    skipped. `tables` is "all" (the fragment table too) or "geometry" (only the
+    geometry and energy tables, e.g. for several conformers of a species, which
+    the fragment table cannot hold).
 
     With `supersede` (the reason, e.g. "lowest conformer from B2PLYP
     geometries"), a record whose key is already stored with different values
@@ -713,22 +751,53 @@ def harvest_job(
     def tally(table, outcome):
         counts[table][outcome] = counts[table].get(outcome, 0) + 1
 
+    if tables not in ("all", "geometry"):
+        raise ValueError(f"tables must be 'all' or 'geometry', not '{tables}'")
     db = SystemDB(filename=f"file:{path}?mode=ro")
     try:
         for system in db.get_systems():
-            if system.name.startswith(name_prefix):
+            mapped = None
+            if species_map is not None:
+                mapped = species_map.get((str(job_id), system.name)) or (
+                    species_map.get((None, system.name))
+                )
+                if mapped is None:
+                    counts["skipped"].append(f"{system.name}: not in the species map")
+                    continue
+                species = mapped["species"]
+            elif system.name.startswith(name_prefix):
                 species = system.name[len(name_prefix) :].strip()
             elif all_systems:
                 species = system.name.strip()
             else:
                 continue
-            try:  # the store is keyed on RDKit's canonical SMILES
-                from .atct import canonical_smiles
+            if mapped is None:
+                try:  # the store is keyed on RDKit's canonical SMILES
+                    from .atct import canonical_smiles
 
-                species = canonical_smiles(species)
-            except Exception:
-                pass
+                    species = canonical_smiles(species)
+                except Exception:
+                    pass
             configuration = system.configuration
+            if mapped is not None and mapped.get("configuration name"):
+                try:
+                    cid = system.get_configuration_id(mapped["configuration name"])
+                    configuration = system.get_configuration(cid)
+                except Exception:
+                    counts["skipped"].append(
+                        f"{system.name}: no configuration named "
+                        f"'{mapped['configuration name']}'"
+                    )
+                    continue
+            charge = configuration.charge
+            multiplicity = configuration.spin_multiplicity or 1
+            conformer = ""
+            if mapped is not None:
+                if mapped.get("charge"):
+                    charge = int(mapped["charge"])
+                if mapped.get("multiplicity"):
+                    multiplicity = int(mapped["multiplicity"])
+                conformer = mapped.get("conformer label") or ""
             properties = configuration.properties
             try:
                 energies = properties.get(pattern=energy, match="glob")
@@ -766,8 +835,8 @@ def harvest_job(
                 )
                 record = FragmentRecord.make(
                     species,
-                    charge=configuration.charge,
-                    multiplicity=configuration.spin_multiplicity or 1,
+                    charge=charge,
+                    multiplicity=multiplicity,
                     E=E,
                     ZPE=ZPE[1] if ZPE else None,
                     H=H[1] if H else None,
@@ -779,7 +848,9 @@ def harvest_job(
                     configuration=configuration.id,
                     source=name,
                 )
-                if supersede:
+                if tables == "geometry":
+                    pass
+                elif supersede:
                     outcome = store.supersede(record, supersede, force=force)
                     counts["duplicate" if outcome == "unchanged" else outcome] += 1
                 else:
@@ -824,8 +895,9 @@ def harvest_job(
                             species,
                             symbols,
                             coordinates,
-                            charge=configuration.charge,
-                            multiplicity=configuration.spin_multiplicity or 1,
+                            charge=charge,
+                            multiplicity=multiplicity,
+                            conformer=conformer,
                             frequency_fingerprint=ffp,
                             optimization_fingerprint=fp,
                             model_chemistry=model,
