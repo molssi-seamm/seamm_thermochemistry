@@ -640,7 +640,9 @@ def load_species_map(path):
     and ``species`` (the store key: the canonical SMILES, with the stereo of the
     structure), and optionally ``configuration name`` (the configuration to use,
     default the system's current one), ``charge``, ``multiplicity`` and
-    ``conformer label``. Other columns are ignored.
+    ``conformer label``, and the thermal corrections ``E (kJ/mol)``, ``ZPE
+    (kJ/mol)``, ``H298 (kJ/mol)`` and ``symmetry number`` (see
+    :func:`harvest_job`). Other columns are ignored.
     """
     import csv
 
@@ -698,6 +700,14 @@ def harvest_job(
     geometry and energy tables, e.g. for several conformers of a species, which
     the fragment table cannot hold).
 
+    The species map may also carry the thermal corrections of the structures
+    whose jobs did not store them as properties: ``E (kJ/mol)``, ``ZPE
+    (kJ/mol)`` (unscaled), ``H298 (kJ/mol)`` (H at 298.15 K) and ``symmetry
+    number``. They are used only for an energy with no ZPE or enthalpy of its
+    own level, as H - E added to the job's energy, and only when the map's E
+    agrees with the job's within 0.1 kJ/mol (otherwise the system is reported
+    and gets no geometry row).
+
     With `supersede` (the reason, e.g. "lowest conformer from B2PLYP
     geometries"), a record whose key is already stored with different values
     replaces them, the old values kept in the ``superseded`` table, instead of
@@ -732,9 +742,11 @@ def harvest_job(
         )
     job_id = None
     try:
-        with open(job_directory / "job_data.json") as fd:
-            job_id = json.load(fd).get("job id")
-    except (OSError, ValueError):
+        text = (job_directory / "job_data.json").read_text()
+        if text.startswith("!"):  # SEAMM's header line, "!MolSSI job_data 1.0"
+            text = text.split("\n", 1)[1] if "\n" in text else ""
+        job_id = json.loads(text).get("job id")
+    except (OSError, ValueError, AttributeError):
         pass
     job = f"{job_id}:{job_directory}" if job_id is not None else str(job_directory)
 
@@ -753,6 +765,28 @@ def harvest_job(
 
     if tables not in ("all", "geometry"):
         raise ValueError(f"tables must be 'all' or 'geometry', not '{tables}'")
+
+    def thermal_from_map(mapped, E):
+        """(ZPE, H, symmetry number) from the map's row, or None; raises
+        ValueError if the map's energy is not the job's."""
+        if mapped is None:
+            return None
+        try:
+            zpe = float(mapped["ZPE (kJ/mol)"])
+            h = float(mapped["H298 (kJ/mol)"])
+            e = float(mapped["E (kJ/mol)"])
+        except (KeyError, TypeError, ValueError):
+            return None
+        if abs(e - E) > DUPLICATE_TOLERANCE:
+            raise ValueError(
+                f"the species map's E ({e:.3f} kJ/mol) is not the job's ({E:.3f})"
+            )
+        try:
+            symmetry = int(mapped["symmetry number"])
+        except (KeyError, TypeError, ValueError):
+            symmetry = None
+        return zpe, E + (h - e), symmetry
+
     db = SystemDB(filename=f"file:{path}?mode=ro")
     try:
         for system in db.get_systems():
@@ -829,6 +863,19 @@ def harvest_job(
                 fp = _text_property(
                     properties, fingerprint.split("#")[0] + suffix if suffix else None
                 )
+                mapped_symmetry = None
+                from_map = False
+                if ZPE is None and H is None:
+                    try:
+                        found = thermal_from_map(mapped, E)
+                    except ValueError as e:
+                        counts["skipped"].append(f"{system.name}: {e}")
+                        found = None
+                    if found is not None:
+                        ZPE = (zpe_name, found[0])
+                        H = (h_name, found[1])
+                        mapped_symmetry = found[2]
+                        from_map = True
                 ffp = _text_property(
                     properties,
                     (frequency_fingerprint.split("#")[0] + suffix if suffix else None),
@@ -890,6 +937,8 @@ def harvest_job(
                     version = calculation.get("version")
                 if ZPE or H:
                     symmetry = extra("symmetry number", kind="int")
+                    if symmetry is None:
+                        symmetry = mapped_symmetry
                     try:
                         geometry = GeometryRecord.make(
                             species,
@@ -898,7 +947,9 @@ def harvest_job(
                             charge=charge,
                             multiplicity=multiplicity,
                             conformer=conformer,
-                            frequency_fingerprint=ffp,
+                            # Thermal corrections from the map were computed with
+                            # the energy's own calculation
+                            frequency_fingerprint=ffp or (fp if from_map else None),
                             optimization_fingerprint=fp,
                             model_chemistry=model,
                             program=program,
