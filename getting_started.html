@@ -7,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.11.8 documentation</title>
+    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.11.8.1 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="_static/documentation_options.js?v=93f150ad"></script>
+    <script src="_static/documentation_options.js?v=5120ad9a"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -55,7 +55,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.8" />
+  <meta name="docsearch:version" content="2026.11.8.1" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -665,6 +665,17 @@ optimization was at another model chemistry is refused;</p></li>
 <li><p>a geometry with imaginary frequencies (more than 20i cm⁻¹) is stored, but not
 offered for reuse.</p></li>
 </ul>
+<p>Jobs whose systems are not named <code class="docutils literal notranslate"><span class="pre">CBH:&lt;SMILES&gt;</span></code> (for example by an ATcT id, with
+several conformers of a species) are harvested with a species map, a CSV file with the
+columns <code class="docutils literal notranslate"><span class="pre">job</span></code>, <code class="docutils literal notranslate"><span class="pre">system</span> <span class="pre">name</span></code> and <code class="docutils literal notranslate"><span class="pre">species</span></code> (the store key, with the stereo of the
+structure), and optionally <code class="docutils literal notranslate"><span class="pre">configuration</span> <span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">charge</span></code>, <code class="docutils literal notranslate"><span class="pre">multiplicity</span></code> and
+<code class="docutils literal notranslate"><span class="pre">conformer</span> <span class="pre">label</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">seamm</span><span class="o">-</span><span class="n">thermochemistry</span><span class="o">-</span><span class="n">fragments</span> <span class="n">harvest</span> <span class="o">--</span><span class="n">species</span><span class="o">-</span><span class="nb">map</span> <span class="nb">map</span><span class="o">.</span><span class="n">csv</span> <span class="o">--</span><span class="n">tables</span> <span class="n">geometry</span> <span class="n">JOB</span> <span class="o">...</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">--tables</span> <span class="pre">geometry</span></code> fills only the geometry and energy tables, which can hold several
+conformers of a species; the records cannot. Systems the map does not list are skipped
+and reported.</p>
 <p>Duplicates and <code class="docutils literal notranslate"><span class="pre">--supersede</span></code> work as for the records, with the old values in a
 <code class="docutils literal notranslate"><span class="pre">row_history</span></code> table. To see what the store holds for a species:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">seamm</span><span class="o">-</span><span class="n">thermochemistry</span><span class="o">-</span><span class="n">fragments</span> <span class="n">geometries</span> <span class="n">CCO</span> <span class="o">--</span><span class="n">model</span><span class="o">-</span><span class="n">chemistry</span> <span class="n">ORCA</span><span class="p">:</span><span class="n">DFT</span><span class="nd">@R2SCAN</span><span class="o">-</span><span class="mi">3</span><span class="n">C</span>

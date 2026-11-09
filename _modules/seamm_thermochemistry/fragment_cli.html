@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.fragment_cli &#8212; SEAMM thermochemistry Plug-in 2026.11.8 documentation</title>
+    <title>seamm_thermochemistry.fragment_cli &#8212; SEAMM thermochemistry Plug-in 2026.11.8.1 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=93f150ad"></script>
+    <script src="../../_static/documentation_options.js?v=5120ad9a"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.8" />
+  <meta name="docsearch:version" content="2026.11.8.1" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -463,6 +463,20 @@
         <span class="n">help</span><span class="o">=</span><span class="s2">"Harvest every system, its name (less the prefix) being the SMILES."</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">harvest</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">"--species-map"</span><span class="p">,</span>
+        <span class="n">metavar</span><span class="o">=</span><span class="s2">"CSV"</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">"Find the systems by name in this map (columns: job, system name, "</span>
+        <span class="s2">"species; optionally configuration name, charge, multiplicity, conformer "</span>
+        <span class="s2">"label), which gives each one's species, instead of the system-name prefix."</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">harvest</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">"--tables"</span><span class="p">,</span>
+        <span class="n">choices</span><span class="o">=</span><span class="p">(</span><span class="s2">"all"</span><span class="p">,</span> <span class="s2">"geometry"</span><span class="p">),</span>
+        <span class="n">default</span><span class="o">=</span><span class="s2">"all"</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">"'geometry' fills only the geometry and energy tables (e.g. several "</span>
+        <span class="s2">"conformers of a species), not the fragment records."</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">harvest</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
         <span class="s2">"--supersede"</span><span class="p">,</span>
         <span class="n">metavar</span><span class="o">=</span><span class="s2">"REASON"</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s2">"Replace stored values that differ (a corrected conformer, say), keeping "</span>
@@ -513,6 +527,9 @@
 
     <span class="k">try</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">command</span> <span class="o">==</span> <span class="s2">"harvest"</span><span class="p">:</span>
+            <span class="n">species_map</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">F</span><span class="o">.</span><span class="n">load_species_map</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">species_map</span><span class="p">)</span> <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">species_map</span> <span class="k">else</span> <span class="kc">None</span>
+            <span class="p">)</span>
             <span class="n">store</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">FragmentStore</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">store</span><span class="p">,</span> <span class="n">create</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="k">with</span> <span class="n">store</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">job</span> <span class="ow">in</span> <span class="n">args</span><span class="o">.</span><span class="n">jobs</span><span class="p">:</span>
@@ -527,6 +544,8 @@
                         <span class="n">all_systems</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">all_systems</span><span class="p">,</span>
                         <span class="n">supersede</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">supersede</span><span class="p">,</span>
                         <span class="n">force</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">force</span><span class="p">,</span>
+                        <span class="n">species_map</span><span class="o">=</span><span class="n">species_map</span><span class="p">,</span>
+                        <span class="n">tables</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">tables</span><span class="p">,</span>
                     <span class="p">)</span>
                     <span class="nb">print</span><span class="p">(</span>
                         <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">job</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">counts</span><span class="p">[</span><span class="s1">'inserted'</span><span class="p">]</span><span class="si">}</span><span class="s2"> inserted, "</span>

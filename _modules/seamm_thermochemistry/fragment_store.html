@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.fragment_store &#8212; SEAMM thermochemistry Plug-in 2026.11.8 documentation</title>
+    <title>seamm_thermochemistry.fragment_store &#8212; SEAMM thermochemistry Plug-in 2026.11.8.1 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=93f150ad"></script>
+    <script src="../../_static/documentation_options.js?v=5120ad9a"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.8" />
+  <meta name="docsearch:version" content="2026.11.8.1" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -476,6 +476,7 @@
     <span class="s2">"PairingError"</span><span class="p">,</span>
     <span class="s2">"fragment_store_path"</span><span class="p">,</span>
     <span class="s2">"harvest_job"</span><span class="p">,</span>
+    <span class="s2">"load_species_map"</span><span class="p">,</span>
 <span class="p">]</span>
 
 <span class="n">DUPLICATE_TOLERANCE</span> <span class="o">=</span> <span class="mf">0.1</span>  <span class="c1"># kJ/mol</span>
@@ -1078,6 +1079,35 @@
     <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
 
 
+<div class="viewcode-block" id="load_species_map">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.fragment_store.load_species_map">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_species_map</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A species map from a CSV file: {(job, system name): row}.</span>
+
+<span class="sd">    The columns are ``job`` (the job id, or empty for any job), ``system name``</span>
+<span class="sd">    and ``species`` (the store key: the canonical SMILES, with the stereo of the</span>
+<span class="sd">    structure), and optionally ``configuration name`` (the configuration to use,</span>
+<span class="sd">    default the system's current one), ``charge``, ``multiplicity`` and</span>
+<span class="sd">    ``conformer label``. Other columns are ignored.</span>
+<span class="sd">    """</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">csv</span>
+
+    <span class="n">out</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(),</span> <span class="n">newline</span><span class="o">=</span><span class="s2">""</span><span class="p">)</span> <span class="k">as</span> <span class="n">fd</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">csv</span><span class="o">.</span><span class="n">DictReader</span><span class="p">(</span><span class="n">fd</span><span class="p">):</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"system name"</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="n">species</span> <span class="o">=</span> <span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"species"</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">species</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">job</span> <span class="o">=</span> <span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"job"</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">or</span> <span class="kc">None</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">job</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">out</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">: '</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">' of job </span><span class="si">{</span><span class="n">job</span><span class="si">}</span><span class="s2"> is listed twice"</span><span class="p">)</span>
+            <span class="n">out</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="p">(</span><span class="n">v</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">row</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span><span class="p">}</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+
 <div class="viewcode-block" id="harvest_job">
 <a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.fragment_store.harvest_job">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">harvest_job</span><span class="p">(</span>
@@ -1094,6 +1124,8 @@
     <span class="n">database</span><span class="o">=</span><span class="s2">"seamm.db"</span><span class="p">,</span>
     <span class="n">supersede</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">force</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">species_map</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">tables</span><span class="o">=</span><span class="s2">"all"</span><span class="p">,</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Promote the species energies of one job into the store.</span>
 
@@ -1107,6 +1139,15 @@
 <span class="sd">    them, and the provenance (job directory, configuration id, geometry</span>
 <span class="sd">    hash, date). The model chemistry is the third ``#`` field of the energy</span>
 <span class="sd">    property's name.</span>
+
+<span class="sd">    With a `species_map` ({(job, system name): row}, see</span>
+<span class="sd">    :func:`load_species_map`) the systems are found by their names in the map</span>
+<span class="sd">    instead of by the prefix: the map gives each one's species (the store key,</span>
+<span class="sd">    with the stereo of its structure), and optionally its configuration,</span>
+<span class="sd">    charge, multiplicity and conformer label. Systems the map does not list are</span>
+<span class="sd">    skipped. `tables` is "all" (the fragment table too) or "geometry" (only the</span>
+<span class="sd">    geometry and energy tables, e.g. for several conformers of a species, which</span>
+<span class="sd">    the fragment table cannot hold).</span>
 
 <span class="sd">    With `supersede` (the reason, e.g. "lowest conformer from B2PLYP</span>
 <span class="sd">    geometries"), a record whose key is already stored with different values</span>
@@ -1161,22 +1202,53 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">tally</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">outcome</span><span class="p">):</span>
         <span class="n">counts</span><span class="p">[</span><span class="n">table</span><span class="p">][</span><span class="n">outcome</span><span class="p">]</span> <span class="o">=</span> <span class="n">counts</span><span class="p">[</span><span class="n">table</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">outcome</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
 
+    <span class="k">if</span> <span class="n">tables</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"all"</span><span class="p">,</span> <span class="s2">"geometry"</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"tables must be 'all' or 'geometry', not '</span><span class="si">{</span><span class="n">tables</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
     <span class="n">db</span> <span class="o">=</span> <span class="n">SystemDB</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="sa">f</span><span class="s2">"file:</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">?mode=ro"</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">system</span> <span class="ow">in</span> <span class="n">db</span><span class="o">.</span><span class="n">get_systems</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">system</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">name_prefix</span><span class="p">):</span>
+            <span class="n">mapped</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">species_map</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">mapped</span> <span class="o">=</span> <span class="n">species_map</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="nb">str</span><span class="p">(</span><span class="n">job_id</span><span class="p">),</span> <span class="n">system</span><span class="o">.</span><span class="n">name</span><span class="p">))</span> <span class="ow">or</span> <span class="p">(</span>
+                    <span class="n">species_map</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="kc">None</span><span class="p">,</span> <span class="n">system</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="n">mapped</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">counts</span><span class="p">[</span><span class="s2">"skipped"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">system</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">: not in the species map"</span><span class="p">)</span>
+                    <span class="k">continue</span>
+                <span class="n">species</span> <span class="o">=</span> <span class="n">mapped</span><span class="p">[</span><span class="s2">"species"</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="n">system</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">name_prefix</span><span class="p">):</span>
                 <span class="n">species</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">name</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">name_prefix</span><span class="p">)</span> <span class="p">:]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
             <span class="k">elif</span> <span class="n">all_systems</span><span class="p">:</span>
                 <span class="n">species</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">continue</span>
-            <span class="k">try</span><span class="p">:</span>  <span class="c1"># the store is keyed on RDKit's canonical SMILES</span>
-                <span class="kn">from</span><span class="w"> </span><span class="nn">.atct</span><span class="w"> </span><span class="kn">import</span> <span class="n">canonical_smiles</span>
+            <span class="k">if</span> <span class="n">mapped</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>  <span class="c1"># the store is keyed on RDKit's canonical SMILES</span>
+                    <span class="kn">from</span><span class="w"> </span><span class="nn">.atct</span><span class="w"> </span><span class="kn">import</span> <span class="n">canonical_smiles</span>
 
-                <span class="n">species</span> <span class="o">=</span> <span class="n">canonical_smiles</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-                <span class="k">pass</span>
+                    <span class="n">species</span> <span class="o">=</span> <span class="n">canonical_smiles</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="k">pass</span>
             <span class="n">configuration</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">configuration</span>
+            <span class="k">if</span> <span class="n">mapped</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">mapped</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"configuration name"</span><span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">cid</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">get_configuration_id</span><span class="p">(</span><span class="n">mapped</span><span class="p">[</span><span class="s2">"configuration name"</span><span class="p">])</span>
+                    <span class="n">configuration</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">get_configuration</span><span class="p">(</span><span class="n">cid</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="n">counts</span><span class="p">[</span><span class="s2">"skipped"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">system</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">: no configuration named "</span>
+                        <span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">mapped</span><span class="p">[</span><span class="s1">'configuration name'</span><span class="p">]</span><span class="si">}</span><span class="s2">'"</span>
+                    <span class="p">)</span>
+                    <span class="k">continue</span>
+            <span class="n">charge</span> <span class="o">=</span> <span class="n">configuration</span><span class="o">.</span><span class="n">charge</span>
+            <span class="n">multiplicity</span> <span class="o">=</span> <span class="n">configuration</span><span class="o">.</span><span class="n">spin_multiplicity</span> <span class="ow">or</span> <span class="mi">1</span>
+            <span class="n">conformer</span> <span class="o">=</span> <span class="s2">""</span>
+            <span class="k">if</span> <span class="n">mapped</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">mapped</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"charge"</span><span class="p">):</span>
+                    <span class="n">charge</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">mapped</span><span class="p">[</span><span class="s2">"charge"</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">mapped</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"multiplicity"</span><span class="p">):</span>
+                    <span class="n">multiplicity</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">mapped</span><span class="p">[</span><span class="s2">"multiplicity"</span><span class="p">])</span>
+                <span class="n">conformer</span> <span class="o">=</span> <span class="n">mapped</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"conformer label"</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span>
             <span class="n">properties</span> <span class="o">=</span> <span class="n">configuration</span><span class="o">.</span><span class="n">properties</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">energies</span> <span class="o">=</span> <span class="n">properties</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pattern</span><span class="o">=</span><span class="n">energy</span><span class="p">,</span> <span class="n">match</span><span class="o">=</span><span class="s2">"glob"</span><span class="p">)</span>
@@ -1214,8 +1286,8 @@
                 <span class="p">)</span>
                 <span class="n">record</span> <span class="o">=</span> <span class="n">FragmentRecord</span><span class="o">.</span><span class="n">make</span><span class="p">(</span>
                     <span class="n">species</span><span class="p">,</span>
-                    <span class="n">charge</span><span class="o">=</span><span class="n">configuration</span><span class="o">.</span><span class="n">charge</span><span class="p">,</span>
-                    <span class="n">multiplicity</span><span class="o">=</span><span class="n">configuration</span><span class="o">.</span><span class="n">spin_multiplicity</span> <span class="ow">or</span> <span class="mi">1</span><span class="p">,</span>
+                    <span class="n">charge</span><span class="o">=</span><span class="n">charge</span><span class="p">,</span>
+                    <span class="n">multiplicity</span><span class="o">=</span><span class="n">multiplicity</span><span class="p">,</span>
                     <span class="n">E</span><span class="o">=</span><span class="n">E</span><span class="p">,</span>
                     <span class="n">ZPE</span><span class="o">=</span><span class="n">ZPE</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">ZPE</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
                     <span class="n">H</span><span class="o">=</span><span class="n">H</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">H</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
@@ -1227,7 +1299,9 @@
                     <span class="n">configuration</span><span class="o">=</span><span class="n">configuration</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
                     <span class="n">source</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
                 <span class="p">)</span>
-                <span class="k">if</span> <span class="n">supersede</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">tables</span> <span class="o">==</span> <span class="s2">"geometry"</span><span class="p">:</span>
+                    <span class="k">pass</span>
+                <span class="k">elif</span> <span class="n">supersede</span><span class="p">:</span>
                     <span class="n">outcome</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">supersede</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="n">supersede</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="n">force</span><span class="p">)</span>
                     <span class="n">counts</span><span class="p">[</span><span class="s2">"duplicate"</span> <span class="k">if</span> <span class="n">outcome</span> <span class="o">==</span> <span class="s2">"unchanged"</span> <span class="k">else</span> <span class="n">outcome</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="k">else</span><span class="p">:</span>
@@ -1272,8 +1346,9 @@
                             <span class="n">species</span><span class="p">,</span>
                             <span class="n">symbols</span><span class="p">,</span>
                             <span class="n">coordinates</span><span class="p">,</span>
-                            <span class="n">charge</span><span class="o">=</span><span class="n">configuration</span><span class="o">.</span><span class="n">charge</span><span class="p">,</span>
-                            <span class="n">multiplicity</span><span class="o">=</span><span class="n">configuration</span><span class="o">.</span><span class="n">spin_multiplicity</span> <span class="ow">or</span> <span class="mi">1</span><span class="p">,</span>
+                            <span class="n">charge</span><span class="o">=</span><span class="n">charge</span><span class="p">,</span>
+                            <span class="n">multiplicity</span><span class="o">=</span><span class="n">multiplicity</span><span class="p">,</span>
+                            <span class="n">conformer</span><span class="o">=</span><span class="n">conformer</span><span class="p">,</span>
                             <span class="n">frequency_fingerprint</span><span class="o">=</span><span class="n">ffp</span><span class="p">,</span>
                             <span class="n">optimization_fingerprint</span><span class="o">=</span><span class="n">fp</span><span class="p">,</span>
                             <span class="n">model_chemistry</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
