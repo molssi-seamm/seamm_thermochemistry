@@ -25,6 +25,7 @@ from .fragment_store import FragmentStore, FragmentRecord, harvest_job  # noqa: 
 from .fragment_store import load_species_map  # noqa: F401
 from .geometry_store import GeometryRecord, EnergyRecord, PairingError  # noqa: F401
 from .ladder import Ladder, build_ladder, LadderError  # noqa: F401
+from .zpe import zpe_scale_factor  # noqa: F401
 
 __all__ = [
     "ThermoDB",
@@ -47,6 +48,7 @@ __all__ = [
     "Ladder",
     "build_ladder",
     "LadderError",
+    "zpe_scale_factor",
     "ATcTEntry",
     "ATcTError",
     "AmbiguousEntry",
