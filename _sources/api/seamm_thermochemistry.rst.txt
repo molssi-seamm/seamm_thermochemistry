@@ -124,6 +124,14 @@ seamm\_thermochemistry.report module
    :show-inheritance:
    :undoc-members:
 
+seamm\_thermochemistry.zpe module
+---------------------------------
+
+.. automodule:: seamm_thermochemistry.zpe
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 Module contents
 ---------------
 

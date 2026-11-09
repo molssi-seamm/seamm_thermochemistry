@@ -286,6 +286,33 @@ In Python::
 
 The ladder (below) uses these tables first, and falls back on the records.
 
+ZPE scale factors
+-----------------
+
+Harmonic zero-point energies are too large; scaled by a factor fitted for the level of
+theory of the frequencies they come close to the anharmonic ones. The factors, with their
+sources, are in ``seamm_thermochemistry.zpe``, looked up from the geometry and frequency
+level's model chemistry::
+
+    from seamm_thermochemistry import zpe_scale_factor
+    f = zpe_scale_factor("ORCA:CMP@R2SCAN-3C")
+    f.factor, f.source, f.flag    # 0.9899, the fit, "fitted on molecules of up to 6 atoms..."
+
+=================================  ======  =========================================
+Level                              Factor  Source and caution
+=================================  ======  =========================================
+r2SCAN-3c                          0.9899  fitted to 22 W4-2006 anharmonic ZPVEs;
+                                           molecules of up to 6 atoms, so an
+                                           extrapolation for larger ones
+PBE0(-D4)/def2-TZVP                0.975   Truhlar database v5, PBE0/MG3S:
+                                           basis-mismatched
+B2PLYP(-D3)/cc-pVTZ                0.9863  the CBH-ANL protocol
+=================================  ======  =========================================
+
+A dispersion correction in the method's name is ignored in the lookup; a level that is
+not in the table has no factor, and the Thermochemistry step then warns and uses 1. The
+stored ZPEs stay unscaled.
+
 Laddered reference values (CBH-ANL)
 -----------------------------------
 
