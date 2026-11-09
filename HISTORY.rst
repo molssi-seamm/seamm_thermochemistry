@@ -2,6 +2,13 @@
 History
 =======
 
+2026.11.8.3 -- ZPE scale factors with their sources
+    * ``seamm_thermochemistry.zpe_scale_factor(model_chemistry)`` gives the ZPE scale
+      factor for a geometry/frequency level, with its source and any caution about
+      its use: r2SCAN-3c 0.9899 (fitted to 22 W4-2006 anharmonic ZPVEs, molecules of
+      up to 6 atoms), PBE0/def2-TZVP 0.975 (Truhlar's PBE0/MG3S value, basis-
+      mismatched) and B2PLYP-D3/cc-pVTZ 0.9863 (CBH-ANL).
+
 2026.11.8.2 -- Thermal corrections from the species map; job ids read again
     * The species map of ``harvest --species-map`` can give each structure's thermal
       corrections (E, ZPE, H at 298.15 K and the symmetry number), for jobs that
