@@ -413,3 +413,48 @@ def test_harvest_with_a_species_map(tmp_path, store):
     path.write_text("job,system name,species\n5602,a,CC\n5602,a,CCC\n")
     with pytest.raises(ValueError, match="listed twice"):
         load_species_map(path)
+
+
+def test_harvest_thermal_corrections_from_the_map(tmp_path, store):
+    """A job that stored only energies (no ZPE or H) gets geometry rows from the
+    map's E, ZPE, H298 and symmetry number, if the map's E is the job's; the
+    job id is read past job_data.json's '!MolSSI' header line."""
+    molsystem = pytest.importorskip("molsystem")
+    from seamm_thermochemistry import load_species_map
+
+    job_dir = tmp_path / "job"
+    job_dir.mkdir()
+    db = molsystem.SystemDB(filename=f"file:{job_dir / 'seamm.db'}")
+    s = f"#ORCA#{R2SCAN}"
+    E = {"a": -79.0, "b": -79.1}
+    for name in ("a", "b"):
+        system = db.create_system(name=name, make_current=True)
+        c = system.create_configuration(name="final", make_current=True)
+        c.from_smiles("CC")
+        for n, kind, value, units in (
+            ("total energy" + s, "float", E[name], "E_h"),
+            ("settings fingerprint" + s, "str", "orca:r2scan", None),
+        ):
+            c.properties.add(n, kind, units=units, noerror=True)
+            c.properties.put(n, value)
+    db.close()
+    (job_dir / "job_data.json").write_text('!MolSSI job_data 1.0\n{"job id": 5603}\n')
+    kj = 2625.4996394799
+    path = tmp_path / "map.csv"
+    path.write_text(
+        "job,system name,species,conformer label,E (kJ/mol),ZPE (kJ/mol),"
+        "H298 (kJ/mol),symmetry number\n"
+        f"5603,a,CC,a,{E['a'] * kj},190.0,{E['a'] * kj + 200.0},6\n"
+        f"5603,b,CC,b,{E['a'] * kj},190.0,{E['a'] * kj + 200.0},6\n"  # wrong E
+    )
+    counts = harvest_job(
+        job_dir, store, species_map=load_species_map(path), tables="geometry"
+    )
+    assert counts["geometry"] == {"inserted": 1}
+    (skipped,) = counts["skipped"]
+    assert skipped.startswith("b: the species map's E")
+    (row,) = store.geometries("CC", frequency_fingerprint="orca:r2scan")
+    assert row["conformer"] == "a" and row["symmetry_number"] == 6
+    assert row["ZPE"] == 190.0
+    assert row["H"] - row["E"] == pytest.approx(200.0)
+    assert row["job"].startswith("5603:")

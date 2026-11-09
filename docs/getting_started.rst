@@ -264,6 +264,12 @@ structure), and optionally ``configuration name``, ``charge``, ``multiplicity`` 
 conformers of a species; the records cannot. Systems the map does not list are skipped
 and reported.
 
+For jobs that stored only the energies, the map can also give each structure's thermal
+corrections, in the columns ``E (kJ/mol)``, ``ZPE (kJ/mol)`` (unscaled), ``H298
+(kJ/mol)`` (H at 298.15 K) and ``symmetry number``. They make the geometry row, with
+H - E added to the job's energy, provided the map's E agrees with the job's within
+0.1 kJ/mol; otherwise the structure is reported and gets no geometry row.
+
 Duplicates and ``--supersede`` work as for the records, with the old values in a
 ``row_history`` table. To see what the store holds for a species::
 

@@ -2,6 +2,15 @@
 History
 =======
 
+2026.11.8.2 -- Thermal corrections from the species map; job ids read again
+    * The species map of ``harvest --species-map`` can give each structure's thermal
+      corrections (E, ZPE, H at 298.15 K and the symmetry number), for jobs that
+      stored only energies, so that their structures get geometry rows. They are used
+      only when the map's energy agrees with the job's.
+    * Bugfix: harvest read no job id from job_data.json files that start with SEAMM's
+      "!MolSSI job_data" header line, so a species map naming the job matched
+      nothing and the provenance lacked the job id.
+
 2026.11.8.1 -- Harvesting jobs through a species map
     * ``seamm-thermochemistry-fragments harvest --species-map map.csv`` finds the
       systems of a job by name in a CSV map (job, system name, species; optionally the
