@@ -2,6 +2,13 @@
 History
 =======
 
+2026.11.11.6 -- Quarantined rows left alone and left out
+    * Rows quarantined by hand in a fragment store -- unverified, with the model
+      chemistry ``UNUSABLE: <reason>`` -- are never found by a lookup. Now ``migrate``
+      also leaves their text alone (it no longer reads "UNUSABLE" as a program),
+      ``export`` skips them, and ``official build`` drops them and lists them with
+      their reasons in its report.
+
 2026.11.11.5 -- Checks for official stores; the structure guard's false refusals
     * ``official build`` checks every species state before writing anything: no
       saddle points, the structure guard, and the ground-state spin where it is known

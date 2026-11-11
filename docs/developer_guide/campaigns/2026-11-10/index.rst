@@ -68,6 +68,14 @@ their species (N2O3 as NO2 + NO, Cl2O2 as two ClO), which lookups would otherwis
 have used. To publish: rebuild with the released seamm-thermochemistry, then Paul
 uploads to Zenodo.
 
+**Released 2026-11-11:** seamm-thermochemistry 2026.11.11.4 (design's CBH fixes)
+and 2026.11.11.5 (P5e: official-build checks, structure-guard fixes). ChemAI's
+store was then quarantined by hand (Paul's OK): the six problem rows, with
+``UNUSABLE: <reason>`` as model chemistry; 2026.11.11.6 makes the tools honour
+that, and a dry run on a copy of the quarantined store gives the same v1 (458
+species states; the quarantine covers all six exclusions). A ``quarantine``
+column (schema 4) would be cleaner than the convention; not needed for v1.
+
 Numbering: these phases are the fragment store's P5 (P5a-P5e). The 11-08
 presets plan also had a P5 (long-bond and %[(T)] flags) and a P6 (pilot). Those
 keep their names and have nothing to do with this note.

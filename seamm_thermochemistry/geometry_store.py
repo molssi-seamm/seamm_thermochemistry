@@ -81,6 +81,7 @@ __all__ = [
     "SCHEMA_VERSION",
     "split_model_chemistry",
     "same_model_chemistry",
+    "is_unusable",
 ]
 
 #: The store's schema version (``PRAGMA user_version``): 3 adds the ``meta``
@@ -196,6 +197,8 @@ def split_model_chemistry(text, program=None):
     if text is None:
         return None, program
     text = str(text).strip()
+    if is_unusable(text):  # a quarantined row: its text is a reason, not a level
+        return text, program
     colon = text.find(":")
     at = text.find("@")
     if 0 < colon < at:
@@ -209,6 +212,17 @@ def split_model_chemistry(text, program=None):
             return model, program
         return model, program or prefix
     return text, program
+
+
+#: A row quarantined by hand has the model chemistry "UNUSABLE: <reason>" (and is
+#: unverified), so no lookup matches it; the tools leave such rows alone, and an
+#: official build leaves them out
+UNUSABLE = "UNUSABLE:"
+
+
+def is_unusable(model_chemistry):
+    """Whether a row's model chemistry marks it quarantined ("UNUSABLE: ...")."""
+    return str(model_chemistry or "").strip().upper().startswith(UNUSABLE)
 
 
 def same_model_chemistry(a, b, program_a=None, program_b=None):
