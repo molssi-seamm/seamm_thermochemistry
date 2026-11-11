@@ -327,7 +327,10 @@ and checks every species state before writing anything:
 
 A species state that fails stops the build, unless it is excluded with a reason in
 the ``--exclude`` file (columns species, charge, multiplicity, reason, and optionally
-conformer, to leave out only that conformer). Ions and
+conformer, to leave out only that conformer). Rows quarantined by hand in a store
+(unverified, with the model chemistry ``UNUSABLE: <reason>``) are never found by a
+lookup; ``migrate`` leaves them as they are, ``export`` skips them, and ``official
+build`` drops them and lists them in its report. Ions and
 open-shell species are checked like the rest. The build writes
 ``<file>.report.json`` beside the file: the sources, the levels, the rows kept and
 left out, each exclusion with its reason, and the SHA-256. ``--official FILE`` names an official store other than the

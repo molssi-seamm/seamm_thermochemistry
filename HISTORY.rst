@@ -12,6 +12,9 @@ History
       (``<file>.report.json``) records the sources, levels, rows, exclusions,
       SHA-256 and the seamm-thermochemistry that built it. An exclusion can name one
       conformer (a ``conformer`` column), keeping the species' good conformers.
+    * Rows quarantined by hand -- unverified, with the model chemistry ``UNUSABLE:
+      <reason>`` -- are left alone by ``migrate``, not exported, and dropped by
+      ``official build``, which lists them with their reasons in its report.
     * The structure guard accepts a structure whose bonds are its species' at
       RDKit's default perception or at a covalent-radius factor from 1.15 to 1.5:
       the diagonals of strained four-membered rings and cages (azete, oxetene,

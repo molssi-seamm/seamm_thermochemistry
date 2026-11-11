@@ -36,6 +36,7 @@ from .geometry_store import (
     EnergyRecord,
     GeometryRecord,
     _decode,
+    is_unusable,
     split_model_chemistry,
 )
 
@@ -322,6 +323,8 @@ def export_local(out, local=None, official=None, *, label=None):
             )
             for table in ("fragment", "geometry", "energy"):
                 for record in _rows(local_store, table):
+                    if is_unusable(record.get("model_chemistry")):
+                        continue  # quarantined rows are not contributed
                     theirs = (
                         _row_by_key(official_store, table, record)
                         if official_store
@@ -494,6 +497,35 @@ def _select(store, frequency_fingerprints=None, energy_fingerprints=None):
     return deleted
 
 
+def _drop_unusable(store):
+    """Delete the rows quarantined by hand (model chemistry "UNUSABLE: <reason>")
+    and return [{table, species or geometry, reason}] for the report."""
+    db = store._connect(create=True)
+    dropped = []
+    for table, who in (
+        ("geometry", "species || ' ' || conformer"),
+        ("energy", "geometry_hash"),
+        ("fragment", "species"),
+    ):
+        rows = db.execute(
+            f"SELECT id, {who}, model_chemistry FROM {table} "
+            "WHERE UPPER(TRIM(model_chemistry)) LIKE 'UNUSABLE:%'"
+        ).fetchall()
+        for row in rows:
+            dropped.append(
+                {
+                    "table": table,
+                    "row": row[1],
+                    "reason": row[2].split(":", 1)[1].strip(),
+                }
+            )
+        db.execute(
+            f"DELETE FROM {table} WHERE UPPER(TRIM(model_chemistry)) LIKE 'UNUSABLE:%'"
+        )
+    db.commit()
+    return dropped
+
+
 def _exclude(store, excluded):
     """Delete the excluded rows: a whole species state, or one conformer of it
     (the energies on a deleted geometry, and the fragment-table records made from
@@ -618,6 +650,7 @@ def build_official(
             if old.layer != "official":
                 raise ValueError(f"{previous} is not an official store.")
         shutil.copy2(Path(previous).expanduser(), out)
+    # Rows quarantined by hand ("UNUSABLE: ...") are dropped first and listed
     report = {
         "version": version,
         "built": _now(),
@@ -647,6 +680,7 @@ def build_official(
                     "store; resolve them with 'supersede' first:\n  "
                     + "\n  ".join(conflicts[:50])
                 )
+            report["quarantined"] = _drop_unusable(store)
             report["deselected"] = _select(
                 store, frequency_fingerprints, energy_fingerprints
             )

@@ -278,3 +278,49 @@ def test_one_conformer_can_be_excluded(tmp_path):
         (g,) = s.geometries("CCO", frequency_fingerprint=GEO)
         assert g["geometry_hash"] == good["geometry_hash"]
         assert s.energies(bad["geometry_hash"]) == []
+
+
+def test_quarantined_rows_are_left_out_and_not_renamed(tmp_path):
+    """Rows marked by hand with the model chemistry "UNUSABLE: <reason>" (and
+    unverified) are never found, migrate leaves their text alone, export skips
+    them and the official build drops them, listed in its report."""
+    import sqlite3
+
+    path = tmp_path / "local.db"
+    with FragmentStore(path, create=True) as s:
+        _put(s, "C")
+        _put(s, "CC")
+    reason = "UNUSABLE: dissociated into two CH3 (C...C 2.4 Å) @ job 5689"
+    db = sqlite3.connect(path)
+    for table in ("geometry", "fragment"):
+        db.execute(
+            f"UPDATE {table} SET verified = 0, model_chemistry = ? "
+            "WHERE species = 'CC'",
+            (reason,),
+        )
+    db.commit()
+    db.close()
+    T.migrate_store(path)
+    db = sqlite3.connect(path)
+    assert db.execute(
+        "SELECT model_chemistry, program FROM geometry WHERE species = 'CC'"
+    ).fetchone() == (reason, None)
+    db.close()
+    with FragmentStore(path) as s:
+        assert s.geometries("CC", frequency_fingerprint=GEO) == []
+    contribution = tmp_path / "c.db"
+    counts = T.export_local(contribution, path, tmp_path / "none.db")
+    assert counts["geometry"] == 1  # C only
+    out = tmp_path / "official.db"
+    build_official(out, "v", [path], frequency_fingerprints=[GEO])
+    report = json.loads((tmp_path / "official.db.report.json").read_text())
+    tables = {d["table"] for d in report["quarantined"]}
+    assert tables == {"geometry", "fragment"}
+    assert report["quarantined"][0]["reason"].startswith("dissociated")
+    with FragmentStore(out, immutable=True) as s:
+        assert (
+            s._connect()
+            .execute("SELECT COUNT(*) FROM geometry WHERE species = 'CC'")
+            .fetchone()[0]
+            == 0
+        )
