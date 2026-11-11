@@ -2,6 +2,22 @@
 History
 =======
 
+2026.11.11 -- Model chemistries stored with their program; lookups by several fingerprints
+    * The fragment store keeps a model chemistry as the bare model and the program
+      (``CMP@R2SCAN-3C`` and ``ORCA``), however it was given. The ORCA sub-steps
+      name a level ``CMP@R2SCAN-3C`` and the Model Chemistry step
+      ``ORCA:CMP@R2SCAN-3C``, so the two did not match by name before. Lookups
+      accept either spelling and also find rows written before this change. The
+      harvest now fills in the program of the fragment rows too.
+    * The readers (``get``, ``geometries``, ``energy``, ``species_at``) accept
+      several fingerprints, so that a caller can look each species up with the
+      fingerprints expected for it: ORCA uses exact exchange (NoCOSX) for atoms and
+      for Na, Mg, Zn, B and P, which changes their fingerprint at the same level.
+    * The command line shows a level as ``PROGRAM:model``, as before.
+    * The design of the next phases of the fragment store (write-back from jobs,
+      official and local stores, automatic ATcT download) is in the developer
+      guide.
+
 2026.11.8.3 -- ZPE scale factors with their sources
     * ``seamm_thermochemistry.zpe_scale_factor(model_chemistry)`` gives the ZPE scale
       factor for a geometry/frequency level, with its source and any caution about

@@ -51,6 +51,18 @@ Writes follow the ``fragment`` table's rules: insert-or-ignore, a differing
 duplicate (by more than 0.1 kJ/mol) logged in ``row_history`` and never
 overwritten, and an explicit ``supersede`` with a reason that keeps the old
 values in ``row_history``.
+
+Model chemistries are stored as the bare model and the program, e.g.
+``CMP@R2SCAN-3C`` and ``ORCA``, however they are given
+(:func:`split_model_chemistry`): the ORCA sub-steps name a level
+``CMP@R2SCAN-3C`` and the Model Chemistry step ``ORCA:CMP@R2SCAN-3C``. Lookups by
+model chemistry accept either spelling and also match rows written before the
+names were normalized.
+
+The fingerprint arguments of the readers take one fingerprint or several (any
+iterable): a code may give a species one of a few fingerprints at the same level
+(e.g. ORCA with or without ``NoCOSX``, chosen by the species' elements), and the
+caller passes those it expects.
 """
 
 import datetime
@@ -67,6 +79,8 @@ __all__ = [
     "PairingError",
     "IMAGINARY_TOLERANCE",
     "SCHEMA_VERSION",
+    "split_model_chemistry",
+    "same_model_chemistry",
 ]
 
 #: The store's schema version (``PRAGMA user_version``): 2 adds geometry,
@@ -152,8 +166,74 @@ def _now():
     return datetime.datetime.now().isoformat(timespec="seconds")
 
 
-def _unverified(level, version):
-    return f"unverified:{level}@{version or '?'}"
+def split_model_chemistry(text, program=None):
+    """The bare model chemistry and the program of a model chemistry string.
+
+    ``ORCA:CMP@R2SCAN-3C`` gives ("CMP@R2SCAN-3C", "ORCA"); a bare
+    ``CMP@R2SCAN-3C`` gives ("CMP@R2SCAN-3C", `program`). Only a prefix before
+    the first ``@`` is a program, so ``ORCA:DFT@B3LYP/bse:def2-SVP`` gives
+    ("DFT@B3LYP/bse:def2-SVP", "ORCA"), and a string without ``@`` (e.g. a
+    fingerprint, ``sha256:...``) is returned as it is. A `program` given
+    explicitly wins over a different prefix, which is logged.
+
+    Parameters
+    ----------
+    text : str or None
+        The model chemistry.
+    program : str, optional
+        The program, if known otherwise.
+
+    Returns
+    -------
+    (str or None, str or None)
+    """
+    if text is None:
+        return None, program
+    text = str(text).strip()
+    colon = text.find(":")
+    at = text.find("@")
+    if 0 < colon < at:
+        prefix = text[:colon].strip()
+        model = text[colon + 1 :].strip()
+        if program and str(program).lower() != prefix.lower():
+            logger.warning(
+                f"The model chemistry {text} names the program {prefix}, but the "
+                f"calculation was run with {program}; keeping {program}."
+            )
+            return model, program
+        return model, program or prefix
+    return text, program
+
+
+def same_model_chemistry(a, b, program_a=None, program_b=None):
+    """Whether two model chemistries are the same level: the same bare model,
+    and the same program when both are known (case-insensitive)."""
+    model_a, program_a = split_model_chemistry(a, program_a)
+    model_b, program_b = split_model_chemistry(b, program_b)
+    if model_a != model_b:
+        return False
+    if program_a and program_b:
+        return str(program_a).lower() == str(program_b).lower()
+    return True
+
+
+def _as_list(fingerprints):
+    """A fingerprint argument as a list: None or "" gives [], a string gives
+    [it], an iterable gives its non-empty members in order."""
+    if not fingerprints:
+        return []
+    if isinstance(fingerprints, str):
+        return [fingerprints]
+    return [f for f in fingerprints if f]
+
+
+def _unverified(level, version, program=None):
+    """The key of a row without a fingerprint: unverified:<program>:<model>@
+    <version>, the same text as before the names were normalized when the
+    program is known."""
+    model, program = split_model_chemistry(level, program)
+    name = f"{program}:{model}" if program else model
+    return f"unverified:{name}@{version or '?'}"
 
 
 class GeometryRecord(dict):
@@ -205,12 +285,15 @@ class GeometryRecord(dict):
         and code version and flagged unverified. The geometry hash is computed
         from the atomic numbers (or symbols) and coordinates unless given.
         ``optimization_model_chemistry``, when given, must be the frequency
-        level's (``model_chemistry``).
+        level's (``model_chemistry``). The model chemistry is stored bare, with
+        its program in ``program`` (:func:`split_model_chemistry`).
         """
         if (
             optimization_model_chemistry
             and model_chemistry
-            and optimization_model_chemistry != model_chemistry
+            and not same_model_chemistry(
+                optimization_model_chemistry, model_chemistry, program, program
+            )
         ):
             raise PairingError(
                 f"{species}: optimized at {optimization_model_chemistry} but the "
@@ -223,7 +306,8 @@ class GeometryRecord(dict):
                 raise ValueError(
                     "A geometry needs a frequency fingerprint or a model chemistry."
                 )
-            frequency_fingerprint = _unverified(model_chemistry, version)
+            frequency_fingerprint = _unverified(model_chemistry, version, program)
+        model_chemistry, program = split_model_chemistry(model_chemistry, program)
         symbols = [str(s) for s in symbols]
         coordinates = [[float(x) for x in xyz] for xyz in coordinates]
         if geometry_hash is None:
@@ -307,7 +391,8 @@ class EnergyRecord(dict):
                 raise ValueError(
                     "An energy needs an energy fingerprint or a model chemistry."
                 )
-            energy_fingerprint = _unverified(model_chemistry, version)
+            energy_fingerprint = _unverified(model_chemistry, version, program)
+        model_chemistry, program = split_model_chemistry(model_chemistry, program)
         return EnergyRecord(
             geometry_hash=geometry_hash,
             energy_fingerprint=energy_fingerprint,
@@ -629,11 +714,13 @@ class GeometryEnergyMixin:
     ):
         """The geometry rows of a species at a frequency level, by conformer.
 
-        With a frequency fingerprint, the verified rows with it; without one,
-        or when there are none, the unverified rows of the model chemistry
-        (and code version if given). Rows with imaginary modes beyond the
-        tolerance are left out unless `include_imaginary`. Any error reading
-        the store gives [] and a log message.
+        With frequency fingerprints (one, or several the caller expects), the
+        verified rows with any of them; without, or when there are none, the
+        unverified rows of the model chemistry (either spelling, see
+        :func:`split_model_chemistry`; and the code version if given). Rows with
+        imaginary modes beyond the tolerance are left out unless
+        `include_imaginary`. Any error reading the store gives [] and a log
+        message.
         """
         db = self._reader()
         if db is None:
@@ -642,24 +729,21 @@ class GeometryEnergyMixin:
         args = [species, int(charge), int(multiplicity)]
         if not include_imaginary:
             where += " AND (n_imaginary IS NULL OR n_imaginary = 0)"
+        fingerprints = _as_list(frequency_fingerprint)
         try:
             rows = []
-            if frequency_fingerprint:
+            if fingerprints:
+                marks = ", ".join("?" * len(fingerprints))
                 rows = db.execute(
                     f"SELECT * FROM geometry WHERE {where} AND verified = 1 AND "
-                    "frequency_fingerprint = ? ORDER BY conformer, id",
-                    args + [frequency_fingerprint],
+                    f"frequency_fingerprint IN ({marks}) ORDER BY conformer, id",
+                    args + fingerprints,
                 ).fetchall()
             if not rows and model_chemistry:
-                sql = f"{where} AND verified = 0 AND model_chemistry = ?"
-                args_u = args + [model_chemistry]
-                if version:
-                    sql += " AND version = ?"
-                    args_u.append(version)
-                rows = db.execute(
-                    f"SELECT * FROM geometry WHERE {sql} ORDER BY conformer, id",
-                    args_u,
-                ).fetchall()
+                rows = self._unverified_rows(
+                    db, "geometry", where, args, model_chemistry, version
+                )
+                rows.sort(key=lambda r: (r["conformer"], r["id"]))
         except sqlite3.OperationalError:  # a store from before the table existed
             return []
         except sqlite3.Error as e:
@@ -677,38 +761,59 @@ class GeometryEnergyMixin:
     ):
         """The energy row on a geometry at a level, or None.
 
-        As :meth:`geometries`: the verified row with the fingerprint, else an
-        unverified row of the model chemistry (and code version if given).
+        As :meth:`geometries`: the verified row with the fingerprint (or with
+        any of several, the first in the order given), else an unverified row of
+        the model chemistry (and code version if given).
         """
         db = self._reader()
         if db is None:
             return None
         try:
-            if energy_fingerprint:
+            for fingerprint in _as_list(energy_fingerprint):
                 row = db.execute(
                     "SELECT * FROM energy WHERE geometry_hash = ? AND "
                     "energy_fingerprint = ? AND verified = 1",
-                    (geometry_hash, energy_fingerprint),
+                    (geometry_hash, fingerprint),
                 ).fetchone()
                 if row is not None:
                     return _decode(row, EnergyRecord)
             if model_chemistry:
-                sql = "geometry_hash = ? AND verified = 0 AND model_chemistry = ?"
-                args = [geometry_hash, model_chemistry]
-                if version:
-                    sql += " AND version = ?"
-                    args.append(version)
-                row = db.execute(
-                    f"SELECT * FROM energy WHERE {sql} ORDER BY id LIMIT 1", args
-                ).fetchone()
-                if row is not None:
-                    return _decode(row, EnergyRecord)
+                rows = self._unverified_rows(
+                    db,
+                    "energy",
+                    "geometry_hash = ?",
+                    [geometry_hash],
+                    model_chemistry,
+                    version,
+                )
+                if rows:
+                    return _decode(min(rows, key=lambda r: r["id"]), EnergyRecord)
         except sqlite3.OperationalError:
             return None
         except sqlite3.Error as e:
             logger.warning(f"The fragment store {self.path} could not be read: {e}")
             return None
         return None
+
+    @staticmethod
+    def _unverified_rows(db, table, where, args, model_chemistry, version=None):
+        """The unverified rows of `table` matching `where` at the model
+        chemistry, in either spelling (bare + program column, or prefixed as
+        written before the names were normalized), and the version if given.
+        The names are compared in Python: a SQL LIKE would treat the '_' in
+        names such as REVDSD-PBEP86-D4_2021 as a wildcard."""
+        sql = f"SELECT * FROM {table} WHERE {where} AND verified = 0"
+        args = list(args)
+        if version:
+            sql += " AND version = ?"
+            args.append(version)
+        return [
+            r
+            for r in db.execute(sql, args).fetchall()
+            if same_model_chemistry(
+                model_chemistry, r["model_chemistry"], None, r["program"]
+            )
+        ]
 
     def energies(self, geometry_hash):
         """Every energy row on a geometry."""
@@ -741,8 +846,10 @@ class GeometryEnergyMixin:
         {"geometry": GeometryRecord, "energy": EnergyRecord, "E": kJ/mol,
         "ZPE": unscaled kJ/mol, "H - E": kJ/mol at the geometry's T}. The
         energy level may be the frequency level itself (its E is then in the
-        geometry row, and an energy row is used when there is one).
+        geometry row, and an energy row is used when there is one). Each
+        fingerprint may be one or several (see :meth:`geometries`).
         """
+        energy_fingerprints = _as_list(energy_fingerprint)
         out = []
         for g in self.geometries(
             species,
@@ -758,12 +865,18 @@ class GeometryEnergyMixin:
             )
             if e is None:
                 same = (
-                    energy_fingerprint
-                    and energy_fingerprint == g.get("optimization_fingerprint")
+                    energy_fingerprints
+                    and g.get("optimization_fingerprint") in energy_fingerprints
                 ) or (
-                    not energy_fingerprint
+                    not energy_fingerprints
                     and energy_model_chemistry
-                    and energy_model_chemistry == g.get("model_chemistry")
+                    and g.get("model_chemistry")
+                    and same_model_chemistry(
+                        energy_model_chemistry,
+                        g["model_chemistry"],
+                        None,
+                        g.get("program"),
+                    )
                 )
                 if not same or g["E"] is None:
                     continue

@@ -174,7 +174,8 @@ def test_harvest(job, store):
     assert set(records) == {"CCF", "C", "[CH3]", "CF"}  # C(F) canonicalized
     assert records["CCF"]["E"] == pytest.approx(-262.0)  # E_h converted
     assert not records["CCF"]["verified"]  # no fingerprint stored
-    assert records["CCF"]["model_chemistry"] == "MOPAC:SQM@PM7"
+    assert records["CCF"]["model_chemistry"] == "SQM@PM7"  # bare, normalized
+    assert records["CCF"]["program"] == "MOPAC"
     assert records["CCF"]["job"].startswith("42:")
     assert records["[CH3]"]["multiplicity"] == 2
     c = records["C"]

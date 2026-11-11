@@ -11,6 +11,7 @@ Welcome to SEAMM thermochemistry's documentation!
 
    getting_started
    api
+   developer_guide/index
 
 
 
