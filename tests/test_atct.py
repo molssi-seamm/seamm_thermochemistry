@@ -128,6 +128,62 @@ def test_canonical_smiles_unparseable():
     assert A.canonical_smiles("O=[N]=O") is None
 
 
+def test_index_and_lookup_hypervalent_halogens(tmp_path):
+    """ClF3 and BrO2 (as ATcT writes them) are indexed and found, not raised on."""
+    entries = json.loads(FIXTURE.read_text())
+    version = entries[0]["ATcT_TN_Version"]
+    for atct_id, name, formula, smiles in (
+        ("7790-91-2*0", "Chlorine trifluoride", "ClF3 (g)", "FCl(F)F"),
+        ("21255-83-4*0", "Bromine dioxide", "OBrO (g)", "[O]Br[O]"),
+    ):
+        entries.append(
+            {
+                "ATcT_TN_Version": version,
+                "ATcT_ID": atct_id,
+                "Name": name,
+                "Formula": formula,
+                "Delta_Hf_0K": "-1.000",
+                "Delta_Hf_298K": "-2.000",
+                "Delta_Hf298K_uncertainty": "0.500",
+                "unit": "kJ/mol",
+                "mass": "92.448",
+                "mass_uncertainty": "0.001",
+                "SMILES": smiles,
+                "CASRN": atct_id.split("*")[0],
+                "charge": "0",
+            }
+        )
+    source = tmp_path / "all.json"
+    source.write_text(json.dumps(entries))
+    A.download_all(tmp_path / "atct", source=source)
+    tables = A.ATcT(base=tmp_path / "atct")
+    assert "7790-91-2*0" not in tables.index["unparsed"]
+    assert tables.lookup("F[Cl](F)F")["id"] == "7790-91-2*0"
+    assert tables.lookup("[O]Br[O]")["id"] == "21255-83-4*0"
+
+
+@pytest.mark.parametrize(
+    "smiles",
+    [
+        "FCl(F)F",
+        "F[Cl@SP2](F)F",
+        "F[Br@OH13](F)(F)(F)F",
+        "[O]Br[O]",
+        "BrBrBr",
+        "O=[S-](=O)=O",
+        "[ClH-]",
+        "O[Cl+](=O)(=O)=O",
+    ],
+)
+def test_canonical_smiles_hypervalent_both_paths(smiles):
+    """Hypervalent halogens and charged S (in ATcT 1.220 and 1.228) canonicalize
+    with and without stereo, rather than raising in RemoveHs."""
+    can = A.canonical_smiles(smiles)
+    flat = A.canonical_smiles(smiles, stereo=False)
+    assert can is not None and flat is not None
+    assert A.canonical_smiles(flat, stereo=False) == flat
+
+
 # -- the cache on disk --------------------------------------------------------
 
 

@@ -2,6 +2,15 @@
 History
 =======
 
+2026.11.11.13 -- ATcT lookups of hypervalent halogens no longer raise
+    * Bug fix: ``canonical_smiles(..., stereo=False)`` raised RDKit's
+      ``AtomValenceException`` for molecules read without the valence check (ClF3,
+      BrF5, BrO2, Br3, ClO2, charged S such as O=[S-](=O)=O) when ``RemoveHs``
+      re-sanitized them, since 2026.11.11.4. Every ATcT lookup of such a species
+      failed, and building the index of a newly downloaded ATcT version (1.228) failed
+      outright. ``RemoveHs`` now keeps the molecule unsanitized in that case; every
+      SMILES that already worked gives the same result.
+
 2026.11.11.12 -- A fragment store from newer code is never written
     * A fragment store whose schema version (``PRAGMA user_version``) is higher than
       this code knows is never written, whatever ``fragment-store-writable`` says:
