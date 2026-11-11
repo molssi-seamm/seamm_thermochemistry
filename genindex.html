@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Index &#8212; SEAMM thermochemistry Plug-in 2026.11.11.1 documentation</title>
+    <title>Index &#8212; SEAMM thermochemistry Plug-in 2026.11.11.2 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="_static/documentation_options.js?v=0273fb53"></script>
+    <script src="_static/documentation_options.js?v=358b7139"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.11.1" />
+  <meta name="docsearch:version" content="2026.11.11.2" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -414,6 +414,7 @@
  | <a href="#L"><strong>L</strong></a>
  | <a href="#M"><strong>M</strong></a>
  | <a href="#N"><strong>N</strong></a>
+ | <a href="#O"><strong>O</strong></a>
  | <a href="#P"><strong>P</strong></a>
  | <a href="#R"><strong>R</strong></a>
  | <a href="#S"><strong>S</strong></a>
@@ -502,6 +503,12 @@
         <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.ladder.build_ladder">(in module seamm_thermochemistry.ladder)</a>
 </li>
       </ul></li>
+      <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.build_official">build_official() (in module seamm_thermochemistry)</a>
+
+      <ul>
+        <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.store_tools.build_official">(in module seamm_thermochemistry.store_tools)</a>
+</li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -538,8 +545,6 @@
         <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.atct.ATcT.citation">(seamm_thermochemistry.atct.ATcT property)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.db.ThermoDB.close">close() (seamm_thermochemistry.db.ThermoDB method)</a>
 
       <ul>
@@ -547,9 +552,15 @@
 </li>
         <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.FragmentStore.close">(seamm_thermochemistry.FragmentStore method)</a>
 </li>
+        <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.layered_store.LayeredStore.close">(seamm_thermochemistry.layered_store.LayeredStore method)</a>
+</li>
+        <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.LayeredStore.close">(seamm_thermochemistry.LayeredStore method)</a>
+</li>
         <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.ThermoDB.close">(seamm_thermochemistry.ThermoDB method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.cbh.Reaction.coefficients">coefficients (seamm_thermochemistry.cbh.Reaction attribute)</a>
 </li>
       <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.ATcT.covariance">covariance() (seamm_thermochemistry.ATcT method)</a>
@@ -594,10 +605,10 @@
         <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.ThermoDB.doi">(seamm_thermochemistry.ThermoDB method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.atct.download_all">download_all() (in module seamm_thermochemistry.atct)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.db.ThermoDB.dump_atom_energies_csv">dump_atom_energies_csv() (seamm_thermochemistry.db.ThermoDB method)</a>
 
       <ul>
@@ -615,6 +626,10 @@
       <ul>
         <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.FragmentStore.duplicates">(seamm_thermochemistry.FragmentStore method)</a>
 </li>
+        <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.layered_store.LayeredStore.duplicates">(seamm_thermochemistry.layered_store.LayeredStore method)</a>
+</li>
+        <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.LayeredStore.duplicates">(seamm_thermochemistry.LayeredStore method)</a>
+</li>
       </ul></li>
   </ul></td>
 </tr></table>
@@ -629,9 +644,21 @@
 </li>
       </ul></li>
       <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.geometry_store.GeometryEnergyMixin.energies">energies() (seamm_thermochemistry.geometry_store.GeometryEnergyMixin method)</a>
+
+      <ul>
+        <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.layered_store.LayeredStore.energies">(seamm_thermochemistry.layered_store.LayeredStore method)</a>
 </li>
+        <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.LayeredStore.energies">(seamm_thermochemistry.LayeredStore method)</a>
+</li>
+      </ul></li>
       <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.geometry_store.GeometryEnergyMixin.energy">energy() (seamm_thermochemistry.geometry_store.GeometryEnergyMixin method)</a>
+
+      <ul>
+        <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.layered_store.LayeredStore.energy">(seamm_thermochemistry.layered_store.LayeredStore method)</a>
 </li>
+        <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.LayeredStore.energy">(seamm_thermochemistry.LayeredStore method)</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.EnergyRecord">EnergyRecord (class in seamm_thermochemistry)</a>
@@ -646,6 +673,12 @@
 
       <ul>
         <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.ladder.Ladder.entry">(seamm_thermochemistry.ladder.Ladder method)</a>
+</li>
+      </ul></li>
+      <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.export_local">export_local() (in module seamm_thermochemistry)</a>
+
+      <ul>
+        <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.store_tools.export_local">(in module seamm_thermochemistry.store_tools)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -713,7 +746,13 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.geometry_store.GeometryEnergyMixin.geometries">geometries() (seamm_thermochemistry.geometry_store.GeometryEnergyMixin method)</a>
+
+      <ul>
+        <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.layered_store.LayeredStore.geometries">(seamm_thermochemistry.layered_store.LayeredStore method)</a>
 </li>
+        <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.LayeredStore.geometries">(seamm_thermochemistry.LayeredStore method)</a>
+</li>
+      </ul></li>
       <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.geometry_store.GeometryEnergyMixin">GeometryEnergyMixin (class in seamm_thermochemistry.geometry_store)</a>
 </li>
       <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.GeometryRecord">GeometryRecord (class in seamm_thermochemistry)</a>
@@ -728,6 +767,10 @@
 
       <ul>
         <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.FragmentStore.get">(seamm_thermochemistry.FragmentStore method)</a>
+</li>
+        <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.layered_store.LayeredStore.get">(seamm_thermochemistry.layered_store.LayeredStore method)</a>
+</li>
+        <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.LayeredStore.get">(seamm_thermochemistry.LayeredStore method)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -785,7 +828,13 @@
 </li>
       </ul></li>
       <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.geometry_store.GeometryEnergyMixin.history">history() (seamm_thermochemistry.geometry_store.GeometryEnergyMixin method)</a>
+
+      <ul>
+        <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.layered_store.LayeredStore.history">(seamm_thermochemistry.layered_store.LayeredStore method)</a>
 </li>
+        <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.LayeredStore.history">(seamm_thermochemistry.LayeredStore method)</a>
+</li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -884,14 +933,38 @@
 </li>
       <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.LadderError">LadderError</a>, <a href="api/seamm_thermochemistry.html#seamm_thermochemistry.ladder.LadderError">[1]</a>
 </li>
+      <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.fragment_store.FragmentStore.layer">layer (seamm_thermochemistry.fragment_store.FragmentStore property)</a>
+
+      <ul>
+        <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.FragmentStore.layer">(seamm_thermochemistry.FragmentStore property)</a>
+</li>
+      </ul></li>
+      <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.layer_conflicts">layer_conflicts() (in module seamm_thermochemistry)</a>
+
+      <ul>
+        <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.store_tools.layer_conflicts">(in module seamm_thermochemistry.store_tools)</a>
+</li>
+      </ul></li>
+      <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.layered_store.LayeredStore.layer_name">layer_name() (seamm_thermochemistry.layered_store.LayeredStore method)</a>
+
+      <ul>
+        <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.LayeredStore.layer_name">(seamm_thermochemistry.LayeredStore method)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.LayeredStore">LayeredStore (class in seamm_thermochemistry)</a>
+
+      <ul>
+        <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.layered_store.LayeredStore">(class in seamm_thermochemistry.layered_store)</a>
+</li>
+      </ul></li>
       <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.db.ThermoDB.list_methods">list_methods() (seamm_thermochemistry.db.ThermoDB method)</a>
 
       <ul>
         <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.ThermoDB.list_methods">(seamm_thermochemistry.ThermoDB method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.Ladder.load">load() (seamm_thermochemistry.Ladder class method)</a>
 
       <ul>
@@ -908,6 +981,12 @@
 
       <ul>
         <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.atct.ATcT.lookup">(seamm_thermochemistry.atct.ATcT method)</a>
+</li>
+      </ul></li>
+      <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.layered_store.LayeredStore.lowest">lowest() (seamm_thermochemistry.layered_store.LayeredStore static method)</a>
+
+      <ul>
+        <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.LayeredStore.lowest">(seamm_thermochemistry.LayeredStore static method)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -946,8 +1025,26 @@
       </ul></li>
       <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.hooks.MARKER">MARKER (in module seamm_thermochemistry.hooks)</a>
 </li>
+      <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.merge_stores">merge_stores() (in module seamm_thermochemistry)</a>
+
+      <ul>
+        <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.store_tools.merge_stores">(in module seamm_thermochemistry.store_tools)</a>
+</li>
+      </ul></li>
+      <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.fragment_store.FragmentStore.meta">meta() (seamm_thermochemistry.fragment_store.FragmentStore method)</a>
+
+      <ul>
+        <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.FragmentStore.meta">(seamm_thermochemistry.FragmentStore method)</a>
+</li>
+      </ul></li>
       <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.zpe.ZPEFactor.method">method (seamm_thermochemistry.zpe.ZPEFactor attribute)</a>
 </li>
+      <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.migrate_store">migrate_store() (in module seamm_thermochemistry)</a>
+
+      <ul>
+        <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.store_tools.migrate_store">(in module seamm_thermochemistry.store_tools)</a>
+</li>
+      </ul></li>
       <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.db.ThermoDB.missing">missing() (seamm_thermochemistry.db.ThermoDB method)</a>
 
       <ul>
@@ -956,6 +1053,8 @@
       </ul></li>
       <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.MissingEntry">MissingEntry</a>, <a href="api/seamm_thermochemistry.html#seamm_thermochemistry.atct.MissingEntry">[1]</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.MissingReferenceData">MissingReferenceData</a>, <a href="api/seamm_thermochemistry.html#seamm_thermochemistry.formation.MissingReferenceData">[1]</a>
 </li>
       <li>
@@ -992,13 +1091,15 @@
 </li>
         <li><a href="api/seamm_thermochemistry.html#module-seamm_thermochemistry.ladder_cli">seamm_thermochemistry.ladder_cli</a>
 </li>
+        <li><a href="api/seamm_thermochemistry.html#module-seamm_thermochemistry.layered_store">seamm_thermochemistry.layered_store</a>
+</li>
         <li><a href="api/seamm_thermochemistry.html#module-seamm_thermochemistry.report">seamm_thermochemistry.report</a>
+</li>
+        <li><a href="api/seamm_thermochemistry.html#module-seamm_thermochemistry.store_tools">seamm_thermochemistry.store_tools</a>
 </li>
         <li><a href="api/seamm_thermochemistry.html#module-seamm_thermochemistry.zpe">seamm_thermochemistry.zpe</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.atct.ATcTEntry.multiplicity">multiplicity (seamm_thermochemistry.atct.ATcTEntry property)</a>
 
       <ul>
@@ -1012,10 +1113,24 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.geometry_store.GeometryEnergyMixin.n_geometries">n_geometries() (seamm_thermochemistry.geometry_store.GeometryEnergyMixin method)</a>
+
+      <ul>
+        <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.layered_store.LayeredStore.n_geometries">(seamm_thermochemistry.layered_store.LayeredStore method)</a>
 </li>
+        <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.LayeredStore.n_geometries">(seamm_thermochemistry.LayeredStore method)</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.atct.normalize_entry">normalize_entry() (in module seamm_thermochemistry.atct)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="O">O</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.official_store_path">official_store_path() (in module seamm_thermochemistry)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -1031,24 +1146,52 @@
         <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.atct.ATcT.parse_covariance">(seamm_thermochemistry.atct.ATcT method)</a>
 </li>
       </ul></li>
+      <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.layered_store.LayeredStore.path">path (seamm_thermochemistry.layered_store.LayeredStore property)</a>
+
+      <ul>
+        <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.LayeredStore.path">(seamm_thermochemistry.LayeredStore property)</a>
+</li>
+      </ul></li>
       <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.cbh.Reaction.products">products (seamm_thermochemistry.cbh.Reaction property)</a>
 </li>
       <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.cbh.Reaction.protected">protected (seamm_thermochemistry.cbh.Reaction attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.fragment_store.FragmentStore.put">put() (seamm_thermochemistry.fragment_store.FragmentStore method)</a>
 
       <ul>
         <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.FragmentStore.put">(seamm_thermochemistry.FragmentStore method)</a>
 </li>
+        <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.layered_store.LayeredStore.put">(seamm_thermochemistry.layered_store.LayeredStore method)</a>
+</li>
+        <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.LayeredStore.put">(seamm_thermochemistry.LayeredStore method)</a>
+</li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.geometry_store.GeometryEnergyMixin.put_energy">put_energy() (seamm_thermochemistry.geometry_store.GeometryEnergyMixin method)</a>
+
+      <ul>
+        <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.layered_store.LayeredStore.put_energy">(seamm_thermochemistry.layered_store.LayeredStore method)</a>
 </li>
+        <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.LayeredStore.put_energy">(seamm_thermochemistry.LayeredStore method)</a>
+</li>
+      </ul></li>
       <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.geometry_store.GeometryEnergyMixin.put_geometry">put_geometry() (seamm_thermochemistry.geometry_store.GeometryEnergyMixin method)</a>
+
+      <ul>
+        <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.layered_store.LayeredStore.put_geometry">(seamm_thermochemistry.layered_store.LayeredStore method)</a>
 </li>
+        <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.LayeredStore.put_geometry">(seamm_thermochemistry.LayeredStore method)</a>
+</li>
+      </ul></li>
       <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.geometry_store.GeometryEnergyMixin.put_geometry_conformer">put_geometry_conformer() (seamm_thermochemistry.geometry_store.GeometryEnergyMixin method)</a>
+
+      <ul>
+        <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.layered_store.LayeredStore.put_geometry_conformer">(seamm_thermochemistry.layered_store.LayeredStore method)</a>
 </li>
+        <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.LayeredStore.put_geometry_conformer">(seamm_thermochemistry.LayeredStore method)</a>
+</li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -1069,6 +1212,10 @@
 
       <ul>
         <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.FragmentStore.records">(seamm_thermochemistry.FragmentStore method)</a>
+</li>
+        <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.layered_store.LayeredStore.records">(seamm_thermochemistry.layered_store.LayeredStore method)</a>
+</li>
+        <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.LayeredStore.records">(seamm_thermochemistry.LayeredStore method)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -1113,6 +1260,10 @@
 
       <ul>
         <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.geometry_store.GeometryEnergyMixin.schema_version">(seamm_thermochemistry.geometry_store.GeometryEnergyMixin method)</a>
+</li>
+        <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.layered_store.LayeredStore.schema_version">(seamm_thermochemistry.layered_store.LayeredStore method)</a>
+</li>
+        <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.LayeredStore.schema_version">(seamm_thermochemistry.LayeredStore method)</a>
 </li>
         <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.ThermoDB.schema_version">(seamm_thermochemistry.ThermoDB method)</a>
 </li>
@@ -1194,8 +1345,6 @@
         <li><a href="api/seamm_thermochemistry.html#module-seamm_thermochemistry.hooks">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     seamm_thermochemistry.import_orca_cli
 
@@ -1210,6 +1359,8 @@
         <li><a href="api/seamm_thermochemistry.html#module-seamm_thermochemistry.importers">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     seamm_thermochemistry.ladder
 
@@ -1225,10 +1376,24 @@
 </li>
       </ul></li>
       <li>
+    seamm_thermochemistry.layered_store
+
+      <ul>
+        <li><a href="api/seamm_thermochemistry.html#module-seamm_thermochemistry.layered_store">module</a>
+</li>
+      </ul></li>
+      <li>
     seamm_thermochemistry.report
 
       <ul>
         <li><a href="api/seamm_thermochemistry.html#module-seamm_thermochemistry.report">module</a>
+</li>
+      </ul></li>
+      <li>
+    seamm_thermochemistry.store_tools
+
+      <ul>
+        <li><a href="api/seamm_thermochemistry.html#module-seamm_thermochemistry.store_tools">module</a>
 </li>
       </ul></li>
       <li>
@@ -1244,6 +1409,12 @@
         <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.ThermoDB.set_doi">(seamm_thermochemistry.ThermoDB method)</a>
 </li>
       </ul></li>
+      <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.fragment_store.FragmentStore.set_meta">set_meta() (seamm_thermochemistry.fragment_store.FragmentStore method)</a>
+
+      <ul>
+        <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.FragmentStore.set_meta">(seamm_thermochemistry.FragmentStore method)</a>
+</li>
+      </ul></li>
       <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.db.ThermoDB.set_s298_std_state">set_s298_std_state() (seamm_thermochemistry.db.ThermoDB method)</a>
 
       <ul>
@@ -1253,7 +1424,13 @@
       <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.zpe.ZPEFactor.source">source (seamm_thermochemistry.zpe.ZPEFactor attribute)</a>
 </li>
       <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.geometry_store.GeometryEnergyMixin.species_at">species_at() (seamm_thermochemistry.geometry_store.GeometryEnergyMixin method)</a>
+
+      <ul>
+        <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.layered_store.LayeredStore.species_at">(seamm_thermochemistry.layered_store.LayeredStore method)</a>
 </li>
+        <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.LayeredStore.species_at">(seamm_thermochemistry.LayeredStore method)</a>
+</li>
+      </ul></li>
       <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.zpe.split_level">split_level() (in module seamm_thermochemistry.zpe)</a>
 </li>
       <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.split_model_chemistry">split_model_chemistry() (in module seamm_thermochemistry)</a>
@@ -1281,6 +1458,10 @@
       <ul>
         <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.FragmentStore.supersede">(seamm_thermochemistry.FragmentStore method)</a>
 </li>
+        <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.layered_store.LayeredStore.supersede">(seamm_thermochemistry.layered_store.LayeredStore method)</a>
+</li>
+        <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.LayeredStore.supersede">(seamm_thermochemistry.LayeredStore method)</a>
+</li>
       </ul></li>
       <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.geometry_store.GeometryEnergyMixin.supersede_energy">supersede_energy() (seamm_thermochemistry.geometry_store.GeometryEnergyMixin method)</a>
 </li>
@@ -1290,6 +1471,12 @@
 
       <ul>
         <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.FragmentStore.superseded">(seamm_thermochemistry.FragmentStore method)</a>
+</li>
+      </ul></li>
+      <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.fragment_store.FragmentStore.superseded_values">superseded_values() (seamm_thermochemistry.fragment_store.FragmentStore method)</a>
+
+      <ul>
+        <li><a href="api/seamm_thermochemistry.html#seamm_thermochemistry.FragmentStore.superseded_values">(seamm_thermochemistry.FragmentStore method)</a>
 </li>
       </ul></li>
   </ul></td>

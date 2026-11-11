@@ -7,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>2026-11-10 – Fragment store P5: write-back, in-job reuse, two layers, ATcT download &#8212; SEAMM thermochemistry Plug-in 2026.11.11.1 documentation</title>
+    <title>2026-11-10 – Fragment store P5: write-back, in-job reuse, two layers, ATcT download &#8212; SEAMM thermochemistry Plug-in 2026.11.11.2 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=0273fb53"></script>
+    <script src="../../../_static/documentation_options.js?v=358b7139"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -54,7 +54,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.11.1" />
+  <meta name="docsearch:version" content="2026.11.11.2" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -484,6 +484,16 @@ seamm_jobserver): write-back, the structure guard, <code class="docutils literal
 that is a contact too close to read as a bond is caught by the contact check,
 but ligands closer still (the old PF₆⁻) read as bonded and are refused by the
 connectivity check first.</p>
+<p><strong>P5b released 2026-11-11</strong> (seamm-jobserver 2026.11.11, seamm-thermochemistry and
+thermochemistry-step 2026.11.11.1). <strong>P5c implemented 2026-11-11</strong> (branch
+<code class="docutils literal notranslate"><span class="pre">p5c-layers</span></code>): the meta table (schema 3), <code class="docutils literal notranslate"><span class="pre">LayeredStore</span></code> with R1-R5,
+<code class="docutils literal notranslate"><span class="pre">migrate</span></code>, <code class="docutils literal notranslate"><span class="pre">merge</span></code>, <code class="docutils literal notranslate"><span class="pre">export</span></code>, <code class="docutils literal notranslate"><span class="pre">official</span> <span class="pre">build</span></code> and <code class="docutils literal notranslate"><span class="pre">duplicates</span>
+<span class="pre">--layers</span></code>, and the step reading both layers. Recording the official file’s
+sha256 in the installation, and <code class="docutils literal notranslate"><span class="pre">installer</span> <span class="pre">check</span></code> verifying it, moved to P5d
+with the rest of the installer; the official build’s sanity pass is P5e.
+<code class="docutils literal notranslate"><span class="pre">migrate</span></code> was run on a copy of ChemAI’s store (2026-11-11 06:14): 100
+fragment, 50 geometry and 639 energy rows normalized, all keys unchanged, a
+second run a no-op.</p>
 <p>Numbering: these phases are the fragment store’s P5 (P5a-P5e). The 11-08
 presets plan also had a P5 (long-bond and %[(T)] flags) and a P6 (pilot). Those
 keep their names and have nothing to do with this note.</p>

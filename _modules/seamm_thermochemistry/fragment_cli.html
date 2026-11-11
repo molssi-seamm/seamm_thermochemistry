@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.fragment_cli &#8212; SEAMM thermochemistry Plug-in 2026.11.11.1 documentation</title>
+    <title>seamm_thermochemistry.fragment_cli &#8212; SEAMM thermochemistry Plug-in 2026.11.11.2 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=0273fb53"></script>
+    <script src="../../_static/documentation_options.js?v=358b7139"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.11.1" />
+  <meta name="docsearch:version" content="2026.11.11.2" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -437,15 +437,37 @@
 <span class="sd">    seamm-thermochemistry-fragments duplicates [--store FILE]</span>
 <span class="sd">    seamm-thermochemistry-fragments harvest JOB_DIR ... --supersede "REASON"</span>
 <span class="sd">    seamm-thermochemistry-fragments superseded [SMILES] [--store FILE]</span>
+<span class="sd">    seamm-thermochemistry-fragments duplicates --layers [--official FILE]</span>
+<span class="sd">    seamm-thermochemistry-fragments migrate [--store FILE]</span>
+<span class="sd">    seamm-thermochemistry-fragments merge SOURCE.db ... [--store FILE]</span>
+<span class="sd">    seamm-thermochemistry-fragments export --out FILE [--label TEXT]</span>
+<span class="sd">    seamm-thermochemistry-fragments official build --version V --out FILE</span>
+<span class="sd">                                           [--previous FILE] SOURCE.db ...</span>
 
-<span class="sd">``harvest`` is the single writer: run it on the host after a job has</span>
-<span class="sd">finished, never on a compute node.</span>
+<span class="sd">``--store`` is the local store (``fragments.db``), the one every command</span>
+<span class="sd">writes; ``--official`` is the official store (``fragments-official.db``, read</span>
+<span class="sd">only), which ``lookup`` and ``geometries`` read after the local one. Run</span>
+<span class="sd">``harvest`` on the host after a job has finished, never on a compute node.</span>
 <span class="sd">"""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">fragment_store</span> <span class="k">as</span> <span class="n">F</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">store_tools</span> <span class="k">as</span> <span class="n">T</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.layered_store</span><span class="w"> </span><span class="kn">import</span> <span class="n">LayeredStore</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_print_counts</span><span class="p">(</span><span class="n">counts</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"fragment"</span><span class="p">,</span> <span class="s2">"geometry"</span><span class="p">,</span> <span class="s2">"energy"</span><span class="p">):</span>
+        <span class="n">tally</span> <span class="o">=</span> <span class="n">counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">table</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">tally</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"    </span><span class="si">{</span><span class="n">table</span><span class="si">}</span><span class="s2"> rows: "</span>
+                <span class="o">+</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">tally</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
+            <span class="p">)</span>
+    <span class="k">if</span> <span class="n">counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"history"</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"    </span><span class="si">{</span><span class="n">counts</span><span class="p">[</span><span class="s1">'history'</span><span class="p">]</span><span class="si">}</span><span class="s2"> superseded values copied as history"</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="main">
@@ -456,7 +478,12 @@
     <span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
         <span class="s2">"--store"</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s2">"The store file (default: fragments.db next to the ATcT cache)."</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">"The local store file (default: fragments.db next to the ATcT cache)."</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">"--official"</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">"The official store file (default: fragments-official.db beside the "</span>
+        <span class="s2">"local one)."</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">sub</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">add_subparsers</span><span class="p">(</span><span class="n">dest</span><span class="o">=</span><span class="s2">"command"</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
@@ -537,7 +564,47 @@
         <span class="n">help</span><span class="o">=</span><span class="s2">"Also geometries with imaginary modes."</span><span class="p">,</span>
     <span class="p">)</span>
 
-    <span class="n">sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="s2">"duplicates"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Show the duplicate log."</span><span class="p">)</span>
+    <span class="n">dup</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="s2">"duplicates"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Show the duplicate log."</span><span class="p">)</span>
+    <span class="n">dup</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">"--layers"</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s2">"store_true"</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">"Instead, the keys whose values differ between the local and the "</span>
+        <span class="s2">"official store."</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s2">"migrate"</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">"Bring the local store up to date (the meta table; model chemistries "</span>
+        <span class="s2">"stored bare with their program), after a dated backup."</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">merge</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s2">"merge"</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">"Add the rows of other stores (another installation's copy, a "</span>
+        <span class="s2">"contribution, a campaign store) to the local store."</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">merge</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"sources"</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s2">"+"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Store files."</span><span class="p">)</span>
+    <span class="n">merge</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--label"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"A name for the sources, for the history."</span><span class="p">)</span>
+
+    <span class="n">export</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s2">"export"</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">"Write the local rows the official store lacks, or has with other "</span>
+        <span class="s2">"values, to a contribution file for the next official version."</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">export</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--out"</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"The new contribution file."</span><span class="p">)</span>
+    <span class="n">export</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--label"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Free text recorded in the file."</span><span class="p">)</span>
+
+    <span class="n">official</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="s2">"official"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Official stores (maintainers)."</span><span class="p">)</span>
+    <span class="n">official_sub</span> <span class="o">=</span> <span class="n">official</span><span class="o">.</span><span class="n">add_subparsers</span><span class="p">(</span><span class="n">dest</span><span class="o">=</span><span class="s2">"official_command"</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">build</span> <span class="o">=</span> <span class="n">official_sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s2">"build"</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">"Build a new official store from the previous one and contributions."</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">build</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"sources"</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s2">"*"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Contribution or store files."</span><span class="p">)</span>
+    <span class="n">build</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--version"</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Its version (CalVer)."</span><span class="p">)</span>
+    <span class="n">build</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--out"</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"The new file."</span><span class="p">)</span>
+    <span class="n">build</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--previous"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"The previous official store."</span><span class="p">)</span>
+    <span class="n">build</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--source"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Where it is published, e.g. a DOI."</span><span class="p">)</span>
 
     <span class="n">sup</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="s2">"superseded"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Show the superseded values."</span><span class="p">)</span>
     <span class="n">sup</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"species"</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s2">"?"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Canonical SMILES."</span><span class="p">)</span>
@@ -595,7 +662,7 @@
             <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">records</span><span class="p">:</span>
                 <span class="n">_print</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">command</span> <span class="o">==</span> <span class="s2">"lookup"</span><span class="p">:</span>
-            <span class="n">store</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">FragmentStore</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">store</span><span class="p">)</span>
+            <span class="n">store</span> <span class="o">=</span> <span class="n">LayeredStore</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">store</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">official</span><span class="p">)</span>
             <span class="n">r</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
                 <span class="n">args</span><span class="o">.</span><span class="n">species</span><span class="p">,</span>
                 <span class="n">charge</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">charge</span><span class="p">,</span>
@@ -607,8 +674,10 @@
                 <span class="nb">print</span><span class="p">(</span><span class="s2">"No record."</span><span class="p">)</span>
                 <span class="k">return</span> <span class="mi">1</span>
             <span class="n">_print</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">note</span> <span class="ow">in</span> <span class="n">store</span><span class="o">.</span><span class="n">notes</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"    note: </span><span class="si">{</span><span class="n">note</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">command</span> <span class="o">==</span> <span class="s2">"geometries"</span><span class="p">:</span>
-            <span class="n">store</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">FragmentStore</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">store</span><span class="p">)</span>
+            <span class="n">store</span> <span class="o">=</span> <span class="n">LayeredStore</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">store</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">official</span><span class="p">)</span>
             <span class="n">rows</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">geometries</span><span class="p">(</span>
                 <span class="n">args</span><span class="o">.</span><span class="n">species</span><span class="p">,</span>
                 <span class="n">charge</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">charge</span><span class="p">,</span>
@@ -629,14 +698,17 @@
                 <span class="nb">print</span><span class="p">(</span>
                     <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">g</span><span class="p">[</span><span class="s1">'species'</span><span class="p">]</span><span class="si">}{</span><span class="n">label</span><span class="si">}</span><span class="s2"> at </span><span class="si">{</span><span class="n">_level</span><span class="p">(</span><span class="n">g</span><span class="p">)</span><span class="si">}{</span><span class="n">flag</span><span class="si">}</span><span class="s2">: "</span>
                     <span class="sa">f</span><span class="s2">"E = </span><span class="si">{</span><span class="n">g</span><span class="p">[</span><span class="s1">'E'</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">, ZPE = </span><span class="si">{</span><span class="n">g</span><span class="p">[</span><span class="s1">'ZPE'</span><span class="p">]</span><span class="si">}</span><span class="s2">, H = </span><span class="si">{</span><span class="n">g</span><span class="p">[</span><span class="s1">'H'</span><span class="p">]</span><span class="si">}</span><span class="s2"> kJ/mol"</span>
-                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">imaginary</span><span class="si">}</span><span class="s2">; </span><span class="si">{</span><span class="n">g</span><span class="p">[</span><span class="s1">'geometry_hash'</span><span class="p">]</span><span class="si">}</span><span class="s2"> from </span><span class="si">{</span><span class="n">g</span><span class="p">[</span><span class="s1">'job'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">imaginary</span><span class="si">}</span><span class="s2">; </span><span class="si">{</span><span class="n">g</span><span class="p">[</span><span class="s1">'geometry_hash'</span><span class="p">]</span><span class="si">}</span><span class="s2"> from </span><span class="si">{</span><span class="n">g</span><span class="p">[</span><span class="s1">'job'</span><span class="p">]</span><span class="si">}</span><span class="s2"> "</span>
+                    <span class="sa">f</span><span class="s2">"[</span><span class="si">{</span><span class="n">store</span><span class="o">.</span><span class="n">layer_name</span><span class="p">(</span><span class="n">g</span><span class="p">[</span><span class="s1">'layer'</span><span class="p">])</span><span class="si">}</span><span class="s2">]"</span>
                 <span class="p">)</span>
                 <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">store</span><span class="o">.</span><span class="n">energies</span><span class="p">(</span><span class="n">g</span><span class="p">[</span><span class="s2">"geometry_hash"</span><span class="p">]):</span>
                     <span class="n">eflag</span> <span class="o">=</span> <span class="s2">""</span> <span class="k">if</span> <span class="n">e</span><span class="p">[</span><span class="s2">"verified"</span><span class="p">]</span> <span class="k">else</span> <span class="s2">" [unverified]"</span>
                     <span class="nb">print</span><span class="p">(</span>
                         <span class="sa">f</span><span class="s2">"    </span><span class="si">{</span><span class="n">_level</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}{</span><span class="n">eflag</span><span class="si">}</span><span class="s2">: E = </span><span class="si">{</span><span class="n">e</span><span class="p">[</span><span class="s1">'E'</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> kJ/mol "</span>
-                        <span class="sa">f</span><span class="s2">"from </span><span class="si">{</span><span class="n">e</span><span class="p">[</span><span class="s1">'job'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+                        <span class="sa">f</span><span class="s2">"from </span><span class="si">{</span><span class="n">e</span><span class="p">[</span><span class="s1">'job'</span><span class="p">]</span><span class="si">}</span><span class="s2"> [</span><span class="si">{</span><span class="n">store</span><span class="o">.</span><span class="n">layer_name</span><span class="p">(</span><span class="n">e</span><span class="p">[</span><span class="s1">'layer'</span><span class="p">])</span><span class="si">}</span><span class="s2">]"</span>
                     <span class="p">)</span>
+            <span class="k">for</span> <span class="n">note</span> <span class="ow">in</span> <span class="n">store</span><span class="o">.</span><span class="n">notes</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"    note: </span><span class="si">{</span><span class="n">note</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">command</span> <span class="o">==</span> <span class="s2">"superseded"</span><span class="p">:</span>
             <span class="n">store</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">FragmentStore</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">store</span><span class="p">)</span>
             <span class="n">rows</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">superseded</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">species</span><span class="p">)</span>
@@ -655,6 +727,58 @@
                     <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">'species'</span><span class="p">]</span><span class="si">}</span><span class="s2"> on </span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">'superseded_on'</span><span class="p">]</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">old</span><span class="si">}</span><span class="s2"> (from </span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">'job'</span><span class="p">]</span><span class="si">}</span><span class="s2">) "</span>
                     <span class="sa">f</span><span class="s2">"replaced by </span><span class="si">{</span><span class="n">new</span><span class="si">}</span><span class="s2">; reason: </span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">'reason'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
                 <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">command</span> <span class="o">==</span> <span class="s2">"duplicates"</span> <span class="ow">and</span> <span class="n">args</span><span class="o">.</span><span class="n">layers</span><span class="p">:</span>
+            <span class="n">rows</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">layer_conflicts</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">store</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">official</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">rows</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">"The local and official stores agree on every shared key."</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+                <span class="n">key</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">d</span><span class="p">[</span><span class="s2">"key"</span><span class="p">])</span>
+                <span class="n">how</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="s2">"the official value is used: the local one was superseded"</span>
+                    <span class="k">if</span> <span class="n">d</span><span class="p">[</span><span class="s2">"superseded"</span><span class="p">]</span>
+                    <span class="k">else</span> <span class="s2">"the local value is used"</span>
+                <span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">'table'</span><span class="p">]</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">): local </span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">'local'</span><span class="p">]</span><span class="si">}</span><span class="s2">, official "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">'official'</span><span class="p">]</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">'difference'</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> kJ/mol apart; </span><span class="si">{</span><span class="n">how</span><span class="si">}</span><span class="s2">"</span>
+                <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">command</span> <span class="o">==</span> <span class="s2">"migrate"</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">migrate_store</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">store</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">result</span><span class="p">[</span><span class="s2">"backup"</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">"The store is up to date; nothing changed."</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">old</span><span class="p">,</span> <span class="n">new</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s2">"schema"</span><span class="p">]</span>
+                <span class="n">changed</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">t</span><span class="si">}</span><span class="s2"> rows"</span> <span class="k">for</span> <span class="n">t</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">result</span><span class="p">[</span><span class="s2">"changed"</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                <span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"Migrated (schema </span><span class="si">{</span><span class="n">old</span><span class="si">}</span><span class="s2"> -&gt; </span><span class="si">{</span><span class="n">new</span><span class="si">}</span><span class="s2">; names normalized: "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">changed</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">'none'</span><span class="si">}</span><span class="s2">). Backup: </span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">'backup'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+                <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">command</span> <span class="o">==</span> <span class="s2">"merge"</span><span class="p">:</span>
+            <span class="n">counts</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">merge_stores</span><span class="p">(</span>
+                <span class="n">F</span><span class="o">.</span><span class="n">fragment_store_path</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">store</span><span class="p">),</span> <span class="n">args</span><span class="o">.</span><span class="n">sources</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">label</span>
+            <span class="p">)</span>
+            <span class="n">_print_counts</span><span class="p">(</span><span class="n">counts</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">command</span> <span class="o">==</span> <span class="s2">"export"</span><span class="p">:</span>
+            <span class="n">counts</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">export_local</span><span class="p">(</span>
+                <span class="n">args</span><span class="o">.</span><span class="n">out</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">store</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">official</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">label</span>
+            <span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"Exported to </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">out</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">counts</span><span class="p">[</span><span class="s1">'fragment'</span><span class="p">]</span><span class="si">}</span><span class="s2"> fragment, "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">counts</span><span class="p">[</span><span class="s1">'geometry'</span><span class="p">]</span><span class="si">}</span><span class="s2"> geometry and </span><span class="si">{</span><span class="n">counts</span><span class="p">[</span><span class="s1">'energy'</span><span class="p">]</span><span class="si">}</span><span class="s2"> energy rows "</span>
+                <span class="sa">f</span><span class="s2">"(</span><span class="si">{</span><span class="n">counts</span><span class="p">[</span><span class="s1">'differing'</span><span class="p">]</span><span class="si">}</span><span class="s2"> differing from the official store)."</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">command</span> <span class="o">==</span> <span class="s2">"official"</span> <span class="ow">and</span> <span class="n">args</span><span class="o">.</span><span class="n">official_command</span> <span class="o">==</span> <span class="s2">"build"</span><span class="p">:</span>
+            <span class="n">path</span><span class="p">,</span> <span class="n">digest</span><span class="p">,</span> <span class="n">counts</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">build_official</span><span class="p">(</span>
+                <span class="n">args</span><span class="o">.</span><span class="n">out</span><span class="p">,</span>
+                <span class="n">args</span><span class="o">.</span><span class="n">version</span><span class="p">,</span>
+                <span class="n">args</span><span class="o">.</span><span class="n">sources</span><span class="p">,</span>
+                <span class="n">previous</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">previous</span><span class="p">,</span>
+                <span class="n">source</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">source</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">_print_counts</span><span class="p">(</span><span class="n">counts</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Built </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2"> (version </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s2">), sha256 </span><span class="si">{</span><span class="n">digest</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">command</span> <span class="o">==</span> <span class="s2">"duplicates"</span><span class="p">:</span>
             <span class="n">store</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">FragmentStore</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">store</span><span class="p">)</span>
             <span class="n">rows</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">duplicates</span><span class="p">()</span>
@@ -666,7 +790,7 @@
                     <span class="sa">f</span><span class="s2">"vs </span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">'E'</span><span class="p">]</span><span class="si">}</span><span class="s2"> (max difference </span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">'difference'</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> kJ/mol) "</span>
                     <span class="sa">f</span><span class="s2">"from </span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">'job'</span><span class="p">]</span><span class="si">}</span><span class="s2"> on </span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">'date'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
                 <span class="p">)</span>
-    <span class="k">except</span> <span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span><span class="p">,</span> <span class="ne">FileNotFoundError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="k">except</span> <span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span><span class="p">,</span> <span class="ne">FileNotFoundError</span><span class="p">,</span> <span class="ne">FileExistsError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
         <span class="k">return</span> <span class="mi">1</span>
     <span class="k">return</span> <span class="mi">0</span></div>

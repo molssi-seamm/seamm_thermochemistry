@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>seamm_thermochemistry.layered_store &#8212; SEAMM thermochemistry Plug-in 2026.11.11.2 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=6a604523" />
+    <link rel="stylesheet" type="text/css" href="../../_static/css/custom.css" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../_static/scripts/fontawesome.js?digest=75c7c72ae941e8b558d8"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
+
+    <script src="../../_static/documentation_options.js?v=358b7139"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script data-sd-tabs-storage-prefix="sphinx-design-tab-id-" src="../../_static/design-tabs.js?v=fcb327ea"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/seamm_thermochemistry/layered_store';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="2026.11.11.2" />
+  
+    
+    <script src="../../_static/searchtools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation" aria-expanded="false" aria-controls="pst-primary-sidebar-modal">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/SEAMM logo.png" class="logo__image only-light" alt=""/>
+    <img src="../../_static/SEAMM Inverted 288x181.png" class="logo__image only-dark pst-js-only" alt=""/>
+  
+  
+    <p class="title logo__title">SEAMM-THERMOCHEMISTRY</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api.html">
+    API Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../developer_guide/index.html">
+    Developer Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-external" href="https://molssi-seamm.github.io">
+    SEAMM Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-external" href="https://molssi.org">
+    MolSSI
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/molssi-seamm/seamm_thermochemistry" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/MolSSI_NSF" title="Twitter" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-twitter fa-lg" aria-hidden="true"></i><span class="visually-hidden">Twitter</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal" tabindex="-1"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api.html">
+    API Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../developer_guide/index.html">
+    Developer Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-external" href="https://molssi-seamm.github.io">
+    SEAMM Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-external" href="https://molssi.org">
+    MolSSI
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/molssi-seamm/seamm_thermochemistry" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/MolSSI_NSF" title="Twitter" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-twitter fa-lg" aria-hidden="true"></i><span class="visually-hidden">Twitter</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-house"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">seamm_thermochemistry.layered_store</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for seamm_thermochemistry.layered_store</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="sd">"""The fragment store in two layers: the user's local store and the official</span>
+<span class="sd">one, looked up local first.</span>
+
+<span class="sd">``fragments.db`` (the local layer) is the store write-back, harvest, merge and</span>
+<span class="sd">supersede write to. ``fragments-official.db`` (the official layer) is published</span>
+<span class="sd">on Zenodo, installed and replaced whole by the installer, and only ever read,</span>
+<span class="sd">without locking (it may sit on a network filesystem). See the P5 design note,</span>
+<span class="sd">``docs/developer_guide/campaigns/2026-11-10``, §4.</span>
+
+<span class="sd">The rules, for rows of the same key in both layers:</span>
+
+<span class="sd">R1</span>
+<span class="sd">    The local row is used, unless R2 applies.</span>
+<span class="sd">R2</span>
+<span class="sd">    The official row has been superseded and the local one equals a value it</span>
+<span class="sd">    superseded (within 0.1 kJ/mol): the official row is used, and noted.</span>
+<span class="sd">R3</span>
+<span class="sd">    Otherwise, values differing by more than 0.1 kJ/mol are noted as a</span>
+<span class="sd">    conflict, and the local row is used.</span>
+<span class="sd">R4</span>
+<span class="sd">    Conformers come from both layers; the lowest E + ZPE wins, a tie within</span>
+<span class="sd">    0.1 kJ/mol going to the local layer (:meth:`LayeredStore.lowest`).</span>
+<span class="sd">    Verified rows in either layer come before unverified ones in either.</span>
+<span class="sd">R5</span>
+<span class="sd">    Energies pair with geometries only on the same geometry hash: looked up in</span>
+<span class="sd">    the geometry's own layer first, then the other. Every row returned carries</span>
+<span class="sd">    its ``layer``, so a caller can say when a geometry and its energy come from</span>
+<span class="sd">    different layers.</span>
+
+<span class="sd">Notes from R2 and R3 accumulate in :attr:`LayeredStore.notes` for the caller to</span>
+<span class="sd">report.</span>
+<span class="sd">"""</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.fragment_store</span><span class="w"> </span><span class="kn">import</span> <span class="n">FragmentStore</span><span class="p">,</span> <span class="n">official_store_path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.geometry_store</span><span class="w"> </span><span class="kn">import</span> <span class="n">DUPLICATE_TOLERANCE</span><span class="p">,</span> <span class="n">_as_list</span><span class="p">,</span> <span class="n">same_model_chemistry</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"LayeredStore"</span><span class="p">]</span>
+
+<span class="n">_VALUES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"fragment"</span><span class="p">:</span> <span class="p">(</span><span class="s2">"E"</span><span class="p">,</span> <span class="s2">"ZPE"</span><span class="p">,</span> <span class="s2">"H"</span><span class="p">),</span>
+    <span class="s2">"geometry"</span><span class="p">:</span> <span class="p">(</span><span class="s2">"E"</span><span class="p">,</span> <span class="s2">"ZPE"</span><span class="p">,</span> <span class="s2">"H"</span><span class="p">),</span>
+    <span class="s2">"energy"</span><span class="p">:</span> <span class="p">(</span><span class="s2">"E"</span><span class="p">,),</span>
+<span class="p">}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_difference</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">fields</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The largest difference of the fields both rows have (0 if none)."""</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">f</span><span class="p">),</span> <span class="n">b</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">y</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">y</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="n">d</span>
+
+
+<div class="viewcode-block" id="LayeredStore">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.layered_store.LayeredStore">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LayeredStore</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The local and official fragment stores, read as one (see the module</span>
+<span class="sd">    docstring).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    local_path : str or Path, optional</span>
+<span class="sd">        The local store; by default ``fragments.db`` next to the ATcT cache.</span>
+<span class="sd">    official_path : str or Path, optional</span>
+<span class="sd">        The official store; by default ``fragments-official.db`` beside it. A</span>
+<span class="sd">        missing file means no official layer.</span>
+<span class="sd">    create_local : bool</span>
+<span class="sd">        Open the local store for writing (creating it if missing).</span>
+<span class="sd">    """</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">local_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">official_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">create_local</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">notes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">local</span> <span class="o">=</span> <span class="n">FragmentStore</span><span class="p">(</span><span class="n">local_path</span><span class="p">,</span> <span class="n">create</span><span class="o">=</span><span class="n">create_local</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="o">.</span><span class="n">layer</span> <span class="o">==</span> <span class="s2">"official"</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2"> is an official store, not a local one: the "</span>
+                <span class="s2">"official store is never written."</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">official</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">official_version</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">official_store_path</span><span class="p">(</span><span class="n">official_path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="n">path</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">resolve</span><span class="p">():</span>
+            <span class="n">official</span> <span class="o">=</span> <span class="n">FragmentStore</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">immutable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">official</span><span class="o">.</span><span class="n">layer</span> <span class="o">!=</span> <span class="s2">"official"</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_note</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2"> is not an official store (its layer is "</span>
+                    <span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">official</span><span class="o">.</span><span class="n">layer</span><span class="si">}</span><span class="s2">'); it is not used."</span>
+                <span class="p">)</span>
+                <span class="n">official</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">official</span> <span class="o">=</span> <span class="n">official</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">official_version</span> <span class="o">=</span> <span class="n">official</span><span class="o">.</span><span class="n">meta</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"version"</span><span class="p">)</span>
+
+    <span class="c1"># -- housekeeping ------------------------------------------------------</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="o">.</span><span class="n">path</span>
+
+<div class="viewcode-block" id="LayeredStore.close">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.layered_store.LayeredStore.close">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">official</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">official</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">store</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">store</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layers</span><span class="p">())</span>
+
+<div class="viewcode-block" id="LayeredStore.n_geometries">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.layered_store.LayeredStore.n_geometries">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">n_geometries</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">store</span><span class="o">.</span><span class="n">n_geometries</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">store</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layers</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="LayeredStore.schema_version">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.layered_store.LayeredStore.schema_version">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">schema_version</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="o">.</span><span class="n">schema_version</span><span class="p">()</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_layers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">yield</span> <span class="s2">"local"</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">local</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">official</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="s2">"official"</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">official</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_note</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">text</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">notes</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">notes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+
+<div class="viewcode-block" id="LayeredStore.layer_name">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.layered_store.LayeredStore.layer_name">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">layer_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layer</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""'local', or 'official &lt;version&gt;'."""</span>
+        <span class="k">if</span> <span class="n">layer</span> <span class="o">==</span> <span class="s2">"official"</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">official_version</span><span class="p">:</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">"official </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">official_version</span><span class="si">}</span><span class="s2">"</span>
+        <span class="k">return</span> <span class="n">layer</span></div>
+
+
+    <span class="c1"># -- R1-R3 -------------------------------------------------------------</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_choose</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">what</span><span class="p">,</span> <span class="n">local_row</span><span class="p">,</span> <span class="n">official_row</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""The row to use for one key found in both layers."""</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="n">_VALUES</span><span class="p">[</span><span class="n">table</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">_difference</span><span class="p">(</span><span class="n">local_row</span><span class="p">,</span> <span class="n">official_row</span><span class="p">,</span> <span class="n">fields</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">DUPLICATE_TOLERANCE</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">local_row</span>  <span class="c1"># R1</span>
+        <span class="k">for</span> <span class="n">old</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">official</span><span class="o">.</span><span class="n">superseded_values</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">official_row</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]):</span>
+            <span class="k">if</span> <span class="n">_difference</span><span class="p">(</span><span class="n">local_row</span><span class="p">,</span> <span class="n">old</span><span class="p">,</span> <span class="n">fields</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">DUPLICATE_TOLERANCE</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_note</span><span class="p">(</span>  <span class="c1"># R2</span>
+                    <span class="sa">f</span><span class="s2">"The local </span><span class="si">{</span><span class="n">what</span><span class="si">}</span><span class="s2"> is the value the "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">layer_name</span><span class="p">(</span><span class="s1">'official'</span><span class="p">)</span><span class="si">}</span><span class="s2"> store superseded on "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">old</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'date'</span><span class="p">)</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">old</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'reason'</span><span class="p">)</span><span class="si">}</span><span class="s2">); the official value "</span>
+                    <span class="s2">"is used."</span>
+                <span class="p">)</span>
+                <span class="k">return</span> <span class="n">official_row</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_note</span><span class="p">(</span>  <span class="c1"># R3</span>
+            <span class="sa">f</span><span class="s2">"The local and </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">layer_name</span><span class="p">(</span><span class="s1">'official'</span><span class="p">)</span><span class="si">}</span><span class="s2"> stores differ for </span><span class="si">{</span><span class="n">what</span><span class="si">}</span><span class="s2"> "</span>
+            <span class="sa">f</span><span class="s2">"by </span><span class="si">{</span><span class="n">_difference</span><span class="p">(</span><span class="n">local_row</span><span class="p">,</span><span class="w"> </span><span class="n">official_row</span><span class="p">,</span><span class="w"> </span><span class="n">fields</span><span class="p">)</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> kJ/mol; the "</span>
+            <span class="s2">"local value is used."</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">local_row</span>
+
+    <span class="c1"># -- reading -----------------------------------------------------------</span>
+
+<div class="viewcode-block" id="LayeredStore.geometries">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.layered_store.LayeredStore.geometries">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">geometries</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""The geometry rows of a species at a frequency level from both layers</span>
+<span class="sd">        (see :meth:`FragmentStore.geometries` for the arguments), one per key,</span>
+<span class="sd">        each with its ``layer``."""</span>
+        <span class="n">found</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">store</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layers</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">store</span><span class="o">.</span><span class="n">geometries</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                <span class="n">row</span><span class="p">[</span><span class="s2">"layer"</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span>
+                <span class="n">found</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s2">"verified"</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">found</span><span class="p">):</span>
+            <span class="n">found</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">found</span> <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s2">"verified"</span><span class="p">]]</span>
+        <span class="n">chosen</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">found</span><span class="p">:</span>  <span class="c1"># local rows first</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">key</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">chosen</span><span class="p">:</span>
+                <span class="n">chosen</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span>
+            <span class="k">elif</span> <span class="n">row</span><span class="p">[</span><span class="s2">"layer"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"official"</span> <span class="ow">and</span> <span class="n">chosen</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s2">"layer"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"local"</span><span class="p">:</span>
+                <span class="n">label</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">species</span><span class="si">}</span><span class="s2">"</span> <span class="o">+</span> <span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">" (conformer '</span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">'conformer'</span><span class="p">]</span><span class="si">}</span><span class="s2">')"</span> <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="s2">"conformer"</span><span class="p">]</span> <span class="k">else</span> <span class="s2">""</span>
+                <span class="p">)</span>
+                <span class="n">chosen</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_choose</span><span class="p">(</span>
+                    <span class="s2">"geometry"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"geometry of </span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">chosen</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">row</span>
+                <span class="p">)</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span>
+            <span class="n">chosen</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">r</span><span class="p">:</span> <span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s2">"conformer"</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="s2">"layer"</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">"local"</span><span class="p">)</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="LayeredStore.lowest">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.layered_store.LayeredStore.lowest">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">lowest</span><span class="p">(</span><span class="n">rows</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""The lowest conformer (E + ZPE) of geometry rows, a tie within 0.1</span>
+<span class="sd">        kJ/mol going to the local layer (R4); None if none has E and ZPE."""</span>
+        <span class="n">usable</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span> <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"E"</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"ZPE"</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">usable</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">total</span><span class="p">(</span><span class="n">r</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">r</span><span class="p">[</span><span class="s2">"E"</span><span class="p">]</span> <span class="o">+</span> <span class="n">r</span><span class="p">[</span><span class="s2">"ZPE"</span><span class="p">]</span>
+
+        <span class="n">best</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">usable</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">total</span><span class="p">)</span>
+        <span class="n">local</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">usable</span> <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"layer"</span><span class="p">,</span> <span class="s2">"local"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"local"</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">best</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"layer"</span><span class="p">,</span> <span class="s2">"local"</span><span class="p">)</span> <span class="o">!=</span> <span class="s2">"local"</span> <span class="ow">and</span> <span class="n">local</span><span class="p">:</span>
+            <span class="n">candidate</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">local</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">total</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">total</span><span class="p">(</span><span class="n">candidate</span><span class="p">)</span> <span class="o">-</span> <span class="n">total</span><span class="p">(</span><span class="n">best</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">DUPLICATE_TOLERANCE</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">candidate</span>
+        <span class="k">return</span> <span class="n">best</span></div>
+
+
+<div class="viewcode-block" id="LayeredStore.energy">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.layered_store.LayeredStore.energy">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">geometry_hash</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">prefer</span><span class="o">=</span><span class="s2">"local"</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""The energy row on a geometry at a level (see</span>
+<span class="sd">        :meth:`FragmentStore.energy`), from the layer `prefer` (the geometry's)</span>
+<span class="sd">        first, then the other (R5); with its ``layer``."""</span>
+        <span class="n">found</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">store</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layers</span><span class="p">():</span>
+            <span class="n">row</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">energy</span><span class="p">(</span><span class="n">geometry_hash</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">row</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">row</span><span class="p">[</span><span class="s2">"layer"</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span>
+                <span class="n">found</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">found</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">found</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">found</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
+        <span class="n">local</span><span class="p">,</span> <span class="n">official</span> <span class="o">=</span> <span class="n">found</span><span class="p">[</span><span class="s2">"local"</span><span class="p">],</span> <span class="n">found</span><span class="p">[</span><span class="s2">"official"</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">local</span><span class="p">[</span><span class="s2">"verified"</span><span class="p">]</span> <span class="o">!=</span> <span class="n">official</span><span class="p">[</span><span class="s2">"verified"</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="n">local</span> <span class="k">if</span> <span class="n">local</span><span class="p">[</span><span class="s2">"verified"</span><span class="p">]</span> <span class="k">else</span> <span class="n">official</span>
+        <span class="k">if</span> <span class="n">local</span><span class="p">[</span><span class="s2">"energy_fingerprint"</span><span class="p">]</span> <span class="o">==</span> <span class="n">official</span><span class="p">[</span><span class="s2">"energy_fingerprint"</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_choose</span><span class="p">(</span>
+                <span class="s2">"energy"</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"energy on geometry </span><span class="si">{</span><span class="n">geometry_hash</span><span class="p">[:</span><span class="mi">15</span><span class="p">]</span><span class="si">}</span><span class="s2">..."</span><span class="p">,</span>
+                <span class="n">local</span><span class="p">,</span>
+                <span class="n">official</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">found</span><span class="p">[</span><span class="n">prefer</span><span class="p">]</span> <span class="k">if</span> <span class="n">prefer</span> <span class="ow">in</span> <span class="n">found</span> <span class="k">else</span> <span class="n">local</span></div>
+
+
+<div class="viewcode-block" id="LayeredStore.energies">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.layered_store.LayeredStore.energies">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">energies</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">geometry_hash</span><span class="p">):</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">store</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layers</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">store</span><span class="o">.</span><span class="n">energies</span><span class="p">(</span><span class="n">geometry_hash</span><span class="p">):</span>
+                <span class="n">row</span><span class="p">[</span><span class="s2">"layer"</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">out</span></div>
+
+
+<div class="viewcode-block" id="LayeredStore.species_at">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.layered_store.LayeredStore.species_at">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">species_at</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">species</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">multiplicity</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">frequency_fingerprint</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">frequency_model_chemistry</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">energy_fingerprint</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">energy_model_chemistry</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">"""As :meth:`FragmentStore.species_at`, over both layers: each entry</span>
+<span class="sd">        also has "layers" (the geometry's layer, the energy's)."""</span>
+        <span class="n">energy_fingerprints</span> <span class="o">=</span> <span class="n">_as_list</span><span class="p">(</span><span class="n">energy_fingerprint</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">geometries</span><span class="p">(</span>
+            <span class="n">species</span><span class="p">,</span>
+            <span class="n">charge</span><span class="o">=</span><span class="n">charge</span><span class="p">,</span>
+            <span class="n">multiplicity</span><span class="o">=</span><span class="n">multiplicity</span><span class="p">,</span>
+            <span class="n">frequency_fingerprint</span><span class="o">=</span><span class="n">frequency_fingerprint</span><span class="p">,</span>
+            <span class="n">model_chemistry</span><span class="o">=</span><span class="n">frequency_model_chemistry</span><span class="p">,</span>
+        <span class="p">):</span>
+            <span class="n">e</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">energy</span><span class="p">(</span>
+                <span class="n">g</span><span class="p">[</span><span class="s2">"geometry_hash"</span><span class="p">],</span>
+                <span class="n">prefer</span><span class="o">=</span><span class="n">g</span><span class="p">[</span><span class="s2">"layer"</span><span class="p">],</span>
+                <span class="n">energy_fingerprint</span><span class="o">=</span><span class="n">energy_fingerprint</span><span class="p">,</span>
+                <span class="n">model_chemistry</span><span class="o">=</span><span class="n">energy_model_chemistry</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">e</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">same</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">energy_fingerprints</span>
+                    <span class="ow">and</span> <span class="n">g</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"optimization_fingerprint"</span><span class="p">)</span> <span class="ow">in</span> <span class="n">energy_fingerprints</span>
+                <span class="p">)</span> <span class="ow">or</span> <span class="p">(</span>
+                    <span class="ow">not</span> <span class="n">energy_fingerprints</span>
+                    <span class="ow">and</span> <span class="n">energy_model_chemistry</span>
+                    <span class="ow">and</span> <span class="n">g</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"model_chemistry"</span><span class="p">)</span>
+                    <span class="ow">and</span> <span class="n">same_model_chemistry</span><span class="p">(</span>
+                        <span class="n">energy_model_chemistry</span><span class="p">,</span>
+                        <span class="n">g</span><span class="p">[</span><span class="s2">"model_chemistry"</span><span class="p">],</span>
+                        <span class="kc">None</span><span class="p">,</span>
+                        <span class="n">g</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"program"</span><span class="p">),</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">same</span> <span class="ow">or</span> <span class="n">g</span><span class="p">[</span><span class="s2">"E"</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">E</span> <span class="o">=</span> <span class="n">g</span><span class="p">[</span><span class="s2">"E"</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">E</span> <span class="o">=</span> <span class="n">e</span><span class="p">[</span><span class="s2">"E"</span><span class="p">]</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s2">"geometry"</span><span class="p">:</span> <span class="n">g</span><span class="p">,</span>
+                    <span class="s2">"energy"</span><span class="p">:</span> <span class="n">e</span><span class="p">,</span>
+                    <span class="s2">"E"</span><span class="p">:</span> <span class="n">E</span><span class="p">,</span>
+                    <span class="s2">"ZPE"</span><span class="p">:</span> <span class="n">g</span><span class="p">[</span><span class="s2">"ZPE"</span><span class="p">],</span>
+                    <span class="s2">"H - E"</span><span class="p">:</span> <span class="p">(</span>
+                        <span class="n">g</span><span class="p">[</span><span class="s2">"H"</span><span class="p">]</span> <span class="o">-</span> <span class="n">g</span><span class="p">[</span><span class="s2">"E"</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="n">g</span><span class="p">[</span><span class="s2">"H"</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">g</span><span class="p">[</span><span class="s2">"E"</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                        <span class="k">else</span> <span class="kc">None</span>
+                    <span class="p">),</span>
+                    <span class="s2">"layers"</span><span class="p">:</span> <span class="p">(</span><span class="n">g</span><span class="p">[</span><span class="s2">"layer"</span><span class="p">],</span> <span class="n">e</span><span class="p">[</span><span class="s2">"layer"</span><span class="p">]</span> <span class="k">if</span> <span class="n">e</span> <span class="k">else</span> <span class="n">g</span><span class="p">[</span><span class="s2">"layer"</span><span class="p">]),</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">out</span></div>
+
+
+<div class="viewcode-block" id="LayeredStore.get">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.layered_store.LayeredStore.get">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""The best fragment-table record of a species at a level (see</span>
+<span class="sd">        :meth:`FragmentStore.get`) over both layers, with its ``layer``."""</span>
+        <span class="n">found</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">store</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layers</span><span class="p">():</span>
+            <span class="n">record</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">record</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">record</span><span class="p">[</span><span class="s2">"layer"</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span>
+                <span class="n">found</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">record</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">found</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">found</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">found</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
+        <span class="n">local</span><span class="p">,</span> <span class="n">official</span> <span class="o">=</span> <span class="n">found</span><span class="p">[</span><span class="s2">"local"</span><span class="p">],</span> <span class="n">found</span><span class="p">[</span><span class="s2">"official"</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">local</span><span class="p">[</span><span class="s2">"verified"</span><span class="p">]</span> <span class="o">!=</span> <span class="n">official</span><span class="p">[</span><span class="s2">"verified"</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="n">local</span> <span class="k">if</span> <span class="n">local</span><span class="p">[</span><span class="s2">"verified"</span><span class="p">]</span> <span class="k">else</span> <span class="n">official</span>
+        <span class="k">if</span> <span class="n">local</span><span class="o">.</span><span class="n">key</span> <span class="o">==</span> <span class="n">official</span><span class="o">.</span><span class="n">key</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_choose</span><span class="p">(</span><span class="s2">"fragment"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">species</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">local</span><span class="p">,</span> <span class="n">official</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">local</span></div>
+
+
+    <span class="c1"># -- writing: the local layer only -------------------------------------</span>
+
+<div class="viewcode-block" id="LayeredStore.put">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.layered_store.LayeredStore.put">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">put</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">record</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="LayeredStore.put_geometry">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.layered_store.LayeredStore.put_geometry">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">put_geometry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="o">.</span><span class="n">put_geometry</span><span class="p">(</span><span class="n">record</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="LayeredStore.put_geometry_conformer">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.layered_store.LayeredStore.put_geometry_conformer">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">put_geometry_conformer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">,</span> <span class="n">rmsd</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="o">.</span><span class="n">put_geometry_conformer</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="n">rmsd</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="LayeredStore.put_energy">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.layered_store.LayeredStore.put_energy">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">put_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="o">.</span><span class="n">put_energy</span><span class="p">(</span><span class="n">record</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="LayeredStore.supersede">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.layered_store.LayeredStore.supersede">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">supersede</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">,</span> <span class="n">reason</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="o">.</span><span class="n">supersede</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="n">reason</span><span class="p">,</span> <span class="n">force</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="LayeredStore.history">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.layered_store.LayeredStore.history">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">history</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="o">.</span><span class="n">history</span><span class="p">(</span><span class="n">table</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="LayeredStore.records">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.layered_store.LayeredStore.records">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">records</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="o">.</span><span class="n">records</span><span class="p">(</span><span class="n">species</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="LayeredStore.duplicates">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.layered_store.LayeredStore.duplicates">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">duplicates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="o">.</span><span class="n">duplicates</span><span class="p">()</span></div>
+</div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.24.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

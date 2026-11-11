@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.geometry_store &#8212; SEAMM thermochemistry Plug-in 2026.11.11.1 documentation</title>
+    <title>seamm_thermochemistry.geometry_store &#8212; SEAMM thermochemistry Plug-in 2026.11.11.2 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=0273fb53"></script>
+    <script src="../../_static/documentation_options.js?v=358b7139"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.11.1" />
+  <meta name="docsearch:version" content="2026.11.11.2" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -510,9 +510,11 @@
     <span class="s2">"same_model_chemistry"</span><span class="p">,</span>
 <span class="p">]</span>
 
-<span class="c1">#: The store's schema version (``PRAGMA user_version``): 2 adds geometry,</span>
-<span class="c1">#: energy and row_history; 0 or 1 is the fragment table alone.</span>
-<span class="n">SCHEMA_VERSION</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="c1">#: The store's schema version (``PRAGMA user_version``): 3 adds the ``meta``</span>
+<span class="c1">#: table (the layer: local, official or contribution; an official store's</span>
+<span class="c1">#: version), 2 the geometry, energy and row_history tables; 0 or 1 is the</span>
+<span class="c1">#: fragment table alone.</span>
+<span class="n">SCHEMA_VERSION</span> <span class="o">=</span> <span class="mi">3</span>
 <span class="c1">#: Imaginary modes at or below this (cm⁻¹, magnitude) are numerical noise</span>
 <span class="n">IMAGINARY_TOLERANCE</span> <span class="o">=</span> <span class="mf">20.0</span>
 <span class="n">DUPLICATE_TOLERANCE</span> <span class="o">=</span> <span class="mf">0.1</span>  <span class="c1"># kJ/mol, as for the fragment table</span>
@@ -567,6 +569,10 @@
 <span class="s2">    source TEXT,</span>
 <span class="s2">    date TEXT,</span>
 <span class="s2">    UNIQUE (geometry_hash, energy_fingerprint)</span>
+<span class="s2">);</span>
+<span class="s2">CREATE TABLE IF NOT EXISTS meta (</span>
+<span class="s2">    key TEXT PRIMARY KEY,</span>
+<span class="s2">    value TEXT</span>
 <span class="s2">);</span>
 <span class="s2">CREATE TABLE IF NOT EXISTS row_history (</span>
 <span class="s2">    id INTEGER PRIMARY KEY,</span>

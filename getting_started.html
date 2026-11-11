@@ -7,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.11.11.1 documentation</title>
+    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.11.11.2 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="_static/documentation_options.js?v=0273fb53"></script>
+    <script src="_static/documentation_options.js?v=358b7139"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -55,7 +55,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.11.1" />
+  <meta name="docsearch:version" content="2026.11.11.2" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -695,6 +695,50 @@ as the conformer <code class="docutils literal notranslate"><span class="pre">au
 minimum computed again is only logged.</p></li>
 </ul>
 </section>
+<section id="the-official-and-local-stores">
+<h3>The official and local stores<a class="headerlink" href="#the-official-and-local-stores" title="Link to this heading">#</a></h3>
+<p>The store has two layers, two files beside the ATcT cache:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">fragments.db</span></code></dt><dd><p>The local store: everything this installation computes or harvests. It is the
+only file that write-back, <code class="docutils literal notranslate"><span class="pre">harvest</span></code>, <code class="docutils literal notranslate"><span class="pre">merge</span></code>, <code class="docutils literal notranslate"><span class="pre">migrate</span></code> and supersede
+write.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">fragments-official.db</span></code></dt><dd><p>The official store, published by SEAMM and replaced whole when a new version
+is installed. It is only read, without locking, so it may sit on a network
+filesystem. Its <code class="docutils literal notranslate"><span class="pre">meta</span></code> table gives its version.</p>
+</dd>
+</dl>
+<p><code class="docutils literal notranslate"><span class="pre">LayeredStore</span></code> reads them as one, the local store first:</p>
+<ul class="simple">
+<li><p>the same key in both: the local row is used, unless the official store
+superseded exactly that value, when the official row is used; values that
+differ by more than 0.1 kJ/mol are noted;</p></li>
+<li><p>conformers come from both, and the lowest wins, a tie within 0.1 kJ/mol going
+to the local store; verified rows come before unverified ones in either;</p></li>
+<li><p>an energy pairs with a geometry only on the same geometry hash, looked up in the
+geometry’s store first, then the other, so a local single point on an official
+geometry is used. Every row says which store it came from.</p></li>
+</ul>
+<p>The command line has the tools to keep the stores in step:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">seamm</span><span class="o">-</span><span class="n">thermochemistry</span><span class="o">-</span><span class="n">fragments</span> <span class="n">migrate</span>            <span class="c1"># an older store up to date</span>
+<span class="n">seamm</span><span class="o">-</span><span class="n">thermochemistry</span><span class="o">-</span><span class="n">fragments</span> <span class="n">merge</span> <span class="n">OTHER</span><span class="o">.</span><span class="n">db</span> <span class="o">...</span> <span class="c1"># add another copy's rows</span>
+<span class="n">seamm</span><span class="o">-</span><span class="n">thermochemistry</span><span class="o">-</span><span class="n">fragments</span> <span class="n">export</span> <span class="o">--</span><span class="n">out</span> <span class="n">MINE</span><span class="o">.</span><span class="n">db</span> <span class="p">[</span><span class="o">--</span><span class="n">label</span> <span class="n">TEXT</span><span class="p">]</span>
+<span class="n">seamm</span><span class="o">-</span><span class="n">thermochemistry</span><span class="o">-</span><span class="n">fragments</span> <span class="n">duplicates</span> <span class="o">--</span><span class="n">layers</span>
+<span class="n">seamm</span><span class="o">-</span><span class="n">thermochemistry</span><span class="o">-</span><span class="n">fragments</span> <span class="n">official</span> <span class="n">build</span> <span class="o">--</span><span class="n">version</span> <span class="n">V</span> <span class="o">--</span><span class="n">out</span> <span class="n">NEW</span><span class="o">.</span><span class="n">db</span> \
+    <span class="p">[</span><span class="o">--</span><span class="n">previous</span> <span class="n">OLD</span><span class="o">.</span><span class="n">db</span><span class="p">]</span> <span class="n">CONTRIBUTION</span><span class="o">.</span><span class="n">db</span> <span class="o">...</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">migrate</span></code> keeps a dated copy first, adds the <code class="docutils literal notranslate"><span class="pre">meta</span></code> table and stores the model
+chemistries bare with their program; keys do not change, and running it again does
+nothing. <code class="docutils literal notranslate"><span class="pre">merge</span></code> is insert-or-ignore: differing values are logged, and superseded
+values come along as history. <code class="docutils literal notranslate"><span class="pre">export</span></code> writes the local rows the official store
+lacks, or has with other values, to a contribution for the next official version;
+nothing about the host or user is added beyond the label. <code class="docutils literal notranslate"><span class="pre">official</span> <span class="pre">build</span></code> (for
+maintainers) stops at the first contributed value that differs from one already
+there, so that it is resolved with <code class="docutils literal notranslate"><span class="pre">supersede</span></code> and a reason; it writes the file’s
+SHA-256 beside it. <code class="docutils literal notranslate"><span class="pre">--official</span> <span class="pre">FILE</span></code> names an official store other than the
+default; <code class="docutils literal notranslate"><span class="pre">lookup</span></code> and <code class="docutils literal notranslate"><span class="pre">geometries</span></code> read both.</p>
+</section>
 <section id="geometries-and-energies-at-different-levels">
 <h3>Geometries and energies at different levels<a class="headerlink" href="#geometries-and-energies-at-different-levels" title="Link to this heading">#</a></h3>
 <p>Thermochemistry often takes the energy from a costly level of theory (for example
@@ -913,6 +957,7 @@ batch of targets computes each fragment once.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#active-thermochemical-tables">Active Thermochemical Tables</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-fragment-energy-store">The fragment-energy store</a><ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#write-back-from-jobs-and-the-harvest-of-jobs-that-come-back">Write-back from jobs, and the harvest of jobs that come back</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-official-and-local-stores">The official and local stores</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#geometries-and-energies-at-different-levels">Geometries and energies at different levels</a></li>
 </ul>
 </li>

@@ -124,10 +124,26 @@ seamm\_thermochemistry.ladder\_cli module
    :show-inheritance:
    :undoc-members:
 
+seamm\_thermochemistry.layered\_store module
+--------------------------------------------
+
+.. automodule:: seamm_thermochemistry.layered_store
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 seamm\_thermochemistry.report module
 ------------------------------------
 
 .. automodule:: seamm_thermochemistry.report
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+seamm\_thermochemistry.store\_tools module
+------------------------------------------
+
+.. automodule:: seamm_thermochemistry.store_tools
    :members:
    :show-inheritance:
    :undoc-members:

@@ -32,6 +32,17 @@ that is a contact too close to read as a bond is caught by the contact check,
 but ligands closer still (the old PF₆⁻) read as bonded and are refused by the
 connectivity check first.
 
+**P5b released 2026-11-11** (seamm-jobserver 2026.11.11, seamm-thermochemistry and
+thermochemistry-step 2026.11.11.1). **P5c implemented 2026-11-11** (branch
+``p5c-layers``): the meta table (schema 3), ``LayeredStore`` with R1-R5,
+``migrate``, ``merge``, ``export``, ``official build`` and ``duplicates
+--layers``, and the step reading both layers. Recording the official file's
+sha256 in the installation, and ``installer check`` verifying it, moved to P5d
+with the rest of the installer; the official build's sanity pass is P5e.
+``migrate`` was run on a copy of ChemAI's store (2026-11-11 06:14): 100
+fragment, 50 geometry and 639 energy rows normalized, all keys unchanged, a
+second run a no-op.
+
 Numbering: these phases are the fragment store's P5 (P5a-P5e). The 11-08
 presets plan also had a P5 (long-bond and %[(T)] flags) and a P6 (pilot). Those
 keep their names and have nothing to do with this note.

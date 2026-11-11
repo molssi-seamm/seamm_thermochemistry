@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.fragment_store &#8212; SEAMM thermochemistry Plug-in 2026.11.11.1 documentation</title>
+    <title>seamm_thermochemistry.fragment_store &#8212; SEAMM thermochemistry Plug-in 2026.11.11.2 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=0273fb53"></script>
+    <script src="../../_static/documentation_options.js?v=358b7139"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.11.1" />
+  <meta name="docsearch:version" content="2026.11.11.2" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -578,6 +578,19 @@
 <span class="s2">"""</span>
 
 
+<div class="viewcode-block" id="official_store_path">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.fragment_store.official_store_path">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">official_store_path</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The official store: `path` if given, else ``fragments-official.db`` next</span>
+<span class="sd">    to the local one (``&lt;...&gt;/Parameters/thermochemistry/``)."""</span>
+    <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.atct</span><span class="w"> </span><span class="kn">import</span> <span class="n">atct_directory</span>
+
+    <span class="k">return</span> <span class="n">atct_directory</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="s2">"fragments-official.db"</span></div>
+
+
+
 <div class="viewcode-block" id="fragment_store_path">
 <a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.fragment_store.fragment_store_path">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">fragment_store_path</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -705,12 +718,21 @@
 <span class="sd">    create : bool</span>
 <span class="sd">        Create the file and schema if missing (the writer); a reader passes</span>
 <span class="sd">        False and gets an empty store when there is no file.</span>
+<span class="sd">    immutable : bool</span>
+<span class="sd">        Open a file that nothing will change while it is open (the official</span>
+<span class="sd">        store) read-only without locking (SQLite's ``immutable=1``), which is</span>
+<span class="sd">        safe on network filesystems such as GPFS.</span>
+<span class="sd">    layer : str</span>
+<span class="sd">        For a new file (with `create`): its layer, "local" (the default),</span>
+<span class="sd">        "official" or "contribution", recorded in its ``meta`` table.</span>
 <span class="sd">    """</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">create</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">create</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">immutable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">layer</span><span class="o">=</span><span class="s2">"local"</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">fragment_store_path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_db</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_readonly</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">create</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_immutable</span> <span class="o">=</span> <span class="n">immutable</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">create</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_new_layer</span> <span class="o">=</span> <span class="n">layer</span>
         <span class="k">if</span> <span class="n">create</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_connect</span><span class="p">(</span><span class="n">create</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -725,7 +747,8 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
                 <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No fragment store at </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-            <span class="n">db</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="sa">f</span><span class="s2">"file:</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">?mode=ro"</span><span class="p">,</span> <span class="n">uri</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+            <span class="n">flags</span> <span class="o">=</span> <span class="s2">"mode=ro&amp;immutable=1"</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_immutable</span> <span class="k">else</span> <span class="s2">"mode=ro"</span>
+            <span class="n">db</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="sa">f</span><span class="s2">"file:</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">?</span><span class="si">{</span><span class="n">flags</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">uri</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
         <span class="n">db</span><span class="o">.</span><span class="n">row_factory</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Row</span>
         <span class="c1"># Local-disk discipline: no memory mapping, wait for locks, the</span>
         <span class="c1"># rollback journal (never WAL on a network filesystem)</span>
@@ -736,6 +759,15 @@
             <span class="n">db</span><span class="o">.</span><span class="n">executescript</span><span class="p">(</span><span class="n">_SCHEMA</span> <span class="o">+</span> <span class="n">GEOMETRY_SCHEMA</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"PRAGMA user_version"</span><span class="p">)</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">SCHEMA_VERSION</span><span class="p">:</span>
                 <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">"PRAGMA user_version = </span><span class="si">{</span><span class="n">SCHEMA_VERSION</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="c1"># A store from before the meta table is a local one</span>
+            <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                <span class="s2">"INSERT OR IGNORE INTO meta (key, value) VALUES ('layer', ?)"</span><span class="p">,</span>
+                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_new_layer</span><span class="p">,),</span>
+            <span class="p">)</span>
+            <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                <span class="s2">"INSERT OR IGNORE INTO meta (key, value) VALUES ('created', ?)"</span><span class="p">,</span>
+                <span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(</span><span class="n">timespec</span><span class="o">=</span><span class="s2">"seconds"</span><span class="p">),),</span>
+            <span class="p">)</span>
             <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_db</span> <span class="o">=</span> <span class="n">db</span>
         <span class="k">return</span> <span class="n">db</span>
@@ -746,6 +778,93 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_db</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_db</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+    <span class="c1"># -- the meta table: the layer and an official store's version ----------</span>
+
+<div class="viewcode-block" id="FragmentStore.meta">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.fragment_store.FragmentStore.meta">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">meta</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""The ``meta`` table as a dict ({} for a store from before it, or no</span>
+<span class="sd">        store)."""</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">db</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_connect</span><span class="p">()</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">FileNotFoundError</span><span class="p">,</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">{}</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span><span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"SELECT key, value FROM meta"</span><span class="p">)}</span>
+        <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">OperationalError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{}</span></div>
+
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">layer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">""" "local", "official" or "contribution"; a store from before the meta</span>
+<span class="sd">        table is a local one."""</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">meta</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"layer"</span><span class="p">,</span> <span class="s2">"local"</span><span class="p">)</span>
+
+<div class="viewcode-block" id="FragmentStore.set_meta">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.fragment_store.FragmentStore.set_meta">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_meta</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">values</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Set ``meta`` entries (the writer only)."""</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_readonly</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">PermissionError</span><span class="p">(</span><span class="s2">"The fragment store was opened read-only."</span><span class="p">)</span>
+        <span class="n">db</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_connect</span><span class="p">(</span><span class="n">create</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">values</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                <span class="s2">"INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)"</span><span class="p">,</span>
+                <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)),</span>
+            <span class="p">)</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="FragmentStore.superseded_values">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.fragment_store.FragmentStore.superseded_values">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">superseded_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">row_id</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""The old values of a row that were superseded, newest first: from</span>
+<span class="sd">        ``row_history`` for the geometry and energy tables, from ``superseded``</span>
+<span class="sd">        for the fragment table. Each is a dict with E (and ZPE, H), the date</span>
+<span class="sd">        and the reason."""</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">db</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_connect</span><span class="p">()</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">FileNotFoundError</span><span class="p">,</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">table</span> <span class="o">==</span> <span class="s2">"fragment"</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                    <span class="s2">"SELECT E, ZPE, H, superseded_on, reason FROM superseded "</span>
+                    <span class="s2">"WHERE fragment = ? ORDER BY id DESC"</span><span class="p">,</span>
+                    <span class="p">(</span><span class="n">row_id</span><span class="p">,),</span>
+                <span class="p">):</span>
+                    <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="p">{</span>
+                            <span class="s2">"E"</span><span class="p">:</span> <span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                            <span class="s2">"ZPE"</span><span class="p">:</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                            <span class="s2">"H"</span><span class="p">:</span> <span class="n">r</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+                            <span class="s2">"date"</span><span class="p">:</span> <span class="n">r</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span>
+                            <span class="s2">"reason"</span><span class="p">:</span> <span class="n">r</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span>
+                        <span class="p">}</span>
+                    <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                    <span class="s2">"SELECT old, date, reason FROM row_history WHERE table_name = ? "</span>
+                    <span class="s2">"AND row = ? AND kind = 'superseded' ORDER BY id DESC"</span><span class="p">,</span>
+                    <span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">row_id</span><span class="p">),</span>
+                <span class="p">):</span>
+                    <span class="n">old</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">else</span> <span class="p">{}</span>
+                    <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="p">{</span>
+                            <span class="s2">"E"</span><span class="p">:</span> <span class="n">old</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"E"</span><span class="p">),</span>
+                            <span class="s2">"ZPE"</span><span class="p">:</span> <span class="n">old</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"ZPE"</span><span class="p">),</span>
+                            <span class="s2">"H"</span><span class="p">:</span> <span class="n">old</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"H"</span><span class="p">),</span>
+                            <span class="s2">"date"</span><span class="p">:</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                            <span class="s2">"reason"</span><span class="p">:</span> <span class="n">r</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+                        <span class="p">}</span>
+                    <span class="p">)</span>
+        <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">OperationalError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="k">return</span> <span class="n">out</span></div>
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
