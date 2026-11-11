@@ -83,9 +83,11 @@ __all__ = [
     "same_model_chemistry",
 ]
 
-#: The store's schema version (``PRAGMA user_version``): 2 adds geometry,
-#: energy and row_history; 0 or 1 is the fragment table alone.
-SCHEMA_VERSION = 2
+#: The store's schema version (``PRAGMA user_version``): 3 adds the ``meta``
+#: table (the layer: local, official or contribution; an official store's
+#: version), 2 the geometry, energy and row_history tables; 0 or 1 is the
+#: fragment table alone.
+SCHEMA_VERSION = 3
 #: Imaginary modes at or below this (cm⁻¹, magnitude) are numerical noise
 IMAGINARY_TOLERANCE = 20.0
 DUPLICATE_TOLERANCE = 0.1  # kJ/mol, as for the fragment table
@@ -140,6 +142,10 @@ CREATE TABLE IF NOT EXISTS energy (
     source TEXT,
     date TEXT,
     UNIQUE (geometry_hash, energy_fingerprint)
+);
+CREATE TABLE IF NOT EXISTS meta (
+    key TEXT PRIMARY KEY,
+    value TEXT
 );
 CREATE TABLE IF NOT EXISTS row_history (
     id INTEGER PRIMARY KEY,

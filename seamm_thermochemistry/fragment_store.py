@@ -151,6 +151,16 @@ CREATE TABLE IF NOT EXISTS duplicate_log (
 """
 
 
+def official_store_path(path=None):
+    """The official store: `path` if given, else ``fragments-official.db`` next
+    to the local one (``<...>/Parameters/thermochemistry/``)."""
+    if path is not None:
+        return Path(path).expanduser()
+    from .atct import atct_directory
+
+    return atct_directory().parent / "fragments-official.db"
+
+
 def fragment_store_path(path=None):
     """The store file: `path` if given, else ``fragments.db`` next to the ATcT
     cache (``<...>/Parameters/thermochemistry/fragments.db``)."""
@@ -267,12 +277,21 @@ class FragmentStore(GeometryEnergyMixin):
     create : bool
         Create the file and schema if missing (the writer); a reader passes
         False and gets an empty store when there is no file.
+    immutable : bool
+        Open a file that nothing will change while it is open (the official
+        store) read-only without locking (SQLite's ``immutable=1``), which is
+        safe on network filesystems such as GPFS.
+    layer : str
+        For a new file (with `create`): its layer, "local" (the default),
+        "official" or "contribution", recorded in its ``meta`` table.
     """
 
-    def __init__(self, path=None, *, create=False):
+    def __init__(self, path=None, *, create=False, immutable=False, layer="local"):
         self.path = fragment_store_path(path)
         self._db = None
         self._readonly = not create
+        self._immutable = immutable and not create
+        self._new_layer = layer
         if create:
             self.path.parent.mkdir(parents=True, exist_ok=True)
             self._connect(create=True)
@@ -287,7 +306,8 @@ class FragmentStore(GeometryEnergyMixin):
         else:
             if not self.path.exists():
                 raise FileNotFoundError(f"No fragment store at {self.path}")
-            db = sqlite3.connect(f"file:{self.path}?mode=ro", uri=True, timeout=30)
+            flags = "mode=ro&immutable=1" if self._immutable else "mode=ro"
+            db = sqlite3.connect(f"file:{self.path}?{flags}", uri=True, timeout=30)
         db.row_factory = sqlite3.Row
         # Local-disk discipline: no memory mapping, wait for locks, the
         # rollback journal (never WAL on a network filesystem)
@@ -298,6 +318,15 @@ class FragmentStore(GeometryEnergyMixin):
             db.executescript(_SCHEMA + GEOMETRY_SCHEMA)
             if db.execute("PRAGMA user_version").fetchone()[0] < SCHEMA_VERSION:
                 db.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
+            # A store from before the meta table is a local one
+            db.execute(
+                "INSERT OR IGNORE INTO meta (key, value) VALUES ('layer', ?)",
+                (self._new_layer,),
+            )
+            db.execute(
+                "INSERT OR IGNORE INTO meta (key, value) VALUES ('created', ?)",
+                (datetime.datetime.now().isoformat(timespec="seconds"),),
+            )
             db.commit()
         self._db = db
         return db
@@ -306,6 +335,84 @@ class FragmentStore(GeometryEnergyMixin):
         if self._db is not None:
             self._db.close()
             self._db = None
+
+    # -- the meta table: the layer and an official store's version ----------
+
+    def meta(self):
+        """The ``meta`` table as a dict ({} for a store from before it, or no
+        store)."""
+        try:
+            db = self._connect()
+        except (FileNotFoundError, sqlite3.Error):
+            return {}
+        try:
+            return {r[0]: r[1] for r in db.execute("SELECT key, value FROM meta")}
+        except sqlite3.OperationalError:
+            return {}
+
+    @property
+    def layer(self):
+        """ "local", "official" or "contribution"; a store from before the meta
+        table is a local one."""
+        return self.meta().get("layer", "local")
+
+    def set_meta(self, **values):
+        """Set ``meta`` entries (the writer only)."""
+        if self._readonly:
+            raise PermissionError("The fragment store was opened read-only.")
+        db = self._connect(create=True)
+        for key, value in values.items():
+            db.execute(
+                "INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)",
+                (key, None if value is None else str(value)),
+            )
+        db.commit()
+
+    def superseded_values(self, table, row_id):
+        """The old values of a row that were superseded, newest first: from
+        ``row_history`` for the geometry and energy tables, from ``superseded``
+        for the fragment table. Each is a dict with E (and ZPE, H), the date
+        and the reason."""
+        try:
+            db = self._connect()
+        except (FileNotFoundError, sqlite3.Error):
+            return []
+        out = []
+        try:
+            if table == "fragment":
+                for r in db.execute(
+                    "SELECT E, ZPE, H, superseded_on, reason FROM superseded "
+                    "WHERE fragment = ? ORDER BY id DESC",
+                    (row_id,),
+                ):
+                    out.append(
+                        {
+                            "E": r[0],
+                            "ZPE": r[1],
+                            "H": r[2],
+                            "date": r[3],
+                            "reason": r[4],
+                        }
+                    )
+            else:
+                for r in db.execute(
+                    "SELECT old, date, reason FROM row_history WHERE table_name = ? "
+                    "AND row = ? AND kind = 'superseded' ORDER BY id DESC",
+                    (table, row_id),
+                ):
+                    old = json.loads(r[0]) if r[0] else {}
+                    out.append(
+                        {
+                            "E": old.get("E"),
+                            "ZPE": old.get("ZPE"),
+                            "H": old.get("H"),
+                            "date": r[1],
+                            "reason": r[2],
+                        }
+                    )
+        except sqlite3.OperationalError:
+            return []
+        return out
 
     def __enter__(self):
         return self

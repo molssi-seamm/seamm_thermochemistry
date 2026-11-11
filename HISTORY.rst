@@ -2,6 +2,24 @@
 History
 =======
 
+2026.11.11.2 -- The official and local fragment stores
+    * The fragment store has two layers: the local ``fragments.db``, which this
+      installation writes, and the official ``fragments-official.db``, published by
+      SEAMM and only ever read (without locking, so it may be on a network
+      filesystem). ``LayeredStore`` reads them as one, the local store first; an
+      official correction (a superseded value) beats the same old value in the
+      local store; differences over 0.1 kJ/mol are noted; the lowest conformer of
+      either is used; and an energy may come from the other store when it is on the
+      same geometry. Every row says which store it came from.
+    * New commands: ``migrate`` (brings an older store up to date after a dated
+      backup: the meta table, model chemistries stored bare with their program),
+      ``merge`` (adds the rows of other copies), ``export`` (the local rows the
+      official store lacks, as a contribution), ``official build`` (a new official
+      version from the previous one and contributions) and ``duplicates
+      --layers``. ``lookup`` and ``geometries`` read both stores.
+    * Stores have a ``meta`` table (schema 3) recording their layer and, for an
+      official store, its version. Older stores are read as local ones.
+
 2026.11.11.1 -- Write-back from jobs; harvest of returning jobs; a structure guard
     * ``harvest_configuration`` puts one computed structure into the fragment store:
       what the harvest does for each system of a job, and what the Thermochemistry

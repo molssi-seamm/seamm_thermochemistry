@@ -10,15 +10,37 @@ command line::
     seamm-thermochemistry-fragments duplicates [--store FILE]
     seamm-thermochemistry-fragments harvest JOB_DIR ... --supersede "REASON"
     seamm-thermochemistry-fragments superseded [SMILES] [--store FILE]
+    seamm-thermochemistry-fragments duplicates --layers [--official FILE]
+    seamm-thermochemistry-fragments migrate [--store FILE]
+    seamm-thermochemistry-fragments merge SOURCE.db ... [--store FILE]
+    seamm-thermochemistry-fragments export --out FILE [--label TEXT]
+    seamm-thermochemistry-fragments official build --version V --out FILE
+                                           [--previous FILE] SOURCE.db ...
 
-``harvest`` is the single writer: run it on the host after a job has
-finished, never on a compute node.
+``--store`` is the local store (``fragments.db``), the one every command
+writes; ``--official`` is the official store (``fragments-official.db``, read
+only), which ``lookup`` and ``geometries`` read after the local one. Run
+``harvest`` on the host after a job has finished, never on a compute node.
 """
 
 import argparse
 import sys
 
 from . import fragment_store as F
+from . import store_tools as T
+from .layered_store import LayeredStore
+
+
+def _print_counts(counts):
+    for table in ("fragment", "geometry", "energy"):
+        tally = counts.get(table) or {}
+        if tally:
+            print(
+                f"    {table} rows: "
+                + ", ".join(f"{n} {k}" for k, n in sorted(tally.items()))
+            )
+    if counts.get("history"):
+        print(f"    {counts['history']} superseded values copied as history")
 
 
 def main(argv=None):
@@ -27,7 +49,12 @@ def main(argv=None):
     )
     parser.add_argument(
         "--store",
-        help="The store file (default: fragments.db next to the ATcT cache).",
+        help="The local store file (default: fragments.db next to the ATcT cache).",
+    )
+    parser.add_argument(
+        "--official",
+        help="The official store file (default: fragments-official.db beside the "
+        "local one).",
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
@@ -108,7 +135,47 @@ def main(argv=None):
         help="Also geometries with imaginary modes.",
     )
 
-    sub.add_parser("duplicates", help="Show the duplicate log.")
+    dup = sub.add_parser("duplicates", help="Show the duplicate log.")
+    dup.add_argument(
+        "--layers",
+        action="store_true",
+        help="Instead, the keys whose values differ between the local and the "
+        "official store.",
+    )
+
+    sub.add_parser(
+        "migrate",
+        help="Bring the local store up to date (the meta table; model chemistries "
+        "stored bare with their program), after a dated backup.",
+    )
+
+    merge = sub.add_parser(
+        "merge",
+        help="Add the rows of other stores (another installation's copy, a "
+        "contribution, a campaign store) to the local store.",
+    )
+    merge.add_argument("sources", nargs="+", help="Store files.")
+    merge.add_argument("--label", help="A name for the sources, for the history.")
+
+    export = sub.add_parser(
+        "export",
+        help="Write the local rows the official store lacks, or has with other "
+        "values, to a contribution file for the next official version.",
+    )
+    export.add_argument("--out", required=True, help="The new contribution file.")
+    export.add_argument("--label", help="Free text recorded in the file.")
+
+    official = sub.add_parser("official", help="Official stores (maintainers).")
+    official_sub = official.add_subparsers(dest="official_command", required=True)
+    build = official_sub.add_parser(
+        "build",
+        help="Build a new official store from the previous one and contributions.",
+    )
+    build.add_argument("sources", nargs="*", help="Contribution or store files.")
+    build.add_argument("--version", required=True, help="Its version (CalVer).")
+    build.add_argument("--out", required=True, help="The new file.")
+    build.add_argument("--previous", help="The previous official store.")
+    build.add_argument("--source", help="Where it is published, e.g. a DOI.")
 
     sup = sub.add_parser("superseded", help="Show the superseded values.")
     sup.add_argument("species", nargs="?", help="Canonical SMILES.")
@@ -166,7 +233,7 @@ def main(argv=None):
             for r in records:
                 _print(r)
         elif args.command == "lookup":
-            store = F.FragmentStore(args.store)
+            store = LayeredStore(args.store, args.official)
             r = store.get(
                 args.species,
                 charge=args.charge,
@@ -178,8 +245,10 @@ def main(argv=None):
                 print("No record.")
                 return 1
             _print(r)
+            for note in store.notes:
+                print(f"    note: {note}")
         elif args.command == "geometries":
-            store = F.FragmentStore(args.store)
+            store = LayeredStore(args.store, args.official)
             rows = store.geometries(
                 args.species,
                 charge=args.charge,
@@ -200,14 +269,17 @@ def main(argv=None):
                 print(
                     f"{g['species']}{label} at {_level(g)}{flag}: "
                     f"E = {g['E']:.3f}, ZPE = {g['ZPE']}, H = {g['H']} kJ/mol"
-                    f"{imaginary}; {g['geometry_hash']} from {g['job']}"
+                    f"{imaginary}; {g['geometry_hash']} from {g['job']} "
+                    f"[{store.layer_name(g['layer'])}]"
                 )
                 for e in store.energies(g["geometry_hash"]):
                     eflag = "" if e["verified"] else " [unverified]"
                     print(
                         f"    {_level(e)}{eflag}: E = {e['E']:.3f} kJ/mol "
-                        f"from {e['job']}"
+                        f"from {e['job']} [{store.layer_name(e['layer'])}]"
                     )
+            for note in store.notes:
+                print(f"    note: {note}")
         elif args.command == "superseded":
             store = F.FragmentStore(args.store)
             rows = store.superseded(args.species)
@@ -226,6 +298,58 @@ def main(argv=None):
                     f"{d['species']} on {d['superseded_on']}: {old} (from {d['job']}) "
                     f"replaced by {new}; reason: {d['reason']}"
                 )
+        elif args.command == "duplicates" and args.layers:
+            rows = T.layer_conflicts(args.store, args.official)
+            if not rows:
+                print("The local and official stores agree on every shared key.")
+            for d in rows:
+                key = ", ".join(str(k) for k in d["key"])
+                how = (
+                    "the official value is used: the local one was superseded"
+                    if d["superseded"]
+                    else "the local value is used"
+                )
+                print(
+                    f"{d['table']} ({key}): local {d['local']}, official "
+                    f"{d['official']}, {d['difference']:.2f} kJ/mol apart; {how}"
+                )
+        elif args.command == "migrate":
+            result = T.migrate_store(args.store)
+            if result["backup"] is None:
+                print("The store is up to date; nothing changed.")
+            else:
+                old, new = result["schema"]
+                changed = ", ".join(
+                    f"{n} {t} rows" for t, n in result["changed"].items()
+                )
+                print(
+                    f"Migrated (schema {old} -> {new}; names normalized: "
+                    f"{changed or 'none'}). Backup: {result['backup']}"
+                )
+        elif args.command == "merge":
+            counts = T.merge_stores(
+                F.fragment_store_path(args.store), args.sources, label=args.label
+            )
+            _print_counts(counts)
+        elif args.command == "export":
+            counts = T.export_local(
+                args.out, args.store, args.official, label=args.label
+            )
+            print(
+                f"Exported to {args.out}: {counts['fragment']} fragment, "
+                f"{counts['geometry']} geometry and {counts['energy']} energy rows "
+                f"({counts['differing']} differing from the official store)."
+            )
+        elif args.command == "official" and args.official_command == "build":
+            path, digest, counts = T.build_official(
+                args.out,
+                args.version,
+                args.sources,
+                previous=args.previous,
+                source=args.source,
+            )
+            _print_counts(counts)
+            print(f"Built {path} (version {args.version}), sha256 {digest}")
         elif args.command == "duplicates":
             store = F.FragmentStore(args.store)
             rows = store.duplicates()
@@ -237,7 +361,7 @@ def main(argv=None):
                     f"vs {d['E']} (max difference {d['difference']:.3f} kJ/mol) "
                     f"from {d['job']} on {d['date']}"
                 )
-    except (F.sqlite3.Error, FileNotFoundError, ValueError) as e:
+    except (F.sqlite3.Error, FileNotFoundError, FileExistsError, ValueError) as e:
         print(f"Error: {e}", file=sys.stderr)
         return 1
     return 0
