@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.fragment_cli &#8212; SEAMM thermochemistry Plug-in 2026.11.11.9 documentation</title>
+    <title>seamm_thermochemistry.fragment_cli &#8212; SEAMM thermochemistry Plug-in 2026.11.11.10 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=21e0c85c"></script>
+    <script src="../../_static/documentation_options.js?v=895e3be8"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.11.9" />
+  <meta name="docsearch:version" content="2026.11.11.10" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -626,6 +626,12 @@
         <span class="s2">"charge, multiplicity, reason."</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">build</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">"--keep-job-paths"</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s2">"store_true"</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">"Keep each job's directory in the provenance; by default only the job "</span>
+        <span class="s2">"id is kept, since an official store is published."</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">build</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
         <span class="s2">"--no-atct"</span><span class="p">,</span>
         <span class="n">action</span><span class="o">=</span><span class="s2">"store_true"</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s2">"Do not check multiplicities against ATcT's spin states."</span><span class="p">,</span>
@@ -852,6 +858,7 @@
                 <span class="n">energy_fingerprints</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">energy_fingerprint</span><span class="p">,</span>
                 <span class="n">exclude</span><span class="o">=</span><span class="n">T</span><span class="o">.</span><span class="n">load_exclusions</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">exclude</span><span class="p">)</span> <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">exclude</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
                 <span class="n">atct</span><span class="o">=</span><span class="n">atct</span><span class="p">,</span>
+                <span class="n">job_ids_only</span><span class="o">=</span><span class="ow">not</span> <span class="n">args</span><span class="o">.</span><span class="n">keep_job_paths</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="n">_print_counts</span><span class="p">(</span><span class="n">counts</span><span class="p">)</span>
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Built </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2"> (version </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s2">), sha256 </span><span class="si">{</span><span class="n">digest</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>

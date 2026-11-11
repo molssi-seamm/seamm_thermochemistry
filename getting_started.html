@@ -7,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.11.11.9 documentation</title>
+    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.11.11.10 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="_static/documentation_options.js?v=21e0c85c"></script>
+    <script src="_static/documentation_options.js?v=895e3be8"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -55,7 +55,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.11.9" />
+  <meta name="docsearch:version" content="2026.11.11.10" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -759,7 +759,10 @@ lookup; <code class="docutils literal notranslate"><span class="pre">migrate</sp
 replaces a quarantined one, which is kept as superseded, and quarantined rows are not
 counted as conformers. Ions and open-shell species are checked like the rest. The
 build writes <code class="docutils literal notranslate"><span class="pre">&lt;file&gt;.report.json</span></code> beside the file: the sources, the levels, the rows
-kept and left out, each exclusion with its reason, and the SHA-256. <code class="docutils literal notranslate"><span class="pre">--official</span>
+kept and left out, each exclusion with its reason, and the SHA-256. Since an official
+store is published, the build keeps only each job’s id in the provenance, not its
+directory (<code class="docutils literal notranslate"><span class="pre">--keep-job-paths</span></code> keeps them); name the source files without private
+paths too, as the report lists them as given. <code class="docutils literal notranslate"><span class="pre">--official</span>
 <span class="pre">FILE</span></code> names an official store other than the default; <code class="docutils literal notranslate"><span class="pre">lookup</span></code> and <code class="docutils literal notranslate"><span class="pre">geometries</span></code>
 read both.</p>
 <p>Every harvest and every job’s write-back records what it did with each row – added,

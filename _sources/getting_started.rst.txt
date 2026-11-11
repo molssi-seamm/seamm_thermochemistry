@@ -335,7 +335,10 @@ build`` drops them and lists them in its report. A valid new row with the same k
 replaces a quarantined one, which is kept as superseded, and quarantined rows are not
 counted as conformers. Ions and open-shell species are checked like the rest. The
 build writes ``<file>.report.json`` beside the file: the sources, the levels, the rows
-kept and left out, each exclusion with its reason, and the SHA-256. ``--official
+kept and left out, each exclusion with its reason, and the SHA-256. Since an official
+store is published, the build keeps only each job's id in the provenance, not its
+directory (``--keep-job-paths`` keeps them); name the source files without private
+paths too, as the report lists them as given. ``--official
 FILE`` names an official store other than the default; ``lookup`` and ``geometries``
 read both.
 
