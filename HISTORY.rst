@@ -2,6 +2,23 @@
 History
 =======
 
+2026.11.11.4 -- CBH: hypervalent and charge-separated groups kept whole
+    * A hypervalent centre (S, Se, Te, P, As, Cl, Br, I with more bonds than its
+      normal valence: sulfonyl, sulfite, phosphoryl, SF5-R, ClF3, ...) is kept
+      together with all its heavy neighbours, so CBH-0 gives real molecules
+      (sulfuric and phosphoric acid, methyl hydrogen sulfate) rather than
+      hydrides such as H2SO2, H3PO, SH4 or SH6. A molecule that is one such group
+      (SF6, dimethyl sulfone) is trivial at every rung.
+    * Two bonded atoms with opposite formal charges are kept together: CO written
+      [C-]#[O+] no longer gives [CH3-] + [OH3+], and aromatic N-oxides are now
+      protected too.
+    * Hypervalent halogens (ClF3, BrF5), which RDKit's valence check rejects,
+      are read and canonicalized; other over-valent atoms (O=[N]=O) still are not.
+    * ``cbh.ground_state_multiplicity`` gives a species' spin multiplicity, with the
+      singlet silylenes, dihalocarbenes and BH that a SMILES writes as triplets.
+    * Over the 1,694 PPE1694 molecules only the 32 with such groups change their
+      reactions; the others are unchanged.
+
 2026.11.11.2 -- The official and local fragment stores
     * The fragment store has two layers: the local ``fragments.db``, which this
       installation writes, and the official ``fragments-official.db``, published by
