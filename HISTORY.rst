@@ -11,7 +11,8 @@ History
     * Halogen cations bonded to two or more heavy atoms (the [Cl+3] of FClO3 written
       with charge separation) are hypervalent centres too.
     * The ground-state table gains the singlets HCF, HCCl, GeH2, AlH, BF and BCl,
-      and the triplets that a SMILES writes closed-shell: O2, S2, SO and OCCO.
+      and the triplets that a SMILES writes closed-shell: O2, S2, SO, OCCO and
+      cyclic C3.
 
 2026.11.11.6 -- Quarantined rows left alone and left out
     * Rows quarantined by hand in a fragment store -- unverified, with the model

@@ -505,7 +505,7 @@ species: its unpaired electrons + 1, except the ground-state singlets that a
 SMILES writes with two unpaired electrons (SiH\ :sub:`2`, SiCl\ :sub:`2`,
 SiF\ :sub:`2`, GeH\ :sub:`2`, CF\ :sub:`2`, CCl\ :sub:`2`, HCF, HCCl, BH, AlH,
 BF, BCl; CH\ :sub:`2` and NH stay triplets) and the triplets it writes
-closed-shell (O\ :sub:`2`, S\ :sub:`2`, SO, OCCO). A rung that reproduces the target is ``trivial``; a rung
+closed-shell (O\ :sub:`2`, S\ :sub:`2`, SO, OCCO, cyclic C\ :sub:`3`). A rung that reproduces the target is ``trivial``; a rung
 the formula cannot build raises ``RungUnavailable``. ``cbh.unique_fragments``
 gives the union of the reference species over several reactions, so that a
 batch of targets computes each fragment once.

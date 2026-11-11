@@ -413,6 +413,7 @@ def test_charge_separated_perchloryl_is_whole():
         ("S=S", 3),
         ("O=S", 3),
         ("O=C=C=O", 3),
+        ("C1=C=C=1", 3),
     ],
 )
 def test_more_ground_states(smiles, multiplicity):

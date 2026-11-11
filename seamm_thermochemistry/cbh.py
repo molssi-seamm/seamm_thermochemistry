@@ -533,9 +533,10 @@ SINGLET_GROUND_STATES = (
     "Cl[B]",
 )
 #: Species that a SMILES writes closed-shell but whose ground state is a triplet:
-#: O2 and its valence isoelectronic S2 and SO, and ethylenedione (OCCO, whose
-#: singlet is a saddle point).
-TRIPLET_GROUND_STATES = ("O=O", "S=S", "O=S", "O=C=C=O")
+#: O2 and its valence isoelectronic S2 and SO, ethylenedione (OCCO, whose singlet
+#: is a saddle point) and cyclic C3 (whose singlet opens to linear C3; ATcT's
+#: plain entry is the triplet).
+TRIPLET_GROUND_STATES = ("O=O", "S=S", "O=S", "O=C=C=O", "C1=C=C=1")
 
 
 def ground_state_multiplicity(smiles):
