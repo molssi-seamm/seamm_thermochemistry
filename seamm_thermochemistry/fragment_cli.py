@@ -10,6 +10,7 @@ command line::
     seamm-thermochemistry-fragments duplicates [--store FILE]
     seamm-thermochemistry-fragments harvest JOB_DIR ... --supersede "REASON"
     seamm-thermochemistry-fragments superseded [SMILES] [--store FILE]
+    seamm-thermochemistry-fragments writeback-log [--job JOB] [--species SMILES]
     seamm-thermochemistry-fragments duplicates --layers [--official FILE]
     seamm-thermochemistry-fragments migrate [--store FILE]
     seamm-thermochemistry-fragments merge SOURCE.db ... [--store FILE]
@@ -201,6 +202,13 @@ def main(argv=None):
         help="Do not check multiplicities against ATcT's spin states.",
     )
 
+    wlog = sub.add_parser(
+        "writeback-log",
+        help="What harvests and jobs' write-back added to or refused from the store.",
+    )
+    wlog.add_argument("--job", help="Only this job (part of its label, e.g. 5689).")
+    wlog.add_argument("--species", help="Only this species (canonical SMILES).")
+
     sup = sub.add_parser("superseded", help="Show the superseded values.")
     sup.add_argument("species", nargs="?", help="Canonical SMILES.")
 
@@ -304,6 +312,21 @@ def main(argv=None):
                     )
             for note in store.notes:
                 print(f"    note: {note}")
+        elif args.command == "writeback-log":
+            store = F.FragmentStore(args.store)
+            rows = store.write_log(job=args.job, species=args.species)
+            if not rows:
+                print("Nothing logged.")
+            for r in rows:
+                what = r["table_name"] or "species"
+                conformer = f" conformer '{r['conformer']}'" if r["conformer"] else ""
+                row = f" row {r['row']}" if r["row"] is not None else ""
+                reason = f": {r['reason']}" if r["reason"] else ""
+                print(
+                    f"{r['date']} {r['kind']} {r['job']}: {r['species']} "
+                    f"(q={r['charge']}, 2S+1={r['multiplicity']}){conformer} "
+                    f"{what}{row} {r['outcome']}{reason}"
+                )
         elif args.command == "superseded":
             store = F.FragmentStore(args.store)
             rows = store.superseded(args.species)

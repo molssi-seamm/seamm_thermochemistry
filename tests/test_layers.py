@@ -64,7 +64,7 @@ def _official(path, version="2026.12.1"):
 def test_meta_and_layer(paths, tmp_path):
     local, official = paths
     with FragmentStore(local, create=True) as s:
-        assert s.layer == "local" and s.schema_version() == SCHEMA_VERSION == 3
+        assert s.layer == "local" and s.schema_version() == SCHEMA_VERSION == 4
         assert "created" in s.meta()
     with _official(official) as s:
         assert s.layer == "official" and s.meta()["version"] == "2026.12.1"
@@ -73,7 +73,7 @@ def test_meta_and_layer(paths, tmp_path):
     _schema2_store(old)
     assert FragmentStore(old).layer == "local" and FragmentStore(old).meta() == {}
     with FragmentStore(old, create=True) as s:
-        assert s.meta()["layer"] == "local" and s.schema_version() == 3
+        assert s.meta()["layer"] == "local" and s.schema_version() == 4
 
 
 def test_the_official_store_is_read_only(paths):
@@ -365,7 +365,7 @@ def test_migrate(tmp_path):
         .fetchall()
     )
     result = migrate_store(path)
-    assert result["backup"].exists() and result["schema"] == (2, 3)
+    assert result["backup"].exists() and result["schema"] == (2, 4)
     assert result["changed"] == {"fragment": 1, "geometry": 1}
     db = sqlite3.connect(path)
     assert db.execute("SELECT model_chemistry, program FROM fragment").fetchall() == [

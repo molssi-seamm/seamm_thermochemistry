@@ -331,11 +331,20 @@ the ``--exclude`` file (columns species, charge, multiplicity, reason, and optio
 conformer, to leave out only that conformer). Rows quarantined by hand in a store
 (unverified, with the model chemistry ``UNUSABLE: <reason>``) are never found by a
 lookup; ``migrate`` leaves them as they are, ``export`` skips them, and ``official
-build`` drops them and lists them in its report. Ions and
-open-shell species are checked like the rest. The build writes
-``<file>.report.json`` beside the file: the sources, the levels, the rows kept and
-left out, each exclusion with its reason, and the SHA-256. ``--official FILE`` names an official store other than the
-default; ``lookup`` and ``geometries`` read both.
+build`` drops them and lists them in its report. A valid new row with the same key
+replaces a quarantined one, which is kept as superseded, and quarantined rows are not
+counted as conformers. Ions and open-shell species are checked like the rest. The
+build writes ``<file>.report.json`` beside the file: the sources, the levels, the rows
+kept and left out, each exclusion with its reason, and the SHA-256. ``--official
+FILE`` names an official store other than the default; ``lookup`` and ``geometries``
+read both.
+
+Every harvest and every job's write-back records what it did with each row -- added,
+a duplicate, logged, superseded, or refused and why -- in the store's
+``writeback_log`` table::
+
+    seamm-thermochemistry-fragments writeback-log --job 5700
+
 
 Geometries and energies at different levels
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
