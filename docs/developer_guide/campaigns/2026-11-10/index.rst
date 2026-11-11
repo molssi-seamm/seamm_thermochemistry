@@ -83,6 +83,17 @@ store, for Science):** a valid row replaces a quarantined one with the same key
 refused. Until it is installed, ChemAI runs with ``fragment-store-writable =
 no``.
 
+**Official v1 published 2026-11-11:** Zenodo record 24139306 (DOI
+10.5281/zenodo.24139306, concept 10.5281/zenodo.24139305), built by the released
+2026.11.11.10 (job provenance reduced to job ids). **P5d, seamm-thermochemistry part
+(2026.11.11.11):** the installer installs and updates the official store from the
+concept and ATcT when none is cached; ATcT downloads and the covariance cache are
+safe for parallel jobs. Change from §5: ``update`` does not add a newer ATcT version
+by itself (ATcT now serves 1.228; machines have 1.220, and saved ladders are tied
+to their version), it stays a deliberate ``seamm-thermochemistry-atct download``.
+The step's part (run-time download, covariances "fetch if needed", the uncertainty
+method column) follows design's thermochemistry_step#24.
+
 Numbering: these phases are the fragment store's P5 (P5a-P5e). The 11-08
 presets plan also had a P5 (long-bond and %[(T)] flags) and a P6 (pilot). Those
 keep their names and have nothing to do with this note.
