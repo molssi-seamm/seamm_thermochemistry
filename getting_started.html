@@ -7,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.11.11.5 documentation</title>
+    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.11.11.6 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="_static/documentation_options.js?v=fe02e1f4"></script>
+    <script src="_static/documentation_options.js?v=c9fa6b9e"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -55,7 +55,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.11.5" />
+  <meta name="docsearch:version" content="2026.11.11.6" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -751,7 +751,10 @@ them triplets, and from ATcT when it lists a species in labelled spin states
 </ul>
 <p>A species state that fails stops the build, unless it is excluded with a reason in
 the <code class="docutils literal notranslate"><span class="pre">--exclude</span></code> file (columns species, charge, multiplicity, reason, and optionally
-conformer, to leave out only that conformer). Ions and
+conformer, to leave out only that conformer). Rows quarantined by hand in a store
+(unverified, with the model chemistry <code class="docutils literal notranslate"><span class="pre">UNUSABLE:</span> <span class="pre">&lt;reason&gt;</span></code>) are never found by a
+lookup; <code class="docutils literal notranslate"><span class="pre">migrate</span></code> leaves them as they are, <code class="docutils literal notranslate"><span class="pre">export</span></code> skips them, and <code class="docutils literal notranslate"><span class="pre">official</span>
+<span class="pre">build</span></code> drops them and lists them in its report. Ions and
 open-shell species are checked like the rest. The build writes
 <code class="docutils literal notranslate"><span class="pre">&lt;file&gt;.report.json</span></code> beside the file: the sources, the levels, the rows kept and
 left out, each exclusion with its reason, and the SHA-256. <code class="docutils literal notranslate"><span class="pre">--official</span> <span class="pre">FILE</span></code> names an official store other than the

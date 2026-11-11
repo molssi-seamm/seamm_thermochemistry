@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.store_tools &#8212; SEAMM thermochemistry Plug-in 2026.11.11.5 documentation</title>
+    <title>seamm_thermochemistry.store_tools &#8212; SEAMM thermochemistry Plug-in 2026.11.11.6 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=fe02e1f4"></script>
+    <script src="../../_static/documentation_options.js?v=c9fa6b9e"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.11.5" />
+  <meta name="docsearch:version" content="2026.11.11.6" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -463,6 +463,7 @@
     <span class="n">EnergyRecord</span><span class="p">,</span>
     <span class="n">GeometryRecord</span><span class="p">,</span>
     <span class="n">_decode</span><span class="p">,</span>
+    <span class="n">is_unusable</span><span class="p">,</span>
     <span class="n">split_model_chemistry</span><span class="p">,</span>
 <span class="p">)</span>
 
@@ -757,6 +758,8 @@
             <span class="p">)</span>
             <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"fragment"</span><span class="p">,</span> <span class="s2">"geometry"</span><span class="p">,</span> <span class="s2">"energy"</span><span class="p">):</span>
                 <span class="k">for</span> <span class="n">record</span> <span class="ow">in</span> <span class="n">_rows</span><span class="p">(</span><span class="n">local_store</span><span class="p">,</span> <span class="n">table</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">is_unusable</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"model_chemistry"</span><span class="p">)):</span>
+                        <span class="k">continue</span>  <span class="c1"># quarantined rows are not contributed</span>
                     <span class="n">theirs</span> <span class="o">=</span> <span class="p">(</span>
                         <span class="n">_row_by_key</span><span class="p">(</span><span class="n">official_store</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">record</span><span class="p">)</span>
                         <span class="k">if</span> <span class="n">official_store</span>
@@ -936,6 +939,35 @@
     <span class="k">return</span> <span class="n">deleted</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_drop_unusable</span><span class="p">(</span><span class="n">store</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Delete the rows quarantined by hand (model chemistry "UNUSABLE: &lt;reason&gt;")</span>
+<span class="sd">    and return [{table, species or geometry, reason}] for the report."""</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">_connect</span><span class="p">(</span><span class="n">create</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">dropped</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">table</span><span class="p">,</span> <span class="n">who</span> <span class="ow">in</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s2">"geometry"</span><span class="p">,</span> <span class="s2">"species || ' ' || conformer"</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">"energy"</span><span class="p">,</span> <span class="s2">"geometry_hash"</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">"fragment"</span><span class="p">,</span> <span class="s2">"species"</span><span class="p">),</span>
+    <span class="p">):</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"SELECT id, </span><span class="si">{</span><span class="n">who</span><span class="si">}</span><span class="s2">, model_chemistry FROM </span><span class="si">{</span><span class="n">table</span><span class="si">}</span><span class="s2"> "</span>
+            <span class="s2">"WHERE UPPER(TRIM(model_chemistry)) LIKE 'UNUSABLE:%'"</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+            <span class="n">dropped</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s2">"table"</span><span class="p">:</span> <span class="n">table</span><span class="p">,</span>
+                    <span class="s2">"row"</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                    <span class="s2">"reason"</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">":"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"DELETE FROM </span><span class="si">{</span><span class="n">table</span><span class="si">}</span><span class="s2"> WHERE UPPER(TRIM(model_chemistry)) LIKE 'UNUSABLE:%'"</span>
+        <span class="p">)</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">dropped</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_exclude</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">excluded</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Delete the excluded rows: a whole species state, or one conformer of it</span>
 <span class="sd">    (the energies on a deleted geometry, and the fragment-table records made from</span>
@@ -1065,6 +1097,7 @@
             <span class="k">if</span> <span class="n">old</span><span class="o">.</span><span class="n">layer</span> <span class="o">!=</span> <span class="s2">"official"</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">previous</span><span class="si">}</span><span class="s2"> is not an official store."</span><span class="p">)</span>
         <span class="n">shutil</span><span class="o">.</span><span class="n">copy2</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">previous</span><span class="p">)</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(),</span> <span class="n">out</span><span class="p">)</span>
+    <span class="c1"># Rows quarantined by hand ("UNUSABLE: ...") are dropped first and listed</span>
     <span class="n">report</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s2">"version"</span><span class="p">:</span> <span class="n">version</span><span class="p">,</span>
         <span class="s2">"built"</span><span class="p">:</span> <span class="n">_now</span><span class="p">(),</span>
@@ -1094,6 +1127,7 @@
                     <span class="s2">"store; resolve them with 'supersede' first:</span><span class="se">\n</span><span class="s2">  "</span>
                     <span class="o">+</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">  "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">conflicts</span><span class="p">[:</span><span class="mi">50</span><span class="p">])</span>
                 <span class="p">)</span>
+            <span class="n">report</span><span class="p">[</span><span class="s2">"quarantined"</span><span class="p">]</span> <span class="o">=</span> <span class="n">_drop_unusable</span><span class="p">(</span><span class="n">store</span><span class="p">)</span>
             <span class="n">report</span><span class="p">[</span><span class="s2">"deselected"</span><span class="p">]</span> <span class="o">=</span> <span class="n">_select</span><span class="p">(</span>
                 <span class="n">store</span><span class="p">,</span> <span class="n">frequency_fingerprints</span><span class="p">,</span> <span class="n">energy_fingerprints</span>
             <span class="p">)</span>
