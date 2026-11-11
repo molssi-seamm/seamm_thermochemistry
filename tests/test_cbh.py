@@ -287,3 +287,80 @@ def test_ring_closure_cut_twice_is_capped_twice():
             ), str(reaction)
     r = cbh.cbh_reactions("C1C2CC12", rungs=(1,), protect=None)[1]
     assert str(r) == "CBH-1: C1C2CC12 + 6 C -> 5 CC"
+
+
+# ---------------------------------------------------------------------------
+# Hypervalent centres, charge-separated pairs and hypervalent halogens
+# (thermochemistry review, 2026-11-11)
+# ---------------------------------------------------------------------------
+def rung_terms(smiles, rung):
+    reaction = cbh.cbh_reactions(smiles, rungs=[rung])[rung]
+    return reaction, set(reaction.coefficients)
+
+
+@pytest.mark.parametrize(
+    "smiles",
+    ["CS(C)(=O)=O", "FS(F)(F)(F)(F)F", "CS(F)(F)(F)(F)F", "FCl(F)F", "FBr(F)(F)(F)F"],
+)
+def test_hypervalent_group_whole_is_trivial(smiles):
+    """A molecule that is one hypervalent group (the centre with its heavy
+    neighbours) reproduces itself at every rung: no SH6, H2SO2 or ClH4."""
+    reactions = cbh.cbh_reactions(smiles, rungs=[0, 1, 2])
+    assert all(r.trivial for r in reactions.values())
+
+
+def test_sulfate_fragments_are_real_molecules():
+    """Dimethyl sulfate: CBH-0 gives sulfuric acid and methane, not H2SO2."""
+    reaction, terms = rung_terms("COS(=O)(=O)OC", 0)
+    assert reaction.balanced
+    assert canonical_smiles("O=S(=O)(O)O") in terms
+    assert canonical_smiles("O=[SH2]=O") not in terms
+    reaction, terms = rung_terms("COP(=O)(OC)OC", 0)
+    assert canonical_smiles("O=P(O)(O)O") in terms
+    assert canonical_smiles("O=[PH3]") not in terms
+
+
+@pytest.mark.parametrize("smiles", ["[C-]#[O+]", "[C-]#[S+]", "[O-][n+]1ccccc1"])
+def test_charge_separated_pair_is_kept(smiles):
+    """CO written [C-]#[O+] and pyridine N-oxide reproduce themselves: no
+    [CH3-] + [OH3+] at CBH-0."""
+    reactions = cbh.cbh_reactions(smiles, rungs=[0, 1])
+    assert all(r.trivial for r in reactions.values())
+
+
+def test_nitro_and_azide_unchanged():
+    """The charge-pair rule adds nothing where nitro and azide groups are
+    already protected."""
+    reaction, terms = rung_terms("C[N+](=O)[O-]", 0)
+    assert terms == {
+        canonical_smiles(s) for s in ("C[N+](=O)[O-]", "O=[NH+][O-]", "C", "[H][H]")
+    }
+    reaction, terms = rung_terms("CCN=[N+]=[N-]", 1)
+    assert canonical_smiles("CN=[N+]=[N-]") in terms
+
+
+def test_hypervalent_halogens_parse():
+    """RDKit rejects ClF3 and BrF5, bracketed or not; they are read without the
+    valence check and canonicalize."""
+    for smiles in ("FCl(F)F", "F[Cl](F)F", "FBr(F)(F)(F)F"):
+        assert canonical_smiles(smiles) is not None
+    assert canonical_smiles("FCl(F)F") == canonical_smiles("F[Cl](F)F")
+
+
+@pytest.mark.parametrize(
+    "smiles, multiplicity",
+    [
+        ("[SiH2]", 1),
+        ("Cl[Si]Cl", 1),
+        ("F[C]F", 1),
+        ("Cl[C]Cl", 1),
+        ("[BH]", 1),
+        ("[CH2]", 3),
+        ("[NH]", 3),
+        ("[CH3]", 2),
+        ("C", 1),
+    ],
+)
+def test_ground_state_multiplicity(smiles, multiplicity):
+    """Silylenes, dihalocarbenes and BH are singlets; CH2 and NH are triplets."""
+    assert cbh.ground_state_multiplicity(smiles) == multiplicity

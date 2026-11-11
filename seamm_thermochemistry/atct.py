@@ -318,8 +318,11 @@ def canonical_smiles(smiles, *, stereo=True, keep_single_center=False):
     ATcT has no enantiomer entries; with two or more, the relative
     configuration is kept. Returns None if RDKit cannot parse the SMILES.
     """
+    from .smiles import mol_from_smiles
+
     Chem = _rdkit()
-    mol = Chem.MolFromSmiles(smiles)
+    # Hypervalent halogens (ClF3, BrF5) fail RDKit's valence check
+    mol = mol_from_smiles(smiles)
     if mol is None:
         return None
     if not stereo:

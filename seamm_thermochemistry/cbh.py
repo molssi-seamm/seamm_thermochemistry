@@ -50,6 +50,7 @@ from collections import Counter, deque
 import logging
 
 from .atct import canonical_smiles
+from .smiles import is_hypervalent, mol_from_smiles
 
 __all__ = [
     "CBHError",
@@ -59,6 +60,8 @@ __all__ = [
     "unique_fragments",
     "DEFAULT_PROTECT",
     "PROTECT_SMARTS",
+    "SINGLET_GROUND_STATES",
+    "ground_state_multiplicity",
 ]
 
 logger = logging.getLogger(__name__)
@@ -68,7 +71,7 @@ logger = logging.getLogger(__name__)
 PROTECT_SMARTS = {
     "nitro": "[N+](=O)[O-]",
     "nitro (hypervalent)": "N(=O)=O",
-    "N-oxide": "[N+;!$(N=O)][O-]",
+    "N-oxide": "[#7+;!$([#7]=O)][O-]",
     "azide": "N=[N+]=[N-]",
     "diazo": "[C,N]=[N+]=[N-]",
     "diazonium": "[N+]#N",
@@ -293,6 +296,28 @@ def _protected_groups(mol, protect):
                 groups.append(set(ring))
                 labels.append(f"{len(ring)}-membered ring")
     if "groups" in options:
+        # A hypervalent centre (S, Se, P, Cl, ... with more bonds than its
+        # normal valence: sulfonyl, phosphoryl, SF4, SF5-R, ClF3, ...) with all of
+        # its heavy neighbours, so that CBH-0 gives a real molecule (dimethyl
+        # sulfone, phosphoric acid) rather than a hydride such as H2SO2 or SH6
+        for atom in mol.GetAtoms():
+            if is_hypervalent(atom):
+                atoms = {atom.GetIdx()} | {
+                    nb.GetIdx() for nb in atom.GetNeighbors() if nb.GetAtomicNum() > 1
+                }
+                groups.append(atoms)
+                labels.append(f"hypervalent {atom.GetSymbol()}")
+        # Two bonded atoms with opposite formal charges (CO as [C-]#[O+], the
+        # bridges of Al2Cl6, ylides): the charge separation is one bond
+        for bond in mol.GetBonds():
+            a, b = bond.GetBeginAtom(), bond.GetEndAtom()
+            if (
+                a.GetFormalCharge() * b.GetFormalCharge() < 0
+                and a.GetAtomicNum() > 1
+                and b.GetAtomicNum() > 1
+            ):
+                groups.append({a.GetIdx(), b.GetIdx()})
+                labels.append("charge-separated pair")
         for name, pattern in PROTECT_SMARTS.items():
             query = Chem.MolFromSmarts(pattern)
             for match in mol.GetSubstructMatches(query):
@@ -408,8 +433,18 @@ def _fragment_smiles(mol_h, keep):
     ):
         rw.RemoveAtom(idx)
     frag = rw.GetMol()
-    Chem.SanitizeMol(frag)
-    frag = Chem.RemoveHs(frag)
+    try:
+        Chem.SanitizeMol(frag)
+        frag = Chem.RemoveHs(frag)
+    except Exception:
+        # A hypervalent atom (ClF3, an R-SF5 fragment): everything but RDKit's
+        # valence check, as in smiles.mol_from_smiles
+        frag = rw.GetMol()
+        frag.UpdatePropertyCache(strict=False)
+        flags = Chem.SanitizeFlags.SANITIZE_ALL ^ Chem.SanitizeFlags.SANITIZE_PROPERTIES
+        Chem.SanitizeMol(frag, flags)
+        frag = Chem.RemoveHs(frag, sanitize=False)
+        frag.UpdatePropertyCache(strict=False)
     # Keep the stereo flags carried over from the parent (cleanIt would drop
     # the cis/trans set for ring double bonds)
     Chem.AssignStereochemistry(frag, cleanIt=False, force=True)
@@ -421,7 +456,7 @@ def _composition(smiles):
     """(element counts including H, charge, radical electrons, heavy-bond
     counts) of a SMILES."""
     Chem = _rdkit()
-    mol = Chem.MolFromSmiles(smiles)
+    mol = mol_from_smiles(smiles)
     if mol is None:
         raise CBHError(f"Cannot parse the fragment SMILES '{smiles}'")
     Chem.Kekulize(mol, clearAromaticFlags=True)
@@ -444,6 +479,24 @@ def _composition(smiles):
     return elements, charge, radicals, bonds
 
 
+#: Species whose SMILES puts two unpaired electrons on one atom but whose ground
+#: state is a singlet: the silylenes, the dihalocarbenes and BH. Methylene (CH2)
+#: and imidogen (NH) are ground-state triplets and are not listed.
+SINGLET_GROUND_STATES = ("[SiH2]", "Cl[Si]Cl", "F[Si]F", "F[C]F", "Cl[C]Cl", "[BH]")
+
+
+def ground_state_multiplicity(smiles):
+    """The spin multiplicity of a species' ground state: 1 for those in
+    `SINGLET_GROUND_STATES`, otherwise its unpaired electrons + 1, as the SMILES
+    implies (a radical centre ``[CH3]`` is a doublet, ``[CH2]`` a triplet)."""
+    _, _, radicals, _ = _composition(smiles)
+    key = canonical_smiles(smiles, stereo=False)
+    singlets = {canonical_smiles(x, stereo=False) for x in SINGLET_GROUND_STATES}
+    if key is not None and key in singlets:
+        return 1
+    return radicals + 1
+
+
 # ---------------------------------------------------------------------------
 # The reactions
 # ---------------------------------------------------------------------------
@@ -453,7 +506,7 @@ def _prepare(smiles):
     """The parent as a Kekulized RDKit mol with explicit H, plus the version
     with aromatic flags for ring perception."""
     Chem = _rdkit()
-    mol = Chem.MolFromSmiles(smiles)
+    mol = mol_from_smiles(smiles)
     if mol is None:
         raise CBHError(f"RDKit cannot parse the SMILES '{smiles}'")
     Chem.AssignStereochemistry(mol, cleanIt=True, force=True)
@@ -702,7 +755,8 @@ def lowest_conformer(smiles, n=20, seed=0xF00D, return_mol=False):
     from rdkit import Chem
     from rdkit.Chem import AllChem
 
-    mol = Chem.AddHs(Chem.MolFromSmiles(smiles))
+    mol = mol_from_smiles(smiles)
+    mol = Chem.AddHs(mol) if mol is not None else None
     if mol is None:
         raise CBHError(f"RDKit cannot parse '{smiles}'")
     params = AllChem.ETKDGv3()
