@@ -322,7 +322,8 @@ and checks every species state before writing anything:
   atoms too close together);
 * the ground-state spin, where it is known: singlet for the silylenes,
   dihalocarbenes and BH of ``cbh.SINGLET_GROUND_STATES``, whose SMILES would make
-  them triplets, and from ATcT when it lists a species in labelled spin states
+  them triplets; triplet for O2, S2, SO, OCCO and cyclic C3
+  (``cbh.TRIPLET_GROUND_STATES``), which a SMILES writes closed-shell; and from ATcT when it lists a species in labelled spin states
   (CH2 and NH are triplets, SiH2 a singlet).
 
 A species state that fails stops the build, unless it is excluded with a reason in
