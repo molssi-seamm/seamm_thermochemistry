@@ -7,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>2026-11-10 – Fragment store P5: write-back, in-job reuse, two layers, ATcT download &#8212; SEAMM thermochemistry Plug-in 2026.11.11.11 documentation</title>
+    <title>2026-11-10 – Fragment store P5: write-back, in-job reuse, two layers, ATcT download &#8212; SEAMM thermochemistry Plug-in 2026.11.11.12 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=2d26bff1"></script>
+    <script src="../../../_static/documentation_options.js?v=1ade359b"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -54,7 +54,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.11.11" />
+  <meta name="docsearch:version" content="2026.11.11.12" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -539,7 +539,18 @@ safe for parallel jobs. Change from §5: <code class="docutils literal notransla
 by itself (ATcT now serves 1.228; machines have 1.220, and saved ladders are tied
 to their version), it stays a deliberate <code class="docutils literal notranslate"><span class="pre">seamm-thermochemistry-atct</span> <span class="pre">download</span></code>.
 The step’s part (run-time download, covariances “fetch if needed”, the uncertainty
-method column) follows design’s thermochemistry_step#24.</p>
+method column) is thermochemistry-step 2026.11.11.4.</p>
+<p><strong>Quarantine column (agreed 2026-11-11 with science and design, after V1–V3):</strong>
+schema 5 replaces the <code class="docutils literal notranslate"><span class="pre">UNUSABLE:</span> <span class="pre">&lt;reason&gt;</span></code> model chemistry with a <code class="docutils literal notranslate"><span class="pre">quarantine</span></code>
+column (a code – saddle, connectivity, dissociated, not-a-minimum, wrong-state,
+scf, other – with a detail, date, who and the check), cascading from a geometry to
+its energies and records, <code class="docutils literal notranslate"><span class="pre">quarantine</span></code>/<code class="docutils literal notranslate"><span class="pre">release</span></code> commands that undo exactly one
+action, a visible line in the step when a lookup skips a quarantined row, and a
+migration restoring the real model chemistries from design’s quarantine log. Older
+code reads a newer schema without complaint, so the <code class="docutils literal notranslate"><span class="pre">UNUSABLE:</span></code> marker is written
+as well until no venv older than schema 5 reads the store, and first, on its own,
+<strong>2026.11.11.12</strong> refuses to write a store with a newer schema (and warns once when
+reading one).</p>
 <p>Numbering: these phases are the fragment store’s P5 (P5a-P5e). The 11-08
 presets plan also had a P5 (long-bond and %[(T)] flags) and a P6 (pilot). Those
 keep their names and have nothing to do with this note.</p>

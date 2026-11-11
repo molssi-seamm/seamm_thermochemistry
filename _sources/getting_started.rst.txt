@@ -261,6 +261,13 @@ reliable on network and parallel filesystems (NFS, GPFS, Lustre).
 ``store_is_writable()`` makes the check; ``fragment-store-writable = auto | yes |
 no`` in the ``[thermochemistry]`` section of ``~/.seamm.d/seamm.ini`` overrides it.
 
+A store written by newer code, with a higher schema version (``PRAGMA
+user_version``) than this seamm-thermochemistry knows, is never written, whatever
+the setting: older code would not maintain what the newer schema adds. Opening it
+for writing raises ``NewerSchemaError``, ``store_is_writable()`` says why, and the
+hook leaves the job's marker for a JobServer with newer code. Such a store is still
+read, with a warning, as the older schema.
+
 When the step cannot write the store, it leaves ``harvest_fragments.json`` in the
 job's directory. A JobServer runs the plug-ins' ``job_finished`` hooks when a job
 ends and its files are back on the JobServer's host; this package's hook harvests

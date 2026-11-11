@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.fragment_store &#8212; SEAMM thermochemistry Plug-in 2026.11.11.11 documentation</title>
+    <title>seamm_thermochemistry.fragment_store &#8212; SEAMM thermochemistry Plug-in 2026.11.11.12 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=2d26bff1"></script>
+    <script src="../../_static/documentation_options.js?v=1ade359b"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.11.11" />
+  <meta name="docsearch:version" content="2026.11.11.12" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -706,6 +706,34 @@
 
 
 
+<span class="k">class</span><span class="w"> </span><span class="nc">NewerSchemaError</span><span class="p">(</span><span class="ne">PermissionError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The store's schema is newer than this code's, so it is not written:</span>
+<span class="sd">    older code would not maintain what the newer schema adds."""</span>
+
+
+<span class="c1">#: The stores with a newer schema already warned about when read</span>
+<span class="n">_warned_newer</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_newer_schema</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">version</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"The fragment store </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2"> is at schema version </span><span class="si">{</span><span class="n">version</span><span class="si">}</span><span class="s2">, newer than "</span>
+        <span class="sa">f</span><span class="s2">"this seamm-thermochemistry understands (</span><span class="si">{</span><span class="n">SCHEMA_VERSION</span><span class="si">}</span><span class="s2">)"</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">file_schema_version</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A store file's ``PRAGMA user_version``, or None if it cannot be read."""</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">db</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="sa">f</span><span class="s2">"file:</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">?mode=ro"</span><span class="p">,</span> <span class="n">uri</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"PRAGMA user_version"</span><span class="p">)</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="n">db</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+
 <div class="viewcode-block" id="FragmentStore">
 <a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.fragment_store.FragmentStore">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">FragmentStore</span><span class="p">(</span><span class="n">GeometryEnergyMixin</span><span class="p">):</span>
@@ -755,6 +783,24 @@
         <span class="c1"># rollback journal (never WAL on a network filesystem)</span>
         <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"PRAGMA mmap_size = 0"</span><span class="p">)</span>
         <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"PRAGMA busy_timeout = 30000"</span><span class="p">)</span>
+        <span class="c1"># A store from newer code is never written (older code would not</span>
+        <span class="c1"># maintain what its schema adds, e.g. a quarantine column), and reading</span>
+        <span class="c1"># it is warned about once</span>
+        <span class="n">version</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"PRAGMA user_version"</span><span class="p">)</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">version</span> <span class="o">&gt;</span> <span class="n">SCHEMA_VERSION</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">create</span><span class="p">:</span>
+                <span class="n">db</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="k">raise</span> <span class="n">NewerSchemaError</span><span class="p">(</span>
+                    <span class="n">_newer_schema</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
+                    <span class="o">+</span> <span class="s2">", so it is not written to. Update seamm-thermochemistry."</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_warned_newer</span><span class="p">:</span>
+                <span class="n">_warned_newer</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="n">_newer_schema</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
+                    <span class="o">+</span> <span class="s2">": it is read as the older schema, without what the newer "</span>
+                    <span class="s2">"one adds, and never written. Update seamm-thermochemistry."</span>
+                <span class="p">)</span>
         <span class="k">if</span> <span class="n">create</span><span class="p">:</span>
             <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"PRAGMA journal_mode = DELETE"</span><span class="p">)</span>
             <span class="n">db</span><span class="o">.</span><span class="n">executescript</span><span class="p">(</span><span class="n">_SCHEMA</span> <span class="o">+</span> <span class="n">GEOMETRY_SCHEMA</span><span class="p">)</span>
@@ -2078,6 +2124,16 @@
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
         <span class="k">pass</span>
     <span class="n">setting</span> <span class="o">=</span> <span class="p">(</span><span class="n">setting</span> <span class="ow">or</span> <span class="s2">"auto"</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="c1"># Never a store from newer code, whatever the setting</span>
+    <span class="n">target</span> <span class="o">=</span> <span class="n">fragment_store_path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">target</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="n">version</span> <span class="o">=</span> <span class="n">file_schema_version</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">version</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">version</span> <span class="o">&gt;</span> <span class="n">SCHEMA_VERSION</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"at schema version </span><span class="si">{</span><span class="n">version</span><span class="si">}</span><span class="s2">, newer than this "</span>
+                <span class="sa">f</span><span class="s2">"seamm-thermochemistry understands (</span><span class="si">{</span><span class="n">SCHEMA_VERSION</span><span class="si">}</span><span class="s2">); update "</span>
+                <span class="s2">"seamm-thermochemistry to write it"</span>
+            <span class="p">)</span>
     <span class="k">if</span> <span class="n">setting</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"yes"</span><span class="p">,</span> <span class="s2">"true"</span><span class="p">,</span> <span class="s2">"1"</span><span class="p">):</span>
         <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">"fragment-store-writable = yes in seamm.ini"</span>
     <span class="k">if</span> <span class="n">setting</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"no"</span><span class="p">,</span> <span class="s2">"false"</span><span class="p">,</span> <span class="s2">"0"</span><span class="p">):</span>
