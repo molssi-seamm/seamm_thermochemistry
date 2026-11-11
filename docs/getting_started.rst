@@ -541,7 +541,9 @@ carbon); from CBH-1 up these atoms cancel by themselves. So is every pair of bon
 formal charges (CO written [C-]#[O+], N-oxides, the bridges of
 Al\ :sub:`2`\ Cl\ :sub:`6`). RDKit's valence check rejects hypervalent
 halogens (``FCl(F)F``); SMILES are read with ``seamm_thermochemistry.smiles.
-mol_from_smiles``, which skips that check for S, Se, Te, P, As, Cl, Br and I only.
+mol_from_smiles``, which skips that check for S, Se, Te, P, As, Cl, Br and I only;
+the ATcT index and its lookups read them the same way, so ClF\ :sub:`3`, BrO\ :sub:`2`
+or O=[S-](=O)=O are found like any other species.
 ``cbh.ground_state_multiplicity(smiles)`` gives the spin multiplicity of a
 species: its unpaired electrons + 1, except the ground-state singlets that a
 SMILES writes with two unpaired electrons (SiH\ :sub:`2`, SiCl\ :sub:`2`,

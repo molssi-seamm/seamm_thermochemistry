@@ -330,7 +330,12 @@ def canonical_smiles(smiles, *, stereo=True, keep_single_center=False):
         # Drop the stereo first, so that a hydrogen that only defined it
         # ([H]/N=C\O) is removed too
         Chem.RemoveStereochemistry(mol)
-        mol = Chem.RemoveHs(mol)
+        try:
+            mol = Chem.RemoveHs(mol)
+        except Chem.rdchem.MolSanitizeException:
+            # A hypervalent molecule read without the valence check (ClF3,
+            # Br3, O=[S-](=O)=O) fails it again when RemoveHs re-sanitizes
+            mol = Chem.RemoveHs(mol, sanitize=False)
         return Chem.MolToSmiles(mol, isomericSmiles=False)
     if not keep_single_center:
         centers = Chem.FindMolChiralCenters(
