@@ -43,6 +43,7 @@ import hashlib
 import json
 import logging
 import math
+import os
 from pathlib import Path
 import re
 import urllib.error
@@ -419,10 +420,12 @@ def _get(url, *, user_agent=USER_AGENT, timeout=60):
         raise ATcTError(f"ATcT returned something other than JSON from {url}")
 
 
-def download_all(base=None, *, user_agent=USER_AGENT, source=None):
+def download_all(base=None, *, user_agent=USER_AGENT, source=None, exist_ok=False):
     """Download ``/all/`` into ``<base>/<version>/atct_all.json`` and write its
-    metadata. An existing version is never overwritten. `source` may be a local
-    file (a copy saved from a browser) instead of the API.
+    metadata. An existing version is never overwritten: with `exist_ok` that is
+    not an error (e.g. an installer's update, or two jobs fetching the same
+    missing version at once), otherwise it raises ATcTError. `source` may be a
+    local file (a copy saved from a browser) instead of the API.
 
     Returns the version directory.
     """
@@ -447,11 +450,19 @@ def download_all(base=None, *, user_agent=USER_AGENT, source=None):
     directory = base / version
     target = directory / "atct_all.json"
     if target.exists():
+        if exist_ok:
+            return directory
         raise ATcTError(f"ATcT version {version} is already in {directory}")
     directory.mkdir(parents=True, exist_ok=True)
-    partial = directory / "atct_all.json.download"
+    # A partial file of this process's own: two may download at once
+    partial = directory / f"atct_all.json.download-{os.getpid()}"
     with open(partial, "w", encoding="utf-8") as fd:
         json.dump(data, fd, ensure_ascii=False, indent=1)
+    if target.exists():  # another process finished first: keep its copy
+        partial.unlink(missing_ok=True)
+        if exist_ok:
+            return directory
+        raise ATcTError(f"ATcT version {version} is already in {directory}")
     partial.replace(target)
     metadata = {
         "version": version,
@@ -764,11 +775,24 @@ class ATcT:
         return self._covariance
 
     def _save_covariance(self):
+        """Save the cached covariance blocks, merged with those another process
+        may have saved meanwhile (parallel iterations fetch blocks too), with an
+        atomic replace. A read-only cache keeps the blocks in memory only."""
         path = self.directory / "covariance.json"
         try:
-            with open(path, "w", encoding="utf-8") as fd:
+            if path.exists():
+                with open(path, encoding="utf-8") as fd:
+                    on_disk = json.load(fd)
+                have = {tuple(b["ids"]) for b in self.covariance_cache["blocks"]}
+                for block in on_disk.get("blocks", []):
+                    if tuple(block["ids"]) not in have:
+                        self.covariance_cache["blocks"].append(block)
+                        have.add(tuple(block["ids"]))
+            partial = path.with_name(f"covariance.json.{os.getpid()}")
+            with open(partial, "w", encoding="utf-8") as fd:
                 json.dump(self.covariance_cache, fd, indent=1)
-        except OSError:  # a read-only copy
+            partial.replace(path)
+        except (OSError, ValueError):  # a read-only copy, or a damaged file
             pass
 
     def covariance(self, ids, *, fetch=True, user_agent=USER_AGENT):

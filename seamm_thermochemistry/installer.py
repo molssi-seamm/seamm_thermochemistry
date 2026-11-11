@@ -41,6 +41,13 @@ class Installer(seamm_installer.InstallerBase):
 
     database_filename = "thermochemistry.db"
 
+    # The official fragment store of the CBH thermochemistry: Zenodo record
+    # 24139306 (DOI 10.5281/zenodo.24139306), concept 10.5281/zenodo.24139305,
+    # whose newest version is installed. It is replaced whole on update (never
+    # the installation's own fragments.db).
+    fragment_store_concept_id = 24139305
+    fragment_store_filename = "fragments-official.db"
+
     def __init__(self, logger=logger):
         super().__init__(logger=logger)
         logger.debug("Initializing the seamm_thermochemistry installer.")
@@ -82,18 +89,50 @@ class Installer(seamm_installer.InstallerBase):
         """
         path = self._configured_database_path()
 
-        if path.exists():
-            return True
+        if not path.exists():
+            if self.options.yes or self.ask_yes_no(
+                "The thermochemistry reference database is not installed at "
+                f"'{path}'.\nDownload it from Zenodo now?",
+                default="yes",
+            ):
+                self.install()  # the official fragment store and ATcT too
+                return True
+            return False
 
-        if self.options.yes or self.ask_yes_no(
-            "The thermochemistry reference database is not installed at "
-            f"'{path}'.\nDownload it from Zenodo now?",
-            default="yes",
+        # The official fragment store and ATcT, which the isodesmic (CBH)
+        # thermochemistry uses
+        from .atct import ATcT
+
+        official = self._official_path()
+        versions = ATcT.available(self._atct_base())
+        if official.exists():
+            print(
+                f"    The official fragment store, version "
+                f"{self._official_version(official)}, is at {official}."
+            )
+        if versions:
+            print(f"    ATcT versions cached: {', '.join(versions)}.")
+        missing = [
+            what
+            for what, ok in (
+                ("the official fragment store", official.exists()),
+                ("the ATcT tables", bool(versions)),
+            )
+            if not ok
+        ]
+        if missing and (
+            self.options.yes
+            or self.ask_yes_no(
+                f"{' and '.join(missing).capitalize()} are not installed. Download "
+                "them now?",
+                default="yes",
+            )
         ):
-            self.install()
-            return True
-
-        return False
+            if not official.exists():
+                self.install_official_store()
+            if not versions:
+                self.install_atct()
+        return True
 
     def _shared_report(self):
         """In an installation that shares the default installation's codes and
@@ -212,6 +251,182 @@ class Installer(seamm_installer.InstallerBase):
         self.configuration.set_value(self.section, "database-md5", self._md5(path))
         self.configuration.save()
 
+    # ---- the official fragment store and ATcT ------------------------------------
+
+    def _official_path(self):
+        """The official fragment store: fragments-official.db beside the
+        reference database (Parameters/thermochemistry/)."""
+        return self._configured_database_path().parent / self.fragment_store_filename
+
+    def _atct_base(self):
+        """Where the ATcT versions are kept: ATcT/ beside the reference database."""
+        return self._configured_database_path().parent / "ATcT"
+
+    def _official_record(self):
+        return Zenodo().get_latest_public_record(self.fragment_store_concept_id)
+
+    @staticmethod
+    def _file_md5(record, filename):
+        for entry in record["files"]:
+            if entry.get("key") == filename:
+                checksum = entry.get("checksum", "")
+                if checksum.startswith("md5:"):
+                    return checksum[len("md5:") :]
+        return None
+
+    def _published_file_md5s(self, record, filename):
+        """The md5 of `filename` in every published version of a record."""
+        result = set()
+        latest = self._file_md5(record, filename)
+        if latest:
+            result.add(latest)
+        try:
+            import requests
+
+            response = requests.get(
+                f"https://zenodo.org/api/records/{record['id']}/versions",
+                params={"allversions": "true", "size": 25},
+                timeout=30,
+            )
+            if response.status_code == 200:
+                for hit in response.json().get("hits", {}).get("hits", []):
+                    md5 = self._file_md5(hit, filename)
+                    if md5:
+                        result.add(md5)
+        except Exception as e:
+            logger.debug(f"Could not list the published versions: {e}")
+        return result
+
+    def _official_version(self, path):
+        """The version recorded in an official store, or None."""
+        try:
+            from .fragment_store import FragmentStore
+
+            with FragmentStore(path, immutable=True) as store:
+                return store.meta().get("version")
+        except Exception:
+            return None
+
+    def install_official_store(self, force=False):
+        """Install or update the official fragment store from Zenodo.
+
+        It is replaced whole by a newer published version, after its download is
+        verified (md5) and the old file backed up -- unless the installed file is
+        not a published version (it was edited), which is kept unless `force`.
+        Returns "installed", "updated", "up to date", "kept" or "failed"; never
+        raises.
+        """
+        path = self._official_path()
+        filename = self.fragment_store_filename
+        try:
+            record = self._official_record()
+            latest = self._file_md5(record, filename)
+            if path.exists():
+                local = self._md5(path)
+                if latest is not None and local == latest:
+                    self._record_official(path)
+                    print(
+                        f"The official fragment store at {path} is up to date "
+                        f"(version {self._official_version(path)})."
+                    )
+                    return "up to date"
+                recorded = self.configuration.get_values(self.section).get(
+                    "fragment-store-md5", ""
+                )
+                published = local == recorded or local in self._published_file_md5s(
+                    record, filename
+                )
+                if not published and not force:
+                    print(
+                        f"The official fragment store at {path} is not a published "
+                        "version, so it was not replaced. 'update --force' replaces "
+                        "it, keeping a backup."
+                    )
+                    return "kept"
+            path.parent.mkdir(parents=True, exist_ok=True)
+            partial = path.with_name(path.name + ".download")
+            partial.unlink(missing_ok=True)
+            print("Getting the official thermochemistry fragment store from Zenodo...")
+            record.download_file(filename, partial)
+            if latest is not None and self._md5(partial) != latest:
+                partial.unlink(missing_ok=True)
+                raise RuntimeError(
+                    f"Checksum mismatch downloading {filename}; the download was "
+                    "removed, please try again."
+                )
+            outcome = "installed"
+            if path.exists():
+                from datetime import datetime
+
+                stamp = datetime.now().strftime("%Y-%m-%d-%H%M%S")
+                path.replace(path.with_name(f"{path.name}.bak-{stamp}"))
+                outcome = "updated"
+            partial.replace(path)
+            self._record_official(path)
+            print(
+                f"Installed the official fragment store, version "
+                f"{self._official_version(path)}, to {path}."
+            )
+            return outcome
+        except Exception as e:
+            print(f"Could not install the official fragment store: {e}")
+            return "failed"
+
+    def _record_official(self, path):
+        if not self.configuration.section_exists(self.section):
+            self.configuration.add_section(self.section)
+        self.configuration.set_value(
+            self.section, "fragment-store-md5", self._md5(path)
+        )
+        self.configuration.save()
+
+    def install_atct(self, newest=False):
+        """Download ATcT when no version is cached; with `newest`, also add the
+        newest version when it is not cached yet (an existing version is never
+        touched; older ones are kept). Returns the version installed or already
+        there, or None if it could not be fetched; never raises.
+
+        Without `newest` a cached version is left as the one in use: the
+        Thermochemistry step uses the newest cached version by default, so adding
+        a newer one changes the reference values (and saved ladders are tied to
+        their version). That is done on purpose, with
+        ``seamm-thermochemistry-atct download``.
+        """
+        from .atct import ATcT, ATcTError, download_all
+
+        base = self._atct_base()
+        before = ATcT.available(base)
+        if before and not newest:
+            print(
+                f"ATcT ver. {before[-1]} is installed in {base}. (A newer version is "
+                "added only on purpose: 'seamm-thermochemistry-atct download'.)"
+            )
+            return before[-1]
+        try:
+            directory = download_all(base, exist_ok=True)
+        except ATcTError as e:
+            have = f" (cached: {', '.join(before)})" if before else ""
+            print(
+                f"Could not download ATcT{have}: {e} The tables can be saved from "
+                "https://atct.anl.gov/api/v1/all/ in a browser and added with "
+                "'seamm-thermochemistry-atct download --from FILE'."
+            )
+            return None
+        except Exception as e:  # pragma: no cover
+            print(f"Could not download ATcT: {e}")
+            return None
+        version = directory.name
+        if version in before:
+            print(f"ATcT ver. {version} is the newest and is already in {base}.")
+        else:
+            print(f"Downloaded ATcT ver. {version} to {directory}.")
+        return version
+
+    def _install_extras(self, force=False):
+        """The official fragment store and ATcT, after the reference database."""
+        self.install_official_store(force=force)
+        self.install_atct()
+
     # ---- the installer's commands ----------------------------------------------
 
     def install(self):
@@ -229,6 +444,7 @@ class Installer(seamm_installer.InstallerBase):
             self.update()
             return
         self._download(self._latest_record(), path)
+        self._install_extras()
 
     def update(self):
         """Bring the database up to the latest published version -- unless it has
@@ -238,9 +454,19 @@ class Installer(seamm_installer.InstallerBase):
         published versions (or the copy this installer installed). A database that
         has been edited, e.g. with curated reference energies, is kept as it is and
         reported; ``update --force`` replaces it, keeping a backup.
+
+        The official fragment store is brought to its newest published version
+        the same way, and the newest ATcT version is downloaded if it is not
+        cached yet (older versions are kept).
         """
         if self._shared_report():
             return
+        self._update_database()
+        force = bool(getattr(self.options, "force", False)) if self.options else False
+        self._install_extras(force=force)
+
+    def _update_database(self):
+        """The reference database's part of `update`."""
         path = self._configured_database_path()
         record = self._latest_record()
         if not path.exists():
@@ -296,8 +522,23 @@ class Installer(seamm_installer.InstallerBase):
                 print(f"Deleting the thermochemistry database at {path}.")
                 path.unlink()
 
+        # The official fragment store goes too, unless it was edited; the ATcT
+        # cache is kept (it is a copy of what results were computed with)
+        official = self._official_path()
+        if official.exists():
+            recorded = data.get("fragment-store-md5", "")
+            if force or self._md5(official) == recorded:
+                print(f"Deleting the official fragment store at {official}.")
+                official.unlink()
+            else:
+                print(
+                    f"The official fragment store at {official} is not the copy this "
+                    "installer installed, so it was left in place."
+                )
+
         self.configuration.set_value(self.section, "database-path", "")
         self.configuration.set_value(self.section, "database-md5", "")
+        self.configuration.set_value(self.section, "fragment-store-md5", "")
         self.configuration.save()
         print("Done!")
 

@@ -2,6 +2,22 @@
 History
 =======
 
+2026.11.11.11 -- The installer sets up the official fragment store and ATcT
+    * ``seamm-thermochemistry-installer install`` and ``update`` (which ``seamm-manager``
+      runs) now also install the official fragment store
+      (``fragments-official.db``, from its Zenodo record, concept
+      10.5281/zenodo.24139305), verified against Zenodo's checksum and replaced whole
+      by newer published versions with a backup; and the Active Thermochemical Tables
+      from atct.anl.gov when no version is cached. ``check`` reports both and offers
+      to install what is missing. A newer ATcT version is still added only on purpose
+      (``seamm-thermochemistry-atct download``), since it changes the reference
+      values of new calculations.
+    * Two jobs downloading the same ATcT version at once no longer collide, and an
+      already cached version is not an error where that is asked for
+      (``download_all(..., exist_ok=True)``).
+    * Covariance blocks fetched by parallel jobs are merged when they are saved,
+      instead of the last one to save overwriting the others' blocks.
+
 2026.11.11.10 -- Official stores keep only job ids
     * ``official build`` now reduces each job's provenance to its id (``5689`` instead
       of ``5689:/path/to/Job_005689``; a job recorded by its directory alone keeps the
