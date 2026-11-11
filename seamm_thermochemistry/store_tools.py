@@ -46,6 +46,7 @@ __all__ = [
     "ground_state_multiplicity",
     "sanity_check",
     "load_exclusions",
+    "job_id_only",
     "migrate_store",
     "export_local",
     "merge_stores",
@@ -511,6 +512,72 @@ def _select(store, frequency_fingerprints=None, energy_fingerprints=None):
     return deleted
 
 
+def job_id_only(job):
+    """A job's provenance without its directory: "5689:/D3/.../Job_005689" gives
+    "5689"; a directory alone gives its last component ("Job_005689"); anything
+    else is returned as it is."""
+    if job is None:
+        return None
+    text = str(job)
+    head, sep, tail = text.partition(":")
+    if sep and head.strip().isdigit() and ("/" in tail or "\\" in tail):
+        return head.strip()
+    if "/" in text or "\\" in text:
+        return text.replace("\\", "/").rstrip("/").rsplit("/", 1)[-1]
+    return text
+
+
+def _reduce_job_paths(store):
+    """Replace every job's provenance in the store by :func:`job_id_only`: the job
+    column of the rows, the superseded and duplicate logs, and the old and new
+    values in the history. Returns the number of values changed."""
+    db = store._connect(create=True)
+    n = 0
+    for table in ("fragment", "geometry", "energy", "superseded", "duplicate_log"):
+        try:
+            rows = db.execute(f"SELECT id, job FROM {table}").fetchall()
+        except sqlite3.OperationalError:
+            continue
+        for row_id, job in rows:
+            short = job_id_only(job)
+            if short != job:
+                db.execute(f"UPDATE {table} SET job = ? WHERE id = ?", (short, row_id))
+                n += 1
+    try:
+        history = db.execute("SELECT id, old, new FROM row_history").fetchall()
+    except sqlite3.OperationalError:
+        history = []
+    for row_id, old, new in history:
+        values = []
+        for text in (old, new):
+            try:
+                data = json.loads(text) if text else None
+            except ValueError:
+                data = None
+            if isinstance(data, dict) and data.get("job") is not None:
+                short = job_id_only(data["job"])
+                if short != data["job"]:
+                    data["job"] = short
+                    n += 1
+                text = json.dumps(data, default=str)
+            values.append(text)
+        db.execute(
+            "UPDATE row_history SET old = ?, new = ? WHERE id = ?",
+            values + [row_id],
+        )
+    try:
+        rows = db.execute("SELECT id, job FROM writeback_log").fetchall()
+    except sqlite3.OperationalError:
+        rows = []
+    for row_id, job in rows:
+        short = job_id_only(job)
+        if short != job:
+            db.execute("UPDATE writeback_log SET job = ? WHERE id = ?", (short, row_id))
+            n += 1
+    db.commit()
+    return n
+
+
 def _drop_unusable(store):
     """Delete the rows quarantined by hand (model chemistry "UNUSABLE: <reason>")
     and return [{table, species or geometry, reason}] for the report."""
@@ -633,6 +700,7 @@ def build_official(
     exclude=None,
     atct=None,
     check=True,
+    job_ids_only=True,
 ):
     """Build an official store: the previous official one (if given) plus the
     contributions `sources`, marked official with `version` (and `source`, e.g.
@@ -645,6 +713,11 @@ def build_official(
     reason}, or with a fourth element, a conformer label, to leave out one
     conformer; see :func:`load_exclusions`) leaves rows out, with the reason in
     the report.
+
+    With `job_ids_only` (the default: an official store is published) the
+    provenance keeps each job's id and drops its directory (see
+    :func:`job_id_only`), in every row and in the history; the full paths stay in
+    the stores the rows came from.
 
     Nothing is written when a contribution's values differ from a row already
     there (resolve it with ``supersede`` and a reason first), or when the sanity
@@ -699,6 +772,9 @@ def build_official(
                 store, frequency_fingerprints, energy_fingerprints
             )
             removed = _exclude(store, exclude)
+            report["job paths"] = "kept" if not job_ids_only else "reduced to job ids"
+            if job_ids_only:
+                _reduce_job_paths(store)
             report["excluded"] = [
                 {
                     "species": k[0],

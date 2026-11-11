@@ -2,6 +2,14 @@
 History
 =======
 
+2026.11.11.10 -- Official stores keep only job ids
+    * ``official build`` now reduces each job's provenance to its id (``5689`` instead
+      of ``5689:/path/to/Job_005689``; a job recorded by its directory alone keeps the
+      directory's name), in every row and in the history, since an official store is
+      published: local directory layouts and user names do not travel with it. The
+      full paths stay in the stores the rows came from. ``--keep-job-paths`` keeps
+      them; the report says which was done.
+
 2026.11.11.9 -- Write-back: quarantined rows give way; a log of every write
     * A valid new row now replaces a row quarantined by hand (model chemistry
       ``UNUSABLE: <reason>``) that holds its key, in the fragment, geometry and energy
