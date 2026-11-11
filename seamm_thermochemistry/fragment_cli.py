@@ -176,6 +176,30 @@ def main(argv=None):
     build.add_argument("--out", required=True, help="The new file.")
     build.add_argument("--previous", help="The previous official store.")
     build.add_argument("--source", help="Where it is published, e.g. a DOI.")
+    build.add_argument(
+        "--frequency-fingerprint",
+        action="append",
+        default=[],
+        help="Keep only geometries with this frequency fingerprint (repeat for "
+        "several), and what is on them.",
+    )
+    build.add_argument(
+        "--energy-fingerprint",
+        action="append",
+        default=[],
+        help="Keep only energies with this fingerprint (repeat for several).",
+    )
+    build.add_argument(
+        "--exclude",
+        metavar="CSV",
+        help="Species states to leave out, with the reason: columns species, "
+        "charge, multiplicity, reason.",
+    )
+    build.add_argument(
+        "--no-atct",
+        action="store_true",
+        help="Do not check multiplicities against ATcT's spin states.",
+    )
 
     sup = sub.add_parser("superseded", help="Show the superseded values.")
     sup.add_argument("species", nargs="?", help="Canonical SMILES.")
@@ -341,15 +365,28 @@ def main(argv=None):
                 f"({counts['differing']} differing from the official store)."
             )
         elif args.command == "official" and args.official_command == "build":
+            atct = None
+            if not args.no_atct:
+                try:
+                    from .atct import ATcT
+
+                    atct = ATcT()
+                except Exception as e:
+                    print(f"Note: no ATcT for the multiplicity check ({e}).")
             path, digest, counts = T.build_official(
                 args.out,
                 args.version,
                 args.sources,
                 previous=args.previous,
                 source=args.source,
+                frequency_fingerprints=args.frequency_fingerprint,
+                energy_fingerprints=args.energy_fingerprint,
+                exclude=T.load_exclusions(args.exclude) if args.exclude else None,
+                atct=atct,
             )
             _print_counts(counts)
             print(f"Built {path} (version {args.version}), sha256 {digest}")
+            print(f"Report: {path.with_name(path.name + '.report.json')}")
         elif args.command == "duplicates":
             store = F.FragmentStore(args.store)
             rows = store.duplicates()
