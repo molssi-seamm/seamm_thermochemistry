@@ -2,6 +2,13 @@
 History
 =======
 
+2026.11.11.6 -- Quarantined rows left alone and left out
+    * Rows quarantined by hand in a fragment store -- unverified, with the model
+      chemistry ``UNUSABLE: <reason>`` -- are never found by a lookup. Now ``migrate``
+      also leaves their text alone (it no longer reads "UNUSABLE" as a program),
+      ``export`` skips them, and ``official build`` drops them and lists them with
+      their reasons in its report.
+
 2026.11.11.5 -- Checks for official stores; the structure guard's false refusals
     * ``official build`` checks every species state before writing anything: no
       saddle points, the structure guard, and the ground-state spin where it is known
@@ -12,9 +19,6 @@ History
       (``<file>.report.json``) records the sources, levels, rows, exclusions,
       SHA-256 and the seamm-thermochemistry that built it. An exclusion can name one
       conformer (a ``conformer`` column), keeping the species' good conformers.
-    * Rows quarantined by hand -- unverified, with the model chemistry ``UNUSABLE:
-      <reason>`` -- are left alone by ``migrate``, not exported, and dropped by
-      ``official build``, which lists them with their reasons in its report.
     * The structure guard accepts a structure whose bonds are its species' at
       RDKit's default perception or at a covalent-radius factor from 1.15 to 1.5:
       the diagonals of strained four-membered rings and cages (azete, oxetene,
