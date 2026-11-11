@@ -2,6 +2,21 @@
 History
 =======
 
+2026.11.11.9 -- Write-back: quarantined rows give way; a log of every write
+    * A valid new row now replaces a row quarantined by hand (model chemistry
+      ``UNUSABLE: <reason>``) that holds its key, in the fragment, geometry and energy
+      tables, with the old values kept as superseded ("replaced a quarantined row:
+      <reason>"). Before, the quarantined row kept the key, so a species recomputed
+      correctly (e.g. [CH3-], cyclic C3) could never get a usable record.
+    * Quarantined rows are no longer counted as conformers when write-back decides
+      whether a new geometry is a lower conformer.
+    * The store keeps a log of what every harvest and every job's write-back did
+      with each row -- added, a duplicate, logged, superseded or refused, and why --
+      in the new ``writeback_log`` table (schema 4), shown by
+      ``seamm-thermochemistry-fragments writeback-log [--job J] [--species S]``.
+    * ``superseded SPECIES`` also lists the superseded geometry and energy rows of the
+      species, with their old and new values, the reason and the date.
+
 2026.11.11.8 -- Official stores: triplet ground states checked too
     * ``official build``'s spin check also refuses a singlet row of a species whose
       ground state is a triplet that a SMILES writes closed-shell

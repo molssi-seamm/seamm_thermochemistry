@@ -53,6 +53,7 @@ from .geometry_store import (
     _as_list,
     _unverified,
     hash_geometry,
+    is_unusable,
     same_model_chemistry,
     split_model_chemistry,
 )
@@ -432,9 +433,11 @@ class FragmentStore(GeometryEnergyMixin):
     def put(self, record):
         """Insert a record unless its key exists.
 
-        Returns "inserted", "duplicate" (same key, same values) or "logged"
+        Returns "inserted", "duplicate" (same key, same values), "logged"
         (same key, values differing by more than 0.1 kJ/mol: the attempt went
-        to ``duplicate_log``, the stored values stay).
+        to ``duplicate_log``, the stored values stay) or "superseded" (the key
+        was held by a record quarantined by hand, ``UNUSABLE: <reason>``,
+        which the new one replaces, its values kept in ``superseded``).
         """
         if self._readonly:
             raise PermissionError("The fragment store was opened read-only.")
@@ -475,6 +478,35 @@ class FragmentStore(GeometryEnergyMixin):
             "multiplicity = ? AND energy_fingerprint = ? AND frequency_fingerprint = ?",
             record.key if isinstance(record, FragmentRecord) else values[:5],
         ).fetchone()
+        if is_unusable(existing["model_chemistry"]) and not is_unusable(
+            record.get("model_chemistry")
+        ):
+            # A record quarantined by hand holds the key: replace it, keeping its
+            # values in ``superseded`` with the quarantine's reason
+            reason = str(existing["model_chemistry"]).split(":", 1)[-1].strip()
+            value_columns = self._VALUE_COLUMNS
+            db.execute(
+                f"INSERT INTO superseded (fragment, {', '.join(value_columns)}, "
+                f"superseded_on, reason) VALUES "
+                f"({', '.join('?' * (len(value_columns) + 3))})",
+                [existing["id"]]
+                + [existing[c] for c in value_columns]
+                + [
+                    datetime.datetime.now().isoformat(timespec="seconds"),
+                    f"replaced a quarantined record: {reason}",
+                ],
+            )
+            new = dict(zip(columns, values))
+            db.execute(
+                f"UPDATE fragment SET {', '.join(f'{c} = ?' for c in value_columns)} "
+                "WHERE id = ?",
+                [new[c] for c in value_columns] + [existing["id"]],
+            )
+            db.commit()
+            logger.info(
+                f"Replaced the quarantined record of {record['species']} ({reason})."
+            )
+            return "superseded"
         difference = 0.0
         for field in ("E", "ZPE", "H"):
             a, b = existing[field], record.get(field)
@@ -1071,6 +1103,31 @@ def harvest_configuration(
     if counts is None:
         counts = new_counts()
     name_for = label or species
+    # What this call did with each row, for the store's writeback_log
+    log = []
+
+    def note(table, outcome, row=None, reason=None, which=None):
+        log.append(
+            {
+                "job": job,
+                "species": species,
+                "charge": charge,
+                "multiplicity": multiplicity,
+                "conformer": conformer if which is None else which,
+                "table_name": table,
+                "row": row,
+                "outcome": outcome,
+                "reason": reason,
+            }
+        )
+
+    def finish():
+        try:
+            store.log_writes(log, kind="write-back" if write_back else "harvest")
+        except Exception as e:  # the log never fails the harvest
+            logger.warning(f"Could not write the fragment store's log: {e}")
+        return counts
+
     if charge is None:
         charge = configuration.charge
     if multiplicity is None:
@@ -1101,14 +1158,15 @@ def harvest_configuration(
         problem = check_structure(symbols, coordinates, species, charge, multiplicity)
         if problem:
             counts["skipped"].append(f"{name_for}: refused, {problem}")
-            return counts
+            note(None, "refused", reason=problem)
+            return finish()
     if write_back:
         worst = _imaginary_modes(properties)
         if worst > IMAGINARY_TOLERANCE:
-            counts["skipped"].append(
-                f"{name_for}: refused, an imaginary mode of {worst:.0f}i cm^-1"
-            )
-            return counts
+            reason = f"an imaginary mode of {worst:.0f}i cm^-1"
+            counts["skipped"].append(f"{name_for}: refused, {reason}")
+            note(None, "refused", reason=reason)
+            return finish()
 
     for name, value in energies.items():
         if isinstance(value, dict):
@@ -1197,7 +1255,9 @@ def harvest_configuration(
             outcome = store.supersede(record, supersede, force=force)
             counts["duplicate" if outcome == "unchanged" else outcome] += 1
         else:
-            counts[store.put(record)] += 1
+            outcome = store.put(record)
+            counts[outcome] += 1
+            note("fragment", outcome, reason=name)
 
         if ZPE or H:
             symmetry = extra("symmetry number", kind="int")
@@ -1231,16 +1291,18 @@ def harvest_configuration(
                     source=name,
                 )
                 if supersede:
-                    outcome, _ = store.supersede_geometry(
+                    outcome, row = store.supersede_geometry(
                         geometry, supersede, force=force
                     )
                 elif write_back:
-                    outcome, _ = store.put_geometry_conformer(geometry)
+                    outcome, row = store.put_geometry_conformer(geometry)
                 else:
-                    outcome, _ = store.put_geometry(geometry)
+                    outcome, row = store.put_geometry(geometry)
                 tally("geometry", outcome)
+                note("geometry", outcome, row, name, which=geometry["conformer"])
             except PairingError as e:
                 counts["skipped"].append(f"{species}: {e}")
+                note("geometry", "refused", reason=str(e))
         try:
             energy_row = EnergyRecord.make(
                 fingerprint_hash,
@@ -1256,13 +1318,15 @@ def harvest_configuration(
             )
         except PairingError as e:
             counts["skipped"].append(f"{species} ({name}): {e}")
+            note("energy", "refused", reason=str(e))
             continue
         if supersede:
-            outcome, _ = store.supersede_energy(energy_row, supersede, force=force)
+            outcome, row = store.supersede_energy(energy_row, supersede, force=force)
         else:
-            outcome, _ = store.put_energy(energy_row)
+            outcome, row = store.put_energy(energy_row)
         tally("energy", outcome)
-    return counts
+        note("energy", outcome, row, name)
+    return finish()
 
 
 # -- the structure guard and conformers ---------------------------------------

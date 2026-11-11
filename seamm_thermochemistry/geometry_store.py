@@ -84,11 +84,12 @@ __all__ = [
     "is_unusable",
 ]
 
-#: The store's schema version (``PRAGMA user_version``): 3 adds the ``meta``
+#: The store's schema version (``PRAGMA user_version``): 4 adds the
+#: ``writeback_log`` table (what each job added or refused), 3 the ``meta``
 #: table (the layer: local, official or contribution; an official store's
 #: version), 2 the geometry, energy and row_history tables; 0 or 1 is the
 #: fragment table alone.
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 4
 #: Imaginary modes at or below this (cm⁻¹, magnitude) are numerical noise
 IMAGINARY_TOLERANCE = 20.0
 DUPLICATE_TOLERANCE = 0.1  # kJ/mol, as for the fragment table
@@ -144,6 +145,21 @@ CREATE TABLE IF NOT EXISTS energy (
     date TEXT,
     UNIQUE (geometry_hash, energy_fingerprint)
 );
+CREATE TABLE IF NOT EXISTS writeback_log (
+    id INTEGER PRIMARY KEY,
+    date TEXT NOT NULL,
+    kind TEXT NOT NULL,
+    job TEXT,
+    species TEXT,
+    charge INTEGER,
+    multiplicity INTEGER,
+    conformer TEXT,
+    table_name TEXT,
+    row INTEGER,
+    outcome TEXT NOT NULL,
+    reason TEXT
+);
+CREATE INDEX IF NOT EXISTS writeback_log_job ON writeback_log (job);
 CREATE TABLE IF NOT EXISTS meta (
     key TEXT PRIMARY KEY,
     value TEXT
@@ -569,6 +585,12 @@ class GeometryEnergyMixin:
         existing = db.execute(
             f"SELECT * FROM {table} WHERE {where}", values[:nkey]
         ).fetchone()
+        if is_unusable(existing["model_chemistry"]) and not is_unusable(
+            record.get("model_chemistry")
+        ):
+            return self._replace_quarantined(
+                db, table, columns, nkey, record, values, existing
+            )
         difference = self._difference(existing, record, fields)
         if difference <= DUPLICATE_TOLERANCE:
             return "duplicate", existing["id"]
@@ -588,6 +610,35 @@ class GeometryEnergyMixin:
             "the stored ones and logged the attempt."
         )
         return "logged", existing["id"]
+
+    def _replace_quarantined(self, db, table, columns, nkey, record, values, existing):
+        """A row quarantined by hand ("UNUSABLE: <reason>") holds the key of a
+        valid new row: the new values replace it, and the old ones go to
+        ``row_history`` as superseded, with the quarantine's reason."""
+        reason = str(existing["model_chemistry"]).split(":", 1)[-1].strip()
+        self._history(
+            db,
+            table,
+            existing["id"],
+            "superseded",
+            dict(existing),
+            dict(record),
+            reason=f"replaced a quarantined row: {reason}",
+        )
+        new = dict(zip(columns, values))
+        if table == "energy" and new.get("geometry") is None:
+            new["geometry"] = existing["geometry"]
+        value_columns = columns[nkey:]
+        db.execute(
+            f"UPDATE {table} SET {', '.join(f'{c} = ?' for c in value_columns)} "
+            "WHERE id = ?",
+            [new[c] for c in value_columns] + [existing["id"]],
+        )
+        db.commit()
+        logger.info(
+            f"Replaced the quarantined {table} row {existing['id']} ({reason})."
+        )
+        return "superseded", existing["id"]
 
     def put_geometry(self, record):
         """Insert a geometry row unless its key exists.
@@ -624,7 +675,12 @@ class GeometryEnergyMixin:
             "multiplicity = ? AND frequency_fingerprint = ?",
             record.key[:4],
         ).fetchall()
-        rows = [_decode(r, GeometryRecord) for r in rows]
+        # Rows quarantined by hand are neither conformers nor the lowest
+        rows = [
+            _decode(r, GeometryRecord)
+            for r in rows
+            if not is_unusable(r["model_chemistry"])
+        ]
         if (
             rows
             and record.get("E") is not None
@@ -976,6 +1032,106 @@ class GeometryEnergyMixin:
                 }
             )
         return out
+
+    def superseded_rows(self, species=None):
+        """The superseded values of geometry and energy rows (``row_history``),
+        newest first: [{table, row, species, conformer, date, reason, old, new}],
+        old and new each with E (and ZPE, H, model chemistry, job, geometry hash).
+        With `species`, only its rows; an energy row belongs to the species of the
+        geometry with its geometry hash, before or after the change."""
+        db = self._reader()
+        if db is None:
+            return []
+        try:
+            history = db.execute(
+                "SELECT * FROM row_history WHERE kind = 'superseded' AND "
+                "table_name IN ('geometry', 'energy') ORDER BY id DESC"
+            ).fetchall()
+        except sqlite3.OperationalError:
+            return []
+        keep = ("E", "ZPE", "H", "model_chemistry", "job", "geometry_hash")
+        species_of = {}
+        for r in db.execute("SELECT geometry_hash, species FROM geometry"):
+            species_of[r[0]] = r[1]
+        out = []
+        for h in history:
+            old = json.loads(h["old"]) if h["old"] else {}
+            new = json.loads(h["new"]) if h["new"] else {}
+            for d in (old, new):  # geometry rows' old hashes, from their history
+                if d.get("species") and d.get("geometry_hash"):
+                    species_of.setdefault(d["geometry_hash"], d["species"])
+            who = old.get("species") or new.get("species")
+            if who is None:
+                who = species_of.get(old.get("geometry_hash")) or species_of.get(
+                    new.get("geometry_hash")
+                )
+            out.append(
+                {
+                    "table": h["table_name"],
+                    "row": h["row"],
+                    "species": who,
+                    "conformer": old.get("conformer") or new.get("conformer"),
+                    "date": h["date"],
+                    "reason": h["reason"],
+                    "old": {k: old.get(k) for k in keep},
+                    "new": {k: new.get(k) for k in keep},
+                }
+            )
+        if species is not None:
+            out = [d for d in out if d["species"] == species]
+        return out
+
+    def log_writes(self, entries, kind="write-back"):
+        """Record what a harvest or a job's write-back did with each row:
+        `entries` are dicts with job, species, charge, multiplicity, conformer,
+        table_name, row, outcome and reason (any may be missing)."""
+        if not entries:
+            return
+        db = self._writer()
+        now = _now()
+        db.executemany(
+            "INSERT INTO writeback_log (date, kind, job, species, charge, "
+            "multiplicity, conformer, table_name, row, outcome, reason) "
+            "VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+            [
+                (
+                    now,
+                    kind,
+                    e.get("job"),
+                    e.get("species"),
+                    e.get("charge"),
+                    e.get("multiplicity"),
+                    e.get("conformer"),
+                    e.get("table_name"),
+                    e.get("row"),
+                    e.get("outcome"),
+                    e.get("reason"),
+                )
+                for e in entries
+            ],
+        )
+        db.commit()
+
+    def write_log(self, job=None, species=None):
+        """The write-back and harvest log, newest first; of one job (its label
+        contains `job`) or species if given."""
+        db = self._reader()
+        if db is None:
+            return []
+        sql = "SELECT * FROM writeback_log"
+        where, args = [], []
+        if job is not None:
+            where.append("job LIKE ?")
+            args.append(f"%{job}%")
+        if species is not None:
+            where.append("species = ?")
+            args.append(species)
+        if where:
+            sql += " WHERE " + " AND ".join(where)
+        try:
+            return [dict(r) for r in db.execute(sql + " ORDER BY id DESC", args)]
+        except sqlite3.OperationalError:  # a store from before the table
+            return []
 
     def history(self, table=None):
         """The row history (duplicates and superseded values), newest first."""

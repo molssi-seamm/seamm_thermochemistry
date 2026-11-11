@@ -186,8 +186,9 @@ def _copy_history(source, target, table, record, label):
 
 
 def migrate_store(path=None, *, backup=True):
-    """Bring a store up to date: the ``meta`` table and schema 3, and the model
-    chemistries stored bare with the program filled in (``ORCA:CMP@R2SCAN-3C``
+    """Bring a store up to date: the ``meta`` and ``writeback_log`` tables
+    (schema 4), and the model chemistries stored bare with the program filled in
+    (``ORCA:CMP@R2SCAN-3C``
     -> ``CMP@R2SCAN-3C`` + ``ORCA``). A dated copy of the file is kept first.
     Running it again changes nothing (and makes no copy).
 
@@ -235,7 +236,9 @@ def migrate_store(path=None, *, backup=True):
         copy = store.path.with_name(f"{store.path.name}.pre-migrate-{stamp}")
         shutil.copy2(store.path, copy)
         result["backup"] = copy
-    with FragmentStore(store.path, create=True) as writer:  # adds meta, schema 3
+    with FragmentStore(
+        store.path, create=True
+    ) as writer:  # adds meta, writeback_log: schema 4
         db = writer._connect(create=True)
         for table, changes in plan.items():
             for row_id, new in changes:
