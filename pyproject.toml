@@ -36,6 +36,9 @@ seamm-thermochemistry-atct = "seamm_thermochemistry.atct_cli:main"
 seamm-thermochemistry-fragments = "seamm_thermochemistry.fragment_cli:main"
 seamm-thermochemistry-ladder = "seamm_thermochemistry.ladder_cli:main"
 
+[project.entry-points."org.molssi.seamm.jobserver.job_finished"]
+harvest-fragments = "seamm_thermochemistry.hooks:harvest_finished_job"
+
 [project.optional-dependencies]
 test = [
     "pytest>=6.1.2",

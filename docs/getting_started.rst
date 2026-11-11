@@ -234,6 +234,41 @@ caller passes the fingerprints it expects for each species (for ORCA,
 
     store.get("CC", energy_fingerprint=[fp_as_written, fp_cosx_moot])
 
+Write-back from jobs, and the harvest of jobs that come back
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The Thermochemistry step adds the species it computes to the store itself
+(write-back), through ``harvest_configuration``, the same code the harvest runs for
+each system of a job, so the rows are the same either way. It does so only when the
+store is on a local disk of the machine running the job: SQLite's locking is not
+reliable on network and parallel filesystems (NFS, GPFS, Lustre).
+``store_is_writable()`` makes the check; ``fragment-store-writable = auto | yes |
+no`` in the ``[thermochemistry]`` section of ``~/.seamm.d/seamm.ini`` overrides it.
+
+When the step cannot write the store, it leaves ``harvest_fragments.json`` in the
+job's directory. A JobServer runs the plug-ins' ``job_finished`` hooks when a job
+ends and its files are back on the JobServer's host; this package's hook harvests
+a job carrying that marker into the store there, once (the marker becomes
+``harvest_fragments.done.json``, with the tallies). A job run without a JobServer
+is harvested by hand, as before.
+
+Results are checked before they go in, by write-back and by the harvest:
+
+* **The structure.** The bonds are perceived again from the coordinates, and must
+  be those of the species in the key (its SMILES), whose charge and radicals must
+  fit the structure's charge and multiplicity; and no atoms may be too close
+  together (``molsystem.vsepr.check_contacts``, which also catches the ligands of a
+  hypervalent centre on top of each other). A species that rearranged while it was
+  optimized is refused. ``harvest --no-structure-check`` turns this off.
+* **Imaginary modes** (write-back): a geometry with a mode beyond 20i is refused,
+  with every energy on it. The harvest stores such a geometry, for its provenance,
+  but lookups never return it.
+* **Conformers** (write-back): a geometry lower in E + ZPE than every stored one of
+  the species at its level, by more than 0.1 kJ/mol, and structurally distinct
+  from each (RMSD above 0.05 Å after the best, symmetry-aware alignment), is added
+  as the conformer ``auto:<geometry hash>``; lookups take the lowest. The same
+  minimum computed again is only logged.
+
 Geometries and energies at different levels
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

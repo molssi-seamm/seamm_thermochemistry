@@ -69,6 +69,13 @@ def main(argv=None):
         "differing value is only logged.",
     )
     harvest.add_argument(
+        "--no-structure-check",
+        action="store_true",
+        help="Do not refuse structures whose bonds, perceived again from the "
+        "coordinates, are not those of their species, or that have atoms too close "
+        "together.",
+    )
+    harvest.add_argument(
         "--force",
         action="store_true",
         help="With --supersede, also replace values that differ by less than the "
@@ -131,6 +138,7 @@ def main(argv=None):
                         force=args.force,
                         species_map=species_map,
                         tables=args.tables,
+                        structure_check=not args.no_structure_check,
                     )
                     print(
                         f"{job}: {counts['inserted']} inserted, "

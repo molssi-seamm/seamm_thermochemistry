@@ -23,6 +23,15 @@ iteration missed; it now keeps the target's. And an energy-level single point
 found on a configuration in the job is reused only when its record names the
 configuration's current geometry.
 
+**P5a released 2026-11-11** (orca-step, seamm-exec, seamm-thermochemistry and
+thermochemistry-step 2026.11.11). **P5b implemented 2026-11-11** (branch
+``p5b-writeback`` in seamm_thermochemistry, thermochemistry_step and
+seamm_jobserver): write-back, the structure guard, ``auto:`` conformers, the
+``job_finished`` hook and the marker, as in §3. One change from §3: a geometry
+that is a contact too close to read as a bond is caught by the contact check,
+but ligands closer still (the old PF₆⁻) read as bonded and are refused by the
+connectivity check first.
+
 Numbering: these phases are the fragment store's P5 (P5a-P5e). The 11-08
 presets plan also had a P5 (long-bond and %[(T)] flags) and a P6 (pilot). Those
 keep their names and have nothing to do with this note.
