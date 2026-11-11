@@ -324,3 +324,21 @@ def test_quarantined_rows_are_left_out_and_not_renamed(tmp_path):
             .fetchone()[0]
             == 0
         )
+
+
+def test_triplet_ground_states():
+    """O2, S2, SO and OCCO are triplets a SMILES writes closed-shell; a singlet row
+    of them is refused (5689's singlet OCCO was a 419i saddle)."""
+    for smiles in ("O=O", "S=S", "O=S", "O=C=C=O"):
+        multiplicity, source = T.ground_state_multiplicity(smiles)
+        assert multiplicity == 3 and "TRIPLET_GROUND_STATES" in source
+    assert T.ground_state_multiplicity("[GeH2]")[0] == 1  # one of the six added
+
+
+def test_a_singlet_dioxygen_row_is_refused(tmp_path):
+    with FragmentStore(tmp_path / "s.db", create=True) as s:
+        _put(s, "O=O", xyz=(["O", "O"], [[0, 0, 0], [0, 0, 1.21]]))
+        _put(s, "O=O", multiplicity=3, xyz=(["O", "O"], [[0, 0, 0], [0, 0, 1.21]]))
+        problems = T.sanity_check(s)
+    assert set(problems) == {("O=O", 0, 1)}
+    assert "ground state's (3, triplet" in problems[("O=O", 0, 1)][0]

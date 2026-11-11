@@ -2,6 +2,12 @@
 History
 =======
 
+2026.11.11.8 -- Official stores: triplet ground states checked too
+    * ``official build``'s spin check also refuses a singlet row of a species whose
+      ground state is a triplet that a SMILES writes closed-shell
+      (``cbh.TRIPLET_GROUND_STATES``: O2, S2, SO, OCCO, cyclic C3), as it already did
+      for the singlets of ``cbh.SINGLET_GROUND_STATES``.
+
 2026.11.11.7 -- CBH: aryl neighbours of hypervalent centres; more ground states
     * A hypervalent centre's neighbour in a protected ring stays with its ring and
       is capped like a methyl in the centre's fragments, so aryl sulfones,

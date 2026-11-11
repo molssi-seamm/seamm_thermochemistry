@@ -364,7 +364,9 @@ def ground_state_multiplicity(species, charge=0, atct=None):
     (None, None).
 
     Singlet for the species of :data:`.cbh.SINGLET_GROUND_STATES` (silylenes,
-    dihalocarbenes and BH, which a SMILES writes as triplets); else from ATcT when
+    dihalocarbenes and BH, which a SMILES writes as triplets), triplet for those of
+    :data:`.cbh.TRIPLET_GROUND_STATES` (O2, S2, SO, OCCO, cyclic C3, which a
+    SMILES writes closed-shell); else from ATcT when
     it lists the species in labelled spin states: the plain entry is the ground
     state, and the labelled entry with the same enthalpy of formation names its
     multiplicity (CH2: plain = triplet; SiH2: plain = singlet). Unlike
@@ -375,15 +377,24 @@ def ground_state_multiplicity(species, charge=0, atct=None):
     from .cbh import SINGLET_GROUND_STATES
 
     try:
+        from .cbh import TRIPLET_GROUND_STATES
+    except ImportError:  # pragma: no cover
+        TRIPLET_GROUND_STATES = ()
+
+    try:
         can = canonical_smiles(species, stereo=False) or species
     except Exception:
         can = species
-    for smiles in SINGLET_GROUND_STATES:
-        try:
-            if canonical_smiles(smiles, stereo=False) == can:
-                return 1, "singlet ground state (cbh.SINGLET_GROUND_STATES)"
-        except Exception:
-            continue
+    for states, multiplicity, name in (
+        (SINGLET_GROUND_STATES, 1, "singlet ground state (cbh.SINGLET_GROUND_STATES)"),
+        (TRIPLET_GROUND_STATES, 3, "triplet ground state (cbh.TRIPLET_GROUND_STATES)"),
+    ):
+        for smiles in states:
+            try:
+                if canonical_smiles(smiles, stereo=False) == can:
+                    return multiplicity, name
+            except Exception:
+                continue
     if atct is None:
         return None, None
     try:
