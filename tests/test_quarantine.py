@@ -76,6 +76,13 @@ def test_a_valid_geometry_or_energy_row_replaces_a_quarantined_one(store):
     )
     assert outcome == "superseded"
     assert store.energy(g["geometry_hash"], energy_fingerprint="e")["E"] == -6.0
+    # The history by species shows both states, of the geometry and the energy
+    rows = store.superseded_rows("C")
+    assert {d["table"] for d in rows} == {"geometry", "energy"}
+    geometry = next(d for d in rows if d["table"] == "geometry")
+    assert geometry["old"]["E"] == -1.0 and geometry["new"]["E"] == -1.5
+    assert geometry["old"]["model_chemistry"].startswith("UNUSABLE:")
+    assert store.superseded_rows("CC") == []
 
 
 def test_quarantined_rows_are_not_conformers(store, tmp_path):
@@ -133,3 +140,17 @@ def test_the_write_log(store, tmp_path, capsys):
     )
     out = capsys.readouterr().out
     assert code == 0 and "refused: an imaginary mode of 90i" in out
+
+
+def test_cli_superseded_shows_geometry_rows(store, capsys):
+    symbols, xyz = _embedded("C")
+    g = GeometryRecord.make(
+        "C", symbols, xyz, E=-1.0, ZPE=1.0, H=2.0, frequency_fingerprint=FP
+    )
+    store.put_geometry(g)
+    _quarantine(store, "geometry")
+    store.put_geometry(GeometryRecord(g, E=-1.5))
+    assert fragment_cli.main(["--store", str(store.path), "superseded", "C"]) == 0
+    out = capsys.readouterr().out
+    assert "C geometry row 1" in out and "UNUSABLE: saddle" in out
+    assert "replaced a quarantined row" in out

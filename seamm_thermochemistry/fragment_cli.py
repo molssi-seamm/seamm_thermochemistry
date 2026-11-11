@@ -330,8 +330,25 @@ def main(argv=None):
         elif args.command == "superseded":
             store = F.FragmentStore(args.store)
             rows = store.superseded(args.species)
-            if not rows:
+            others = store.superseded_rows(args.species)
+            if not rows and not others:
                 print("Nothing superseded.")
+
+            def values(d):
+                return ", ".join(
+                    f"{k} {d[k]:.3f}" for k in ("E", "ZPE", "H") if d.get(k) is not None
+                )
+
+            for d in others:
+                label = f" conformer '{d['conformer']}'" if d["conformer"] else ""
+                where = f"{d['table']} row {d['row']}"
+                print(
+                    f"{d['species']}{label} {where} on {d['date']}: "
+                    f"{values(d['old'])} [{d['old']['model_chemistry']}] (from "
+                    f"{d['old']['job']}) replaced by {values(d['new'])} "
+                    f"[{d['new']['model_chemistry']}] (from {d['new']['job']}); "
+                    f"reason: {d['reason']}"
+                )
             for d in rows:
                 old = ", ".join(
                     f"{k} {d[k]:.3f}" for k in ("E", "ZPE", "H") if d.get(k) is not None

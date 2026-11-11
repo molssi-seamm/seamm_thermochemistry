@@ -14,6 +14,8 @@ History
       with each row -- added, a duplicate, logged, superseded or refused, and why --
       in the new ``writeback_log`` table (schema 4), shown by
       ``seamm-thermochemistry-fragments writeback-log [--job J] [--species S]``.
+    * ``superseded SPECIES`` also lists the superseded geometry and energy rows of the
+      species, with their old and new values, the reason and the date.
 
 2026.11.11.8 -- Official stores: triplet ground states checked too
     * ``official build``'s spin check also refuses a singlet row of a species whose

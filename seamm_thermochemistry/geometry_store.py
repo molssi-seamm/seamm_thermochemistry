@@ -1033,6 +1033,54 @@ class GeometryEnergyMixin:
             )
         return out
 
+    def superseded_rows(self, species=None):
+        """The superseded values of geometry and energy rows (``row_history``),
+        newest first: [{table, row, species, conformer, date, reason, old, new}],
+        old and new each with E (and ZPE, H, model chemistry, job, geometry hash).
+        With `species`, only its rows; an energy row belongs to the species of the
+        geometry with its geometry hash, before or after the change."""
+        db = self._reader()
+        if db is None:
+            return []
+        try:
+            history = db.execute(
+                "SELECT * FROM row_history WHERE kind = 'superseded' AND "
+                "table_name IN ('geometry', 'energy') ORDER BY id DESC"
+            ).fetchall()
+        except sqlite3.OperationalError:
+            return []
+        keep = ("E", "ZPE", "H", "model_chemistry", "job", "geometry_hash")
+        species_of = {}
+        for r in db.execute("SELECT geometry_hash, species FROM geometry"):
+            species_of[r[0]] = r[1]
+        out = []
+        for h in history:
+            old = json.loads(h["old"]) if h["old"] else {}
+            new = json.loads(h["new"]) if h["new"] else {}
+            for d in (old, new):  # geometry rows' old hashes, from their history
+                if d.get("species") and d.get("geometry_hash"):
+                    species_of.setdefault(d["geometry_hash"], d["species"])
+            who = old.get("species") or new.get("species")
+            if who is None:
+                who = species_of.get(old.get("geometry_hash")) or species_of.get(
+                    new.get("geometry_hash")
+                )
+            out.append(
+                {
+                    "table": h["table_name"],
+                    "row": h["row"],
+                    "species": who,
+                    "conformer": old.get("conformer") or new.get("conformer"),
+                    "date": h["date"],
+                    "reason": h["reason"],
+                    "old": {k: old.get(k) for k in keep},
+                    "new": {k: new.get(k) for k in keep},
+                }
+            )
+        if species is not None:
+            out = [d for d in out if d["species"] == species]
+        return out
+
     def log_writes(self, entries, kind="write-back"):
         """Record what a harvest or a job's write-back did with each row:
         `entries` are dicts with job, species, charge, multiplicity, conformer,

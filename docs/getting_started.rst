@@ -347,7 +347,9 @@ a duplicate, logged, superseded, or refused and why -- in the store's
 
 The log is written by the harvest and by write-back (both go through
 ``harvest_configuration``); direct calls to ``put``, ``put_geometry`` or
-``put_energy`` from a script of your own are not logged.
+``put_energy`` from a script of your own are not logged. ``superseded SPECIES``
+shows, for a species, every superseded value -- of its fragment records and of its
+geometry and energy rows -- with the old and new values, the reason and the date.
 
 
 Geometries and energies at different levels
