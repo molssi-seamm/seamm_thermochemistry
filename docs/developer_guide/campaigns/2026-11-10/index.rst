@@ -43,6 +43,18 @@ with the rest of the installer; the official build's sanity pass is P5e.
 fragment, 50 geometry and 639 energy rows normalized, all keys unchanged, a
 second run a no-op.
 
+**P5c released 2026-11-11** (seamm-thermochemistry and thermochemistry-step
+2026.11.11.2). **P5e code implemented 2026-11-11** (branch ``p5e-official``): the
+sanity pass, selection by fingerprint, exclusions with reasons and the report.
+The multiplicity check uses ``cbh.SINGLET_GROUND_STATES`` (design's, from the CBH
+review: SiH2, SiCl2, SiF2, CF2, CCl2, BH) and ATcT's labelled spin states; ATcT alone cannot catch BH (only a
+plain entry) or SiCl2 (absent). Writing it showed that the P5b structure guard
+refused singlet BH and carbenes (RDKit gives them two radical electrons); it now
+checks only the parity, and it held fluorines on one atom (CF2, CF3) to the 2.2 Å
+meant for fluorines on different atoms (now 2.0 Å). Building v1 waits for the DEFGRID3 harvest into ChemAI's
+store: frequency key sha256:6b46c8c4..., energy keys sha256:1e16835c... and
+sha256:7ca1cbbc... (boron), the [CH3-] saddle from 5684 excluded.
+
 Numbering: these phases are the fragment store's P5 (P5a-P5e). The 11-08
 presets plan also had a P5 (long-bond and %[(T)] flags) and a P6 (pilot). Those
 keep their names and have nothing to do with this note.

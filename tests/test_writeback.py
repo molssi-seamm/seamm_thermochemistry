@@ -69,9 +69,9 @@ def test_ligands_on_top_of_each_other_are_refused():
     problem = check_structure(*_pf6(close=True), "F[P-](F)(F)(F)(F)F", -1, 1)
     assert problem and "not those of" in problem
     symbols, xyz = _pf6()
-    # One F turned towards +y: F...F 2.0 Å, too long to read as a bond but
-    # below molsystem's 2.2 Å limit for fluorines
-    angle = np.radians(168.0)
+    # One F turned towards +y: F...F 1.8 Å, too long to read as a bond but
+    # below the 2.0 Å floor for two fluorines on the same atom
+    angle = np.radians(158.2)
     xyz[2] = [1.606 * np.cos(angle), 1.606 * np.sin(angle), 0.0]
     problem = check_structure(symbols, xyz, "F[P-](F)(F)(F)(F)F", -1, 1)
     assert problem and "too close" in problem
@@ -294,3 +294,11 @@ def test_write_marker_accumulates(tmp_path):
     hooks.write_marker(tmp_path, ["CC", "O"], "b")
     data = json.loads((tmp_path / hooks.MARKER).read_text())
     assert data == {"reason": "b", "species": ["C", "CC", "O"]}
+
+
+@pytest.mark.parametrize("smiles", ["C=C(F)F", "FC(F)(F)F", "FC(F)F", "FN(F)F"])
+def test_fluorines_on_one_atom_are_not_too_close(smiles):
+    """Real geminal fluorines are 2.12-2.17 Å apart, below the 2.2 Å molsystem
+    uses for fluorines that do not share an atom (1,1-difluoroethylene was
+    refused by the first official build's dry run)."""
+    assert check_structure(*_embedded(smiles), smiles, 0, 1) is None

@@ -20,6 +20,7 @@ overwritten, and superseded values travel as history.
 
 import datetime
 import hashlib
+import json
 import logging
 from pathlib import Path
 import shutil
@@ -41,6 +42,9 @@ from .geometry_store import (
 logger = logging.getLogger(__name__)
 
 __all__ = [
+    "ground_state_multiplicity",
+    "sanity_check",
+    "load_exclusions",
     "migrate_store",
     "export_local",
     "merge_stores",
@@ -346,23 +350,248 @@ def export_local(out, local=None, official=None, *, label=None):
     return counts
 
 
-def build_official(out, version, sources, *, previous=None, source=None):
+def ground_state_multiplicity(species, charge=0, atct=None):
+    """(multiplicity, source) of a species' ground state where it is known, or
+    (None, None).
+
+    Singlet for the species of :data:`.cbh.SINGLET_GROUND_STATES` (silylenes,
+    dihalocarbenes and BH, which a SMILES writes as triplets); else from ATcT when
+    it lists the species in labelled spin states: the plain entry is the ground
+    state, and the labelled entry with the same enthalpy of formation names its
+    multiplicity (CH2: plain = triplet; SiH2: plain = singlet). Unlike
+    :func:`.cbh.ground_state_multiplicity` this does not fall back on the radical
+    count, which is not knowledge of the ground state (O2 would be a singlet).
+    """
+    from .atct import canonical_smiles
+    from .cbh import SINGLET_GROUND_STATES
+
+    try:
+        can = canonical_smiles(species, stereo=False) or species
+    except Exception:
+        can = species
+    for smiles in SINGLET_GROUND_STATES:
+        try:
+            if canonical_smiles(smiles, stereo=False) == can:
+                return 1, "singlet ground state (cbh.SINGLET_GROUND_STATES)"
+        except Exception:
+            continue
+    if atct is None:
+        return None, None
+    try:
+        candidates = [e for e in atct.candidates(can, charge=charge) if e.is_gas]
+    except Exception:
+        return None, None
+    plain = [e for e in candidates if e.is_plain]
+    labelled = [e for e in candidates if e.multiplicity is not None]
+    if len(plain) != 1 or not labelled:
+        return None, None
+    value = plain[0].get("dfH0_298K")
+    for e in labelled:
+        if (
+            value is not None
+            and e.get("dfH0_298K") is not None
+            and (abs(float(e["dfH0_298K"]) - float(value)) < 1e-6)
+        ):
+            return e.multiplicity, f"ATcT {atct.version} ({e['id']})"
+    return None, None
+
+
+def sanity_check(store, *, atct=None):
+    """The problems that keep rows out of an official store, by species state:
+    {(species, charge, multiplicity): [reason, ...]}.
+
+    * a geometry with an imaginary mode beyond 20i (a saddle point);
+    * a geometry whose bonds, perceived again from its coordinates, are not its
+      species', whose charge or multiplicity do not fit its SMILES, or with atoms
+      too close together (:func:`.fragment_store.check_structure`);
+    * a multiplicity that is not the species' ground state, where that is known
+      (:func:`ground_state_multiplicity`).
+
+    Ions and open-shell species are checked like the rest, not excluded.
+    """
+    from .fragment_store import check_structure
+    from .geometry_store import IMAGINARY_TOLERANCE
+
+    problems = {}
+
+    def add(key, reason):
+        problems.setdefault(key, [])
+        if reason not in problems[key]:
+            problems[key].append(reason)
+
+    states = set()
+    for g in _rows(store, "geometry"):
+        key = (g["species"], g["charge"], g["multiplicity"])
+        states.add(key)
+        label = f"conformer '{g['conformer']}'" if g["conformer"] else "geometry"
+        if g.get("n_imaginary"):
+            add(
+                key,
+                f"{label}: {g['n_imaginary']} imaginary mode(s), the largest "
+                f"{g['max_imaginary']:.0f}i cm^-1 (> {IMAGINARY_TOLERANCE:.0f}i)",
+            )
+        problem = check_structure(
+            g["symbols"], g["coordinates"], g["species"], g["charge"], g["multiplicity"]
+        )
+        if problem:
+            add(key, f"{label}: {problem}")
+    for f in _rows(store, "fragment"):
+        states.add((f["species"], f["charge"], f["multiplicity"]))
+    for species, charge, multiplicity in sorted(states, key=str):
+        ground, source = ground_state_multiplicity(species, charge, atct)
+        if ground is not None and ground != multiplicity:
+            add(
+                (species, charge, multiplicity),
+                f"multiplicity {multiplicity} is not the ground state's ({ground}, "
+                f"{source})",
+            )
+    return problems
+
+
+def _select(store, frequency_fingerprints=None, energy_fingerprints=None):
+    """Delete the rows not reachable at the given levels: geometry rows of other
+    frequency fingerprints, energy rows of other energy fingerprints or not on a
+    remaining geometry, and fragment rows of neither. Returns {table: n deleted}."""
+    db = store._connect(create=True)
+    deleted = {}
+    freq = list(frequency_fingerprints or [])
+    energy = list(energy_fingerprints or [])
+    if freq:
+        marks = ", ".join("?" * len(freq))
+        deleted["geometry"] = db.execute(
+            f"DELETE FROM geometry WHERE frequency_fingerprint NOT IN ({marks})", freq
+        ).rowcount
+    sql = (
+        "DELETE FROM energy WHERE geometry_hash NOT IN "
+        "(SELECT geometry_hash FROM geometry)"
+    )
+    args = []
+    if energy:
+        marks = ", ".join("?" * len(energy))
+        sql += f" OR energy_fingerprint NOT IN ({marks})"
+        args = energy
+    deleted["energy"] = db.execute(sql, args).rowcount
+    if freq or energy:
+        allowed_e = freq + energy
+        marks_e = ", ".join("?" * len(allowed_e))
+        sql = f"DELETE FROM fragment WHERE energy_fingerprint NOT IN ({marks_e})"
+        args = list(allowed_e)
+        if freq:
+            marks_f = ", ".join("?" * len(freq))
+            sql += (
+                f" OR (frequency_fingerprint != '' AND frequency_fingerprint NOT IN "
+                f"({marks_f}))"
+            )
+            args += freq
+        deleted["fragment"] = db.execute(sql, args).rowcount
+    db.commit()
+    return deleted
+
+
+def _exclude(store, excluded):
+    """Delete every row of the excluded species states; returns {state: rows}."""
+    db = store._connect(create=True)
+    removed = {}
+    for (species, charge, multiplicity), _ in excluded.items():
+        where = "species = ? AND charge = ? AND multiplicity = ?"
+        args = (species, int(charge), int(multiplicity))
+        hashes = [
+            r[0]
+            for r in db.execute(
+                f"SELECT geometry_hash FROM geometry WHERE {where}", args
+            )
+        ]
+        n = db.execute(f"DELETE FROM geometry WHERE {where}", args).rowcount
+        n += db.execute(f"DELETE FROM fragment WHERE {where}", args).rowcount
+        for h in hashes:
+            still = db.execute(
+                "SELECT COUNT(*) FROM geometry WHERE geometry_hash = ?", (h,)
+            ).fetchone()[0]
+            if not still:
+                n += db.execute(
+                    "DELETE FROM energy WHERE geometry_hash = ?", (h,)
+                ).rowcount
+        removed[(species, charge, multiplicity)] = n
+    db.commit()
+    return removed
+
+
+def load_exclusions(path):
+    """Exclusions from a CSV file with the columns species, charge, multiplicity
+    and reason: {(canonical species, charge, multiplicity): reason}."""
+    import csv
+
+    from .atct import canonical_smiles
+
+    out = {}
+    with open(Path(path).expanduser(), newline="") as fd:
+        for row in csv.DictReader(fd):
+            species = (row.get("species") or "").strip()
+            reason = (row.get("reason") or "").strip()
+            if not species:
+                continue
+            if not reason:
+                raise ValueError(f"{path}: excluding {species} needs a reason")
+            try:
+                species = canonical_smiles(species) or species
+            except Exception:
+                pass
+            key = (
+                species,
+                int(row.get("charge") or 0),
+                int(row.get("multiplicity") or 1),
+            )
+            out[key] = reason
+    return out
+
+
+def build_official(
+    out,
+    version,
+    sources,
+    *,
+    previous=None,
+    source=None,
+    frequency_fingerprints=None,
+    energy_fingerprints=None,
+    exclude=None,
+    atct=None,
+    check=True,
+):
     """Build an official store: the previous official one (if given) plus the
     contributions `sources`, marked official with `version` (and `source`, e.g.
-    its Zenodo DOI), compacted, with a ``.sha256`` file beside it.
+    its Zenodo DOI), compacted, with a ``.sha256`` file and a ``.report.json``
+    beside it.
 
-    A contribution whose values differ from a row already there stops the build,
-    and nothing is written: the maintainer resolves each with ``supersede`` and a
-    reason first. Returns (path, sha256, counts).
+    `frequency_fingerprints` and `energy_fingerprints`, when given, keep only the
+    rows reachable at those levels (e.g. the presets' r2SCAN-3c geometries and
+    the revDSD energies on them). `exclude` ({(species, charge, multiplicity):
+    reason}, see :func:`load_exclusions`) leaves species states out, with the
+    reason in the report.
+
+    Nothing is written when a contribution's values differ from a row already
+    there (resolve it with ``supersede`` and a reason first), or when the sanity
+    pass (:func:`sanity_check`; `atct` for the multiplicities) finds a problem in
+    a species state that is not excluded. Returns (path, sha256, counts).
     """
     out = Path(out).expanduser()
     if out.exists():
         raise FileExistsError(f"{out} exists; build to a new file.")
+    exclude = dict(exclude or {})
     if previous is not None:
         with FragmentStore(previous, immutable=True) as old:
             if old.layer != "official":
                 raise ValueError(f"{previous} is not an official store.")
         shutil.copy2(Path(previous).expanduser(), out)
+    report = {
+        "version": version,
+        "built": _now(),
+        "previous": str(previous) if previous else None,
+        "sources": [str(s) for s in sources],
+        "frequency fingerprints": list(frequency_fingerprints or []),
+        "energy fingerprints": list(energy_fingerprints or []),
+        "atct": getattr(atct, "version", None),
+    }
     try:
         with FragmentStore(out, create=True, layer="official") as store:
             counts = merge_stores(store, sources, allow_official=True)
@@ -382,6 +611,42 @@ def build_official(out, version, sources, *, previous=None, source=None):
                     "store; resolve them with 'supersede' first:\n  "
                     + "\n  ".join(conflicts[:50])
                 )
+            report["deselected"] = _select(
+                store, frequency_fingerprints, energy_fingerprints
+            )
+            removed = _exclude(store, exclude)
+            report["excluded"] = [
+                {
+                    "species": k[0],
+                    "charge": k[1],
+                    "multiplicity": k[2],
+                    "reason": reason,
+                    "rows": removed.get(k, 0),
+                }
+                for k, reason in exclude.items()
+            ]
+            if check:
+                problems = sanity_check(store, atct=atct)
+                if problems:
+                    lines = [
+                        f"{s} (charge {q}, multiplicity {m}): " + "; ".join(r)
+                        for (s, q, m), r in sorted(problems.items(), key=str)
+                    ]
+                    raise ValueError(
+                        f"{len(problems)} species states fail the sanity checks; fix "
+                        "them, or exclude them with a reason (--exclude):\n  "
+                        + "\n  ".join(lines[:100])
+                    )
+            db = store._connect(create=True)
+            report["rows"] = {
+                t: db.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0]
+                for t in ("fragment", "geometry", "energy")
+            }
+            report["species"] = db.execute(
+                "SELECT COUNT(*) FROM (SELECT DISTINCT species, charge, "
+                "multiplicity FROM geometry)"
+            ).fetchone()[0]
+            report["checked"] = bool(check)
             store.set_meta(
                 layer="official",
                 version=version,
@@ -389,12 +654,14 @@ def build_official(out, version, sources, *, previous=None, source=None):
                 source=source or "",
                 schema=SCHEMA_VERSION,
             )
-            store._connect(create=True).execute("VACUUM")
+            db.execute("VACUUM")
     except Exception:
         out.unlink(missing_ok=True)
         raise
     digest = _sha256(out)
+    report["sha256"] = digest
     out.with_name(out.name + ".sha256").write_text(f"{digest}  {out.name}\n")
+    out.with_name(out.name + ".report.json").write_text(json.dumps(report, indent=1))
     return out, digest, counts
 
 

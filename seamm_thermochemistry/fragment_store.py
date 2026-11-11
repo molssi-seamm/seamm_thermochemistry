@@ -1314,7 +1314,8 @@ def check_structure(symbols, coordinates, species, charge=None, multiplicity=Non
     structure's own (which came from the SMILES it was built from), so a
     species that rearranged while it was optimized is caught. The graph
     (elements and connections) must be that of `species`, whose formal charge
-    and radicals must agree with `charge` and `multiplicity`; and no atoms may be
+    must be `charge` and whose radical electrons must have the parity of the
+    unpaired electrons of `multiplicity`; and no atoms may be
     too close together (:func:`molsystem.vsepr.check_contacts`, which also
     catches ligands of a hypervalent centre on top of each other). Without RDKit
     nothing is checked.
@@ -1335,9 +1336,12 @@ def check_structure(symbols, coordinates, species, charge=None, multiplicity=Non
             f"({Chem.GetFormalCharge(reference)})"
         )
     if multiplicity is not None:
+        # Only the parity is fixed by the SMILES: radical electrons may pair (a
+        # singlet carbene or silylene, BH, singlet O2) or not. Which spin state is
+        # the ground state is another check (store_tools.ground_state_multiplicity)
         radicals = sum(a.GetNumRadicalElectrons() for a in reference.GetAtoms())
         unpaired = int(multiplicity) - 1
-        if unpaired < radicals or (unpaired - radicals) % 2:
+        if unpaired < 0 or (unpaired - radicals) % 2:
             return (
                 f"the multiplicity {multiplicity} does not fit {species} "
                 f"({radicals} radical electrons)"
@@ -1357,16 +1361,54 @@ def check_structure(symbols, coordinates, species, charge=None, multiplicity=Non
             f"its bonds, perceived from the coordinates, are not those of {species} "
             "(it may have rearranged while it was optimized)"
         )
+    bonds = [(b.GetBeginAtomIdx(), b.GetEndAtomIdx()) for b in mol.GetBonds()]
+    return _contacts(symbols, coordinates, bonds)
+
+
+#: The least distance (Å) between two fluorines on the same atom. Real ones are
+#: 2.12 Å or more apart (CF4 2.16, NF3 2.13, CF2= 2.17, PF6- 2.27); molsystem's
+#: 2.2 Å for fluorines applies to those that do not share an atom.
+GEMINAL_F_F = 2.0
+
+
+def _contacts(symbols, coordinates, bonds):
+    """Atoms too close together, as molsystem.vsepr.check_contacts judges them
+    (its limits for atoms more than two bonds apart, and for fluorines), except
+    that two fluorines on the same atom need only ``GEMINAL_F_F``. Returns why,
+    or None."""
     try:
-        from molsystem.vsepr import check_contacts
+        from molsystem.vsepr import MIN_F_F, MIN_HEAVY, MIN_WITH_H
     except ImportError:  # pragma: no cover - an older molsystem
+        MIN_F_F, MIN_HEAVY, MIN_WITH_H = 2.2, 1.8, 1.2
+    import numpy as np
+
+    n = len(symbols)
+    neighbors = [set() for _ in range(n)]
+    for i, j in bonds:
+        neighbors[i].add(j)
+        neighbors[j].add(i)
+    xyz = np.asarray(coordinates, dtype=float)
+    problems = []
+    for i in range(n):
+        for j in range(i + 1, n):
+            if j in neighbors[i]:
+                continue
+            d = float(np.linalg.norm(xyz[i] - xyz[j]))
+            shared = bool(neighbors[i] & neighbors[j])
+            if symbols[i] == "F" and symbols[j] == "F":
+                limit = GEMINAL_F_F if shared else MIN_F_F
+            elif shared:
+                continue  # 1-3 pairs are set by the bond angle
+            else:
+                limit = MIN_WITH_H if "H" in (symbols[i], symbols[j]) else MIN_HEAVY
+            if d < limit:
+                problems.append((i, j, d, limit))
+    if not problems:
         return None
-    bonds = [(b.GetBeginAtomIdx(), b.GetEndAtomIdx(), 1) for b in mol.GetBonds()]
-    try:
-        check_contacts(symbols, coordinates, bonds)
-    except RuntimeError as e:
-        return str(e).rstrip(".")
-    return None
+    return "atoms too close together: " + ", ".join(
+        f"{symbols[i]}{i + 1}-{symbols[j]}{j + 1} {d:.2f} Å (< {limit})"
+        for i, j, d, limit in problems[:5]
+    )
 
 
 def conformer_rmsd(symbols_a, coordinates_a, symbols_b, coordinates_b):

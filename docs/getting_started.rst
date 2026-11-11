@@ -311,7 +311,25 @@ lacks, or has with other values, to a contribution for the next official version
 nothing about the host or user is added beyond the label. ``official build`` (for
 maintainers) stops at the first contributed value that differs from one already
 there, so that it is resolved with ``supersede`` and a reason; it writes the file's
-SHA-256 beside it. ``--official FILE`` names an official store other than the
+SHA-256 beside it.
+
+``official build`` also keeps only the rows reachable at the levels given with
+``--frequency-fingerprint`` and ``--energy-fingerprint`` (repeat each for several),
+and checks every species state before writing anything:
+
+* no geometry with an imaginary mode beyond 20i (a saddle point);
+* the structure guard (bonds perceived again, charge, the parity of the spin, no
+  atoms too close together);
+* the ground-state spin, where it is known: singlet for the silylenes,
+  dihalocarbenes and BH of ``cbh.SINGLET_GROUND_STATES``, whose SMILES would make
+  them triplets, and from ATcT when it lists a species in labelled spin states
+  (CH2 and NH are triplets, SiH2 a singlet).
+
+A species state that fails stops the build, unless it is excluded with a reason in
+the ``--exclude`` file (columns species, charge, multiplicity, reason). Ions and
+open-shell species are checked like the rest. The build writes
+``<file>.report.json`` beside the file: the sources, the levels, the rows kept and
+left out, each exclusion with its reason, and the SHA-256. ``--official FILE`` names an official store other than the
 default; ``lookup`` and ``geometries`` read both.
 
 Geometries and energies at different levels

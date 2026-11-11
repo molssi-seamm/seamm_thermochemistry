@@ -2,6 +2,23 @@
 History
 =======
 
+2026.11.11.5 -- Checks for official stores; the structure guard's false refusals
+    * ``official build`` checks every species state before writing anything: no
+      saddle points, the structure guard, and the ground-state spin where it is known
+      (the singlet silylenes, dihalocarbenes and BH of ``cbh.SINGLET_GROUND_STATES``,
+      and ATcT's labelled spin states). A failing state stops the build unless excluded
+      with a reason (``--exclude``). ``--frequency-fingerprint`` and
+      ``--energy-fingerprint`` keep only the rows reachable at those levels. A report
+      (``<file>.report.json``) records the sources, levels, rows, exclusions and
+      SHA-256.
+    * Bugfix: the structure guard of 2026.11.11.1 refused two or more fluorines on
+      one atom (CF2, CF3 and NF3 groups, so every fluorinated carbonate): it held them
+      to the 2.2 Å meant for fluorines on different atoms, but such fluorines are
+      2.12-2.17 Å apart. They now need only 2.0 Å.
+    * Bugfix: the structure guard refused the singlet ground states of species
+      whose SMILES has two radical electrons on one atom (BH, SiCl2, CF2, ...): it
+      now checks only that the spin's parity fits.
+
 2026.11.11.4 -- CBH: hypervalent and charge-separated groups kept whole
     * A hypervalent centre (S, Se, Te, P, As, Cl, Br, I with more bonds than its
       normal valence: sulfonyl, sulfite, phosphoryl, SF5-R, ClF3, ...) is kept
