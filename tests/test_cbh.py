@@ -364,3 +364,57 @@ def test_hypervalent_halogens_parse():
 def test_ground_state_multiplicity(smiles, multiplicity):
     """Silylenes, dihalocarbenes and BH are singlets; CH2 and NH are triplets."""
     assert cbh.ground_state_multiplicity(smiles) == multiplicity
+
+
+def test_aryl_sulfone_keeps_the_ring_apart():
+    """A hypervalent centre's ring neighbour stays with its ring, and is capped
+    like a methyl in the centre's fragments: methyl phenyl sulfone gives
+    dimethyl sulfone + benzene, not one trivial group."""
+    reaction, terms = rung_terms("CS(=O)(=O)c1ccccc1", 0)
+    assert reaction.balanced, reaction.balance_errors
+    assert terms == {
+        canonical_smiles(s)
+        for s in ("CS(=O)(=O)c1ccccc1", "C", "c1ccccc1", "CS(C)(=O)=O")
+    }
+    # From CBH-1 up the phantom atoms cancel: diphenyl sulfone is an exchange
+    reaction, terms = rung_terms("O=S(=O)(c1ccccc1)c1ccccc1", 1)
+    assert reaction.balanced, reaction.balance_errors
+    assert reaction.coefficients[canonical_smiles("CS(=O)(=O)c1ccccc1")] == 2
+    reaction, _ = rung_terms("CCS(=O)(=O)c1ccccc1", 1)
+    assert reaction.balanced and not reaction.trivial
+
+
+@pytest.mark.parametrize(
+    "smiles", ["CS(=O)c1ccccc1", "NS(=O)(=O)c1ccccc1", "COS(=O)(=O)c1ccccc1"]
+)
+def test_aryl_sulfoxide_sulfonamide_sulfonate(smiles):
+    reaction, terms = rung_terms(smiles, 0)
+    assert reaction.balanced, reaction.balance_errors
+    assert not reaction.trivial
+    assert canonical_smiles("c1ccccc1") in terms
+
+
+def test_charge_separated_perchloryl_is_whole():
+    """FClO3 written with [Cl+3] is one group, not [O-][ClH+3]([O-])[O-] + HF."""
+    reactions = cbh.cbh_reactions("[O-][Cl+3]([O-])([O-])F", rungs=[0, 1])
+    assert all(r.trivial for r in reactions.values())
+
+
+@pytest.mark.parametrize(
+    "smiles, multiplicity",
+    [
+        ("F[CH]", 1),
+        ("Cl[CH]", 1),
+        ("[AlH]", 1),
+        ("F[B]", 1),
+        ("Cl[B]", 1),
+        ("[GeH2]", 1),
+        ("O=O", 3),
+        ("S=S", 3),
+        ("O=S", 3),
+        ("O=C=C=O", 3),
+        ("C1=C=C=1", 3),
+    ],
+)
+def test_more_ground_states(smiles, multiplicity):
+    assert cbh.ground_state_multiplicity(smiles) == multiplicity

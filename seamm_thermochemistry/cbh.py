@@ -61,13 +61,16 @@ __all__ = [
     "DEFAULT_PROTECT",
     "PROTECT_SMARTS",
     "SINGLET_GROUND_STATES",
+    "TRIPLET_GROUND_STATES",
     "ground_state_multiplicity",
 ]
 
 logger = logging.getLogger(__name__)
 
 # SMARTS for groups whose hydrogen-capped fragments are meaningless: they are
-# contracted into one node. Overlapping matches are merged.
+# contracted into one node. Overlapping matches are merged. Hypervalent centres
+# (sulfoxide, sulfonyl, phosphoryl, perchlorate, SF5, ...) are found by valence,
+# not by SMARTS: see _protected_groups.
 PROTECT_SMARTS = {
     "nitro": "[N+](=O)[O-]",
     "nitro (hypervalent)": "N(=O)=O",
@@ -75,14 +78,10 @@ PROTECT_SMARTS = {
     "azide": "N=[N+]=[N-]",
     "diazo": "[C,N]=[N+]=[N-]",
     "diazonium": "[N+]#N",
-    "sulfoxide": "[#16X3](=O)([#6,#7])[#6,#7]",
-    "sulfonyl": "[#16X4](=O)(=O)",
     "sulfinyl (charge separated)": "[S+]([O-])",
-    "phosphoryl": "[#15X4](=O)",
     "phosphonium": "[P+]",
     "PF6-": "[P-](F)(F)(F)(F)(F)F",
     "BF4-": "[B-](F)(F)(F)F",
-    "perchlorate": "[Cl](=O)(=O)(=O)[O-]",
 }
 
 DEFAULT_PROTECT = ("aromatic", "small rings", "groups")
@@ -192,7 +191,7 @@ class _Graph:
         Chem = _rdkit()
         self.mol = mol
         heavy = [a.GetIdx() for a in mol.GetAtoms() if a.GetAtomicNum() > 1]
-        groups, self.protected = _protected_groups(mol, protect)
+        groups, self.protected, phantom_atoms = _protected_groups(mol, protect)
 
         # Each heavy atom belongs to at most one group
         owner = {}
@@ -207,6 +206,12 @@ class _Graph:
                 owner[idx] = len(nodes) - 1
         self.nodes = nodes
         self.owner = owner
+        # (centre node, neighbour atom, neighbour node) of each phantom
+        self.phantoms = [
+            (owner[c], x, owner[x])
+            for c, x in phantom_atoms
+            if c in owner and x in owner and owner[c] != owner[x]
+        ]
 
         self.adjacency = {i: {} for i in range(len(nodes))}
         self.parallel = False
@@ -258,12 +263,31 @@ class _Graph:
         return atoms
 
 
+def _hypervalent_centre(atom):
+    """A hypervalent centre: S, Se, Te, P, As, Cl, Br or I with more bonds than
+    its normal valence, or a halogen cation bonded to two or more heavy atoms
+    (the [Cl+3] of perchloryl or chlorate written with charge separation)."""
+    if is_hypervalent(atom):
+        return True
+    heavy = sum(1 for nb in atom.GetNeighbors() if nb.GetAtomicNum() > 1)
+    return (
+        atom.GetAtomicNum() in (17, 35, 53) and atom.GetFormalCharge() > 0 and heavy > 1
+    )
+
+
 def _protected_groups(mol, protect):
-    """The atom groups to contract, merged where they overlap, and their
-    descriptions."""
+    """The atom groups to contract, merged where they overlap, their
+    descriptions, and the phantom neighbours of hypervalent centres.
+
+    A hypervalent centre is kept with its heavy neighbours, except a neighbour
+    in a protected ring, which would fuse the group with the ring (every aryl
+    sulfone would become one trivial group). Such a neighbour is a *phantom*
+    (centre, neighbour) pair: it is added, capped like a methyl, to every
+    fragment that holds the centre but not the neighbour's ring (see
+    `cbh_reactions`)."""
     Chem = _rdkit()
     if protect is None or protect == "none" or protect == ():
-        return [], []
+        return [], [], []
     if isinstance(protect, str):
         protect = (protect,)
 
@@ -295,16 +319,27 @@ def _protected_groups(mol, protect):
             if len(ring) <= 4:
                 groups.append(set(ring))
                 labels.append(f"{len(ring)}-membered ring")
+    phantoms = []
     if "groups" in options:
         # A hypervalent centre (S, Se, P, Cl, ... with more bonds than its
-        # normal valence: sulfonyl, phosphoryl, SF4, SF5-R, ClF3, ...) with all of
-        # its heavy neighbours, so that CBH-0 gives a real molecule (dimethyl
-        # sulfone, phosphoric acid) rather than a hydride such as H2SO2 or SH6
+        # normal valence: sulfonyl, phosphoryl, SF4, SF5-R, ClF3, ...) with its
+        # heavy neighbours, so that CBH-0 gives a real molecule (dimethyl
+        # sulfone, phosphoric acid) rather than a hydride such as H2SO2 or SH6.
+        # A neighbour in a protected ring stays with its ring: a phantom.
+        in_rings = set()
+        for atoms in groups:
+            in_rings |= atoms
         for atom in mol.GetAtoms():
-            if is_hypervalent(atom):
-                atoms = {atom.GetIdx()} | {
-                    nb.GetIdx() for nb in atom.GetNeighbors() if nb.GetAtomicNum() > 1
-                }
+            if _hypervalent_centre(atom):
+                c = atom.GetIdx()
+                atoms = {c}
+                for nb in atom.GetNeighbors():
+                    if nb.GetAtomicNum() <= 1:
+                        continue
+                    if nb.GetIdx() in in_rings and c not in in_rings:
+                        phantoms.append((c, nb.GetIdx()))
+                    else:
+                        atoms.add(nb.GetIdx())
                 groups.append(atoms)
                 labels.append(f"hypervalent {atom.GetSymbol()}")
         # Two bonded atoms with opposite formal charges (CO as [C-]#[O+], the
@@ -355,7 +390,7 @@ def _protected_groups(mol, protect):
         counts = Counter(names)
         text = ", ".join(f"{n} x {k}" if n > 1 else k for k, n in counts.items())
         descriptions.append(f"{text} ({len(atoms)} atoms)")
-    return merged, descriptions
+    return merged, descriptions, phantoms
 
 
 # ---------------------------------------------------------------------------
@@ -480,20 +515,42 @@ def _composition(smiles):
 
 
 #: Species whose SMILES puts two unpaired electrons on one atom but whose ground
-#: state is a singlet: the silylenes, the dihalocarbenes and BH. Methylene (CH2)
-#: and imidogen (NH) are ground-state triplets and are not listed.
-SINGLET_GROUND_STATES = ("[SiH2]", "Cl[Si]Cl", "F[Si]F", "F[C]F", "Cl[C]Cl", "[BH]")
+#: state is a singlet: the silylenes and germylene, the dihalocarbenes and
+#: halocarbenes, and BH, AlH, BF and BCl. Methylene (CH2) and imidogen (NH) are
+#: ground-state triplets and are not listed.
+SINGLET_GROUND_STATES = (
+    "[SiH2]",
+    "Cl[Si]Cl",
+    "F[Si]F",
+    "[GeH2]",
+    "F[C]F",
+    "Cl[C]Cl",
+    "F[CH]",
+    "Cl[CH]",
+    "[BH]",
+    "[AlH]",
+    "F[B]",
+    "Cl[B]",
+)
+#: Species that a SMILES writes closed-shell but whose ground state is a triplet:
+#: O2 and its valence isoelectronic S2 and SO, ethylenedione (OCCO, whose singlet
+#: is a saddle point) and cyclic C3 (whose singlet opens to linear C3; ATcT's
+#: plain entry is the triplet).
+TRIPLET_GROUND_STATES = ("O=O", "S=S", "O=S", "O=C=C=O", "C1=C=C=1")
 
 
 def ground_state_multiplicity(smiles):
     """The spin multiplicity of a species' ground state: 1 for those in
-    `SINGLET_GROUND_STATES`, otherwise its unpaired electrons + 1, as the SMILES
-    implies (a radical centre ``[CH3]`` is a doublet, ``[CH2]`` a triplet)."""
+    `SINGLET_GROUND_STATES`, 3 for those in `TRIPLET_GROUND_STATES`, otherwise
+    its unpaired electrons + 1, as the SMILES implies (a radical centre
+    ``[CH3]`` is a doublet, ``[CH2]`` a triplet)."""
     _, _, radicals, _ = _composition(smiles)
     key = canonical_smiles(smiles, stereo=False)
-    singlets = {canonical_smiles(x, stereo=False) for x in SINGLET_GROUND_STATES}
-    if key is not None and key in singlets:
-        return 1
+    if key is not None:
+        if key in {canonical_smiles(x, stereo=False) for x in SINGLET_GROUND_STATES}:
+            return 1
+        if key in {canonical_smiles(x, stereo=False) for x in TRIPLET_GROUND_STATES}:
+            return 3
     return radicals + 1
 
 
@@ -593,9 +650,17 @@ def cbh_reactions(smiles, rungs=(0, 1, 2, 3, 4), protect="default"):
         key = frozenset(node_set)
         if key not in cache:
             atoms = graph.atoms(key)
+            # A hypervalent centre keeps its ring neighbours, capped like a
+            # methyl, when the ring is not in the fragment
+            atoms |= {x for c, x, xn in graph.phantoms if c in key and xn not in key}
             generated = _fragment_smiles(mol_h, atoms)
             cache[key] = (canonical_smiles(generated), generated)
         return cache[key]
+
+    def atom_fragment(idx):
+        """The species of one atom, every bond to it capped (CH4 for a carbon)."""
+        generated = _fragment_smiles(mol_h, {idx})
+        return canonical_smiles(generated), generated
 
     parent_elements, parent_charge, parent_radicals, parent_bonds = _composition(smiles)
 
@@ -628,6 +693,11 @@ def cbh_reactions(smiles, rungs=(0, 1, 2, 3, 4), protect="default"):
         if rung == 0:
             for i in range(len(graph.nodes)):
                 terms[fragment({i})] += 1
+            # Each phantom neighbour appears twice (in its ring and, capped, by
+            # the centre): take its own species away once. From CBH-1 up the
+            # phantoms cancel in the overlap sums.
+            for _, x, _ in graph.phantoms:
+                terms[atom_fragment(x)] -= 1
         elif rung % 2 == 1:
             k = (rung - 1) // 2
             for i, j in graph.edges:

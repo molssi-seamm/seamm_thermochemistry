@@ -2,6 +2,18 @@
 History
 =======
 
+2026.11.11.7 -- CBH: aryl neighbours of hypervalent centres; more ground states
+    * A hypervalent centre's neighbour in a protected ring stays with its ring and
+      is capped like a methyl in the centre's fragments, so aryl sulfones,
+      sulfoxides, sulfonamides, sulfonates and phosphonates keep CBH reactions
+      (methyl phenyl sulfone: methane + PhSO2Me -> benzene + dimethyl sulfone)
+      rather than becoming one trivial group with their ring.
+    * Halogen cations bonded to two or more heavy atoms (the [Cl+3] of FClO3 written
+      with charge separation) are hypervalent centres too.
+    * The ground-state table gains the singlets HCF, HCCl, GeH2, AlH, BF and BCl,
+      and the triplets that a SMILES writes closed-shell: O2, S2, SO, OCCO and
+      cyclic C3.
+
 2026.11.11.6 -- Quarantined rows left alone and left out
     * Rows quarantined by hand in a fragment store -- unverified, with the model
       chemistry ``UNUSABLE: <reason>`` -- are never found by a lookup. Now ``migrate``
