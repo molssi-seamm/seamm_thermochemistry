@@ -92,7 +92,19 @@ safe for parallel jobs. Change from §5: ``update`` does not add a newer ATcT ve
 by itself (ATcT now serves 1.228; machines have 1.220, and saved ladders are tied
 to their version), it stays a deliberate ``seamm-thermochemistry-atct download``.
 The step's part (run-time download, covariances "fetch if needed", the uncertainty
-method column) follows design's thermochemistry_step#24.
+method column) is thermochemistry-step 2026.11.11.4.
+
+**Quarantine column (agreed 2026-11-11 with science and design, after V1–V3):**
+schema 5 replaces the ``UNUSABLE: <reason>`` model chemistry with a ``quarantine``
+column (a code -- saddle, connectivity, dissociated, not-a-minimum, wrong-state,
+scf, other -- with a detail, date, who and the check), cascading from a geometry to
+its energies and records, ``quarantine``/``release`` commands that undo exactly one
+action, a visible line in the step when a lookup skips a quarantined row, and a
+migration restoring the real model chemistries from design's quarantine log. Older
+code reads a newer schema without complaint, so the ``UNUSABLE:`` marker is written
+as well until no venv older than schema 5 reads the store, and first, on its own,
+**2026.11.11.12** refuses to write a store with a newer schema (and warns once when
+reading one).
 
 Numbering: these phases are the fragment store's P5 (P5a-P5e). The 11-08
 presets plan also had a P5 (long-bond and %[(T)] flags) and a P6 (pilot). Those
