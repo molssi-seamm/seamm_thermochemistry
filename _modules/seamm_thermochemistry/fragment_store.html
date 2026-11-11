@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.fragment_store &#8212; SEAMM thermochemistry Plug-in 2026.11.11 documentation</title>
+    <title>seamm_thermochemistry.fragment_store &#8212; SEAMM thermochemistry Plug-in 2026.11.11.1 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=83e1bca7"></script>
+    <script src="../../_static/documentation_options.js?v=0273fb53"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.11" />
+  <meta name="docsearch:version" content="2026.11.11.1" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -494,6 +494,9 @@
     <span class="s2">"PairingError"</span><span class="p">,</span>
     <span class="s2">"fragment_store_path"</span><span class="p">,</span>
     <span class="s2">"harvest_job"</span><span class="p">,</span>
+    <span class="s2">"harvest_configuration"</span><span class="p">,</span>
+    <span class="s2">"check_structure"</span><span class="p">,</span>
+    <span class="s2">"store_is_writable"</span><span class="p">,</span>
     <span class="s2">"load_species_map"</span><span class="p">,</span>
     <span class="s2">"split_model_chemistry"</span><span class="p">,</span>
 <span class="p">]</span>
@@ -1164,6 +1167,7 @@
     <span class="n">force</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="n">species_map</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">tables</span><span class="o">=</span><span class="s2">"all"</span><span class="p">,</span>
+    <span class="n">structure_check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Promote the species energies of one job into the store.</span>
 
@@ -1212,6 +1216,10 @@
 <span class="sd">    An energy whose ``calculation`` record names a different geometry is</span>
 <span class="sd">    refused (the pairing guard) and reported in "skipped".</span>
 
+<span class="sd">    With `structure_check` (the default) a structure whose bonds, perceived</span>
+<span class="sd">    again from its coordinates, are not those of its species, or that has atoms</span>
+<span class="sd">    too close together, is refused (see :func:`check_structure`).</span>
+
 <span class="sd">    Returns {"inserted": n, "duplicate": n, "logged": n, "superseded": n,</span>
 <span class="sd">    "skipped": [reasons], "geometry": {outcome: n}, "energy": {outcome: n}},</span>
 <span class="sd">    the first four counting the fragment rows.</span>
@@ -1237,42 +1245,9 @@
         <span class="k">pass</span>
     <span class="n">job</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">job_id</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">job_directory</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">job_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">job_directory</span><span class="p">)</span>
 
-    <span class="n">counts</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">"inserted"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-        <span class="s2">"duplicate"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-        <span class="s2">"logged"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-        <span class="s2">"superseded"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-        <span class="s2">"skipped"</span><span class="p">:</span> <span class="p">[],</span>
-        <span class="s2">"geometry"</span><span class="p">:</span> <span class="p">{},</span>
-        <span class="s2">"energy"</span><span class="p">:</span> <span class="p">{},</span>
-    <span class="p">}</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">tally</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">outcome</span><span class="p">):</span>
-        <span class="n">counts</span><span class="p">[</span><span class="n">table</span><span class="p">][</span><span class="n">outcome</span><span class="p">]</span> <span class="o">=</span> <span class="n">counts</span><span class="p">[</span><span class="n">table</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">outcome</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
-
+    <span class="n">counts</span> <span class="o">=</span> <span class="n">new_counts</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">tables</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"all"</span><span class="p">,</span> <span class="s2">"geometry"</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"tables must be 'all' or 'geometry', not '</span><span class="si">{</span><span class="n">tables</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">thermal_from_map</span><span class="p">(</span><span class="n">mapped</span><span class="p">,</span> <span class="n">E</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""(ZPE, H, symmetry number) from the map's row, or None; raises</span>
-<span class="sd">        ValueError if the map's energy is not the job's."""</span>
-        <span class="k">if</span> <span class="n">mapped</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">zpe</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">mapped</span><span class="p">[</span><span class="s2">"ZPE (kJ/mol)"</span><span class="p">])</span>
-            <span class="n">h</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">mapped</span><span class="p">[</span><span class="s2">"H298 (kJ/mol)"</span><span class="p">])</span>
-            <span class="n">e</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">mapped</span><span class="p">[</span><span class="s2">"E (kJ/mol)"</span><span class="p">])</span>
-        <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
-            <span class="k">return</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">e</span> <span class="o">-</span> <span class="n">E</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">DUPLICATE_TOLERANCE</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">"the species map's E (</span><span class="si">{</span><span class="n">e</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> kJ/mol) is not the job's (</span><span class="si">{</span><span class="n">E</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">)"</span>
-            <span class="p">)</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">symmetry</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">mapped</span><span class="p">[</span><span class="s2">"symmetry number"</span><span class="p">])</span>
-        <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
-            <span class="n">symmetry</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">return</span> <span class="n">zpe</span><span class="p">,</span> <span class="n">E</span> <span class="o">+</span> <span class="p">(</span><span class="n">h</span> <span class="o">-</span> <span class="n">e</span><span class="p">),</span> <span class="n">symmetry</span>
 
     <span class="n">db</span> <span class="o">=</span> <span class="n">SystemDB</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="sa">f</span><span class="s2">"file:</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">?mode=ro"</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
@@ -1319,180 +1294,555 @@
                 <span class="k">if</span> <span class="n">mapped</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"multiplicity"</span><span class="p">):</span>
                     <span class="n">multiplicity</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">mapped</span><span class="p">[</span><span class="s2">"multiplicity"</span><span class="p">])</span>
                 <span class="n">conformer</span> <span class="o">=</span> <span class="n">mapped</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"conformer label"</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span>
-            <span class="n">properties</span> <span class="o">=</span> <span class="n">configuration</span><span class="o">.</span><span class="n">properties</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">energies</span> <span class="o">=</span> <span class="n">properties</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pattern</span><span class="o">=</span><span class="n">energy</span><span class="p">,</span> <span class="n">match</span><span class="o">=</span><span class="s2">"glob"</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
-                <span class="n">counts</span><span class="p">[</span><span class="s2">"skipped"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">species</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-                <span class="k">continue</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">energies</span><span class="p">:</span>
-                <span class="n">counts</span><span class="p">[</span><span class="s2">"skipped"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">species</span><span class="si">}</span><span class="s2">: no property matching '</span><span class="si">{</span><span class="n">energy</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
-                <span class="k">continue</span>
-            <span class="n">symbols</span> <span class="o">=</span> <span class="n">configuration</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">symbols</span>
-            <span class="n">coordinates</span> <span class="o">=</span> <span class="n">configuration</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">get_coordinates</span><span class="p">(</span><span class="n">fractionals</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-            <span class="n">ghash</span> <span class="o">=</span> <span class="n">geometry_hash</span><span class="p">(</span><span class="n">symbols</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">)</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">atomic_numbers</span> <span class="o">=</span> <span class="n">configuration</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">atomic_numbers</span>
-            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
-                <span class="n">atomic_numbers</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="n">fingerprint_hash</span> <span class="o">=</span> <span class="n">hash_geometry</span><span class="p">(</span><span class="n">symbols</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">atomic_numbers</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">energies</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-                    <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="s2">"value"</span><span class="p">]</span>
-                <span class="n">fields</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"#"</span><span class="p">)</span>
-                <span class="n">model</span> <span class="o">=</span> <span class="n">fields</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span> <span class="k">else</span> <span class="kc">None</span>
-                <span class="n">suffix</span> <span class="o">=</span> <span class="s2">"#"</span> <span class="o">+</span> <span class="s2">"#"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">fields</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="s2">""</span>
-                <span class="n">E</span> <span class="o">=</span> <span class="n">_to_kj</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">properties</span><span class="o">.</span><span class="n">units</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
-                <span class="n">zpe_name</span> <span class="o">=</span> <span class="n">zpe</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"#"</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">suffix</span> <span class="k">if</span> <span class="n">suffix</span> <span class="k">else</span> <span class="n">zpe</span>
-                <span class="n">h_name</span> <span class="o">=</span> <span class="n">enthalpy</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"#"</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">suffix</span> <span class="k">if</span> <span class="n">suffix</span> <span class="k">else</span> <span class="n">enthalpy</span>
-                <span class="n">ZPE</span> <span class="o">=</span> <span class="n">_property</span><span class="p">(</span><span class="n">properties</span><span class="p">,</span> <span class="n">zpe_name</span><span class="p">)</span>
-                <span class="n">H</span> <span class="o">=</span> <span class="n">_property</span><span class="p">(</span><span class="n">properties</span><span class="p">,</span> <span class="n">h_name</span><span class="p">)</span>
-                <span class="n">fp</span> <span class="o">=</span> <span class="n">_text_property</span><span class="p">(</span>
-                    <span class="n">properties</span><span class="p">,</span> <span class="n">fingerprint</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"#"</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">suffix</span> <span class="k">if</span> <span class="n">suffix</span> <span class="k">else</span> <span class="kc">None</span>
-                <span class="p">)</span>
-                <span class="n">mapped_symmetry</span> <span class="o">=</span> <span class="kc">None</span>
-                <span class="n">from_map</span> <span class="o">=</span> <span class="kc">False</span>
-                <span class="k">if</span> <span class="n">ZPE</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">H</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="k">try</span><span class="p">:</span>
-                        <span class="n">found</span> <span class="o">=</span> <span class="n">thermal_from_map</span><span class="p">(</span><span class="n">mapped</span><span class="p">,</span> <span class="n">E</span><span class="p">)</span>
-                    <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                        <span class="n">counts</span><span class="p">[</span><span class="s2">"skipped"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">system</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-                        <span class="n">found</span> <span class="o">=</span> <span class="kc">None</span>
-                    <span class="k">if</span> <span class="n">found</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                        <span class="n">ZPE</span> <span class="o">=</span> <span class="p">(</span><span class="n">zpe_name</span><span class="p">,</span> <span class="n">found</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-                        <span class="n">H</span> <span class="o">=</span> <span class="p">(</span><span class="n">h_name</span><span class="p">,</span> <span class="n">found</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-                        <span class="n">mapped_symmetry</span> <span class="o">=</span> <span class="n">found</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
-                        <span class="n">from_map</span> <span class="o">=</span> <span class="kc">True</span>
-                <span class="n">ffp</span> <span class="o">=</span> <span class="n">_text_property</span><span class="p">(</span>
-                    <span class="n">properties</span><span class="p">,</span>
-                    <span class="p">(</span><span class="n">frequency_fingerprint</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"#"</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">suffix</span> <span class="k">if</span> <span class="n">suffix</span> <span class="k">else</span> <span class="kc">None</span><span class="p">),</span>
-                <span class="p">)</span>
+            <span class="n">harvest_configuration</span><span class="p">(</span>
+                <span class="n">store</span><span class="p">,</span>
+                <span class="n">configuration</span><span class="p">,</span>
+                <span class="n">species</span><span class="p">,</span>
+                <span class="n">charge</span><span class="o">=</span><span class="n">charge</span><span class="p">,</span>
+                <span class="n">multiplicity</span><span class="o">=</span><span class="n">multiplicity</span><span class="p">,</span>
+                <span class="n">conformer</span><span class="o">=</span><span class="n">conformer</span><span class="p">,</span>
+                <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">,</span>
+                <span class="n">mapped</span><span class="o">=</span><span class="n">mapped</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="n">system</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                <span class="n">energy</span><span class="o">=</span><span class="n">energy</span><span class="p">,</span>
+                <span class="n">zpe</span><span class="o">=</span><span class="n">zpe</span><span class="p">,</span>
+                <span class="n">enthalpy</span><span class="o">=</span><span class="n">enthalpy</span><span class="p">,</span>
+                <span class="n">fingerprint</span><span class="o">=</span><span class="n">fingerprint</span><span class="p">,</span>
+                <span class="n">frequency_fingerprint</span><span class="o">=</span><span class="n">frequency_fingerprint</span><span class="p">,</span>
+                <span class="n">supersede</span><span class="o">=</span><span class="n">supersede</span><span class="p">,</span>
+                <span class="n">force</span><span class="o">=</span><span class="n">force</span><span class="p">,</span>
+                <span class="n">tables</span><span class="o">=</span><span class="n">tables</span><span class="p">,</span>
+                <span class="n">structure_check</span><span class="o">=</span><span class="n">structure_check</span><span class="p">,</span>
+                <span class="n">counts</span><span class="o">=</span><span class="n">counts</span><span class="p">,</span>
+            <span class="p">)</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">counts</span></div>
 
-                <span class="c1"># The calculation record: program, version, geometry</span>
-                <span class="k">def</span><span class="w"> </span><span class="nf">extra</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">"json"</span><span class="p">):</span>
-                    <span class="k">if</span> <span class="ow">not</span> <span class="n">suffix</span><span class="p">:</span>
-                        <span class="k">return</span> <span class="kc">None</span>
-                    <span class="n">full</span> <span class="o">=</span> <span class="n">base</span> <span class="o">+</span> <span class="n">suffix</span>
-                    <span class="k">try</span><span class="p">:</span>
-                        <span class="k">if</span> <span class="ow">not</span> <span class="n">properties</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">full</span><span class="p">):</span>
-                            <span class="k">return</span> <span class="kc">None</span>
-                        <span class="n">value</span> <span class="o">=</span> <span class="n">properties</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">full</span><span class="p">)</span>
-                    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-                        <span class="k">return</span> <span class="kc">None</span>
-                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="n">full</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
-                        <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="n">full</span><span class="p">]</span>  <span class="c1"># {name: {"value": ...}}</span>
-                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">"value"</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
-                        <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="s2">"value"</span><span class="p">]</span>
-                    <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">"json"</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-                        <span class="k">try</span><span class="p">:</span>
-                            <span class="n">value</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-                        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-                            <span class="k">return</span> <span class="kc">None</span>
-                    <span class="k">return</span> <span class="n">value</span>
 
-                <span class="n">calculation</span> <span class="o">=</span> <span class="n">extra</span><span class="p">(</span><span class="s2">"calculation"</span><span class="p">)</span>
-                <span class="n">calc_geometry</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="n">calculation</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"geometry fingerprint"</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">calculation</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
-                    <span class="k">else</span> <span class="kc">None</span>
-                <span class="p">)</span>
-                <span class="n">program</span> <span class="o">=</span> <span class="n">version</span> <span class="o">=</span> <span class="kc">None</span>
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">calculation</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-                    <span class="n">program</span> <span class="o">=</span> <span class="n">calculation</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"program"</span><span class="p">)</span>
-                    <span class="n">version</span> <span class="o">=</span> <span class="n">calculation</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"version"</span><span class="p">)</span>
-                <span class="n">record</span> <span class="o">=</span> <span class="n">FragmentRecord</span><span class="o">.</span><span class="n">make</span><span class="p">(</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">new_counts</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">"""The tallies of a harvest (see :func:`harvest_job`)."""</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">"inserted"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s2">"duplicate"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s2">"logged"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s2">"superseded"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s2">"skipped"</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">"geometry"</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s2">"energy"</span><span class="p">:</span> <span class="p">{},</span>
+    <span class="p">}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_thermal_from_map</span><span class="p">(</span><span class="n">mapped</span><span class="p">,</span> <span class="n">E</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""(ZPE, H, symmetry number) from a species map's row, or None; raises</span>
+<span class="sd">    ValueError if the map's energy is not the job's."""</span>
+    <span class="k">if</span> <span class="n">mapped</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">zpe</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">mapped</span><span class="p">[</span><span class="s2">"ZPE (kJ/mol)"</span><span class="p">])</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">mapped</span><span class="p">[</span><span class="s2">"H298 (kJ/mol)"</span><span class="p">])</span>
+        <span class="n">e</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">mapped</span><span class="p">[</span><span class="s2">"E (kJ/mol)"</span><span class="p">])</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">e</span> <span class="o">-</span> <span class="n">E</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">DUPLICATE_TOLERANCE</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"the species map's E (</span><span class="si">{</span><span class="n">e</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> kJ/mol) is not the job's (</span><span class="si">{</span><span class="n">E</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">)"</span>
+        <span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">symmetry</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">mapped</span><span class="p">[</span><span class="s2">"symmetry number"</span><span class="p">])</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+        <span class="n">symmetry</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">zpe</span><span class="p">,</span> <span class="n">E</span> <span class="o">+</span> <span class="p">(</span><span class="n">h</span> <span class="o">-</span> <span class="n">e</span><span class="p">),</span> <span class="n">symmetry</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_imaginary_modes</span><span class="p">(</span><span class="n">properties</span><span class="p">,</span> <span class="n">pattern</span><span class="o">=</span><span class="s2">"frequencies#*#*"</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The largest imaginary mode (cm^-1, as a positive number) among the</span>
+<span class="sd">    frequencies stored on a configuration, or 0.0."""</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="n">properties</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pattern</span><span class="o">=</span><span class="n">pattern</span><span class="p">,</span> <span class="n">match</span><span class="o">=</span><span class="s2">"glob"</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+        <span class="k">return</span> <span class="mf">0.0</span>
+    <span class="n">worst</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="p">(</span><span class="n">values</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"value"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="k">continue</span>
+        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">value</span> <span class="ow">or</span> <span class="p">[]:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">worst</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">worst</span><span class="p">,</span> <span class="o">-</span><span class="nb">float</span><span class="p">(</span><span class="n">f</span><span class="p">))</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+                <span class="k">continue</span>
+    <span class="k">return</span> <span class="n">worst</span>
+
+
+<div class="viewcode-block" id="harvest_configuration">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.fragment_store.harvest_configuration">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">harvest_configuration</span><span class="p">(</span>
+    <span class="n">store</span><span class="p">,</span>
+    <span class="n">configuration</span><span class="p">,</span>
+    <span class="n">species</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">charge</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">multiplicity</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">conformer</span><span class="o">=</span><span class="s2">""</span><span class="p">,</span>
+    <span class="n">job</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">mapped</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">energy</span><span class="o">=</span><span class="s2">"total energy#*#*"</span><span class="p">,</span>
+    <span class="n">zpe</span><span class="o">=</span><span class="s2">"ZPE#*#*"</span><span class="p">,</span>
+    <span class="n">enthalpy</span><span class="o">=</span><span class="s2">"H(298.15 K)#*#*"</span><span class="p">,</span>
+    <span class="n">fingerprint</span><span class="o">=</span><span class="s2">"settings fingerprint#*#*"</span><span class="p">,</span>
+    <span class="n">frequency_fingerprint</span><span class="o">=</span><span class="s2">"frequency fingerprint#*#*"</span><span class="p">,</span>
+    <span class="n">supersede</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">force</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">tables</span><span class="o">=</span><span class="s2">"all"</span><span class="p">,</span>
+    <span class="n">structure_check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">write_back</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">counts</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Put one configuration's species into the store: what :func:`harvest_job`</span>
+<span class="sd">    does for each system of a job, and what the Thermochemistry step does for</span>
+<span class="sd">    each species it computes (write-back).</span>
+
+<span class="sd">    Every energy property matching `energy` gives a fragment row (unless</span>
+<span class="sd">    `tables` is "geometry") and an energy row on the configuration's geometry,</span>
+<span class="sd">    and, with the ZPE or enthalpy of the same level, a geometry row. See</span>
+<span class="sd">    :func:`harvest_job` for the properties read and the guards.</span>
+
+<span class="sd">    `write_back` adds the rules for results written by a running job:</span>
+
+<span class="sd">    * a geometry with an imaginary mode beyond ``IMAGINARY_TOLERANCE`` is</span>
+<span class="sd">      refused, with every energy on it (a harvest stores it, for provenance,</span>
+<span class="sd">      without returning it for reuse);</span>
+<span class="sd">    * a geometry lower in E + ZPE by more than 0.1 kJ/mol than every stored</span>
+<span class="sd">      conformer of the species at its level, and structurally distinct from</span>
+<span class="sd">      each (RMSD above ``CONFORMER_RMSD`` Å), is added as a new conformer</span>
+<span class="sd">      ``auto:&lt;geometry hash&gt;`` instead of being only logged; lookups use the</span>
+<span class="sd">      lowest.</span>
+
+<span class="sd">    Returns the tallies, `counts` updated in place when given.</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.geometry_store</span><span class="w"> </span><span class="kn">import</span> <span class="n">IMAGINARY_TOLERANCE</span>
+
+    <span class="k">if</span> <span class="n">counts</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">counts</span> <span class="o">=</span> <span class="n">new_counts</span><span class="p">()</span>
+    <span class="n">name_for</span> <span class="o">=</span> <span class="n">label</span> <span class="ow">or</span> <span class="n">species</span>
+    <span class="k">if</span> <span class="n">charge</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">charge</span> <span class="o">=</span> <span class="n">configuration</span><span class="o">.</span><span class="n">charge</span>
+    <span class="k">if</span> <span class="n">multiplicity</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">multiplicity</span> <span class="o">=</span> <span class="n">configuration</span><span class="o">.</span><span class="n">spin_multiplicity</span> <span class="ow">or</span> <span class="mi">1</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">tally</span><span class="p">(</span><span class="n">table</span><span class="p">,</span> <span class="n">outcome</span><span class="p">):</span>
+        <span class="n">counts</span><span class="p">[</span><span class="n">table</span><span class="p">][</span><span class="n">outcome</span><span class="p">]</span> <span class="o">=</span> <span class="n">counts</span><span class="p">[</span><span class="n">table</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">outcome</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+
+    <span class="n">properties</span> <span class="o">=</span> <span class="n">configuration</span><span class="o">.</span><span class="n">properties</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">energies</span> <span class="o">=</span> <span class="n">properties</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pattern</span><span class="o">=</span><span class="n">energy</span><span class="p">,</span> <span class="n">match</span><span class="o">=</span><span class="s2">"glob"</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+        <span class="n">counts</span><span class="p">[</span><span class="s2">"skipped"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">species</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">counts</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">energies</span><span class="p">:</span>
+        <span class="n">counts</span><span class="p">[</span><span class="s2">"skipped"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">species</span><span class="si">}</span><span class="s2">: no property matching '</span><span class="si">{</span><span class="n">energy</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">counts</span>
+    <span class="n">symbols</span> <span class="o">=</span> <span class="n">configuration</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">symbols</span>
+    <span class="n">coordinates</span> <span class="o">=</span> <span class="n">configuration</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">get_coordinates</span><span class="p">(</span><span class="n">fractionals</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">ghash</span> <span class="o">=</span> <span class="n">geometry_hash</span><span class="p">(</span><span class="n">symbols</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">atomic_numbers</span> <span class="o">=</span> <span class="n">configuration</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">atomic_numbers</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+        <span class="n">atomic_numbers</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">fingerprint_hash</span> <span class="o">=</span> <span class="n">hash_geometry</span><span class="p">(</span><span class="n">symbols</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">atomic_numbers</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">structure_check</span><span class="p">:</span>
+        <span class="n">problem</span> <span class="o">=</span> <span class="n">check_structure</span><span class="p">(</span><span class="n">symbols</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">charge</span><span class="p">,</span> <span class="n">multiplicity</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">problem</span><span class="p">:</span>
+            <span class="n">counts</span><span class="p">[</span><span class="s2">"skipped"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name_for</span><span class="si">}</span><span class="s2">: refused, </span><span class="si">{</span><span class="n">problem</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">counts</span>
+    <span class="k">if</span> <span class="n">write_back</span><span class="p">:</span>
+        <span class="n">worst</span> <span class="o">=</span> <span class="n">_imaginary_modes</span><span class="p">(</span><span class="n">properties</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">worst</span> <span class="o">&gt;</span> <span class="n">IMAGINARY_TOLERANCE</span><span class="p">:</span>
+            <span class="n">counts</span><span class="p">[</span><span class="s2">"skipped"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name_for</span><span class="si">}</span><span class="s2">: refused, an imaginary mode of </span><span class="si">{</span><span class="n">worst</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">i cm^-1"</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">counts</span>
+
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">energies</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="s2">"value"</span><span class="p">]</span>
+        <span class="n">fields</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"#"</span><span class="p">)</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">fields</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">suffix</span> <span class="o">=</span> <span class="s2">"#"</span> <span class="o">+</span> <span class="s2">"#"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">fields</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="s2">""</span>
+        <span class="n">E</span> <span class="o">=</span> <span class="n">_to_kj</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">properties</span><span class="o">.</span><span class="n">units</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+        <span class="n">zpe_name</span> <span class="o">=</span> <span class="n">zpe</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"#"</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">suffix</span> <span class="k">if</span> <span class="n">suffix</span> <span class="k">else</span> <span class="n">zpe</span>
+        <span class="n">h_name</span> <span class="o">=</span> <span class="n">enthalpy</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"#"</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">suffix</span> <span class="k">if</span> <span class="n">suffix</span> <span class="k">else</span> <span class="n">enthalpy</span>
+        <span class="n">ZPE</span> <span class="o">=</span> <span class="n">_property</span><span class="p">(</span><span class="n">properties</span><span class="p">,</span> <span class="n">zpe_name</span><span class="p">)</span>
+        <span class="n">H</span> <span class="o">=</span> <span class="n">_property</span><span class="p">(</span><span class="n">properties</span><span class="p">,</span> <span class="n">h_name</span><span class="p">)</span>
+        <span class="n">fp</span> <span class="o">=</span> <span class="n">_text_property</span><span class="p">(</span>
+            <span class="n">properties</span><span class="p">,</span> <span class="n">fingerprint</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"#"</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">suffix</span> <span class="k">if</span> <span class="n">suffix</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="p">)</span>
+        <span class="n">mapped_symmetry</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">from_map</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">ZPE</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">H</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">found</span> <span class="o">=</span> <span class="n">_thermal_from_map</span><span class="p">(</span><span class="n">mapped</span><span class="p">,</span> <span class="n">E</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">counts</span><span class="p">[</span><span class="s2">"skipped"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name_for</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+                <span class="n">found</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">found</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">ZPE</span> <span class="o">=</span> <span class="p">(</span><span class="n">zpe_name</span><span class="p">,</span> <span class="n">found</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">H</span> <span class="o">=</span> <span class="p">(</span><span class="n">h_name</span><span class="p">,</span> <span class="n">found</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="n">mapped_symmetry</span> <span class="o">=</span> <span class="n">found</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+                <span class="n">from_map</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">ffp</span> <span class="o">=</span> <span class="n">_text_property</span><span class="p">(</span>
+            <span class="n">properties</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">frequency_fingerprint</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"#"</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">suffix</span> <span class="k">if</span> <span class="n">suffix</span> <span class="k">else</span> <span class="kc">None</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="c1"># The calculation record: program, version, geometry</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">extra</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">"json"</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">suffix</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">None</span>
+            <span class="n">full</span> <span class="o">=</span> <span class="n">base</span> <span class="o">+</span> <span class="n">suffix</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">properties</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">full</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="kc">None</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="n">properties</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">full</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="n">full</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="n">full</span><span class="p">]</span>  <span class="c1"># {name: {"value": ...}}</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="s2">"value"</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="s2">"value"</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">"json"</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="kc">None</span>
+            <span class="k">return</span> <span class="n">value</span>
+
+        <span class="n">calculation</span> <span class="o">=</span> <span class="n">extra</span><span class="p">(</span><span class="s2">"calculation"</span><span class="p">)</span>
+        <span class="n">calc_geometry</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">calculation</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"geometry fingerprint"</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">calculation</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
+            <span class="k">else</span> <span class="kc">None</span>
+        <span class="p">)</span>
+        <span class="n">program</span> <span class="o">=</span> <span class="n">version</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">calculation</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">program</span> <span class="o">=</span> <span class="n">calculation</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"program"</span><span class="p">)</span>
+            <span class="n">version</span> <span class="o">=</span> <span class="n">calculation</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"version"</span><span class="p">)</span>
+        <span class="n">record</span> <span class="o">=</span> <span class="n">FragmentRecord</span><span class="o">.</span><span class="n">make</span><span class="p">(</span>
+            <span class="n">species</span><span class="p">,</span>
+            <span class="n">charge</span><span class="o">=</span><span class="n">charge</span><span class="p">,</span>
+            <span class="n">multiplicity</span><span class="o">=</span><span class="n">multiplicity</span><span class="p">,</span>
+            <span class="n">E</span><span class="o">=</span><span class="n">E</span><span class="p">,</span>
+            <span class="n">ZPE</span><span class="o">=</span><span class="n">ZPE</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">ZPE</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">H</span><span class="o">=</span><span class="n">H</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">H</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">energy_fingerprint</span><span class="o">=</span><span class="n">fp</span><span class="p">,</span>
+            <span class="n">frequency_fingerprint</span><span class="o">=</span><span class="n">ffp</span><span class="p">,</span>
+            <span class="n">model_chemistry</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
+            <span class="n">program</span><span class="o">=</span><span class="n">program</span><span class="p">,</span>
+            <span class="n">version</span><span class="o">=</span><span class="n">version</span><span class="p">,</span>
+            <span class="n">geometry_hash</span><span class="o">=</span><span class="n">ghash</span><span class="p">,</span>
+            <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">,</span>
+            <span class="n">configuration</span><span class="o">=</span><span class="n">configuration</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+            <span class="n">source</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">tables</span> <span class="o">==</span> <span class="s2">"geometry"</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">elif</span> <span class="n">supersede</span><span class="p">:</span>
+            <span class="n">outcome</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">supersede</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="n">supersede</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="n">force</span><span class="p">)</span>
+            <span class="n">counts</span><span class="p">[</span><span class="s2">"duplicate"</span> <span class="k">if</span> <span class="n">outcome</span> <span class="o">==</span> <span class="s2">"unchanged"</span> <span class="k">else</span> <span class="n">outcome</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">counts</span><span class="p">[</span><span class="n">store</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">record</span><span class="p">)]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="n">ZPE</span> <span class="ow">or</span> <span class="n">H</span><span class="p">:</span>
+            <span class="n">symmetry</span> <span class="o">=</span> <span class="n">extra</span><span class="p">(</span><span class="s2">"symmetry number"</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">"int"</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">symmetry</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">symmetry</span> <span class="o">=</span> <span class="n">mapped_symmetry</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">geometry</span> <span class="o">=</span> <span class="n">GeometryRecord</span><span class="o">.</span><span class="n">make</span><span class="p">(</span>
                     <span class="n">species</span><span class="p">,</span>
+                    <span class="n">symbols</span><span class="p">,</span>
+                    <span class="n">coordinates</span><span class="p">,</span>
                     <span class="n">charge</span><span class="o">=</span><span class="n">charge</span><span class="p">,</span>
                     <span class="n">multiplicity</span><span class="o">=</span><span class="n">multiplicity</span><span class="p">,</span>
-                    <span class="n">E</span><span class="o">=</span><span class="n">E</span><span class="p">,</span>
-                    <span class="n">ZPE</span><span class="o">=</span><span class="n">ZPE</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">ZPE</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-                    <span class="n">H</span><span class="o">=</span><span class="n">H</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">H</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-                    <span class="n">energy_fingerprint</span><span class="o">=</span><span class="n">fp</span><span class="p">,</span>
-                    <span class="n">frequency_fingerprint</span><span class="o">=</span><span class="n">ffp</span><span class="p">,</span>
+                    <span class="n">conformer</span><span class="o">=</span><span class="n">conformer</span><span class="p">,</span>
+                    <span class="c1"># Thermal corrections from the map were computed with</span>
+                    <span class="c1"># the energy's own calculation</span>
+                    <span class="n">frequency_fingerprint</span><span class="o">=</span><span class="n">ffp</span> <span class="ow">or</span> <span class="p">(</span><span class="n">fp</span> <span class="k">if</span> <span class="n">from_map</span> <span class="k">else</span> <span class="kc">None</span><span class="p">),</span>
+                    <span class="n">optimization_fingerprint</span><span class="o">=</span><span class="n">fp</span><span class="p">,</span>
                     <span class="n">model_chemistry</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
                     <span class="n">program</span><span class="o">=</span><span class="n">program</span><span class="p">,</span>
                     <span class="n">version</span><span class="o">=</span><span class="n">version</span><span class="p">,</span>
-                    <span class="n">geometry_hash</span><span class="o">=</span><span class="n">ghash</span><span class="p">,</span>
+                    <span class="n">E</span><span class="o">=</span><span class="n">E</span><span class="p">,</span>
+                    <span class="n">ZPE</span><span class="o">=</span><span class="n">ZPE</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">ZPE</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                    <span class="n">H</span><span class="o">=</span><span class="n">H</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">H</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                    <span class="n">frequencies</span><span class="o">=</span><span class="n">extra</span><span class="p">(</span><span class="s2">"frequencies"</span><span class="p">),</span>
+                    <span class="n">symmetry_number</span><span class="o">=</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">symmetry</span><span class="p">)</span> <span class="k">if</span> <span class="n">symmetry</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">),</span>
+                    <span class="n">moments</span><span class="o">=</span><span class="n">extra</span><span class="p">(</span><span class="s2">"moments of inertia"</span><span class="p">),</span>
+                    <span class="n">atomic_numbers</span><span class="o">=</span><span class="n">atomic_numbers</span><span class="p">,</span>
+                    <span class="n">geometry_hash</span><span class="o">=</span><span class="n">fingerprint_hash</span><span class="p">,</span>
                     <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">,</span>
                     <span class="n">configuration</span><span class="o">=</span><span class="n">configuration</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
                     <span class="n">source</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
                 <span class="p">)</span>
-                <span class="k">if</span> <span class="n">tables</span> <span class="o">==</span> <span class="s2">"geometry"</span><span class="p">:</span>
-                    <span class="k">pass</span>
-                <span class="k">elif</span> <span class="n">supersede</span><span class="p">:</span>
-                    <span class="n">outcome</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">supersede</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="n">supersede</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="n">force</span><span class="p">)</span>
-                    <span class="n">counts</span><span class="p">[</span><span class="s2">"duplicate"</span> <span class="k">if</span> <span class="n">outcome</span> <span class="o">==</span> <span class="s2">"unchanged"</span> <span class="k">else</span> <span class="n">outcome</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">counts</span><span class="p">[</span><span class="n">store</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">record</span><span class="p">)]</span> <span class="o">+=</span> <span class="mi">1</span>
-
-                <span class="k">if</span> <span class="n">ZPE</span> <span class="ow">or</span> <span class="n">H</span><span class="p">:</span>
-                    <span class="n">symmetry</span> <span class="o">=</span> <span class="n">extra</span><span class="p">(</span><span class="s2">"symmetry number"</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">"int"</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">symmetry</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                        <span class="n">symmetry</span> <span class="o">=</span> <span class="n">mapped_symmetry</span>
-                    <span class="k">try</span><span class="p">:</span>
-                        <span class="n">geometry</span> <span class="o">=</span> <span class="n">GeometryRecord</span><span class="o">.</span><span class="n">make</span><span class="p">(</span>
-                            <span class="n">species</span><span class="p">,</span>
-                            <span class="n">symbols</span><span class="p">,</span>
-                            <span class="n">coordinates</span><span class="p">,</span>
-                            <span class="n">charge</span><span class="o">=</span><span class="n">charge</span><span class="p">,</span>
-                            <span class="n">multiplicity</span><span class="o">=</span><span class="n">multiplicity</span><span class="p">,</span>
-                            <span class="n">conformer</span><span class="o">=</span><span class="n">conformer</span><span class="p">,</span>
-                            <span class="c1"># Thermal corrections from the map were computed with</span>
-                            <span class="c1"># the energy's own calculation</span>
-                            <span class="n">frequency_fingerprint</span><span class="o">=</span><span class="n">ffp</span> <span class="ow">or</span> <span class="p">(</span><span class="n">fp</span> <span class="k">if</span> <span class="n">from_map</span> <span class="k">else</span> <span class="kc">None</span><span class="p">),</span>
-                            <span class="n">optimization_fingerprint</span><span class="o">=</span><span class="n">fp</span><span class="p">,</span>
-                            <span class="n">model_chemistry</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
-                            <span class="n">program</span><span class="o">=</span><span class="n">program</span><span class="p">,</span>
-                            <span class="n">version</span><span class="o">=</span><span class="n">version</span><span class="p">,</span>
-                            <span class="n">E</span><span class="o">=</span><span class="n">E</span><span class="p">,</span>
-                            <span class="n">ZPE</span><span class="o">=</span><span class="n">ZPE</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">ZPE</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-                            <span class="n">H</span><span class="o">=</span><span class="n">H</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">H</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-                            <span class="n">frequencies</span><span class="o">=</span><span class="n">extra</span><span class="p">(</span><span class="s2">"frequencies"</span><span class="p">),</span>
-                            <span class="n">symmetry_number</span><span class="o">=</span><span class="p">(</span>
-                                <span class="nb">int</span><span class="p">(</span><span class="n">symmetry</span><span class="p">)</span> <span class="k">if</span> <span class="n">symmetry</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
-                            <span class="p">),</span>
-                            <span class="n">moments</span><span class="o">=</span><span class="n">extra</span><span class="p">(</span><span class="s2">"moments of inertia"</span><span class="p">),</span>
-                            <span class="n">atomic_numbers</span><span class="o">=</span><span class="n">atomic_numbers</span><span class="p">,</span>
-                            <span class="n">geometry_hash</span><span class="o">=</span><span class="n">fingerprint_hash</span><span class="p">,</span>
-                            <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">,</span>
-                            <span class="n">configuration</span><span class="o">=</span><span class="n">configuration</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
-                            <span class="n">source</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
-                        <span class="p">)</span>
-                        <span class="k">if</span> <span class="n">supersede</span><span class="p">:</span>
-                            <span class="n">outcome</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">supersede_geometry</span><span class="p">(</span>
-                                <span class="n">geometry</span><span class="p">,</span> <span class="n">supersede</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="n">force</span>
-                            <span class="p">)</span>
-                        <span class="k">else</span><span class="p">:</span>
-                            <span class="n">outcome</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">put_geometry</span><span class="p">(</span><span class="n">geometry</span><span class="p">)</span>
-                        <span class="n">tally</span><span class="p">(</span><span class="s2">"geometry"</span><span class="p">,</span> <span class="n">outcome</span><span class="p">)</span>
-                    <span class="k">except</span> <span class="n">PairingError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                        <span class="n">counts</span><span class="p">[</span><span class="s2">"skipped"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">species</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="n">energy_row</span> <span class="o">=</span> <span class="n">EnergyRecord</span><span class="o">.</span><span class="n">make</span><span class="p">(</span>
-                        <span class="n">fingerprint_hash</span><span class="p">,</span>
-                        <span class="n">E</span><span class="p">,</span>
-                        <span class="n">energy_fingerprint</span><span class="o">=</span><span class="n">fp</span><span class="p">,</span>
-                        <span class="n">calculation_geometry</span><span class="o">=</span><span class="n">calc_geometry</span><span class="p">,</span>
-                        <span class="n">model_chemistry</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
-                        <span class="n">program</span><span class="o">=</span><span class="n">program</span><span class="p">,</span>
-                        <span class="n">version</span><span class="o">=</span><span class="n">version</span><span class="p">,</span>
-                        <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">,</span>
-                        <span class="n">configuration</span><span class="o">=</span><span class="n">configuration</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
-                        <span class="n">source</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
-                    <span class="p">)</span>
-                <span class="k">except</span> <span class="n">PairingError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                    <span class="n">counts</span><span class="p">[</span><span class="s2">"skipped"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">species</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">): </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-                    <span class="k">continue</span>
                 <span class="k">if</span> <span class="n">supersede</span><span class="p">:</span>
-                    <span class="n">outcome</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">supersede_energy</span><span class="p">(</span>
-                        <span class="n">energy_row</span><span class="p">,</span> <span class="n">supersede</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="n">force</span>
+                    <span class="n">outcome</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">supersede_geometry</span><span class="p">(</span>
+                        <span class="n">geometry</span><span class="p">,</span> <span class="n">supersede</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="n">force</span>
                     <span class="p">)</span>
+                <span class="k">elif</span> <span class="n">write_back</span><span class="p">:</span>
+                    <span class="n">outcome</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">put_geometry_conformer</span><span class="p">(</span><span class="n">geometry</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">outcome</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">put_energy</span><span class="p">(</span><span class="n">energy_row</span><span class="p">)</span>
-                <span class="n">tally</span><span class="p">(</span><span class="s2">"energy"</span><span class="p">,</span> <span class="n">outcome</span><span class="p">)</span>
-    <span class="k">finally</span><span class="p">:</span>
-        <span class="n">db</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                    <span class="n">outcome</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">put_geometry</span><span class="p">(</span><span class="n">geometry</span><span class="p">)</span>
+                <span class="n">tally</span><span class="p">(</span><span class="s2">"geometry"</span><span class="p">,</span> <span class="n">outcome</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">PairingError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">counts</span><span class="p">[</span><span class="s2">"skipped"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">species</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">energy_row</span> <span class="o">=</span> <span class="n">EnergyRecord</span><span class="o">.</span><span class="n">make</span><span class="p">(</span>
+                <span class="n">fingerprint_hash</span><span class="p">,</span>
+                <span class="n">E</span><span class="p">,</span>
+                <span class="n">energy_fingerprint</span><span class="o">=</span><span class="n">fp</span><span class="p">,</span>
+                <span class="n">calculation_geometry</span><span class="o">=</span><span class="n">calc_geometry</span><span class="p">,</span>
+                <span class="n">model_chemistry</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
+                <span class="n">program</span><span class="o">=</span><span class="n">program</span><span class="p">,</span>
+                <span class="n">version</span><span class="o">=</span><span class="n">version</span><span class="p">,</span>
+                <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">,</span>
+                <span class="n">configuration</span><span class="o">=</span><span class="n">configuration</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+                <span class="n">source</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="n">PairingError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">counts</span><span class="p">[</span><span class="s2">"skipped"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">species</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">): </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">supersede</span><span class="p">:</span>
+            <span class="n">outcome</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">supersede_energy</span><span class="p">(</span><span class="n">energy_row</span><span class="p">,</span> <span class="n">supersede</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="n">force</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">outcome</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">put_energy</span><span class="p">(</span><span class="n">energy_row</span><span class="p">)</span>
+        <span class="n">tally</span><span class="p">(</span><span class="s2">"energy"</span><span class="p">,</span> <span class="n">outcome</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">counts</span></div>
+
+
+
+<span class="c1"># -- the structure guard and conformers ---------------------------------------</span>
+
+<span class="c1">#: Two geometries of a species closer than this (Å, symmetry-aware RMSD after</span>
+<span class="c1">#: alignment) are the same minimum, not two conformers</span>
+<span class="n">CONFORMER_RMSD</span> <span class="o">=</span> <span class="mf">0.05</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_perceive</span><span class="p">(</span><span class="n">symbols</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""An RDKit molecule with the bonds perceived from the coordinates</span>
+<span class="sd">    (connectivity only, from covalent radii), or None."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">rdkit</span><span class="w"> </span><span class="kn">import</span> <span class="n">Chem</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">rdkit.Chem</span><span class="w"> </span><span class="kn">import</span> <span class="n">rdDetermineBonds</span>
+
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">symbols</span><span class="p">)),</span> <span class="s2">""</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">symbols</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">):</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">s</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">z</span><span class="p">)</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">mol</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromXYZBlock</span><span class="p">(</span><span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span> <span class="o">+</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">mol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">mol</span><span class="o">.</span><span class="n">GetNumAtoms</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">rdDetermineBonds</span><span class="o">.</span><span class="n">DetermineConnectivity</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">mol</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_skeleton</span><span class="p">(</span><span class="n">mol</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A canonical text of a molecule's graph: elements and connections only,</span>
+<span class="sd">    no bond orders, charges or hydrogen counts beyond the explicit atoms."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">rdkit</span><span class="w"> </span><span class="kn">import</span> <span class="n">Chem</span>
+
+    <span class="n">m</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">RWMol</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">mol</span><span class="o">.</span><span class="n">GetAtoms</span><span class="p">():</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">Atom</span><span class="p">(</span><span class="n">atom</span><span class="o">.</span><span class="n">GetAtomicNum</span><span class="p">())</span>
+        <span class="n">a</span><span class="o">.</span><span class="n">SetNoImplicit</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">m</span><span class="o">.</span><span class="n">AddAtom</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">bond</span> <span class="ow">in</span> <span class="n">mol</span><span class="o">.</span><span class="n">GetBonds</span><span class="p">():</span>
+        <span class="n">m</span><span class="o">.</span><span class="n">AddBond</span><span class="p">(</span><span class="n">bond</span><span class="o">.</span><span class="n">GetBeginAtomIdx</span><span class="p">(),</span> <span class="n">bond</span><span class="o">.</span><span class="n">GetEndAtomIdx</span><span class="p">(),</span> <span class="n">Chem</span><span class="o">.</span><span class="n">BondType</span><span class="o">.</span><span class="n">SINGLE</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">GetMol</span><span class="p">()</span>
+    <span class="n">m</span><span class="o">.</span><span class="n">UpdatePropertyCache</span><span class="p">(</span><span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">Chem</span><span class="o">.</span><span class="n">FastFindRings</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolToSmiles</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">canonical</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="check_structure">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.fragment_store.check_structure">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">check_structure</span><span class="p">(</span><span class="n">symbols</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">multiplicity</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Why a structure is not one of its species, or None if it is.</span>
+
+<span class="sd">    The bonds are perceived again from the coordinates, not taken from the</span>
+<span class="sd">    structure's own (which came from the SMILES it was built from), so a</span>
+<span class="sd">    species that rearranged while it was optimized is caught. The graph</span>
+<span class="sd">    (elements and connections) must be that of `species`, whose formal charge</span>
+<span class="sd">    and radicals must agree with `charge` and `multiplicity`; and no atoms may be</span>
+<span class="sd">    too close together (:func:`molsystem.vsepr.check_contacts`, which also</span>
+<span class="sd">    catches ligands of a hypervalent centre on top of each other). Without RDKit</span>
+<span class="sd">    nothing is checked.</span>
+<span class="sd">    """</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">rdkit</span><span class="w"> </span><span class="kn">import</span> <span class="n">Chem</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">reference</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="n">reference</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">reference</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"the species </span><span class="si">{</span><span class="n">species</span><span class="si">}</span><span class="s2"> is not a SMILES RDKit can read"</span>
+    <span class="k">if</span> <span class="n">charge</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">Chem</span><span class="o">.</span><span class="n">GetFormalCharge</span><span class="p">(</span><span class="n">reference</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">int</span><span class="p">(</span><span class="n">charge</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"the charge </span><span class="si">{</span><span class="n">charge</span><span class="si">}</span><span class="s2"> is not that of </span><span class="si">{</span><span class="n">species</span><span class="si">}</span><span class="s2"> "</span>
+            <span class="sa">f</span><span class="s2">"(</span><span class="si">{</span><span class="n">Chem</span><span class="o">.</span><span class="n">GetFormalCharge</span><span class="p">(</span><span class="n">reference</span><span class="p">)</span><span class="si">}</span><span class="s2">)"</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">multiplicity</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">radicals</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">GetNumRadicalElectrons</span><span class="p">()</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">reference</span><span class="o">.</span><span class="n">GetAtoms</span><span class="p">())</span>
+        <span class="n">unpaired</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">multiplicity</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">unpaired</span> <span class="o">&lt;</span> <span class="n">radicals</span> <span class="ow">or</span> <span class="p">(</span><span class="n">unpaired</span> <span class="o">-</span> <span class="n">radicals</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"the multiplicity </span><span class="si">{</span><span class="n">multiplicity</span><span class="si">}</span><span class="s2"> does not fit </span><span class="si">{</span><span class="n">species</span><span class="si">}</span><span class="s2"> "</span>
+                <span class="sa">f</span><span class="s2">"(</span><span class="si">{</span><span class="n">radicals</span><span class="si">}</span><span class="s2"> radical electrons)"</span>
+            <span class="p">)</span>
+    <span class="n">reference</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">AddHs</span><span class="p">(</span><span class="n">reference</span><span class="p">)</span>
+    <span class="n">symbols</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">":"</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">symbols</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">symbols</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">GetSymbol</span><span class="p">()</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">reference</span><span class="o">.</span><span class="n">GetAtoms</span><span class="p">()):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"the atoms are not those of </span><span class="si">{</span><span class="n">species</span><span class="si">}</span><span class="s2">"</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">mol</span> <span class="o">=</span> <span class="n">_perceive</span><span class="p">(</span><span class="n">symbols</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"its bonds could not be perceived (</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">)"</span>
+    <span class="k">if</span> <span class="n">mol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">"its bonds could not be perceived"</span>
+    <span class="k">if</span> <span class="n">_skeleton</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span> <span class="o">!=</span> <span class="n">_skeleton</span><span class="p">(</span><span class="n">reference</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"its bonds, perceived from the coordinates, are not those of </span><span class="si">{</span><span class="n">species</span><span class="si">}</span><span class="s2"> "</span>
+            <span class="s2">"(it may have rearranged while it was optimized)"</span>
+        <span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">molsystem.vsepr</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_contacts</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>  <span class="c1"># pragma: no cover - an older molsystem</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">bonds</span> <span class="o">=</span> <span class="p">[(</span><span class="n">b</span><span class="o">.</span><span class="n">GetBeginAtomIdx</span><span class="p">(),</span> <span class="n">b</span><span class="o">.</span><span class="n">GetEndAtomIdx</span><span class="p">(),</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">mol</span><span class="o">.</span><span class="n">GetBonds</span><span class="p">()]</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">check_contacts</span><span class="p">(</span><span class="n">symbols</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">bonds</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">RuntimeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">"."</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">conformer_rmsd</span><span class="p">(</span><span class="n">symbols_a</span><span class="p">,</span> <span class="n">coordinates_a</span><span class="p">,</span> <span class="n">symbols_b</span><span class="p">,</span> <span class="n">coordinates_b</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The symmetry-aware RMSD (Å) of two geometries of a species after the best</span>
+<span class="sd">    alignment, or None if it cannot be found."""</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">rdkit.Chem</span><span class="w"> </span><span class="kn">import</span> <span class="n">rdMolAlign</span>
+
+        <span class="n">a</span> <span class="o">=</span> <span class="n">_perceive</span><span class="p">(</span><span class="n">symbols_a</span><span class="p">,</span> <span class="n">coordinates_a</span><span class="p">)</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">_perceive</span><span class="p">(</span><span class="n">symbols_b</span><span class="p">,</span> <span class="n">coordinates_b</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">a</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">b</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">rdMolAlign</span><span class="o">.</span><span class="n">GetBestRMS</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">maxMatches</span><span class="o">=</span><span class="mi">10000</span><span class="p">))</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+
+<span class="c1"># -- where the store may be written --------------------------------------------</span>
+
+<span class="c1">#: Filesystems on which SQLite's locking is reliable</span>
+<span class="n">LOCAL_FILESYSTEMS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"apfs"</span><span class="p">,</span>
+    <span class="s2">"hfs"</span><span class="p">,</span>
+    <span class="s2">"zfs"</span><span class="p">,</span>
+    <span class="s2">"ext2"</span><span class="p">,</span>
+    <span class="s2">"ext3"</span><span class="p">,</span>
+    <span class="s2">"ext4"</span><span class="p">,</span>
+    <span class="s2">"xfs"</span><span class="p">,</span>
+    <span class="s2">"btrfs"</span><span class="p">,</span>
+    <span class="s2">"f2fs"</span><span class="p">,</span>
+    <span class="s2">"jfs"</span><span class="p">,</span>
+    <span class="s2">"tmpfs"</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">filesystem_type</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""(filesystem type, mount point) of the filesystem holding `path`, or</span>
+<span class="sd">    (None, None) if it cannot be found."""</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
+
+    <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
+    <span class="k">while</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span> <span class="ow">and</span> <span class="n">path</span> <span class="o">!=</span> <span class="n">path</span><span class="o">.</span><span class="n">parent</span><span class="p">:</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">parent</span>
+    <span class="n">real</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="n">mounts</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">"/proc/mounts"</span><span class="p">)</span> <span class="k">as</span> <span class="n">fd</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">fd</span><span class="p">:</span>
+                <span class="n">fields</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fields</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">:</span>
+                    <span class="n">mounts</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">fields</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"</span><span class="se">\\</span><span class="s2">040"</span><span class="p">,</span> <span class="s2">" "</span><span class="p">),</span> <span class="n">fields</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+    <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                <span class="p">[</span><span class="s2">"mount"</span><span class="p">],</span> <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">stdout</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">text</span><span class="o">.</span><span class="n">splitlines</span><span class="p">():</span>
+            <span class="c1"># /dev/disk3s5 on /System/Volumes/Data (apfs, local, journaled)</span>
+            <span class="k">if</span> <span class="s2">" on "</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">line</span> <span class="ow">or</span> <span class="s2">" ("</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">rest</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">" on "</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">point</span><span class="p">,</span> <span class="n">options</span> <span class="o">=</span> <span class="n">rest</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s2">" ("</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">mounts</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">point</span><span class="p">,</span> <span class="n">options</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">","</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()))</span>
+    <span class="n">best</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">for</span> <span class="n">point</span><span class="p">,</span> <span class="n">kind</span> <span class="ow">in</span> <span class="n">mounts</span><span class="p">:</span>
+        <span class="n">prefix</span> <span class="o">=</span> <span class="n">point</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">"/"</span><span class="p">)</span> <span class="o">+</span> <span class="s2">"/"</span>
+        <span class="k">if</span> <span class="n">real</span> <span class="o">==</span> <span class="n">point</span> <span class="ow">or</span> <span class="n">real</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span> <span class="ow">or</span> <span class="n">point</span> <span class="o">==</span> <span class="s2">"/"</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">best</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">point</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">best</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+                <span class="n">best</span> <span class="o">=</span> <span class="p">(</span><span class="n">point</span><span class="p">,</span> <span class="n">kind</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">best</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">best</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">best</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="store_is_writable">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.fragment_store.store_is_writable">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">store_is_writable</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""(bool, reason): whether a running job may write the fragment store.</span>
+
+<span class="sd">    Only on a local filesystem: SQLite's locking is unreliable on network and</span>
+<span class="sd">    parallel filesystems (NFS, GPFS, Lustre). seamm.ini's ``[thermochemistry]``</span>
+<span class="sd">    ``fragment-store-writable = auto | yes | no`` overrides the check.</span>
+<span class="sd">    """</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">configparser</span>
+
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.db</span><span class="w"> </span><span class="kn">import</span> <span class="n">_SEAMM_INI_PATH</span>
+
+    <span class="n">setting</span> <span class="o">=</span> <span class="s2">"auto"</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">_SEAMM_INI_PATH</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="n">parser</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">(</span><span class="n">interpolation</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+            <span class="n">parser</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">_SEAMM_INI_PATH</span><span class="p">)</span>
+            <span class="n">setting</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                <span class="s2">"thermochemistry"</span><span class="p">,</span> <span class="s2">"fragment-store-writable"</span><span class="p">,</span> <span class="n">fallback</span><span class="o">=</span><span class="s2">"auto"</span>
+            <span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+        <span class="k">pass</span>
+    <span class="n">setting</span> <span class="o">=</span> <span class="p">(</span><span class="n">setting</span> <span class="ow">or</span> <span class="s2">"auto"</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">setting</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"yes"</span><span class="p">,</span> <span class="s2">"true"</span><span class="p">,</span> <span class="s2">"1"</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">"fragment-store-writable = yes in seamm.ini"</span>
+    <span class="k">if</span> <span class="n">setting</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"no"</span><span class="p">,</span> <span class="s2">"false"</span><span class="p">,</span> <span class="s2">"0"</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">"fragment-store-writable = no in seamm.ini"</span>
+    <span class="n">kind</span><span class="p">,</span> <span class="n">point</span> <span class="o">=</span> <span class="n">filesystem_type</span><span class="p">(</span><span class="n">fragment_store_path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">kind</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">"its filesystem could not be identified"</span>
+    <span class="k">if</span> <span class="n">kind</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">LOCAL_FILESYSTEMS</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"on a local </span><span class="si">{</span><span class="n">kind</span><span class="si">}</span><span class="s2"> filesystem"</span>
+    <span class="k">return</span> <span class="kc">False</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"on a </span><span class="si">{</span><span class="n">kind</span><span class="si">}</span><span class="s2"> filesystem (</span><span class="si">{</span><span class="n">point</span><span class="si">}</span><span class="s2">), where SQLite is not safe"</span></div>
 
 </pre></div>
 

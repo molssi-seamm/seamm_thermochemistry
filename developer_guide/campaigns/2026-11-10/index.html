@@ -7,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>2026-11-10 – Fragment store P5: write-back, in-job reuse, two layers, ATcT download &#8212; SEAMM thermochemistry Plug-in 2026.11.11 documentation</title>
+    <title>2026-11-10 – Fragment store P5: write-back, in-job reuse, two layers, ATcT download &#8212; SEAMM thermochemistry Plug-in 2026.11.11.1 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=83e1bca7"></script>
+    <script src="../../../_static/documentation_options.js?v=0273fb53"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -54,7 +54,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.11" />
+  <meta name="docsearch:version" content="2026.11.11.1" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -476,6 +476,14 @@ the ones to look up with, so after a boron fragment every later lookup in the
 iteration missed; it now keeps the target’s. And an energy-level single point
 found on a configuration in the job is reused only when its record names the
 configuration’s current geometry.</p>
+<p><strong>P5a released 2026-11-11</strong> (orca-step, seamm-exec, seamm-thermochemistry and
+thermochemistry-step 2026.11.11). <strong>P5b implemented 2026-11-11</strong> (branch
+<code class="docutils literal notranslate"><span class="pre">p5b-writeback</span></code> in seamm_thermochemistry, thermochemistry_step and
+seamm_jobserver): write-back, the structure guard, <code class="docutils literal notranslate"><span class="pre">auto:</span></code> conformers, the
+<code class="docutils literal notranslate"><span class="pre">job_finished</span></code> hook and the marker, as in §3. One change from §3: a geometry
+that is a contact too close to read as a bond is caught by the contact check,
+but ligands closer still (the old PF₆⁻) read as bonded and are refused by the
+connectivity check first.</p>
 <p>Numbering: these phases are the fragment store’s P5 (P5a-P5e). The 11-08
 presets plan also had a P5 (long-bond and %[(T)] flags) and a P6 (pilot). Those
 keep their names and have nothing to do with this note.</p>

@@ -76,6 +76,14 @@ seamm\_thermochemistry.geometry\_store module
    :show-inheritance:
    :undoc-members:
 
+seamm\_thermochemistry.hooks module
+-----------------------------------
+
+.. automodule:: seamm_thermochemistry.hooks
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 seamm\_thermochemistry.import\_orca\_cli module
 -----------------------------------------------
 

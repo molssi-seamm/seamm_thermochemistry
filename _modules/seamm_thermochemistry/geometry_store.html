@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.geometry_store &#8212; SEAMM thermochemistry Plug-in 2026.11.11 documentation</title>
+    <title>seamm_thermochemistry.geometry_store &#8212; SEAMM thermochemistry Plug-in 2026.11.11.1 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=83e1bca7"></script>
+    <script src="../../_static/documentation_options.js?v=0273fb53"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.11" />
+  <meta name="docsearch:version" content="2026.11.11.1" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -1030,6 +1030,68 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_put</span><span class="p">(</span>
             <span class="s2">"geometry"</span><span class="p">,</span> <span class="n">_GEOMETRY_COLUMNS</span><span class="p">,</span> <span class="n">_GEOMETRY_KEY</span><span class="p">,</span> <span class="n">_GEOMETRY_VALUES</span><span class="p">,</span> <span class="n">record</span>
         <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="GeometryEnergyMixin.put_geometry_conformer">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.fragment_store.GeometryEnergyMixin.put_geometry_conformer">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">put_geometry_conformer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">,</span> <span class="n">rmsd</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Insert a geometry row, as a new conformer when it is one.</span>
+
+<span class="sd">        When the species already has geometries at this frequency level, a row</span>
+<span class="sd">        whose E + ZPE is lower than all of theirs by more than 0.1 kJ/mol, and</span>
+<span class="sd">        whose structure differs from each of theirs (symmetry-aware RMSD above</span>
+<span class="sd">        `rmsd` Å, by default ``fragment_store.CONFORMER_RMSD``), is stored as</span>
+<span class="sd">        the conformer ``auto:&lt;geometry hash&gt;`` instead of being only logged</span>
+<span class="sd">        against the existing row. Lookups take the lowest conformer. Anything</span>
+<span class="sd">        else -- the same minimum again, a higher conformer -- is put as by</span>
+<span class="sd">        :meth:`put_geometry` (inserted, a duplicate, or logged).</span>
+
+<span class="sd">        Returns (outcome, row id) as :meth:`put_geometry`.</span>
+<span class="sd">        """</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.fragment_store</span><span class="w"> </span><span class="kn">import</span> <span class="n">CONFORMER_RMSD</span><span class="p">,</span> <span class="n">conformer_rmsd</span>
+
+        <span class="k">if</span> <span class="n">rmsd</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">rmsd</span> <span class="o">=</span> <span class="n">CONFORMER_RMSD</span>
+        <span class="n">record</span> <span class="o">=</span> <span class="n">GeometryRecord</span><span class="p">(</span><span class="n">record</span><span class="p">)</span>
+        <span class="n">db</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_writer</span><span class="p">()</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+            <span class="s2">"SELECT * FROM geometry WHERE species = ? AND charge = ? AND "</span>
+            <span class="s2">"multiplicity = ? AND frequency_fingerprint = ?"</span><span class="p">,</span>
+            <span class="n">record</span><span class="o">.</span><span class="n">key</span><span class="p">[:</span><span class="mi">4</span><span class="p">],</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="p">[</span><span class="n">_decode</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">GeometryRecord</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">]</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">rows</span>
+            <span class="ow">and</span> <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"E"</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"ZPE"</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s2">"geometry_hash"</span><span class="p">]</span> <span class="o">!=</span> <span class="n">record</span><span class="p">[</span><span class="s2">"geometry_hash"</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">)</span>
+        <span class="p">):</span>
+            <span class="n">energy</span> <span class="o">=</span> <span class="n">record</span><span class="p">[</span><span class="s2">"E"</span><span class="p">]</span> <span class="o">+</span> <span class="n">record</span><span class="p">[</span><span class="s2">"ZPE"</span><span class="p">]</span>
+            <span class="n">lowest</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s2">"E"</span><span class="p">]</span> <span class="o">+</span> <span class="n">r</span><span class="p">[</span><span class="s2">"ZPE"</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span> <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s2">"E"</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">r</span><span class="p">[</span><span class="s2">"ZPE"</span><span class="p">]),</span>
+                <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">lowest</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">energy</span> <span class="o">&lt;</span> <span class="n">lowest</span> <span class="o">-</span> <span class="n">DUPLICATE_TOLERANCE</span><span class="p">:</span>
+                <span class="n">distinct</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+                    <span class="n">d</span> <span class="o">=</span> <span class="n">conformer_rmsd</span><span class="p">(</span>
+                        <span class="n">r</span><span class="p">[</span><span class="s2">"symbols"</span><span class="p">],</span>
+                        <span class="n">r</span><span class="p">[</span><span class="s2">"coordinates"</span><span class="p">],</span>
+                        <span class="n">record</span><span class="p">[</span><span class="s2">"symbols"</span><span class="p">],</span>
+                        <span class="n">record</span><span class="p">[</span><span class="s2">"coordinates"</span><span class="p">],</span>
+                    <span class="p">)</span>
+                    <span class="k">if</span> <span class="n">d</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">d</span> <span class="o">&lt;=</span> <span class="n">rmsd</span><span class="p">:</span>
+                        <span class="n">distinct</span> <span class="o">=</span> <span class="kc">False</span>
+                        <span class="k">break</span>
+                <span class="k">if</span> <span class="n">distinct</span><span class="p">:</span>
+                    <span class="n">label</span> <span class="o">=</span> <span class="n">record</span><span class="p">[</span><span class="s2">"geometry_hash"</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">":"</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">][:</span><span class="mi">12</span><span class="p">]</span>
+                    <span class="n">record</span><span class="p">[</span><span class="s2">"conformer"</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"auto:</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">"</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">record</span><span class="p">[</span><span class="s1">'species'</span><span class="p">]</span><span class="si">}</span><span class="s2">: a lower conformer, by "</span>
+                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">lowest</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">energy</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> kJ/mol, stored as "</span>
+                        <span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">record</span><span class="p">[</span><span class="s1">'conformer'</span><span class="p">]</span><span class="si">}</span><span class="s2">'."</span>
+                    <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">put_geometry</span><span class="p">(</span><span class="n">record</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="GeometryEnergyMixin.put_energy">

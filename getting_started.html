@@ -7,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.11.11 documentation</title>
+    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.11.11.1 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="_static/documentation_options.js?v=83e1bca7"></script>
+    <script src="_static/documentation_options.js?v=0273fb53"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -55,7 +55,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.11" />
+  <meta name="docsearch:version" content="2026.11.11.1" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -662,6 +662,39 @@ caller passes the fingerprints it expects for each species (for ORCA,
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">store</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"CC"</span><span class="p">,</span> <span class="n">energy_fingerprint</span><span class="o">=</span><span class="p">[</span><span class="n">fp_as_written</span><span class="p">,</span> <span class="n">fp_cosx_moot</span><span class="p">])</span>
 </pre></div>
 </div>
+<section id="write-back-from-jobs-and-the-harvest-of-jobs-that-come-back">
+<h3>Write-back from jobs, and the harvest of jobs that come back<a class="headerlink" href="#write-back-from-jobs-and-the-harvest-of-jobs-that-come-back" title="Link to this heading">#</a></h3>
+<p>The Thermochemistry step adds the species it computes to the store itself
+(write-back), through <code class="docutils literal notranslate"><span class="pre">harvest_configuration</span></code>, the same code the harvest runs for
+each system of a job, so the rows are the same either way. It does so only when the
+store is on a local disk of the machine running the job: SQLite’s locking is not
+reliable on network and parallel filesystems (NFS, GPFS, Lustre).
+<code class="docutils literal notranslate"><span class="pre">store_is_writable()</span></code> makes the check; <code class="docutils literal notranslate"><span class="pre">fragment-store-writable</span> <span class="pre">=</span> <span class="pre">auto</span> <span class="pre">|</span> <span class="pre">yes</span> <span class="pre">|</span>
+<span class="pre">no</span></code> in the <code class="docutils literal notranslate"><span class="pre">[thermochemistry]</span></code> section of <code class="docutils literal notranslate"><span class="pre">~/.seamm.d/seamm.ini</span></code> overrides it.</p>
+<p>When the step cannot write the store, it leaves <code class="docutils literal notranslate"><span class="pre">harvest_fragments.json</span></code> in the
+job’s directory. A JobServer runs the plug-ins’ <code class="docutils literal notranslate"><span class="pre">job_finished</span></code> hooks when a job
+ends and its files are back on the JobServer’s host; this package’s hook harvests
+a job carrying that marker into the store there, once (the marker becomes
+<code class="docutils literal notranslate"><span class="pre">harvest_fragments.done.json</span></code>, with the tallies). A job run without a JobServer
+is harvested by hand, as before.</p>
+<p>Results are checked before they go in, by write-back and by the harvest:</p>
+<ul class="simple">
+<li><p><strong>The structure.</strong> The bonds are perceived again from the coordinates, and must
+be those of the species in the key (its SMILES), whose charge and radicals must
+fit the structure’s charge and multiplicity; and no atoms may be too close
+together (<code class="docutils literal notranslate"><span class="pre">molsystem.vsepr.check_contacts</span></code>, which also catches the ligands of a
+hypervalent centre on top of each other). A species that rearranged while it was
+optimized is refused. <code class="docutils literal notranslate"><span class="pre">harvest</span> <span class="pre">--no-structure-check</span></code> turns this off.</p></li>
+<li><p><strong>Imaginary modes</strong> (write-back): a geometry with a mode beyond 20i is refused,
+with every energy on it. The harvest stores such a geometry, for its provenance,
+but lookups never return it.</p></li>
+<li><p><strong>Conformers</strong> (write-back): a geometry lower in E + ZPE than every stored one of
+the species at its level, by more than 0.1 kJ/mol, and structurally distinct
+from each (RMSD above 0.05 Å after the best, symmetry-aware alignment), is added
+as the conformer <code class="docutils literal notranslate"><span class="pre">auto:&lt;geometry</span> <span class="pre">hash&gt;</span></code>; lookups take the lowest. The same
+minimum computed again is only logged.</p></li>
+</ul>
+</section>
 <section id="geometries-and-energies-at-different-levels">
 <h3>Geometries and energies at different levels<a class="headerlink" href="#geometries-and-energies-at-different-levels" title="Link to this heading">#</a></h3>
 <p>Thermochemistry often takes the energy from a costly level of theory (for example
@@ -879,6 +912,7 @@ batch of targets computes each fragment once.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#importing-orca-results">Importing ORCA results</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#active-thermochemical-tables">Active Thermochemical Tables</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-fragment-energy-store">The fragment-energy store</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#write-back-from-jobs-and-the-harvest-of-jobs-that-come-back">Write-back from jobs, and the harvest of jobs that come back</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#geometries-and-energies-at-different-levels">Geometries and energies at different levels</a></li>
 </ul>
 </li>
