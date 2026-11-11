@@ -267,6 +267,34 @@ class FragmentRecord(dict):
         )
 
 
+class NewerSchemaError(PermissionError):
+    """The store's schema is newer than this code's, so it is not written:
+    older code would not maintain what the newer schema adds."""
+
+
+#: The stores with a newer schema already warned about when read
+_warned_newer = set()
+
+
+def _newer_schema(path, version):
+    return (
+        f"The fragment store {path} is at schema version {version}, newer than "
+        f"this seamm-thermochemistry understands ({SCHEMA_VERSION})"
+    )
+
+
+def file_schema_version(path):
+    """A store file's ``PRAGMA user_version``, or None if it cannot be read."""
+    try:
+        db = sqlite3.connect(f"file:{path}?mode=ro", uri=True, timeout=30)
+        try:
+            return db.execute("PRAGMA user_version").fetchone()[0]
+        finally:
+            db.close()
+    except sqlite3.Error:
+        return None
+
+
 class FragmentStore(GeometryEnergyMixin):
     """The fragment-energy store (see the module docstring), with the geometry
     and energy tables of :mod:`.geometry_store`.
@@ -314,6 +342,24 @@ class FragmentStore(GeometryEnergyMixin):
         # rollback journal (never WAL on a network filesystem)
         db.execute("PRAGMA mmap_size = 0")
         db.execute("PRAGMA busy_timeout = 30000")
+        # A store from newer code is never written (older code would not
+        # maintain what its schema adds, e.g. a quarantine column), and reading
+        # it is warned about once
+        version = db.execute("PRAGMA user_version").fetchone()[0]
+        if version > SCHEMA_VERSION:
+            if create:
+                db.close()
+                raise NewerSchemaError(
+                    _newer_schema(self.path, version)
+                    + ", so it is not written to. Update seamm-thermochemistry."
+                )
+            if str(self.path) not in _warned_newer:
+                _warned_newer.add(str(self.path))
+                logger.warning(
+                    _newer_schema(self.path, version)
+                    + ": it is read as the older schema, without what the newer "
+                    "one adds, and never written. Update seamm-thermochemistry."
+                )
         if create:
             db.execute("PRAGMA journal_mode = DELETE")
             db.executescript(_SCHEMA + GEOMETRY_SCHEMA)
@@ -1592,6 +1638,16 @@ def store_is_writable(path=None):
     except Exception:  # pragma: no cover
         pass
     setting = (setting or "auto").strip().lower()
+    # Never a store from newer code, whatever the setting
+    target = fragment_store_path(path)
+    if target.exists():
+        version = file_schema_version(target)
+        if version is not None and version > SCHEMA_VERSION:
+            return False, (
+                f"at schema version {version}, newer than this "
+                f"seamm-thermochemistry understands ({SCHEMA_VERSION}); update "
+                "seamm-thermochemistry to write it"
+            )
     if setting in ("yes", "true", "1"):
         return True, "fragment-store-writable = yes in seamm.ini"
     if setting in ("no", "false", "0"):

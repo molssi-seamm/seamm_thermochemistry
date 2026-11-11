@@ -302,3 +302,24 @@ def test_fluorines_on_one_atom_are_not_too_close(smiles):
     uses for fluorines that do not share an atom (1,1-difluoroethylene was
     refused by the first official build's dry run)."""
     assert check_structure(*_embedded(smiles), smiles, 0, 1) is None
+
+
+def test_the_hook_never_writes_a_newer_store(returned_job):
+    """A store from newer code: the hook leaves it alone and keeps the marker,
+    so a JobServer running newer code can harvest the job later."""
+    import sqlite3
+
+    from seamm_thermochemistry.geometry_store import SCHEMA_VERSION
+
+    job, path = returned_job
+    with FragmentStore(path, create=True):
+        pass
+    db = sqlite3.connect(path)
+    db.execute(f"PRAGMA user_version = {SCHEMA_VERSION + 1}")
+    db.commit()
+    db.close()
+    before = path.read_bytes()
+    hooks.write_marker(job, ["CO"], "x")
+    assert hooks.harvest_finished_job(job_id=42, wdir=job, state="finished") is None
+    assert (job / hooks.MARKER).exists()
+    assert path.read_bytes() == before

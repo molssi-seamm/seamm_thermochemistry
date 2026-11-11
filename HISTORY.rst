@@ -2,6 +2,16 @@
 History
 =======
 
+2026.11.11.12 -- A fragment store from newer code is never written
+    * A fragment store whose schema version (``PRAGMA user_version``) is higher than
+      this code knows is never written, whatever ``fragment-store-writable`` says:
+      opening it for writing raises ``NewerSchemaError``, ``store_is_writable()``
+      returns why, and the JobServer hook leaves the job's marker for a JobServer
+      with newer code. It is still read, as the older schema, with one warning.
+    * This guards the coming schema 5 (a quarantine column): once this release is on
+      every installation, older code can no longer write a store it does not fully
+      understand.
+
 2026.11.11.11 -- The installer sets up the official fragment store and ATcT
     * ``seamm-thermochemistry-installer install`` and ``update`` (which ``seamm-manager``
       runs) now also install the official fragment store
