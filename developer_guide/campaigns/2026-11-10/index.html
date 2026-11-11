@@ -1,0 +1,1475 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>2026-11-10 – Fragment store P5: write-back, in-job reuse, two layers, ATcT download &#8212; SEAMM thermochemistry Plug-in 2026.11.11 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=6a604523" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/css/custom.css" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../_static/scripts/fontawesome.js?digest=75c7c72ae941e8b558d8"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
+
+    <script src="../../../_static/documentation_options.js?v=83e1bca7"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    <script data-sd-tabs-storage-prefix="sphinx-design-tab-id-" src="../../../_static/design-tabs.js?v=fcb327ea"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'developer_guide/campaigns/2026-11-10/index';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="prev" title="Campaigns" href="../index.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="2026.11.11" />
+  
+    
+    <script src="../../../_static/searchtools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation" aria-expanded="false" aria-controls="pst-primary-sidebar-modal">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../_static/SEAMM logo.png" class="logo__image only-light" alt=""/>
+    <img src="../../../_static/SEAMM Inverted 288x181.png" class="logo__image only-dark pst-js-only" alt=""/>
+  
+  
+    <p class="title logo__title">SEAMM-THERMOCHEMISTRY</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../api.html">
+    API Documentation
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../../index.html">
+    Developer Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-external" href="https://molssi-seamm.github.io">
+    SEAMM Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-external" href="https://molssi.org">
+    MolSSI
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/molssi-seamm/seamm_thermochemistry" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/MolSSI_NSF" title="Twitter" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-twitter fa-lg" aria-hidden="true"></i><span class="visually-hidden">Twitter</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button type="button" class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page" aria-expanded="false" aria-controls="pst-secondary-sidebar-modal">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal" tabindex="-1"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../api.html">
+    API Documentation
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../../index.html">
+    Developer Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-external" href="https://molssi-seamm.github.io">
+    SEAMM Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-external" href="https://molssi.org">
+    MolSSI
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/molssi-seamm/seamm_thermochemistry" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/MolSSI_NSF" title="Twitter" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-twitter fa-lg" aria-hidden="true"></i><span class="visually-hidden">Twitter</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button type="button" id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../index.html">Campaigns</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2 current active"><a aria-current="page" class="current reference internal" href="#">2026-11-10 – Fragment store P5: write-back, in-job reuse, two layers, ATcT download</a></li>
+</ul>
+</details></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-house"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Developer Documentation</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Campaigns</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">2026-11-10 – Fragment store P5: write-back, in-job reuse, two layers, ATcT download</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="fragment-store-p5-write-back-in-job-reuse-two-layers-atct-download">
+<h1>2026-11-10 – Fragment store P5: write-back, in-job reuse, two layers, ATcT download<a class="headerlink" href="#fragment-store-p5-write-back-in-job-reuse-two-layers-atct-download" title="Link to this heading">#</a></h1>
+<p>Status: design note, written 2026-11-10 (design). <strong>Nothing coded.</strong> Paul’s
+decisions 1-5 below are settled. Science reviewed the note the same evening, and
+its points are folded in:</p>
+<ul class="simple">
+<li><p>the per-species expected fingerprint (§2a);</p></li>
+<li><p>the structure guard and distinct conformers (§3);</p></li>
+<li><p>R5 (§4);</p></li>
+<li><p>the uncertainty-method column (§5);</p></li>
+<li><p>the official sanity pass (§6);</p></li>
+<li><p>the validation additions.</p></li>
+</ul>
+<p><strong>Decided 2026-11-10 (Paul): D1-D8 accepted as recommended</strong> (see <a class="reference internal" href="#d-items-for-paul">D-items
+for Paul</a>). Implementation can start with P5a.</p>
+<p><strong>P5a implemented 2026-11-11</strong> (branch <code class="docutils literal notranslate"><span class="pre">p5a-store-reuse</span></code> in seamm_thermochemistry,
+orca_step, seamm_exec and thermochemistry_step; not yet released). Found while
+doing it: the step kept the fingerprints of the <em>last</em> species it computed as
+the ones to look up with, so after a boron fragment every later lookup in the
+iteration missed; it now keeps the target’s. And an energy-level single point
+found on a configuration in the job is reused only when its record names the
+configuration’s current geometry.</p>
+<p>Numbering: these phases are the fragment store’s P5 (P5a-P5e). The 11-08
+presets plan also had a P5 (long-bond and %[(T)] flags) and a P6 (pilot). Those
+keep their names and have nothing to do with this note.</p>
+<section id="why">
+<h2>Why<a class="headerlink" href="#why" title="Link to this heading">#</a></h2>
+<p>The store (P1-P4, seamm-thermochemistry 2026.11.8.x) is read by the step but
+filled only by hand with <code class="docutils literal notranslate"><span class="pre">seamm-thermochemistry-fragments</span> <span class="pre">harvest</span></code>. ChemAI job
+5684 (the 1694 set, the default preset, a <strong>serial</strong> Loop, <code class="docutils literal notranslate"><span class="pre">parallel:</span> <span class="pre">'no'</span></code>)
+shows what that costs:</p>
+<ul class="simple">
+<li><p>By 18:53 on 11-10, 188 iterations had run 675 species calculations, but only
+~170 distinct species. That is about 500 repeats (~75 %): H₂ 114 times, CH₄ 74,
+HF 58, C₂H₆ 49, CH₃F 39, HCl 35, …</p></li>
+<li><p>Every repeat already existed in the job’s own database as <code class="docutils literal notranslate"><span class="pre">CBH:&lt;SMILES&gt;</span></code>
+with its fingerprints. The step never looks there: <code class="docutils literal notranslate"><span class="pre">_compute_species</span></code> finds
+the system, then optimizes it and computes its Hessian again.</p></li>
+<li><p>When Science harvested 5684 into the ChemAI store by hand (18:35),
+iterations 178 and later got CH₄, H₂, C₂H₆ and C₃H₈ from the store (“store;
+energy store”, same E). Harvesting during a job does give reuse within the
+job, so write-back would have done the same automatically.</p></li>
+<li><p>The 598 seed rows were not reused, for two reasons:</p>
+<ul>
+<li><p><strong>A real grid difference.</strong> The sub-step rows were run with
+<code class="docutils literal notranslate"><span class="pre">!</span> <span class="pre">R2SCAN-3C</span> <span class="pre">TIGHTSCF</span></code> (DEFGRID2). The engine adds <code class="docutils literal notranslate"><span class="pre">TIGHTSCF</span> <span class="pre">DEFGRID3</span></code>
+(<code class="docutils literal notranslate"><span class="pre">orca_step/data/orca_mdi.py</span></code> <code class="docutils literal notranslate"><span class="pre">ACCURACY_KEYWORDS</span></code>). The fingerprint guard
+is correct. Paul’s decision on the grid is “(a) now, then (b)”: the
+DEFGRID3 recompute is under way.</p></li>
+<li><p><strong>Different names for one model chemistry.</strong> The sub-step rows say
+<code class="docutils literal notranslate"><span class="pre">CMP&#64;R2SCAN-3C</span></code>, but the step asks for <code class="docutils literal notranslate"><span class="pre">ORCA:CMP&#64;R2SCAN-3C</span></code>. This
+matters only for the unverified fallback, but it will bite every
+name-based lookup.</p></li>
+</ul>
+</li>
+<li><p><strong>A third miss, by elements.</strong> The step looks up every species’
+energy-level energy with the <strong>target’s</strong> settings fingerprint.
+<code class="docutils literal notranslate"><span class="pre">_energy_level_energies</span></code> passes the target’s record fingerprint to
+<code class="docutils literal notranslate"><span class="pre">store.energy</span></code>. But ORCA chooses exact exchange (<code class="docutils literal notranslate"><span class="pre">NoCOSX</span></code>) per calculation
+by its own elements: a one-center job, or any atom of Na, Mg, Zn, B or P
+(orca_step#44). So the stored revDSD energies of boron species have
+fingerprint <code class="docutils literal notranslate"><span class="pre">sha256:7ca1cbbc…</span></code>, and those of ordinary species have
+<code class="docutils literal notranslate"><span class="pre">sha256:1e16835c…</span></code>.</p>
+<ul>
+<li><p>CBH fragments are sub-structures of the target, so the miss is for the
+fragments <strong>without</strong> those elements under a target <strong>with</strong> them. A B or P
+target looks up its CH₄, H₂ and HF with <code class="docutils literal notranslate"><span class="pre">7ca1…</span></code> and misses. They are then
+computed with COSX and stored as <code class="docutils literal notranslate"><span class="pre">1e16…</span></code>, so they miss again in every
+such job.</p></li>
+<li><p>P matters most: PF₆⁻, phosphates and the P-F references.</p></li>
+<li><p>The geometry key is not split: r2SCAN-3c has no exact exchange, so COSX is
+moot and is dropped from its fingerprint (<code class="docutils literal notranslate"><span class="pre">sha256:6b46…</span></code>). A hybrid
+geometry level would split the same way.</p></li>
+</ul>
+</li>
+</ul>
+<p>The repeats are mostly small molecules, so the saving in core-hours is less
+than 75 %. Validation run V1 will measure it.</p>
+</section>
+<section id="paul-s-decisions-settled">
+<h2>Paul’s decisions (settled)<a class="headerlink" href="#paul-s-decisions-settled" title="Link to this heading">#</a></h2>
+<ol class="arabic">
+<li><p><strong>Write-back.</strong> The step adds each species it computes to the store: the
+geometry and frequency row, and an energy row per level. The existing guards
+apply: imaginary modes above 20i are rejected, the pairing and same-level
+guards hold, and duplicates agree within 0.1 kJ/mol. Jobs on remote clusters
+are harvested when they come back, by a JobServer stage-out hook or the CLI.
+A merge tool combines copies of the store on different installations.</p></li>
+<li><p><strong>In-job reuse.</strong> “design should check that a job’s fragments are reused”.
+Each iteration checks the store as it runs, so write-back gives reuse within
+a job. Duplicates computed by parallel iterations are acceptable. An
+optional “in progress” marker per species and fingerprint would let a
+parallel iteration wait instead.</p></li>
+<li><p><strong>Two layers.</strong> “keep two databases, our ‘official’ one plus the user’s
+local one, and preferentially get from the user’s”.</p>
+<ul class="simple">
+<li><p>The official layer is on Zenodo: read-only and versioned. Its sha256 is
+recorded in the installation, and the installer replaces it whole, as it
+does <code class="docutils literal notranslate"><span class="pre">thermochemistry.db</span></code>.</p></li>
+<li><p>The local layer is writable, filled only by write-back and harvest, and
+never overwritten.</p></li>
+<li><p>Lookup goes to local first, then official.</p></li>
+</ul>
+<p>Science’s refinements:</p>
+<ul class="simple">
+<li><p>An official “superseded” mark beats an identical old local row (logged).</p></li>
+<li><p>The same species and fingerprint differing by more than 0.1 kJ/mol is
+logged as a duplicate.</p></li>
+<li><p>The lowest conformer is chosen across both layers, but energies always come
+from the same layer as their geometry.</p></li>
+</ul>
+<p>A CLI exports the local rows that are not in official, with their provenance,
+for the next official version. The single <code class="docutils literal notranslate"><span class="pre">fragments.db</span></code> now on each
+machine becomes its local layer.</p>
+</li>
+<li><p><strong>ATcT.</strong> “ATcT is open access, so we should automatically download what is
+needed so the user doesn’t have to do anything.”</p>
+<ul class="simple">
+<li><p>The step or the installer downloads the ATcT version when it is missing.
+The never-modified-copy rule holds, and the metadata and SHA-256 are kept.</p></li>
+<li><p>The covariance default becomes “fetch if needed”, falling back to
+quadrature when offline.</p></li>
+<li><p>One installer run sets up ATcT, <code class="docutils literal notranslate"><span class="pre">thermochemistry.db</span></code> and the seed store.</p></li>
+</ul>
+</li>
+<li><p><strong>Model-chemistry names.</strong> Lookup, write-back and harvest all use the bare
+model plus the program column (<code class="docutils literal notranslate"><span class="pre">CMP&#64;R2SCAN-3C</span></code> + <code class="docutils literal notranslate"><span class="pre">ORCA</span></code>).</p></li>
+</ol>
+</section>
+<section id="design">
+<h2>Design<a class="headerlink" href="#design" title="Link to this heading">#</a></h2>
+<section id="model-chemistry-names-p5a">
+<h3>1. Model-chemistry names (P5a)<a class="headerlink" href="#model-chemistry-names-p5a" title="Link to this heading">#</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">seamm_thermochemistry.fragment_store.split_model_chemistry(text,</span> <span class="pre">program=None)</span></code>
+returns <code class="docutils literal notranslate"><span class="pre">(model,</span> <span class="pre">program)</span></code>:</p>
+<ul class="simple">
+<li><p>The text splits at its first <code class="docutils literal notranslate"><span class="pre">:</span></code> only when that colon comes before the first
+<code class="docutils literal notranslate"><span class="pre">&#64;</span></code> and the prefix has no <code class="docutils literal notranslate"><span class="pre">&#64;</span></code>. So <code class="docutils literal notranslate"><span class="pre">ORCA:CMP&#64;R2SCAN-3C</span></code> gives
+(<code class="docutils literal notranslate"><span class="pre">CMP&#64;R2SCAN-3C</span></code>, <code class="docutils literal notranslate"><span class="pre">ORCA</span></code>), and <code class="docutils literal notranslate"><span class="pre">ORCA:DFT&#64;B3LYP/bse:def2-SVP</span></code> gives
+(<code class="docutils literal notranslate"><span class="pre">DFT&#64;B3LYP/bse:def2-SVP</span></code>, <code class="docutils literal notranslate"><span class="pre">ORCA</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">QC&#64;CCSD(T)-F12D_RI/cc-pVTZ-F12</span></code> is left whole.</p></li>
+<li><p>Programs are compared case-insensitively and stored as the calculation record
+writes them (<code class="docutils literal notranslate"><span class="pre">ORCA</span></code>).</p></li>
+<li><p>An explicit <code class="docutils literal notranslate"><span class="pre">program</span></code> that contradicts the prefix is logged, and the explicit
+one is kept.</p></li>
+</ul>
+<p>It is applied everywhere a model chemistry enters or queries the store:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">FragmentRecord.make</span></code>, <code class="docutils literal notranslate"><span class="pre">GeometryRecord.make</span></code> and <code class="docutils literal notranslate"><span class="pre">EnergyRecord.make</span></code>
+store the bare model and fill <code class="docutils literal notranslate"><span class="pre">program</span></code>.</p></li>
+<li><p>In <code class="docutils literal notranslate"><span class="pre">harvest_job</span></code>, the property name’s model field is split. The program
+comes from the <code class="docutils literal notranslate"><span class="pre">calculation</span></code> record, or else from the prefix. The
+property’s second field is a step name (<code class="docutils literal notranslate"><span class="pre">Thermochemistry</span></code>), never a
+program.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">get</span></code>, <code class="docutils literal notranslate"><span class="pre">geometries</span></code>, <code class="docutils literal notranslate"><span class="pre">energy</span></code> and <code class="docutils literal notranslate"><span class="pre">species_at</span></code> normalize the model
+they are given and match <code class="docutils literal notranslate"><span class="pre">model_chemistry</span> <span class="pre">=</span> <span class="pre">?</span> <span class="pre">AND</span> <span class="pre">(program</span> <span class="pre">IS</span> <span class="pre">NULL</span> <span class="pre">OR</span>
+<span class="pre">program</span> <span class="pre">=</span> <span class="pre">?)</span></code>. Verified lookups by fingerprint are unaffected.</p></li>
+<li><p>Unverified keys become <code class="docutils literal notranslate"><span class="pre">unverified:&lt;program</span> <span class="pre">or</span> <span class="pre">?&gt;:&lt;model&gt;&#64;&lt;version</span> <span class="pre">or</span> <span class="pre">?&gt;</span></code>,
+one spelling for one level.</p></li>
+</ul>
+</section>
+<section id="in-job-reuse-p5a-with-p5b">
+<h3>2. In-job reuse (P5a, with P5b)<a class="headerlink" href="#in-job-reuse-p5a-with-p5b" title="Link to this heading">#</a></h3>
+<p>Before computing a species, the step tries three sources in order: the job’s
+database, the store (local, then official, see §4), and finally a computation.</p>
+<p><strong>The job’s database</strong> (new, in <code class="docutils literal notranslate"><span class="pre">cbh_approach</span></code>: <code class="docutils literal notranslate"><span class="pre">_from_job(system_db,</span>
+<span class="pre">can)</span></code>):</p>
+<ul class="simple">
+<li><p>It looks at every system named <code class="docutils literal notranslate"><span class="pre">CBH:&lt;can&gt;</span></code>; a snapshot merge can leave two.
+For each one it checks the current configuration first, then the others.</p></li>
+<li><p><strong>Geometry level.</strong> It takes the properties <code class="docutils literal notranslate"><span class="pre">total</span> <span class="pre">energy</span></code>, <code class="docutils literal notranslate"><span class="pre">ZPE</span></code> and
+<code class="docutils literal notranslate"><span class="pre">H(298.15</span> <span class="pre">K)</span></code> at <code class="docutils literal notranslate"><span class="pre">#Thermochemistry#&lt;model&gt;</span></code>, but only when the stored
+<code class="docutils literal notranslate"><span class="pre">frequency</span> <span class="pre">fingerprint</span></code> (split levels) or <code class="docutils literal notranslate"><span class="pre">settings</span> <span class="pre">fingerprint</span></code> (one
+level) equals the fingerprint of this run. The configuration must also have
+no imaginary mode above 20i.</p></li>
+<li><p><strong>Energy level.</strong> It takes <code class="docutils literal notranslate"><span class="pre">total</span> <span class="pre">energy#Thermochemistry#&lt;level&gt;</span></code> when the
+<code class="docutils literal notranslate"><span class="pre">settings</span> <span class="pre">fingerprint#Thermochemistry#&lt;level&gt;</span></code> is one of <strong>this species’</strong>
+expected fingerprints (§2a), not the target’s.</p></li>
+<li><p>It reuses the existing configuration. No new “from the fragment store”
+configuration is created, as <code class="docutils literal notranslate"><span class="pre">_configuration_from_geometry</span></code> does today.</p></li>
+<li><p>A fingerprint must match, so results from another code version or other
+settings are never reused silently. The subflowchart route stores no
+fingerprints, so it gets no in-job reuse from the job’s database; write-back
+covers it.</p></li>
+<li><p>The fingerprints are known only after the step’s first engine calculation,
+which is always the target’s. This is the same constraint the store lookup
+has now.</p></li>
+</ul>
+<p>This alone fixes 5684-type serial loops, and it needs no store at all.</p>
+</section>
+<section id="a-per-species-expected-fingerprints-p5a-science-11-10">
+<h3>2a. Per-species expected fingerprints (P5a; Science 11-10)<a class="headerlink" href="#a-per-species-expected-fingerprints-p5a-science-11-10" title="Link to this heading">#</a></h3>
+<p>Each species is looked up, in the job’s database and in the store, with the
+fingerprints that ORCA would produce <strong>for that species</strong>: NoCOSX or not, chosen
+by its own elements. This applies to the energy level and to the geometry
+(frequency) level. Only the elements change the settings this way, because
+geometry, charge and multiplicity are removed before hashing
+(<code class="docutils literal notranslate"><span class="pre">orca_step.fingerprint</span></code>).</p>
+<p><strong>Interface.</strong> The code plug-in predicts; the step never re-implements ORCA’s
+rules.</p>
+<ul class="simple">
+<li><p><strong>orca_step</strong>: <code class="docutils literal notranslate"><span class="pre">batch.expected_fingerprints(model_chemistry,</span> <span class="pre">symbols,</span> <span class="pre">*,</span>
+<span class="pre">kind=&quot;energy&quot;</span> <span class="pre">|</span> <span class="pre">&quot;hessian&quot;,</span> <span class="pre">version,</span> <span class="pre">options=None)</span></code>.</p>
+<ul>
+<li><p>It builds the <code class="docutils literal notranslate"><span class="pre">!</span></code> line and blocks with the same helpers that
+<code class="docutils literal notranslate"><span class="pre">get_task</span></code> and the MDI engine use (<code class="docutils literal notranslate"><span class="pre">engine_helpers</span></code>,
+<code class="docutils literal notranslate"><span class="pre">exact_exchange_method</span></code>), and hashes them with
+<code class="docutils literal notranslate"><span class="pre">orca_calculation_record</span></code>.</p></li>
+<li><p>It returns a small set: the fingerprint as written, and the one with COSX
+and NoCOSX dropped. Whether COSX is moot is known only from ORCA’s output
+(<code class="docutils literal notranslate"><span class="pre">cosx_is_moot</span></code>), so the stored fingerprint is always one of the two.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">version</span></code> comes from the target’s calculation record in the same run (one
+ORCA per run).</p></li>
+</ul>
+</li>
+<li><p><strong>seamm_exec</strong>: <code class="docutils literal notranslate"><span class="pre">Evaluator.expected_fingerprints(configuration,</span> <span class="pre">kind)</span></code>
+calls the code’s function when it has one. For codes without it, it returns
+<code class="docutils literal notranslate"><span class="pre">None</span></code>, and the step falls back to today’s rule (the target’s fingerprint).</p></li>
+<li><p><strong>thermochemistry_step</strong>: <code class="docutils literal notranslate"><span class="pre">_energy_level_energies</span></code> and <code class="docutils literal notranslate"><span class="pre">_from_job</span></code> (and
+the store lookups) pass each species’ set. The store’s <code class="docutils literal notranslate"><span class="pre">energy</span></code> and
+<code class="docutils literal notranslate"><span class="pre">geometries</span></code> accept a set of fingerprints.</p></li>
+</ul>
+<p><strong>Self-check.</strong> After computing a species, the step compares the recorded
+fingerprint with the predicted set. A miss means the prediction has drifted from
+ORCA’s rules, for example after an orca_step change. The step prints a warning
+naming the species and both fingerprints. The species is still used and written
+back under its recorded fingerprint, so a drift costs reuse, never correctness.</p>
+<p><strong>The store, per iteration</strong> (exists). With write-back (§3), each species is in
+the local layer seconds after any iteration computes it. That covers what the
+job’s database cannot:</p>
+<ul class="simple">
+<li><p>iterations of a <strong>parallel</strong> Loop, which each get a snapshot <code class="docutils literal notranslate"><span class="pre">seamm.db</span></code>
+holding only their own structures;</p></li>
+<li><p>later jobs.</p></li>
+</ul>
+<p><strong>Parallel duplicates.</strong> The first wave of a parallel Loop (the iterations
+running at once) computes the shared fragments concurrently, and later
+iterations read them. The waste is bounded by iterations-at-once × shared
+fragments. A claim (“in progress”) table could remove it; see D2.</p>
+</section>
+<section id="write-back-p5b">
+<h3>3. Write-back (P5b)<a class="headerlink" href="#write-back-p5b" title="Link to this heading">#</a></h3>
+<p><strong>One code path.</strong> The per-configuration body of <code class="docutils literal notranslate"><span class="pre">harvest_job</span></code> becomes
+<code class="docutils literal notranslate"><span class="pre">harvest_configuration(store,</span> <span class="pre">configuration,</span> <span class="pre">species,</span> <span class="pre">*,</span> <span class="pre">charge,</span>
+<span class="pre">multiplicity,</span> <span class="pre">conformer,</span> <span class="pre">job,</span> <span class="pre">...)</span></code>. <code class="docutils literal notranslate"><span class="pre">harvest_job</span></code> loops over systems and
+calls it. The step calls it right after each species it <strong>computes</strong>: the
+target, every fragment, and the “species only” mode (46e2c3f). Write-back and a
+later harvest of the same job therefore give the same rows, and the later
+harvest finds only duplicates. Species that came from the store or from the
+job’s database are not written again.</p>
+<p><strong>Guards:</strong></p>
+<ul class="simple">
+<li><p>The pairing guard and the same-level guard are as now.</p></li>
+<li><p>Writes are insert-or-ignore, and differences over 0.1 kJ/mol are logged, never
+overwritten.</p></li>
+<li><p>Write-back <strong>refuses</strong> a geometry with an imaginary mode above 20i, together
+with the energy rows on it, and says so in the step output. Paul: “rejected”.</p></li>
+<li><p>The explicit <code class="docutils literal notranslate"><span class="pre">harvest</span></code> CLI keeps today’s behaviour: such a geometry is stored
+for provenance and never returned for reuse.</p></li>
+<li><p><strong>Structure guard</strong> (Science 11-10). Before a computed species is written,
+its bonds are perceived again from the optimized coordinates, not taken from
+the configuration’s bonds, which come from the SMILES.</p>
+<ul>
+<li><p>The canonical SMILES without stereo, the charge and the multiplicity must
+equal the key, also compared without stereo.</p></li>
+<li><p>Unusual centres (hypervalent, metal, high coordination) must have a
+shortest ligand-ligand distance above the molsystem threshold for atoms too
+close, as for PF₆⁻.</p></li>
+<li><p>Otherwise the species is refused and the step says why. A fragment that
+rearranged during its optimization would otherwise become an <code class="docutils literal notranslate"><span class="pre">auto:</span></code>
+“lower conformer” (D5) and win every later lookup. Hypervalent and
+zwitterionic fragments are the likely cases; the 1694 set has 16
+hypervalent hydrides.</p></li>
+<li><p>The job keeps using what it computed; only the store refuses it.</p></li>
+<li><p>Perception that fails (no connectivity found) also refuses.</p></li>
+<li><p>The same check runs in <code class="docutils literal notranslate"><span class="pre">harvest_configuration</span></code>, so the CLI applies it too.
+<code class="docutils literal notranslate"><span class="pre">--no-structure-check</span></code> overrides it, with the reason recorded in
+<code class="docutils literal notranslate"><span class="pre">source</span></code>.</p></li>
+</ul>
+</li>
+</ul>
+<p><strong>When the step writes:</strong></p>
+<ul class="simple">
+<li><p>The parameter <code class="docutils literal notranslate"><span class="pre">fragment</span> <span class="pre">store</span></code> gets three choices:</p>
+<ul>
+<li><p>“use and add what is computed” (the new default);</p></li>
+<li><p>“use only” (today’s “use if available”);</p></li>
+<li><p>“ignore”.</p></li>
+</ul>
+</li>
+<li><p>The local layer is opened writable only if it is on a <strong>local filesystem of
+the machine running the step</strong>. <code class="docutils literal notranslate"><span class="pre">seamm_thermochemistry.fragment_store.</span>
+<span class="pre">is_local_filesystem(path)</span></code> reads the mount table: <code class="docutils literal notranslate"><span class="pre">/proc/mounts</span></code> on Linux,
+<code class="docutils literal notranslate"><span class="pre">getmntinfo</span></code> through <code class="docutils literal notranslate"><span class="pre">os.statvfs</span></code>/<code class="docutils literal notranslate"><span class="pre">stat</span> <span class="pre">-f</span></code> on macOS.</p>
+<ul>
+<li><p>zfs, apfs, ext4, xfs and btrfs count as local.</p></li>
+<li><p>nfs*, gpfs, lustre, beegfs, ceph, cifs/smbfs and fuse.sshfs, and anything
+unknown, count as not local.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">[thermochemistry]</span> <span class="pre">fragment-store-writable</span> <span class="pre">=</span> <span class="pre">auto</span> <span class="pre">|</span> <span class="pre">yes</span> <span class="pre">|</span> <span class="pre">no</span></code> in seamm.ini
+overrides the check.</p></li>
+</ul>
+</li>
+<li><p>This keeps the reason for the 10-28 rule (SQLite locking is unreliable on
+GPFS/NFS; the 5398 SIGBUS crashes) and drops its letter (“a single writer;
+never from a job”). See D1.</p></li>
+<li><p>Several iterations on one host may write at once. Each write is one short
+transaction per species, using the rollback journal and the existing 30 s
+busy timeout.</p></li>
+<li><p>A write that still fails is logged and skipped. It never fails the species,
+and the harvest picks it up later.</p></li>
+<li><p>When the step does not write, the properties stay on the configurations, as
+now (they are the harvest’s input). The step prints “not added to the store
+(&lt;fstype&gt;); harvested when the job returns” and writes the marker
+<code class="docutils literal notranslate"><span class="pre">&lt;job&gt;/harvest_fragments.json</span></code> (species, levels, why).</p></li>
+</ul>
+<p><strong>Conformers (D5).</strong> The geometry key has <code class="docutils literal notranslate"><span class="pre">conformer</span> <span class="pre">=</span> <span class="pre">''</span></code>, so today a lower
+conformer found later is only logged. The proposal:</p>
+<ul class="simple">
+<li><p>Write-back stores a computed geometry as a new conformer,
+<code class="docutils literal notranslate"><span class="pre">auto:&lt;geometry</span> <span class="pre">hash[:12]&gt;</span></code>, when both of these hold:</p>
+<ul>
+<li><p>its E + ZPE is lower than every stored conformer’s by more than
+0.1 kJ/mol;</p></li>
+<li><p>it is <strong>structurally distinct</strong> from each of them: a symmetry-aware Kabsch
+RMSD above 0.05 Å (RDKit <code class="docutils literal notranslate"><span class="pre">GetBestRMS</span></code> over the graph).</p></li>
+</ul>
+</li>
+<li><p>Lower alone is not enough: finite-difference ZPE noise on the same minimum
+can reach about 0.1 kJ/mol (Science).</p></li>
+<li><p>It must also pass the structure guard above.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">_geometry_from_store</span></code> already takes the lowest E + ZPE.</p></li>
+<li><p>A repeat of the same minimum, or a higher conformer, goes to
+<code class="docutils literal notranslate"><span class="pre">duplicate_log</span></code> / <code class="docutils literal notranslate"><span class="pre">row_history</span></code> as now. Nothing is overwritten.</p></li>
+</ul>
+<p><strong>Remote jobs: the JobServer hook (D6).</strong></p>
+<ul class="simple">
+<li><p>A generic hook in seamm_jobserver: after <code class="docutils literal notranslate"><span class="pre">_finalize_job_status</span></code> (that is,
+after stage-out, so the files are local), the JobServer runs the entry points
+in <code class="docutils literal notranslate"><span class="pre">org.molssi.seamm.jobserver.job_finished</span></code>.</p></li>
+<li><p>They run in a background thread with a time limit, and are called as
+<code class="docutils literal notranslate"><span class="pre">hook(job_id=,</span> <span class="pre">wdir=,</span> <span class="pre">state=,</span> <span class="pre">logger=)</span></code>.</p></li>
+<li><p>Exceptions are logged and never change the job’s status. Nothing
+thermochemistry-specific goes into the JobServer.</p></li>
+<li><p>The hook must never block the poll loop: compare the 28 GB stage-in that
+stalled ChemAI for 3.5 h.</p></li>
+<li><p>seamm-thermochemistry registers <code class="docutils literal notranslate"><span class="pre">harvest</span></code>, which:</p>
+<ul>
+<li><p>acts only when <code class="docutils literal notranslate"><span class="pre">harvest_fragments.json</span></code> exists, in any terminal state,
+since finished iterations are valid even if the job failed later;</p></li>
+<li><p>copies <code class="docutils literal notranslate"><span class="pre">seamm.db</span></code> with SQLite’s backup API first (the job database is
+WAL), as Science did by hand for 5684;</p></li>
+<li><p>harvests into the host’s local layer, and appends the counts to the job’s
+<code class="docutils literal notranslate"><span class="pre">job.out</span></code>.</p></li>
+</ul>
+</li>
+</ul>
+<p>Jobs run without a JobServer (<code class="docutils literal notranslate"><span class="pre">run_flowchart</span></code> by hand on ARC) are harvested
+with the existing CLI on the host that holds the local layer.</p>
+</section>
+<section id="two-layers-p5c">
+<h3>4. Two layers (P5c)<a class="headerlink" href="#two-layers-p5c" title="Link to this heading">#</a></h3>
+<p><strong>Files</strong>, in <code class="docutils literal notranslate"><span class="pre">&lt;root&gt;/Parameters/thermochemistry/</span></code>:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">fragments.db</span></code></dt><dd><p>The local layer. The name is unchanged, so today’s files become local layers
+where they are. It is the only file write-back, harvest, merge and
+supersede write to.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">fragments-official.db</span></code></dt><dd><p>The official layer. The installer installs it and replaces it whole. It is
+opened <code class="docutils literal notranslate"><span class="pre">mode=ro&amp;immutable=1</span></code> (no locking), so clusters can read it in place
+on GPFS.</p>
+</dd>
+</dl>
+<p>Both files get a <code class="docutils literal notranslate"><span class="pre">meta</span></code> table with these keys: <code class="docutils literal notranslate"><span class="pre">layer</span></code> (local | official),
+<code class="docutils literal notranslate"><span class="pre">version</span></code> (official: CalVer), <code class="docutils literal notranslate"><span class="pre">created</span></code>, <code class="docutils literal notranslate"><span class="pre">schema</span></code> and <code class="docutils literal notranslate"><span class="pre">source</span></code> (the
+Zenodo DOI). The official file’s sha256 goes in seamm.ini <code class="docutils literal notranslate"><span class="pre">[thermochemistry]</span>
+<span class="pre">fragment-store-sha256</span></code>, next to <code class="docutils literal notranslate"><span class="pre">database-path</span></code>, and <code class="docutils literal notranslate"><span class="pre">installer</span> <span class="pre">check</span></code>
+verifies it. The schema becomes version 3 (the <code class="docutils literal notranslate"><span class="pre">meta</span></code> table, plus <code class="docutils literal notranslate"><span class="pre">claim</span></code>
+if D2 is (b)). Readers of schema-2 files keep working.</p>
+<p><strong>``LayeredStore(local, official)``</strong> (new <code class="docutils literal notranslate"><span class="pre">layered_store.py</span></code>):</p>
+<ul class="simple">
+<li><p>It has the reader API the step uses: <code class="docutils literal notranslate"><span class="pre">geometries</span></code>, <code class="docutils literal notranslate"><span class="pre">energy</span></code>,
+<code class="docutils literal notranslate"><span class="pre">species_at</span></code> and <code class="docutils literal notranslate"><span class="pre">get</span></code>.</p></li>
+<li><p>Every row it returns carries <code class="docutils literal notranslate"><span class="pre">layer</span></code>.</p></li>
+<li><p>Writes go to local only.</p></li>
+<li><p>It refuses a file whose <code class="docutils literal notranslate"><span class="pre">meta.layer</span></code> is wrong for its role.</p></li>
+</ul>
+<p><strong>Lookup rules:</strong></p>
+<dl>
+<dt>R1</dt><dd><p>The same key in both layers: the <strong>local</strong> row is used, except under R2.</p>
+</dd>
+<dt>R2</dt><dd><p>The official row for the key has been superseded (its <code class="docutils literal notranslate"><span class="pre">superseded</span></code> or
+<code class="docutils literal notranslate"><span class="pre">row_history</span></code> kind <code class="docutils literal notranslate"><span class="pre">superseded</span></code>), and the local row equals one of the
+superseded old values within 0.1 kJ/mol. Then the <strong>official</strong> current row
+is used, and the step logs “local &lt;species&gt; is the value official &lt;version&gt;
+superseded on &lt;date&gt;: &lt;reason&gt;”.</p>
+</dd>
+<dt>R3</dt><dd><p>The same key, values differing by more than 0.1 kJ/mol, and not R2: local is
+used and the conflict is logged in the step output. The new CLI
+<code class="docutils literal notranslate"><span class="pre">duplicates</span> <span class="pre">--layers</span></code> lists such conflicts across the two files.</p>
+</dd>
+<dt>R4</dt><dd><p>Conformers: the candidates come from both layers, after the imaginary
+filter. The lowest E + ZPE wins, and a tie within 0.1 kJ/mol goes to local.
+Verified rows in either layer come before unverified rows in either.</p>
+</dd>
+<dt>R5</dt><dd><p>Energies pair with geometries only on the <strong>same geometry hash</strong>, never
+across hashes. They are looked up in the geometry’s own layer first, then
+in the other layer. The energy fingerprint must still match (§2a). This is
+Science’s answer of 11-10, and it lets a user’s revDSD single point on an
+official r2SCAN-3c geometry be reused. Science attached two conditions:</p>
+<p>(i) The returned energy row carries its own <code class="docutils literal notranslate"><span class="pre">layer</span></code>, and the step output
+shows any mix, e.g. “geometry official 2026.12.1, energy local”.</p>
+<p>(ii) If a later official version supersedes that geometry with new
+coordinates, its hash changes and the local energy is simply not found. A
+test covers this.</p>
+</dd>
+</dl>
+<p><strong>Export, merge and build (CLI ``seamm-thermochemistry-fragments``):</strong></p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">export</span> <span class="pre">--out</span> <span class="pre">contrib.db</span> <span class="pre">[--label</span> <span class="pre">TEXT]</span></code></dt><dd><p>Writes the local rows whose key is not in official, and rows that differ
+from official by more than 0.1 (flagged), with every provenance column and
+their <code class="docutils literal notranslate"><span class="pre">row_history</span></code>. <code class="docutils literal notranslate"><span class="pre">--label</span></code> is free text the user picks. No host or
+user names are added automatically.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">merge</span> <span class="pre">SOURCE.db</span> <span class="pre">...</span> <span class="pre">[--store</span> <span class="pre">TARGET]</span></code></dt><dd><p>Insert-or-ignore of every fragment, geometry and energy row into the target
+(by default the local layer), with provenance kept and <code class="docutils literal notranslate"><span class="pre">source</span></code> noting the
+origin label. Differing duplicates are logged, and supersede history is
+copied as history rows. It refuses an official file as the target. It is
+used for copies on several installations (Mac and ChemAI), for folding a
+campaign store into a local layer, and for building the next official.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">official</span> <span class="pre">build</span> <span class="pre">--version</span> <span class="pre">V</span> <span class="pre">--previous</span> <span class="pre">OLD.db</span> <span class="pre">--from</span> <span class="pre">A.db</span> <span class="pre">B.db</span> <span class="pre">...</span> <span class="pre">--out</span> <span class="pre">NEW.db</span></code></dt><dd><p>Starts from the previous official and merges the contributions. A differing
+duplicate stops the build until the maintainer resolves it with
+<code class="docutils literal notranslate"><span class="pre">supersede</span></code> and a reason. Then it writes <code class="docutils literal notranslate"><span class="pre">meta</span></code>, runs VACUUM and writes
+a <code class="docutils literal notranslate"><span class="pre">.sha256</span></code> sidecar. Paul publishes the file on Zenodo, as he does for
+<code class="docutils literal notranslate"><span class="pre">thermochemistry.db</span></code> (a new concept record).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">migrate</span> <span class="pre">[--store</span> <span class="pre">FILE]</span></code></dt><dd><p>Makes a dated backup, adds <code class="docutils literal notranslate"><span class="pre">meta</span></code>, normalizes model names (§1) and fills
+in <code class="docutils literal notranslate"><span class="pre">program</span></code>. It reports any key collision, and running it twice changes
+nothing.</p>
+</dd>
+</dl>
+</section>
+<section id="atct-and-the-installer-p5d">
+<h3>5. ATcT and the installer (P5d)<a class="headerlink" href="#atct-and-the-installer-p5d" title="Link to this heading">#</a></h3>
+<p><strong>One installer run.</strong> <code class="docutils literal notranslate"><span class="pre">seamm-thermochemistry-installer</span> <span class="pre">install</span></code> and
+<code class="docutils literal notranslate"><span class="pre">update</span></code>, which seamm-manager runs, set up:</p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">thermochemistry.db</span></code> (as now);</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fragments-official.db</span></code> (new Zenodo concept id; checksum verified,
+sha256 recorded);</p></li>
+<li><p>the newest ATcT version, if none is cached (<code class="docutils literal notranslate"><span class="pre">download_all</span></code>).</p></li>
+</ol>
+<p><code class="docutils literal notranslate"><span class="pre">check</span></code> reports all three. The installer never touches <code class="docutils literal notranslate"><span class="pre">fragments.db</span></code>.</p>
+<p><strong>ATcT download:</strong></p>
+<ul class="simple">
+<li><p>From <code class="docutils literal notranslate"><span class="pre">atct.anl.gov</span></code>, with SEAMM’s own User-Agent and no spoofing.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">metadata.json</span></code> already keeps the source, date, sha256 and the number of
+entries. An existing version is never overwritten.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">check</span></code> recomputes the sha256 against <code class="docutils literal notranslate"><span class="pre">metadata.json</span></code>, to catch a
+modified copy.</p></li>
+<li><p>“latest” stays “the newest <strong>cached</strong> version”, so results do not change
+silently. A newer TN version arrives only through an explicit <code class="docutils literal notranslate"><span class="pre">update</span></code>, and
+old versions are kept.</p></li>
+</ul>
+<p><strong>At run time:</strong></p>
+<ul class="simple">
+<li><p>If the requested version, or any version for “latest”, is missing, the step
+downloads it when the machine has a network. Without one, the error names the
+installer command.</p></li>
+<li><p>Two iterations may race to download. <code class="docutils literal notranslate"><span class="pre">download_all</span></code> must then treat
+“already there” as success: today it raises <code class="docutils literal notranslate"><span class="pre">ATcTError</span></code>.</p></li>
+</ul>
+<p><strong>Access:</strong> In October, <code class="docutils literal notranslate"><span class="pre">/api/v1/all/</span></code> answered 403 to non-browser clients.
+On 2026-11-10, one request to the API root with SEAMM’s User-Agent answered 200;
+<code class="docutils literal notranslate"><span class="pre">/all/</span></code> was not tried. Hence D4.</p>
+<p><strong>Covariances:</strong></p>
+<ul class="simple">
+<li><p>The default becomes “fetch if needed”. When the fetch fails (offline, 403 or
+429), the independent uncertainties are combined in quadrature. The step says
+so as a warning, not an error.</p></li>
+<li><p>The results also record how each uncertainty was combined (Science 11-10),
+so that a Loop’s table cannot silently mix the two:</p>
+<ul>
+<li><p>a column “uncertainty method” in the <code class="docutils literal notranslate"><span class="pre">CBH</span></code> table and the results, with the
+values “covariance” or “quadrature (no covariance: &lt;reason&gt;)”;</p></li>
+<li><p>the matching result property, so it reaches the results CSV and the
+dashboard.</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">covariance.json</span></code> is written atomically and merged on write: re-read it,
+take the union of the blocks, then <code class="docutils literal notranslate"><span class="pre">os.replace</span></code>. Parallel iterations write
+it.</p></li>
+<li><p>A read-only cache keeps the blocks in memory, as now.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">atct_all.json</span></code> is never modified. <code class="docutils literal notranslate"><span class="pre">covariance.json</span></code> is SEAMM’s own cache
+and only grows.</p></li>
+</ul>
+</section>
+<section id="official-v1-p5e">
+<h3>6. Official v1 (P5e)<a class="headerlink" href="#official-v1-p5e" title="Link to this heading">#</a></h3>
+<p>Official v1 is built with <code class="docutils literal notranslate"><span class="pre">official</span> <span class="pre">build</span></code> from the ChemAI local layer after
+the DEFGRID3 recompute. Its contents are D3. Paul publishes it on Zenodo, and
+the installer’s concept id is filled in by a seamm-thermochemistry release.</p>
+<p><strong>Sanity pass before publishing</strong> (Science 11-10; part of <code class="docutils literal notranslate"><span class="pre">official</span> <span class="pre">build</span></code>,
+which refuses to write the file while any check fails, unless a row is
+explicitly excluded with a reason):</p>
+<ul class="simple">
+<li><p><strong>Imaginary modes:</strong> no geometry row with a mode above 20i.</p></li>
+<li><p><strong>Multiplicity:</strong> checked against the ATcT species where ATcT has the
+species. BH and SiCl₂ are singlets, but the 1694 set had them as triplets, so
+no triplet rows for them may get in.</p></li>
+<li><p><strong>Connectivity:</strong> the structure guard of §3, run over every row: bonds
+perceived again, SMILES without stereo, charge and multiplicity.</p></li>
+<li><p><strong>Unusual centres:</strong> the shortest ligand-ligand distance.</p></li>
+<li><p><strong>Ions and doublets</strong> from 5684 belong in v1: they are checked, not excluded.</p></li>
+</ul>
+<p>The report (rows checked, refused, why) is published with the file.</p>
+</section>
+</section>
+<section id="d-items-for-paul">
+<h2>D-items for Paul<a class="headerlink" href="#d-items-for-paul" title="Link to this heading">#</a></h2>
+<dl class="simple">
+<dt>D1 – Write-back from a running job.</dt><dd><p>The step writes the local layer directly when it is on a local disk of the
+machine running the step, and otherwise leaves the species to the harvest.
+This relaxes the 10-28 rule “no store writes from jobs; one writer” to “no
+SQLite writes over network filesystems; several writer processes on one
+host are fine”. <strong>Recommended: yes.</strong></p>
+</dd>
+<dt>D2 – “In progress” marker.</dt><dd><p>(a) None. (b) A <code class="docutils literal notranslate"><span class="pre">claim</span></code> table: an iteration that finds a fresh claim polls
+for up to a time limit, then computes; stale claims are those whose process
+is dead or whose heartbeat is too old.
+<strong>Recommended: (a).</strong> The job’s database covers serial loops. Parallel
+duplicates are limited to the first wave, and claims bring stale-lock
+handling across processes and hosts. Revisit if V2 shows a large waste.</p>
+</dd>
+<dt>D3 – Official v1 contents.</dt><dd><p>(a) Only rows the presets can reach: the engine (DEFGRID3) r2SCAN-3c
+geometries with frequencies, and the revDSD energies on them, from the
+DEFGRID3 recompute plus 5684. That is about 600 species.
+(b) Also the DEFGRID2 sub-step rows and the campaign stores (F12, B2PLYP,
+PBE0, GFN2).
+<strong>Recommended: (a).</strong> Rows no preset can reach only add size and confusion.
+(b) can follow in v2 if wanted.</p>
+</dd>
+<dt>D4 – ATcT source.</dt><dd><p>(a) <code class="docutils literal notranslate"><span class="pre">atct.anl.gov</span></code> only. When it refuses, a clear message and the existing
+<code class="docutils literal notranslate"><span class="pre">download</span> <span class="pre">--from</span> <span class="pre">FILE</span></code>. (b) As (a), plus a SEAMM mirror on Zenodo of the
+unmodified <code class="docutils literal notranslate"><span class="pre">atct_all.json</span></code> as a fallback. That needs ANL’s permission, a
+question for the Ruscic/Bross contact that is already open.
+<strong>Recommended: (a) now, and ask about (b).</strong></p>
+</dd>
+<dt>D5 – A lower conformer found by write-back.</dt><dd><p>(a) Added as a new conformer row (<code class="docutils literal notranslate"><span class="pre">auto:&lt;hash&gt;</span></code>), and the lowest is used.
+(b) First wins, and the lower one is only logged (today).
+<strong>Recommended: (a)</strong>, with the structure guard and the 0.05 Å distinctness
+test of §3. It matches “lowest conformer across layers” within a layer, and
+nothing is overwritten.</p>
+</dd>
+<dt>D6 – Harvesting remote jobs.</dt><dd><p>(a) A generic JobServer <code class="docutils literal notranslate"><span class="pre">job_finished</span></code> hook plus the CLI. (b) The CLI only.
+<strong>Recommended: (a).</strong> Without it, results from ARC queues reach no store
+unless someone remembers.</p>
+</dd>
+<dt>D7 – Clusters.</dt><dd><p>ARC’s <code class="docutils literal notranslate"><span class="pre">Parameters</span></code> is on GPFS. ARC gets the official layer only, read in
+place (immutable), and no local layer. ARC results reach ChemAI’s local
+layer through the hook or a harvest or merge on ChemAI.
+<strong>Recommended: yes.</strong></p>
+</dd>
+<dt>D8 – Names.</dt><dd><p><code class="docutils literal notranslate"><span class="pre">fragments.db</span></code> is local and <code class="docutils literal notranslate"><span class="pre">fragments-official.db</span></code> is official.
+<code class="docutils literal notranslate"><span class="pre">fragment</span> <span class="pre">store</span></code> gets the choices “use and add what is computed”
+(default), “use only” and “ignore”. <code class="docutils literal notranslate"><span class="pre">fragment</span> <span class="pre">store</span> <span class="pre">file</span></code> names the local
+layer. <strong>Recommended: yes.</strong></p>
+</dd>
+</dl>
+<p><strong>Paul’s decision (11-10): all eight as recommended.</strong> D1 yes, D2 (a), D3
+(a), D4 (a) and ask ANL about (b), D5 (a) with the structure guard, D6 (a),
+D7 yes, D8 yes.</p>
+<p><strong>Science’s view (11-10):</strong> D2 (a), D3 (a), D4 (a) now and ask ANL about (b),
+D5 (a) with the structure guard, D6 (a), D7 yes. D1 and D8 are engineering
+calls, and Science has no objection to them. Paul decides.</p>
+</section>
+<section id="science-s-answer-on-r5">
+<h2>Science’s answer on R5<a class="headerlink" href="#science-s-answer-on-r5" title="Link to this heading">#</a></h2>
+<p>Energies may pair across layers on the same geometry hash: the geometry’s own
+layer first, then the other. They never pair across hashes, and the energy
+fingerprint must match. Science added two conditions, the visible layer mix and
+a test for a superseded geometry (now in R5 in §4).</p>
+</section>
+<section id="file-level-changes">
+<h2>File-level changes<a class="headerlink" href="#file-level-changes" title="Link to this heading">#</a></h2>
+<p>seamm_thermochemistry:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">fragment_store.py</span></code>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">split_model_chemistry</span></code>, applied in the three <code class="docutils literal notranslate"><span class="pre">make</span></code>s, <code class="docutils literal notranslate"><span class="pre">get</span></code> and
+<code class="docutils literal notranslate"><span class="pre">harvest_job</span></code> (P5a);</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">harvest_configuration</span></code> factored out of <code class="docutils literal notranslate"><span class="pre">harvest_job</span></code>;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">is_local_filesystem</span></code>;</p></li>
+<li><p>the imaginary refusal for write-back;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">check_structure</span></code> (bonds perceived again, SMILES without stereo, charge
+and multiplicity, unusual centres; P5b), which is also used by
+<code class="docutils literal notranslate"><span class="pre">official</span> <span class="pre">build</span></code> (P5e);</p></li>
+<li><p>the RMSD distinctness test for <code class="docutils literal notranslate"><span class="pre">auto:</span></code> conformers (P5b);</p></li>
+<li><p>the <code class="docutils literal notranslate"><span class="pre">meta</span></code> table, schema 3, the <code class="docutils literal notranslate"><span class="pre">immutable</span></code> read-only open and
+<code class="docutils literal notranslate"><span class="pre">migrate</span></code> (P5c).</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">geometry_store.py</span></code>:</p>
+<ul>
+<li><p>normalized <code class="docutils literal notranslate"><span class="pre">geometries</span></code>, <code class="docutils literal notranslate"><span class="pre">energy</span></code> and <code class="docutils literal notranslate"><span class="pre">species_at</span></code>, which also accept
+a set of fingerprints (P5a);</p></li>
+<li><p>the <code class="docutils literal notranslate"><span class="pre">auto:</span></code> conformer path (P5b);</p></li>
+<li><p>the <code class="docutils literal notranslate"><span class="pre">layer</span></code> field on returned rows (P5c).</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">layered_store.py</span></code> (new): <code class="docutils literal notranslate"><span class="pre">LayeredStore</span></code> with rules R1-R5 (P5c).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fragment_cli.py</span></code>: <code class="docutils literal notranslate"><span class="pre">export</span></code>, <code class="docutils literal notranslate"><span class="pre">merge</span></code>, <code class="docutils literal notranslate"><span class="pre">official</span> <span class="pre">build</span></code>, <code class="docutils literal notranslate"><span class="pre">migrate</span></code>
+and <code class="docutils literal notranslate"><span class="pre">duplicates</span> <span class="pre">--layers</span></code> (P5c).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">hooks.py</span></code> (new): <code class="docutils literal notranslate"><span class="pre">harvest_finished_job</span></code>; <code class="docutils literal notranslate"><span class="pre">setup.py</span></code> gets the entry
+point in <code class="docutils literal notranslate"><span class="pre">org.molssi.seamm.jobserver.job_finished</span></code> (P5b).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">atct.py</span></code>: “already there” counts as success, and <code class="docutils literal notranslate"><span class="pre">_save_covariance</span></code>
+is atomic with merge-on-write (P5d).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">installer.py</span></code>: the official store (Zenodo concept id, sha256 in seamm.ini),
+ATcT on install, and <code class="docutils literal notranslate"><span class="pre">check</span></code> covering all three (P5d).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data/configuration.txt</span></code>: <code class="docutils literal notranslate"><span class="pre">fragment-store-writable</span> <span class="pre">=</span> <span class="pre">auto</span></code> (P5b).</p></li>
+</ul>
+<p>thermochemistry_step:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">cbh_approach.py</span></code>:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">_from_job</span></code>, tried before <code class="docutils literal notranslate"><span class="pre">_geometry_from_store</span></code> and
+<code class="docutils literal notranslate"><span class="pre">_energies_from_store</span></code> in <code class="docutils literal notranslate"><span class="pre">run_cbh</span></code>, and in <code class="docutils literal notranslate"><span class="pre">_energy_level_energies</span></code>
+for the energy level (P5a);</p></li>
+<li><p>normalized model names in the store calls (P5a);</p></li>
+<li><p>each species’ expected fingerprints from
+<code class="docutils literal notranslate"><span class="pre">Evaluator.expected_fingerprints</span></code>, used in <code class="docutils literal notranslate"><span class="pre">_from_job</span></code>,
+<code class="docutils literal notranslate"><span class="pre">_geometry_from_store</span></code>, <code class="docutils literal notranslate"><span class="pre">_energies_from_store</span></code> and
+<code class="docutils literal notranslate"><span class="pre">_energy_level_energies</span></code> instead of the target’s, plus the self-check
+warning (P5a);</p></li>
+<li><p>the “uncertainty method” column and property (P5d);</p></li>
+<li><p>layers named in the output when an energy and its geometry come from
+different layers (P5c);</p></li>
+<li><p>write-back after <code class="docutils literal notranslate"><span class="pre">_compute_species</span></code> and after the energy level’s computed
+single points, the marker file, and <code class="docutils literal notranslate"><span class="pre">_fragment_store</span></code> opening writable
+when allowed (P5b);</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LayeredStore</span></code> in <code class="docutils literal notranslate"><span class="pre">_fragment_store</span></code> (P5c);</p></li>
+<li><p>the run-time ATcT download where <code class="docutils literal notranslate"><span class="pre">ATcT(...)</span></code> is built (P5d).</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">thermochemistry_parameters.py</span></code>: the <code class="docutils literal notranslate"><span class="pre">fragment</span> <span class="pre">store</span></code> choices (P5b), and
+the <code class="docutils literal notranslate"><span class="pre">covariances</span></code> default “fetch if needed” (P5d).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tk_thermochemistry.py</span></code>: the new choices, nothing else (P5b).</p></li>
+<li><p>The documentation of the step’s store parameters (P5b, P5c).</p></li>
+</ul>
+<p>seamm_jobserver:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">jobserver.py</span></code>: run the <code class="docutils literal notranslate"><span class="pre">job_finished</span></code> entry points in a background
+thread after <code class="docutils literal notranslate"><span class="pre">_finalize_job_status</span></code> (P5b).</p></li>
+</ul>
+<p>orca_step (P5a):</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">batch.py</span></code>: <code class="docutils literal notranslate"><span class="pre">expected_fingerprints(model_chemistry,</span> <span class="pre">symbols,</span> <span class="pre">*,</span> <span class="pre">kind,</span>
+<span class="pre">version,</span> <span class="pre">options=None)</span></code>, built with <code class="docutils literal notranslate"><span class="pre">engine_helpers</span></code> and
+<code class="docutils literal notranslate"><span class="pre">exact_exchange_method</span></code> (the MDI engine’s rule) and hashed with
+<code class="docutils literal notranslate"><span class="pre">fingerprint.orca_calculation_record</span></code>. It returns the as-written and the
+COSX-moot variants.</p></li>
+</ul>
+<p>seamm_exec (P5a):</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">evaluator.py</span></code>: <code class="docutils literal notranslate"><span class="pre">Evaluator.expected_fingerprints(configuration,</span> <span class="pre">kind)</span></code>,
+which calls the code’s batch-contract function, or returns None for codes
+without one.</p></li>
+</ul>
+</section>
+<section id="tests">
+<h2>Tests<a class="headerlink" href="#tests" title="Link to this heading">#</a></h2>
+<p>Unit tests need no network: Zenodo and ATcT are mocked.</p>
+<dl class="simple">
+<dt>P5a</dt><dd><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">split_model_chemistry</span></code> on <code class="docutils literal notranslate"><span class="pre">ORCA:CMP&#64;R2SCAN-3C</span></code>, a bare name plus a
+program, <code class="docutils literal notranslate"><span class="pre">ORCA:DFT&#64;B3LYP/bse:def2-SVP</span></code>, <code class="docutils literal notranslate"><span class="pre">QC&#64;CCSD(T)-F12D_RI/...</span></code> and a
+contradicting program.</p></li>
+<li><p>Prefixed and bare names find the same rows. A harvest of a sub-step job
+and of an engine job gives the same model and program.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">_from_job</span></code>: a <code class="docutils literal notranslate"><span class="pre">CBH:C</span></code> with matching fingerprints is reused (with
+<code class="docutils literal notranslate"><span class="pre">_compute_species</span></code> mocked); a mismatched fingerprint is computed; two
+<code class="docutils literal notranslate"><span class="pre">CBH:C</span></code> systems work; the energy level is reused; an imaginary mode
+above 20i is not reused.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">expected_fingerprints</span></code> (orca_step): for CH₄, BF₃, PF₆⁻, Na⁺ and a lone
+atom, at revDSD and at r2SCAN-3c, the predicted set contains the
+fingerprint recorded by a real ORCA run. The recorded fingerprints come
+from fixtures cut from 5602 and 5684 outputs, with no ORCA in the tests.
+Ordinary species give <code class="docutils literal notranslate"><span class="pre">1e16…</span></code>, boron and phosphorus species give
+<code class="docutils literal notranslate"><span class="pre">7ca1…</span></code>, and r2SCAN-3c gives the same fingerprint for all.</p></li>
+<li><p>In a P target, the CH₄, H₂ and HF fragments are looked up with <code class="docutils literal notranslate"><span class="pre">1e16…</span></code>
+and hit the stored rows; the P fragments are looked up with <code class="docutils literal notranslate"><span class="pre">7ca1…</span></code>.</p></li>
+<li><p>A code without <code class="docutils literal notranslate"><span class="pre">expected_fingerprints</span></code> falls back to the target’s
+fingerprint.</p></li>
+<li><p>The self-check warning appears when the prediction is made to miss.</p></li>
+</ul>
+</dd>
+<dt>P5b</dt><dd><ul class="simple">
+<li><p>Golden: write-back rows equal <code class="docutils literal notranslate"><span class="pre">harvest_job</span></code> rows for the same job.</p></li>
+<li><p>An imaginary geometry is refused, with its energies.</p></li>
+<li><p>Structure guard: a fragment whose optimized geometry has different
+connectivity (a fixture of a rearranged hypervalent hydride) is refused.
+So are a wrong multiplicity (BH as a triplet against the key’s singlet)
+and an unusual centre with ligands too close (the old bad PF₆⁻ geometry).
+The good octahedral PF₆⁻ passes.</p></li>
+<li><p>A lower conformer that is structurally distinct gets <code class="docutils literal notranslate"><span class="pre">auto:</span></code>. The same
+minimum with E + ZPE lower by 0.12 kJ/mol and RMSD below 0.05 Å goes to
+the duplicate log. A higher conformer is logged.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">is_local_filesystem</span></code> against monkeypatched mount tables.</p></li>
+<li><p>Eight processes writing 50 species each to one temporary store give every
+row and no error.</p></li>
+<li><p>A store locked past the timeout is logged, and the species still succeeds.</p></li>
+<li><p>The marker is written only when the step did not write.</p></li>
+<li><p>The JobServer hook is discovered, runs off the poll thread, its
+exceptions are isolated, and a second harvest finds only duplicates.</p></li>
+</ul>
+</dd>
+<dt>P5c</dt><dd><ul class="simple">
+<li><p>R1-R5 with two temporary stores, including R2 (official supersede beats an
+identical old local row) and R3 (logged).</p></li>
+<li><p>The lowest conformer across layers.</p></li>
+<li><p>R5: a local energy on an official geometry (same hash) is used, and the
+output names both layers. After a newer official supersedes that
+geometry with new coordinates, the local energy is not found and the
+species is computed (Science’s condition (ii)).</p></li>
+<li><p>The official file is read-only (a write raises) and opened immutable.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">export</span></code> gives only rows that are not in official.</p></li>
+<li><p>Merge round trip: export, then merge into an empty store, gives the
+source’s rows.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">migrate</span></code> on a schema-2 fixture copied from ChemAI’s layout: backup,
+normalization, idempotence.</p></li>
+</ul>
+</dd>
+<dt>P5d</dt><dd><ul class="simple">
+<li><p>Install with mocks gives three files and the recorded sha256s. <code class="docutils literal notranslate"><span class="pre">check</span></code>
+flags a modified official file.</p></li>
+<li><p>Run-time download when missing. A download race counts as success.</p></li>
+<li><p>A failed covariance fetch gives quadrature, the warning, and “quadrature
+(no covariance: …)” in the uncertainty-method column; a cached block gives
+“covariance”.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">covariance.json</span></code> merge with two writers.</p></li>
+</ul>
+</dd>
+<dt>P5e</dt><dd><ul class="simple">
+<li><p>The <code class="docutils literal notranslate"><span class="pre">official</span> <span class="pre">build</span></code> sanity pass refuses a store with an imaginary row,
+a BH triplet, a rearranged structure or a bad unusual centre, and builds
+once those rows are excluded with reasons.</p></li>
+</ul>
+</dd>
+</dl>
+<p><strong>Validation runs</strong> (cluster). Science approved them on 11-10: about 10-15
+core-h, within the per-item limit.</p>
+<dl class="simple">
+<dt>V1</dt><dd><p>A serial 20-compound slice of the 1694 set, default preset, ChemAI queue.</p>
+<ul class="simple">
+<li><p>It includes at least one <strong>P or B target</strong> (e.g. a phosphate or a
+fluoroborane). Its ordinary fragments (CH₄, H₂, HF) must be hits on rows
+that the ordinary targets computed, and its P/B fragments must be looked
+up with the NoCOSX fingerprint.</p></li>
+<li><p>Acceptance: each distinct fragment is computed once, and results equal
+5684’s within 0.01 kJ/mol. The fingerprint self-check gives no warning,
+in particular on the ordinary-fragment rows of the P/B target (Science).</p></li>
+<li><p>It also measures the core-hours saved.</p></li>
+<li><p>About 5 core-h.</p></li>
+</ul>
+</dd>
+<dt>V2</dt><dd><p>The same slice as a parallel Loop, 4 iterations at once. Store hits after
+the first wave. The report gives the duplicate count per fragment in the
+first wave (Science), which settles D2. About 5-7 core-h.</p>
+</dd>
+<dt>V3</dt><dd><p>Two compounds through an ssh-transport queue to TinkerCliffs. The hook
+harvests into ChemAI’s local layer when the job returns. About 1 core-h.</p>
+</dd>
+</dl>
+<p>Total about 10-15 core-h.</p>
+</section>
+<section id="migration-of-the-existing-stores">
+<h2>Migration of the existing stores<a class="headerlink" href="#migration-of-the-existing-stores" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 35.0%" />
+<col style="width: 35.0%" />
+<col style="width: 30.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>File (2026-11-10)</p></th>
+<th class="head"><p>Contents</p></th>
+<th class="head"><p>Becomes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>ChemAI <code class="docutils literal notranslate"><span class="pre">/home/seamm/SEAMM/Parameters/thermochemistry/fragments.db</span></code> (local
+ZFS)</p></td>
+<td><p>Schema 2. fragment 100 rows (<code class="docutils literal notranslate"><span class="pre">ORCA:</span></code>-prefixed names, <code class="docutils literal notranslate"><span class="pre">program</span></code> NULL);
+geometry 648 (598 <code class="docutils literal notranslate"><span class="pre">CMP&#64;R2SCAN-3C</span></code> from 5602-5604, plus 50
+<code class="docutils literal notranslate"><span class="pre">ORCA:CMP&#64;R2SCAN-3C</span></code> from 5684); energy 1321; no history. Backup:
+<code class="docutils literal notranslate"><span class="pre">fragments.db.pre-5684-harvest-20261110</span></code>.</p></td>
+<td><p>ChemAI’s local layer, in place, after <code class="docutils literal notranslate"><span class="pre">migrate</span></code>. It is the source of
+official v1 once the DEFGRID3 recompute is in.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Mac <code class="docutils literal notranslate"><span class="pre">~/SEAMM/Parameters/thermochemistry/fragments.db</span></code> (11-09, the
+598-row P1 store, which is also
+<code class="docutils literal notranslate"><span class="pre">presets/revdsd_store/fragments_p1.db</span></code>)</p></td>
+<td><p>Schema 2, the seed before 5684.</p></td>
+<td><p>The Mac’s local layer, after <code class="docutils literal notranslate"><span class="pre">migrate</span></code>. Optionally <code class="docutils literal notranslate"><span class="pre">merge</span></code> ChemAI’s
+copy into it.</p></td>
+</tr>
+<tr class="row-even"><td><p>ChemAI <code class="docutils literal notranslate"><span class="pre">/D3/psaxe/ATcT/{fragments,</span> <span class="pre">f12_pbe0geom,</span> <span class="pre">gfn2_campaign,</span>
+<span class="pre">pbe0_campaign,</span> <span class="pre">r2scan3c_atct,</span> <span class="pre">r2scan3c_campaign}.db</span></code>, with read-only
+copies on ARC <code class="docutils literal notranslate"><span class="pre">/projects/seamm/psaxe/ATcT</span></code></p></td>
+<td><p>Campaign stores (ladders, the benchmark); some are schema 1.</p></td>
+<td><p>They stay named stores (<code class="docutils literal notranslate"><span class="pre">fragment</span> <span class="pre">store</span> <span class="pre">file</span></code>, <code class="docutils literal notranslate"><span class="pre">ladder</span> <span class="pre">--store</span></code>).
+<code class="docutils literal notranslate"><span class="pre">migrate</span></code> normalizes them when run on them. No automatic merge.</p></td>
+</tr>
+<tr class="row-odd"><td><p>ARC <code class="docutils literal notranslate"><span class="pre">/projects/seamm/SEAMM/Parameters/thermochemistry</span></code> (GPFS)</p></td>
+<td><p>No <code class="docutils literal notranslate"><span class="pre">fragments.db</span></code>.</p></td>
+<td><p>Official layer only (D7).</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">migrate</span></code> is safe on ChemAI’s store: every row there is verified, so it
+changes the <code class="docutils literal notranslate"><span class="pre">model_chemistry</span></code> and <code class="docutils literal notranslate"><span class="pre">program</span></code> columns but no key. It will
+still report any collision.</p>
+</section>
+<section id="phases-and-estimate">
+<h2>Phases and estimate<a class="headerlink" href="#phases-and-estimate" title="Link to this heading">#</a></h2>
+<div class="pst-scrollable-table-container"><table class="table">
+<colgroup>
+<col style="width: 10.0%" />
+<col style="width: 40.0%" />
+<col style="width: 12.0%" />
+<col style="width: 18.0%" />
+<col style="width: 20.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Phase</p></th>
+<th class="head"><p>Content</p></th>
+<th class="head"><p>Dev time</p></th>
+<th class="head"><p>Releases</p></th>
+<th class="head"><p>Needs</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>P5a</p></td>
+<td><p>Model-chemistry names; in-job reuse from the job’s database; per-species
+expected fingerprints and the self-check</p></td>
+<td><p>1.5-2 days</p></td>
+<td><p>seamm-thermochemistry, thermochemistry-step, orca-step, seamm-exec</p></td>
+<td><p>No D-item. Can start on Paul’s go.</p></td>
+</tr>
+<tr class="row-odd"><td><p>P5b</p></td>
+<td><p>Write-back, <code class="docutils literal notranslate"><span class="pre">harvest_configuration</span></code>, the filesystem rule, the
+structure guard, distinct conformers, the JobServer hook, the marker</p></td>
+<td><p>2 days</p></td>
+<td><p>seamm-thermochemistry, thermochemistry-step, seamm-jobserver</p></td>
+<td><p>D1, D2, D5, D6</p></td>
+</tr>
+<tr class="row-even"><td><p>P5c</p></td>
+<td><p>Two layers, R1-R5, export, merge, official build, migrate</p></td>
+<td><p>1.5-2 days</p></td>
+<td><p>seamm-thermochemistry, thermochemistry-step</p></td>
+<td><p>D7, D8 (R5 answered by Science)</p></td>
+</tr>
+<tr class="row-odd"><td><p>P5d</p></td>
+<td><p>Installer (official store, ATcT), run-time ATcT download, covariance
+default and cache, the uncertainty-method column</p></td>
+<td><p>1-1.5 days</p></td>
+<td><p>seamm-thermochemistry, thermochemistry-step</p></td>
+<td><p>D4</p></td>
+</tr>
+<tr class="row-even"><td><p>P5e</p></td>
+<td><p>Official v1 build with the sanity pass, Zenodo record, concept id
+release</p></td>
+<td><p>0.5-1 day, plus Paul’s Zenodo upload</p></td>
+<td><p>seamm-thermochemistry</p></td>
+<td><p>D3; the DEFGRID3 recompute (already approved, about 90 core-h, not
+counted here)</p></td>
+</tr>
+<tr class="row-odd"><td><p>V1-V3</p></td>
+<td><p>Validation runs</p></td>
+<td><p>0.5 day elapsed</p></td>
+<td><p>none</p></td>
+<td><p>Approved by Science, 10-15 core-h</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Total: 7.5-9 working days</strong> (5.5-6.5 before Science’s review; the additions
+are the per-species fingerprints, the structure guard, the uncertainty column
+and the sanity pass).</p>
+<ul class="simple">
+<li><p>About 10 PRs: seamm-thermochemistry 4 (P5a, b, c, d+e), thermochemistry-step
+3, orca-step 1, seamm-exec 1, seamm-jobserver 1.</p></li>
+<li><p>P5a’s orca-step and seamm-exec PRs merge before its thermochemistry-step PR.</p></li>
+<li><p>Order: P5a → P5b → P5c → P5e. P5d can go alongside P5b or P5c.</p></li>
+<li><p>Installs: ChemAI and the Mac after P5a+P5b (V1-V3 need them), and ChemAI,
+ARC and the Mac after P5c+P5d, as Paul batches updates.</p></li>
+<li><p>ChemAI is updated only while no thermochemistry job is running there.</p></li>
+</ul>
+</section>
+<section id="not-in-this-note">
+<h2>Not in this note<a class="headerlink" href="#not-in-this-note" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p>A dedupe pre-pass across a Loop’s targets (requirement 3 of 10-28) is a
+separate design.</p></li>
+<li><p>The step raises for all-trivial targets that are in ATcT (Science, 11-10
+17:50). This is a separate bug.</p></li>
+<li><p>S and G from the stored frequencies.</p></li>
+<li><p>Fingerprints for codes other than ORCA over MDI. Write-back works for any
+code that stores them, and is unverified otherwise.</p></li>
+</ul>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">Campaigns</p>
+      </div>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal" tabindex="-1"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#why">Why</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#paul-s-decisions-settled">Paul’s decisions (settled)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#design">Design</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#model-chemistry-names-p5a">1. Model-chemistry names (P5a)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#in-job-reuse-p5a-with-p5b">2. In-job reuse (P5a, with P5b)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#a-per-species-expected-fingerprints-p5a-science-11-10">2a. Per-species expected fingerprints (P5a; Science 11-10)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#write-back-p5b">3. Write-back (P5b)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#two-layers-p5c">4. Two layers (P5c)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#atct-and-the-installer-p5d">5. ATcT and the installer (P5d)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#official-v1-p5e">6. Official v1 (P5e)</a></li>
+</ul>
+</li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#d-items-for-paul">D-items for Paul</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#science-s-answer-on-r5">Science’s answer on R5</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#file-level-changes">File-level changes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tests">Tests</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#migration-of-the-existing-stores">Migration of the existing stores</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#phases-and-estimate">Phases and estimate</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#not-in-this-note">Not in this note</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../../../_sources/developer_guide/campaigns/2026-11-10/index.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.24.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

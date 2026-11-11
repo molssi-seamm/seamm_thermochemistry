@@ -7,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.11.8.3 documentation</title>
+    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.11.11 documentation</title>
   
   
   
@@ -31,7 +31,7 @@
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=6a604523" />
     <link rel="stylesheet" type="text/css" href="_static/css/custom.css" />
   
   <!-- So that users can add custom icons -->
@@ -40,12 +40,12 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="_static/documentation_options.js?v=c2a0a3e9"></script>
+    <script src="_static/documentation_options.js?v=83e1bca7"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="_static/copybutton.js?v=f281be69"></script>
-    <script src="_static/design-tabs.js?v=f930bc37"></script>
+    <script data-sd-tabs-storage-prefix="sphinx-design-tab-id-" src="_static/design-tabs.js?v=fcb327ea"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'getting_started';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -55,7 +55,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.8.3" />
+  <meta name="docsearch:version" content="2026.11.11" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -155,6 +155,13 @@
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="api.html">
     API Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="developer_guide/index.html">
+    Developer Documentation
   </a>
 </li>
 
@@ -288,6 +295,13 @@
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="api.html">
     API Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="developer_guide/index.html">
+    Developer Documentation
   </a>
 </li>
 
@@ -633,6 +647,21 @@ factor never needs a new harvest.</p>
 </pre></div>
 </div>
 <p>Reads are best effort: a missing, locked or corrupt store gives None.</p>
+<p>Model chemistries are stored as the bare model and the program, e.g.
+<code class="docutils literal notranslate"><span class="pre">CMP&#64;R2SCAN-3C</span></code> and <code class="docutils literal notranslate"><span class="pre">ORCA</span></code>, however they were given: the ORCA sub-steps
+name a level <code class="docutils literal notranslate"><span class="pre">CMP&#64;R2SCAN-3C</span></code> and the Model Chemistry step
+<code class="docutils literal notranslate"><span class="pre">ORCA:CMP&#64;R2SCAN-3C</span></code>. Lookups accept either spelling, and still find rows
+written before the names were normalized (<code class="docutils literal notranslate"><span class="pre">split_model_chemistry</span></code> gives the
+two parts).</p>
+<p>Every fingerprint argument of the readers takes one fingerprint or several. A
+program’s settings can depend on the species, not only on the level: ORCA uses
+exact exchange (NoCOSX) for atoms and for Na, Mg, Zn, B and P, so a boron
+species’ energy has another fingerprint than methane’s at the same level. A
+caller passes the fingerprints it expects for each species (for ORCA,
+<code class="docutils literal notranslate"><span class="pre">seamm_exec.expected_fingerprints</span></code> predicts them):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">store</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"CC"</span><span class="p">,</span> <span class="n">energy_fingerprint</span><span class="o">=</span><span class="p">[</span><span class="n">fp_as_written</span><span class="p">,</span> <span class="n">fp_cosx_moot</span><span class="p">])</span>
+</pre></div>
+</div>
 <section id="geometries-and-energies-at-different-levels">
 <h3>Geometries and energies at different levels<a class="headerlink" href="#geometries-and-energies-at-different-levels" title="Link to this heading">#</a></h3>
 <p>Thermochemistry often takes the energy from a costly level of theory (for example

@@ -7,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>seamm_thermochemistry &#8212; SEAMM thermochemistry Plug-in 2026.11.8.3 documentation</title>
+    <title>seamm_thermochemistry &#8212; SEAMM thermochemistry Plug-in 2026.11.11 documentation</title>
   
   
   
@@ -31,7 +31,7 @@
 
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=6a604523" />
     <link rel="stylesheet" type="text/css" href="../_static/css/custom.css" />
   
   <!-- So that users can add custom icons -->
@@ -40,12 +40,12 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=c2a0a3e9"></script>
+    <script src="../_static/documentation_options.js?v=83e1bca7"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=f281be69"></script>
-    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script data-sd-tabs-storage-prefix="sphinx-design-tab-id-" src="../_static/design-tabs.js?v=fcb327ea"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = 'api/modules';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -55,7 +55,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.8.3" />
+  <meta name="docsearch:version" content="2026.11.11" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -155,6 +155,13 @@
 <li class="nav-item current active">
   <a class="nav-link nav-internal" href="../api.html">
     API Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../developer_guide/index.html">
+    Developer Documentation
   </a>
 </li>
 
@@ -288,6 +295,13 @@
 <li class="nav-item current active">
   <a class="nav-link nav-internal" href="../api.html">
     API Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../developer_guide/index.html">
+    Developer Documentation
   </a>
 </li>
 
@@ -578,6 +592,7 @@
 <li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.fragment_store.fragment_store_path"><code class="docutils literal notranslate"><span class="pre">fragment_store_path()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.fragment_store.harvest_job"><code class="docutils literal notranslate"><span class="pre">harvest_job()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.fragment_store.load_species_map"><code class="docutils literal notranslate"><span class="pre">load_species_map()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.fragment_store.split_model_chemistry"><code class="docutils literal notranslate"><span class="pre">split_model_chemistry()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="seamm_thermochemistry.html#module-seamm_thermochemistry.geometry_store">seamm_thermochemistry.geometry_store module</a><ul>
@@ -608,6 +623,8 @@
 <li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.geometry_store.IMAGINARY_TOLERANCE"><code class="docutils literal notranslate"><span class="pre">IMAGINARY_TOLERANCE</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.geometry_store.PairingError"><code class="docutils literal notranslate"><span class="pre">PairingError</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.geometry_store.SCHEMA_VERSION"><code class="docutils literal notranslate"><span class="pre">SCHEMA_VERSION</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.geometry_store.same_model_chemistry"><code class="docutils literal notranslate"><span class="pre">same_model_chemistry()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.geometry_store.split_model_chemistry"><code class="docutils literal notranslate"><span class="pre">split_model_chemistry()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="seamm_thermochemistry.html#module-seamm_thermochemistry.import_orca_cli">seamm_thermochemistry.import_orca_cli module</a><ul>
@@ -757,6 +774,7 @@
 <li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.harvest_job"><code class="docutils literal notranslate"><span class="pre">harvest_job()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.load_species_map"><code class="docutils literal notranslate"><span class="pre">load_species_map()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.reaction_uncertainty"><code class="docutils literal notranslate"><span class="pre">reaction_uncertainty()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.split_model_chemistry"><code class="docutils literal notranslate"><span class="pre">split_model_chemistry()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="seamm_thermochemistry.html#seamm_thermochemistry.zpe_scale_factor"><code class="docutils literal notranslate"><span class="pre">zpe_scale_factor()</span></code></a></li>
 </ul>
 </li>

@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.geometry_store &#8212; SEAMM thermochemistry Plug-in 2026.11.8.3 documentation</title>
+    <title>seamm_thermochemistry.geometry_store &#8212; SEAMM thermochemistry Plug-in 2026.11.11 documentation</title>
   
   
   
@@ -30,7 +30,7 @@
 
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
     <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
-    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=6a604523" />
     <link rel="stylesheet" type="text/css" href="../../_static/css/custom.css" />
   
   <!-- So that users can add custom icons -->
@@ -39,12 +39,12 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=c2a0a3e9"></script>
+    <script src="../../_static/documentation_options.js?v=83e1bca7"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../_static/copybutton.js?v=f281be69"></script>
-    <script src="../../_static/design-tabs.js?v=f930bc37"></script>
+    <script data-sd-tabs-storage-prefix="sphinx-design-tab-id-" src="../../_static/design-tabs.js?v=fcb327ea"></script>
     <script>DOCUMENTATION_OPTIONS.pagename = '_modules/seamm_thermochemistry/geometry_store';</script>
     <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.8.3" />
+  <meta name="docsearch:version" content="2026.11.11" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -152,6 +152,13 @@
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../../api.html">
     API Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../developer_guide/index.html">
+    Developer Documentation
   </a>
 </li>
 
@@ -283,6 +290,13 @@
 <li class="nav-item ">
   <a class="nav-link nav-internal" href="../../api.html">
     API Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../developer_guide/index.html">
+    Developer Documentation
   </a>
 </li>
 
@@ -464,6 +478,18 @@
 <span class="sd">duplicate (by more than 0.1 kJ/mol) logged in ``row_history`` and never</span>
 <span class="sd">overwritten, and an explicit ``supersede`` with a reason that keeps the old</span>
 <span class="sd">values in ``row_history``.</span>
+
+<span class="sd">Model chemistries are stored as the bare model and the program, e.g.</span>
+<span class="sd">``CMP@R2SCAN-3C`` and ``ORCA``, however they are given</span>
+<span class="sd">(:func:`split_model_chemistry`): the ORCA sub-steps name a level</span>
+<span class="sd">``CMP@R2SCAN-3C`` and the Model Chemistry step ``ORCA:CMP@R2SCAN-3C``. Lookups by</span>
+<span class="sd">model chemistry accept either spelling and also match rows written before the</span>
+<span class="sd">names were normalized.</span>
+
+<span class="sd">The fingerprint arguments of the readers take one fingerprint or several (any</span>
+<span class="sd">iterable): a code may give a species one of a few fingerprints at the same level</span>
+<span class="sd">(e.g. ORCA with or without ``NoCOSX``, chosen by the species' elements), and the</span>
+<span class="sd">caller passes those it expects.</span>
 <span class="sd">"""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span>
@@ -480,6 +506,8 @@
     <span class="s2">"PairingError"</span><span class="p">,</span>
     <span class="s2">"IMAGINARY_TOLERANCE"</span><span class="p">,</span>
     <span class="s2">"SCHEMA_VERSION"</span><span class="p">,</span>
+    <span class="s2">"split_model_chemistry"</span><span class="p">,</span>
+    <span class="s2">"same_model_chemistry"</span><span class="p">,</span>
 <span class="p">]</span>
 
 <span class="c1">#: The store's schema version (``PRAGMA user_version``): 2 adds geometry,</span>
@@ -568,8 +596,80 @@
     <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(</span><span class="n">timespec</span><span class="o">=</span><span class="s2">"seconds"</span><span class="p">)</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_unverified</span><span class="p">(</span><span class="n">level</span><span class="p">,</span> <span class="n">version</span><span class="p">):</span>
-    <span class="k">return</span> <span class="sa">f</span><span class="s2">"unverified:</span><span class="si">{</span><span class="n">level</span><span class="si">}</span><span class="s2">@</span><span class="si">{</span><span class="n">version</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">'?'</span><span class="si">}</span><span class="s2">"</span>
+<div class="viewcode-block" id="split_model_chemistry">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.fragment_store.split_model_chemistry">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">split_model_chemistry</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">program</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The bare model chemistry and the program of a model chemistry string.</span>
+
+<span class="sd">    ``ORCA:CMP@R2SCAN-3C`` gives ("CMP@R2SCAN-3C", "ORCA"); a bare</span>
+<span class="sd">    ``CMP@R2SCAN-3C`` gives ("CMP@R2SCAN-3C", `program`). Only a prefix before</span>
+<span class="sd">    the first ``@`` is a program, so ``ORCA:DFT@B3LYP/bse:def2-SVP`` gives</span>
+<span class="sd">    ("DFT@B3LYP/bse:def2-SVP", "ORCA"), and a string without ``@`` (e.g. a</span>
+<span class="sd">    fingerprint, ``sha256:...``) is returned as it is. A `program` given</span>
+<span class="sd">    explicitly wins over a different prefix, which is logged.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    text : str or None</span>
+<span class="sd">        The model chemistry.</span>
+<span class="sd">    program : str, optional</span>
+<span class="sd">        The program, if known otherwise.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    (str or None, str or None)</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">text</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="n">program</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">text</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="n">colon</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">":"</span><span class="p">)</span>
+    <span class="n">at</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">"@"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;</span> <span class="n">colon</span> <span class="o">&lt;</span> <span class="n">at</span><span class="p">:</span>
+        <span class="n">prefix</span> <span class="o">=</span> <span class="n">text</span><span class="p">[:</span><span class="n">colon</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">text</span><span class="p">[</span><span class="n">colon</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">program</span> <span class="ow">and</span> <span class="nb">str</span><span class="p">(</span><span class="n">program</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">!=</span> <span class="n">prefix</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"The model chemistry </span><span class="si">{</span><span class="n">text</span><span class="si">}</span><span class="s2"> names the program </span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2">, but the "</span>
+                <span class="sa">f</span><span class="s2">"calculation was run with </span><span class="si">{</span><span class="n">program</span><span class="si">}</span><span class="s2">; keeping </span><span class="si">{</span><span class="n">program</span><span class="si">}</span><span class="s2">."</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">model</span><span class="p">,</span> <span class="n">program</span>
+        <span class="k">return</span> <span class="n">model</span><span class="p">,</span> <span class="n">program</span> <span class="ow">or</span> <span class="n">prefix</span>
+    <span class="k">return</span> <span class="n">text</span><span class="p">,</span> <span class="n">program</span></div>
+
+
+
+<div class="viewcode-block" id="same_model_chemistry">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.fragment_store.same_model_chemistry">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">same_model_chemistry</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">program_a</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">program_b</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Whether two model chemistries are the same level: the same bare model,</span>
+<span class="sd">    and the same program when both are known (case-insensitive)."""</span>
+    <span class="n">model_a</span><span class="p">,</span> <span class="n">program_a</span> <span class="o">=</span> <span class="n">split_model_chemistry</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">program_a</span><span class="p">)</span>
+    <span class="n">model_b</span><span class="p">,</span> <span class="n">program_b</span> <span class="o">=</span> <span class="n">split_model_chemistry</span><span class="p">(</span><span class="n">b</span><span class="p">,</span> <span class="n">program_b</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">model_a</span> <span class="o">!=</span> <span class="n">model_b</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="n">program_a</span> <span class="ow">and</span> <span class="n">program_b</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">program_a</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="n">program_b</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">return</span> <span class="kc">True</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_as_list</span><span class="p">(</span><span class="n">fingerprints</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A fingerprint argument as a list: None or "" gives [], a string gives</span>
+<span class="sd">    [it], an iterable gives its non-empty members in order."""</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">fingerprints</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">fingerprints</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">fingerprints</span><span class="p">]</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fingerprints</span> <span class="k">if</span> <span class="n">f</span><span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_unverified</span><span class="p">(</span><span class="n">level</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">program</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The key of a row without a fingerprint: unverified:&lt;program&gt;:&lt;model&gt;@</span>
+<span class="sd">    &lt;version&gt;, the same text as before the names were normalized when the</span>
+<span class="sd">    program is known."""</span>
+    <span class="n">model</span><span class="p">,</span> <span class="n">program</span> <span class="o">=</span> <span class="n">split_model_chemistry</span><span class="p">(</span><span class="n">level</span><span class="p">,</span> <span class="n">program</span><span class="p">)</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">program</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">model</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">program</span> <span class="k">else</span> <span class="n">model</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">"unverified:</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">@</span><span class="si">{</span><span class="n">version</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">'?'</span><span class="si">}</span><span class="s2">"</span>
 
 
 <div class="viewcode-block" id="GeometryRecord">
@@ -625,12 +725,15 @@
 <span class="sd">        and code version and flagged unverified. The geometry hash is computed</span>
 <span class="sd">        from the atomic numbers (or symbols) and coordinates unless given.</span>
 <span class="sd">        ``optimization_model_chemistry``, when given, must be the frequency</span>
-<span class="sd">        level's (``model_chemistry``).</span>
+<span class="sd">        level's (``model_chemistry``). The model chemistry is stored bare, with</span>
+<span class="sd">        its program in ``program`` (:func:`split_model_chemistry`).</span>
 <span class="sd">        """</span>
         <span class="k">if</span> <span class="p">(</span>
             <span class="n">optimization_model_chemistry</span>
             <span class="ow">and</span> <span class="n">model_chemistry</span>
-            <span class="ow">and</span> <span class="n">optimization_model_chemistry</span> <span class="o">!=</span> <span class="n">model_chemistry</span>
+            <span class="ow">and</span> <span class="ow">not</span> <span class="n">same_model_chemistry</span><span class="p">(</span>
+                <span class="n">optimization_model_chemistry</span><span class="p">,</span> <span class="n">model_chemistry</span><span class="p">,</span> <span class="n">program</span><span class="p">,</span> <span class="n">program</span>
+            <span class="p">)</span>
         <span class="p">):</span>
             <span class="k">raise</span> <span class="n">PairingError</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">species</span><span class="si">}</span><span class="s2">: optimized at </span><span class="si">{</span><span class="n">optimization_model_chemistry</span><span class="si">}</span><span class="s2"> but the "</span>
@@ -643,7 +746,8 @@
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                     <span class="s2">"A geometry needs a frequency fingerprint or a model chemistry."</span>
                 <span class="p">)</span>
-            <span class="n">frequency_fingerprint</span> <span class="o">=</span> <span class="n">_unverified</span><span class="p">(</span><span class="n">model_chemistry</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
+            <span class="n">frequency_fingerprint</span> <span class="o">=</span> <span class="n">_unverified</span><span class="p">(</span><span class="n">model_chemistry</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">program</span><span class="p">)</span>
+        <span class="n">model_chemistry</span><span class="p">,</span> <span class="n">program</span> <span class="o">=</span> <span class="n">split_model_chemistry</span><span class="p">(</span><span class="n">model_chemistry</span><span class="p">,</span> <span class="n">program</span><span class="p">)</span>
         <span class="n">symbols</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">symbols</span><span class="p">]</span>
         <span class="n">coordinates</span> <span class="o">=</span> <span class="p">[[</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">xyz</span><span class="p">]</span> <span class="k">for</span> <span class="n">xyz</span> <span class="ow">in</span> <span class="n">coordinates</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">geometry_hash</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -733,7 +837,8 @@
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                     <span class="s2">"An energy needs an energy fingerprint or a model chemistry."</span>
                 <span class="p">)</span>
-            <span class="n">energy_fingerprint</span> <span class="o">=</span> <span class="n">_unverified</span><span class="p">(</span><span class="n">model_chemistry</span><span class="p">,</span> <span class="n">version</span><span class="p">)</span>
+            <span class="n">energy_fingerprint</span> <span class="o">=</span> <span class="n">_unverified</span><span class="p">(</span><span class="n">model_chemistry</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">program</span><span class="p">)</span>
+        <span class="n">model_chemistry</span><span class="p">,</span> <span class="n">program</span> <span class="o">=</span> <span class="n">split_model_chemistry</span><span class="p">(</span><span class="n">model_chemistry</span><span class="p">,</span> <span class="n">program</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">EnergyRecord</span><span class="p">(</span>
             <span class="n">geometry_hash</span><span class="o">=</span><span class="n">geometry_hash</span><span class="p">,</span>
             <span class="n">energy_fingerprint</span><span class="o">=</span><span class="n">energy_fingerprint</span><span class="p">,</span>
@@ -1079,11 +1184,13 @@
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">"""The geometry rows of a species at a frequency level, by conformer.</span>
 
-<span class="sd">        With a frequency fingerprint, the verified rows with it; without one,</span>
-<span class="sd">        or when there are none, the unverified rows of the model chemistry</span>
-<span class="sd">        (and code version if given). Rows with imaginary modes beyond the</span>
-<span class="sd">        tolerance are left out unless `include_imaginary`. Any error reading</span>
-<span class="sd">        the store gives [] and a log message.</span>
+<span class="sd">        With frequency fingerprints (one, or several the caller expects), the</span>
+<span class="sd">        verified rows with any of them; without, or when there are none, the</span>
+<span class="sd">        unverified rows of the model chemistry (either spelling, see</span>
+<span class="sd">        :func:`split_model_chemistry`; and the code version if given). Rows with</span>
+<span class="sd">        imaginary modes beyond the tolerance are left out unless</span>
+<span class="sd">        `include_imaginary`. Any error reading the store gives [] and a log</span>
+<span class="sd">        message.</span>
 <span class="sd">        """</span>
         <span class="n">db</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reader</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">db</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1092,24 +1199,21 @@
         <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="n">species</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">charge</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">multiplicity</span><span class="p">)]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">include_imaginary</span><span class="p">:</span>
             <span class="n">where</span> <span class="o">+=</span> <span class="s2">" AND (n_imaginary IS NULL OR n_imaginary = 0)"</span>
+        <span class="n">fingerprints</span> <span class="o">=</span> <span class="n">_as_list</span><span class="p">(</span><span class="n">frequency_fingerprint</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">if</span> <span class="n">frequency_fingerprint</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">fingerprints</span><span class="p">:</span>
+                <span class="n">marks</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">"?"</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">fingerprints</span><span class="p">))</span>
                 <span class="n">rows</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
                     <span class="sa">f</span><span class="s2">"SELECT * FROM geometry WHERE </span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2"> AND verified = 1 AND "</span>
-                    <span class="s2">"frequency_fingerprint = ? ORDER BY conformer, id"</span><span class="p">,</span>
-                    <span class="n">args</span> <span class="o">+</span> <span class="p">[</span><span class="n">frequency_fingerprint</span><span class="p">],</span>
+                    <span class="sa">f</span><span class="s2">"frequency_fingerprint IN (</span><span class="si">{</span><span class="n">marks</span><span class="si">}</span><span class="s2">) ORDER BY conformer, id"</span><span class="p">,</span>
+                    <span class="n">args</span> <span class="o">+</span> <span class="n">fingerprints</span><span class="p">,</span>
                 <span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">rows</span> <span class="ow">and</span> <span class="n">model_chemistry</span><span class="p">:</span>
-                <span class="n">sql</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2"> AND verified = 0 AND model_chemistry = ?"</span>
-                <span class="n">args_u</span> <span class="o">=</span> <span class="n">args</span> <span class="o">+</span> <span class="p">[</span><span class="n">model_chemistry</span><span class="p">]</span>
-                <span class="k">if</span> <span class="n">version</span><span class="p">:</span>
-                    <span class="n">sql</span> <span class="o">+=</span> <span class="s2">" AND version = ?"</span>
-                    <span class="n">args_u</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">version</span><span class="p">)</span>
-                <span class="n">rows</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">"SELECT * FROM geometry WHERE </span><span class="si">{</span><span class="n">sql</span><span class="si">}</span><span class="s2"> ORDER BY conformer, id"</span><span class="p">,</span>
-                    <span class="n">args_u</span><span class="p">,</span>
-                <span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+                <span class="n">rows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unverified_rows</span><span class="p">(</span>
+                    <span class="n">db</span><span class="p">,</span> <span class="s2">"geometry"</span><span class="p">,</span> <span class="n">where</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">model_chemistry</span><span class="p">,</span> <span class="n">version</span>
+                <span class="p">)</span>
+                <span class="n">rows</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">r</span><span class="p">:</span> <span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s2">"conformer"</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]))</span>
         <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">OperationalError</span><span class="p">:</span>  <span class="c1"># a store from before the table existed</span>
             <span class="k">return</span> <span class="p">[]</span>
         <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
@@ -1130,32 +1234,33 @@
     <span class="p">):</span>
 <span class="w">        </span><span class="sd">"""The energy row on a geometry at a level, or None.</span>
 
-<span class="sd">        As :meth:`geometries`: the verified row with the fingerprint, else an</span>
-<span class="sd">        unverified row of the model chemistry (and code version if given).</span>
+<span class="sd">        As :meth:`geometries`: the verified row with the fingerprint (or with</span>
+<span class="sd">        any of several, the first in the order given), else an unverified row of</span>
+<span class="sd">        the model chemistry (and code version if given).</span>
 <span class="sd">        """</span>
         <span class="n">db</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reader</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">db</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">energy_fingerprint</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">fingerprint</span> <span class="ow">in</span> <span class="n">_as_list</span><span class="p">(</span><span class="n">energy_fingerprint</span><span class="p">):</span>
                 <span class="n">row</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
                     <span class="s2">"SELECT * FROM energy WHERE geometry_hash = ? AND "</span>
                     <span class="s2">"energy_fingerprint = ? AND verified = 1"</span><span class="p">,</span>
-                    <span class="p">(</span><span class="n">geometry_hash</span><span class="p">,</span> <span class="n">energy_fingerprint</span><span class="p">),</span>
+                    <span class="p">(</span><span class="n">geometry_hash</span><span class="p">,</span> <span class="n">fingerprint</span><span class="p">),</span>
                 <span class="p">)</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
                 <span class="k">if</span> <span class="n">row</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="k">return</span> <span class="n">_decode</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">EnergyRecord</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">model_chemistry</span><span class="p">:</span>
-                <span class="n">sql</span> <span class="o">=</span> <span class="s2">"geometry_hash = ? AND verified = 0 AND model_chemistry = ?"</span>
-                <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="n">geometry_hash</span><span class="p">,</span> <span class="n">model_chemistry</span><span class="p">]</span>
-                <span class="k">if</span> <span class="n">version</span><span class="p">:</span>
-                    <span class="n">sql</span> <span class="o">+=</span> <span class="s2">" AND version = ?"</span>
-                    <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">version</span><span class="p">)</span>
-                <span class="n">row</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">"SELECT * FROM energy WHERE </span><span class="si">{</span><span class="n">sql</span><span class="si">}</span><span class="s2"> ORDER BY id LIMIT 1"</span><span class="p">,</span> <span class="n">args</span>
-                <span class="p">)</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
-                <span class="k">if</span> <span class="n">row</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="k">return</span> <span class="n">_decode</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">EnergyRecord</span><span class="p">)</span>
+                <span class="n">rows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unverified_rows</span><span class="p">(</span>
+                    <span class="n">db</span><span class="p">,</span>
+                    <span class="s2">"energy"</span><span class="p">,</span>
+                    <span class="s2">"geometry_hash = ?"</span><span class="p">,</span>
+                    <span class="p">[</span><span class="n">geometry_hash</span><span class="p">],</span>
+                    <span class="n">model_chemistry</span><span class="p">,</span>
+                    <span class="n">version</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="n">rows</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">_decode</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">r</span><span class="p">:</span> <span class="n">r</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]),</span> <span class="n">EnergyRecord</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">OperationalError</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
         <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
@@ -1163,6 +1268,26 @@
             <span class="k">return</span> <span class="kc">None</span>
         <span class="k">return</span> <span class="kc">None</span></div>
 
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_unverified_rows</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">where</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">model_chemistry</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""The unverified rows of `table` matching `where` at the model</span>
+<span class="sd">        chemistry, in either spelling (bare + program column, or prefixed as</span>
+<span class="sd">        written before the names were normalized), and the version if given.</span>
+<span class="sd">        The names are compared in Python: a SQL LIKE would treat the '_' in</span>
+<span class="sd">        names such as REVDSD-PBEP86-D4_2021 as a wildcard."""</span>
+        <span class="n">sql</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"SELECT * FROM </span><span class="si">{</span><span class="n">table</span><span class="si">}</span><span class="s2"> WHERE </span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2"> AND verified = 0"</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">version</span><span class="p">:</span>
+            <span class="n">sql</span> <span class="o">+=</span> <span class="s2">" AND version = ?"</span>
+            <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">version</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">r</span>
+            <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">same_model_chemistry</span><span class="p">(</span>
+                <span class="n">model_chemistry</span><span class="p">,</span> <span class="n">r</span><span class="p">[</span><span class="s2">"model_chemistry"</span><span class="p">],</span> <span class="kc">None</span><span class="p">,</span> <span class="n">r</span><span class="p">[</span><span class="s2">"program"</span><span class="p">]</span>
+            <span class="p">)</span>
+        <span class="p">]</span>
 
 <div class="viewcode-block" id="GeometryEnergyMixin.energies">
 <a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.fragment_store.GeometryEnergyMixin.energies">[docs]</a>
@@ -1200,8 +1325,10 @@
 <span class="sd">        {"geometry": GeometryRecord, "energy": EnergyRecord, "E": kJ/mol,</span>
 <span class="sd">        "ZPE": unscaled kJ/mol, "H - E": kJ/mol at the geometry's T}. The</span>
 <span class="sd">        energy level may be the frequency level itself (its E is then in the</span>
-<span class="sd">        geometry row, and an energy row is used when there is one).</span>
+<span class="sd">        geometry row, and an energy row is used when there is one). Each</span>
+<span class="sd">        fingerprint may be one or several (see :meth:`geometries`).</span>
 <span class="sd">        """</span>
+        <span class="n">energy_fingerprints</span> <span class="o">=</span> <span class="n">_as_list</span><span class="p">(</span><span class="n">energy_fingerprint</span><span class="p">)</span>
         <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">geometries</span><span class="p">(</span>
             <span class="n">species</span><span class="p">,</span>
@@ -1217,12 +1344,18 @@
             <span class="p">)</span>
             <span class="k">if</span> <span class="n">e</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">same</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="n">energy_fingerprint</span>
-                    <span class="ow">and</span> <span class="n">energy_fingerprint</span> <span class="o">==</span> <span class="n">g</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"optimization_fingerprint"</span><span class="p">)</span>
+                    <span class="n">energy_fingerprints</span>
+                    <span class="ow">and</span> <span class="n">g</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"optimization_fingerprint"</span><span class="p">)</span> <span class="ow">in</span> <span class="n">energy_fingerprints</span>
                 <span class="p">)</span> <span class="ow">or</span> <span class="p">(</span>
-                    <span class="ow">not</span> <span class="n">energy_fingerprint</span>
+                    <span class="ow">not</span> <span class="n">energy_fingerprints</span>
                     <span class="ow">and</span> <span class="n">energy_model_chemistry</span>
-                    <span class="ow">and</span> <span class="n">energy_model_chemistry</span> <span class="o">==</span> <span class="n">g</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"model_chemistry"</span><span class="p">)</span>
+                    <span class="ow">and</span> <span class="n">g</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"model_chemistry"</span><span class="p">)</span>
+                    <span class="ow">and</span> <span class="n">same_model_chemistry</span><span class="p">(</span>
+                        <span class="n">energy_model_chemistry</span><span class="p">,</span>
+                        <span class="n">g</span><span class="p">[</span><span class="s2">"model_chemistry"</span><span class="p">],</span>
+                        <span class="kc">None</span><span class="p">,</span>
+                        <span class="n">g</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"program"</span><span class="p">),</span>
+                    <span class="p">)</span>
                 <span class="p">)</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">same</span> <span class="ow">or</span> <span class="n">g</span><span class="p">[</span><span class="s2">"E"</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="k">continue</span>

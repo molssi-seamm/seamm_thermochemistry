@@ -218,6 +218,22 @@ In Python::
 
 Reads are best effort: a missing, locked or corrupt store gives None.
 
+Model chemistries are stored as the bare model and the program, e.g.
+``CMP@R2SCAN-3C`` and ``ORCA``, however they were given: the ORCA sub-steps
+name a level ``CMP@R2SCAN-3C`` and the Model Chemistry step
+``ORCA:CMP@R2SCAN-3C``. Lookups accept either spelling, and still find rows
+written before the names were normalized (``split_model_chemistry`` gives the
+two parts).
+
+Every fingerprint argument of the readers takes one fingerprint or several. A
+program's settings can depend on the species, not only on the level: ORCA uses
+exact exchange (NoCOSX) for atoms and for Na, Mg, Zn, B and P, so a boron
+species' energy has another fingerprint than methane's at the same level. A
+caller passes the fingerprints it expects for each species (for ORCA,
+``seamm_exec.expected_fingerprints`` predicts them)::
+
+    store.get("CC", energy_fingerprint=[fp_as_written, fp_cosx_moot])
+
 Geometries and energies at different levels
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
