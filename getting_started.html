@@ -7,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.11.11.2 documentation</title>
+    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.11.11.4 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="_static/documentation_options.js?v=358b7139"></script>
+    <script src="_static/documentation_options.js?v=5a7a65ed"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -55,7 +55,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.11.2" />
+  <meta name="docsearch:version" content="2026.11.11.4" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -895,7 +895,21 @@ hydrogens. By default aromatic ring systems, three- and four-membered rings and
 charge-separated or hypervalent groups are kept whole (<code class="docutils literal notranslate"><span class="pre">protect=&quot;default&quot;</span></code>;
 <code class="docutils literal notranslate"><span class="pre">protect=&quot;none&quot;</span></code> gives the plain Kekulé hierarchy, and a sequence of
 <code class="docutils literal notranslate"><span class="pre">&quot;aromatic&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;small</span> <span class="pre">rings&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;groups&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;all</span> <span class="pre">rings&quot;</span></code> or SMARTS
-patterns chooses). A rung that reproduces the target is <code class="docutils literal notranslate"><span class="pre">trivial</span></code>; a rung
+patterns chooses). A hypervalent centre (S, Se or Te with more than two bonds, P
+or As with more than three, Cl, Br or I with more than one: sulfonyl, sulfite,
+phosphoryl, SF<sub>5</sub>-R, ClF<sub>3</sub>) is kept together with all its heavy
+neighbours, so that CBH-0 gives real molecules (dimethyl sulfate → sulfuric acid
+and methane) instead of hydrides such as H<sub>2</sub>SO<sub>2</sub> or
+SH<sub>6</sub>; a molecule that is one such group (SF<sub>6</sub>, dimethyl
+sulfone) is trivial at every rung. So is every pair of bonded atoms with opposite
+formal charges (CO written [C-]#[O+], N-oxides, the bridges of
+Al<sub>2</sub>Cl<sub>6</sub>). RDKit’s valence check rejects hypervalent
+halogens (<code class="docutils literal notranslate"><span class="pre">FCl(F)F</span></code>); SMILES are read with <code class="docutils literal notranslate"><span class="pre">seamm_thermochemistry.smiles.</span>
+<span class="pre">mol_from_smiles</span></code>, which skips that check for S, Se, Te, P, As, Cl, Br and I only.
+<code class="docutils literal notranslate"><span class="pre">cbh.ground_state_multiplicity(smiles)</span></code> gives the spin multiplicity of a
+species: its unpaired electrons + 1, except the ground-state singlets SiH<sub>2</sub>,
+SiCl<sub>2</sub>, SiF<sub>2</sub>, CF<sub>2</sub>, CCl<sub>2</sub> and BH, which a SMILES
+writes with two unpaired electrons (CH<sub>2</sub> and NH stay triplets). A rung that reproduces the target is <code class="docutils literal notranslate"><span class="pre">trivial</span></code>; a rung
 the formula cannot build raises <code class="docutils literal notranslate"><span class="pre">RungUnavailable</span></code>. <code class="docutils literal notranslate"><span class="pre">cbh.unique_fragments</span></code>
 gives the union of the reference species over several reactions, so that a
 batch of targets computes each fragment once.</p>

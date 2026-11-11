@@ -140,6 +140,14 @@ seamm\_thermochemistry.report module
    :show-inheritance:
    :undoc-members:
 
+seamm\_thermochemistry.smiles module
+------------------------------------
+
+.. automodule:: seamm_thermochemistry.smiles
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 seamm\_thermochemistry.store\_tools module
 ------------------------------------------
 

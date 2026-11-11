@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.atct &#8212; SEAMM thermochemistry Plug-in 2026.11.11.2 documentation</title>
+    <title>seamm_thermochemistry.atct &#8212; SEAMM thermochemistry Plug-in 2026.11.11.4 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=358b7139"></script>
+    <script src="../../_static/documentation_options.js?v=5a7a65ed"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.11.2" />
+  <meta name="docsearch:version" content="2026.11.11.4" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -765,8 +765,11 @@
 <span class="sd">    ATcT has no enantiomer entries; with two or more, the relative</span>
 <span class="sd">    configuration is kept. Returns None if RDKit cannot parse the SMILES.</span>
 <span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.smiles</span><span class="w"> </span><span class="kn">import</span> <span class="n">mol_from_smiles</span>
+
     <span class="n">Chem</span> <span class="o">=</span> <span class="n">_rdkit</span><span class="p">()</span>
-    <span class="n">mol</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+    <span class="c1"># Hypervalent halogens (ClF3, BrF5) fail RDKit's valence check</span>
+    <span class="n">mol</span> <span class="o">=</span> <span class="n">mol_from_smiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">mol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">stereo</span><span class="p">:</span>

@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.cbh &#8212; SEAMM thermochemistry Plug-in 2026.11.11.2 documentation</title>
+    <title>seamm_thermochemistry.cbh &#8212; SEAMM thermochemistry Plug-in 2026.11.11.4 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=358b7139"></script>
+    <script src="../../_static/documentation_options.js?v=5a7a65ed"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.11.2" />
+  <meta name="docsearch:version" content="2026.11.11.4" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -477,6 +477,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.atct</span><span class="w"> </span><span class="kn">import</span> <span class="n">canonical_smiles</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.smiles</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_hypervalent</span><span class="p">,</span> <span class="n">mol_from_smiles</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">"CBHError"</span><span class="p">,</span>
@@ -486,6 +487,8 @@
     <span class="s2">"unique_fragments"</span><span class="p">,</span>
     <span class="s2">"DEFAULT_PROTECT"</span><span class="p">,</span>
     <span class="s2">"PROTECT_SMARTS"</span><span class="p">,</span>
+    <span class="s2">"SINGLET_GROUND_STATES"</span><span class="p">,</span>
+    <span class="s2">"ground_state_multiplicity"</span><span class="p">,</span>
 <span class="p">]</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
@@ -495,7 +498,7 @@
 <span class="n">PROTECT_SMARTS</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">"nitro"</span><span class="p">:</span> <span class="s2">"[N+](=O)[O-]"</span><span class="p">,</span>
     <span class="s2">"nitro (hypervalent)"</span><span class="p">:</span> <span class="s2">"N(=O)=O"</span><span class="p">,</span>
-    <span class="s2">"N-oxide"</span><span class="p">:</span> <span class="s2">"[N+;!$(N=O)][O-]"</span><span class="p">,</span>
+    <span class="s2">"N-oxide"</span><span class="p">:</span> <span class="s2">"[#7+;!$([#7]=O)][O-]"</span><span class="p">,</span>
     <span class="s2">"azide"</span><span class="p">:</span> <span class="s2">"N=[N+]=[N-]"</span><span class="p">,</span>
     <span class="s2">"diazo"</span><span class="p">:</span> <span class="s2">"[C,N]=[N+]=[N-]"</span><span class="p">,</span>
     <span class="s2">"diazonium"</span><span class="p">:</span> <span class="s2">"[N+]#N"</span><span class="p">,</span>
@@ -732,6 +735,28 @@
                 <span class="n">groups</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ring</span><span class="p">))</span>
                 <span class="n">labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">ring</span><span class="p">)</span><span class="si">}</span><span class="s2">-membered ring"</span><span class="p">)</span>
     <span class="k">if</span> <span class="s2">"groups"</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+        <span class="c1"># A hypervalent centre (S, Se, P, Cl, ... with more bonds than its</span>
+        <span class="c1"># normal valence: sulfonyl, phosphoryl, SF4, SF5-R, ClF3, ...) with all of</span>
+        <span class="c1"># its heavy neighbours, so that CBH-0 gives a real molecule (dimethyl</span>
+        <span class="c1"># sulfone, phosphoric acid) rather than a hydride such as H2SO2 or SH6</span>
+        <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">mol</span><span class="o">.</span><span class="n">GetAtoms</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">is_hypervalent</span><span class="p">(</span><span class="n">atom</span><span class="p">):</span>
+                <span class="n">atoms</span> <span class="o">=</span> <span class="p">{</span><span class="n">atom</span><span class="o">.</span><span class="n">GetIdx</span><span class="p">()}</span> <span class="o">|</span> <span class="p">{</span>
+                    <span class="n">nb</span><span class="o">.</span><span class="n">GetIdx</span><span class="p">()</span> <span class="k">for</span> <span class="n">nb</span> <span class="ow">in</span> <span class="n">atom</span><span class="o">.</span><span class="n">GetNeighbors</span><span class="p">()</span> <span class="k">if</span> <span class="n">nb</span><span class="o">.</span><span class="n">GetAtomicNum</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">1</span>
+                <span class="p">}</span>
+                <span class="n">groups</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">atoms</span><span class="p">)</span>
+                <span class="n">labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"hypervalent </span><span class="si">{</span><span class="n">atom</span><span class="o">.</span><span class="n">GetSymbol</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="c1"># Two bonded atoms with opposite formal charges (CO as [C-]#[O+], the</span>
+        <span class="c1"># bridges of Al2Cl6, ylides): the charge separation is one bond</span>
+        <span class="k">for</span> <span class="n">bond</span> <span class="ow">in</span> <span class="n">mol</span><span class="o">.</span><span class="n">GetBonds</span><span class="p">():</span>
+            <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">bond</span><span class="o">.</span><span class="n">GetBeginAtom</span><span class="p">(),</span> <span class="n">bond</span><span class="o">.</span><span class="n">GetEndAtom</span><span class="p">()</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">a</span><span class="o">.</span><span class="n">GetFormalCharge</span><span class="p">()</span> <span class="o">*</span> <span class="n">b</span><span class="o">.</span><span class="n">GetFormalCharge</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mi">0</span>
+                <span class="ow">and</span> <span class="n">a</span><span class="o">.</span><span class="n">GetAtomicNum</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">1</span>
+                <span class="ow">and</span> <span class="n">b</span><span class="o">.</span><span class="n">GetAtomicNum</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">1</span>
+            <span class="p">):</span>
+                <span class="n">groups</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="n">a</span><span class="o">.</span><span class="n">GetIdx</span><span class="p">(),</span> <span class="n">b</span><span class="o">.</span><span class="n">GetIdx</span><span class="p">()})</span>
+                <span class="n">labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"charge-separated pair"</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">pattern</span> <span class="ow">in</span> <span class="n">PROTECT_SMARTS</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">query</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmarts</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">match</span> <span class="ow">in</span> <span class="n">mol</span><span class="o">.</span><span class="n">GetSubstructMatches</span><span class="p">(</span><span class="n">query</span><span class="p">):</span>
@@ -847,8 +872,18 @@
     <span class="p">):</span>
         <span class="n">rw</span><span class="o">.</span><span class="n">RemoveAtom</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
     <span class="n">frag</span> <span class="o">=</span> <span class="n">rw</span><span class="o">.</span><span class="n">GetMol</span><span class="p">()</span>
-    <span class="n">Chem</span><span class="o">.</span><span class="n">SanitizeMol</span><span class="p">(</span><span class="n">frag</span><span class="p">)</span>
-    <span class="n">frag</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">RemoveHs</span><span class="p">(</span><span class="n">frag</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">Chem</span><span class="o">.</span><span class="n">SanitizeMol</span><span class="p">(</span><span class="n">frag</span><span class="p">)</span>
+        <span class="n">frag</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">RemoveHs</span><span class="p">(</span><span class="n">frag</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="c1"># A hypervalent atom (ClF3, an R-SF5 fragment): everything but RDKit's</span>
+        <span class="c1"># valence check, as in smiles.mol_from_smiles</span>
+        <span class="n">frag</span> <span class="o">=</span> <span class="n">rw</span><span class="o">.</span><span class="n">GetMol</span><span class="p">()</span>
+        <span class="n">frag</span><span class="o">.</span><span class="n">UpdatePropertyCache</span><span class="p">(</span><span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">flags</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">SanitizeFlags</span><span class="o">.</span><span class="n">SANITIZE_ALL</span> <span class="o">^</span> <span class="n">Chem</span><span class="o">.</span><span class="n">SanitizeFlags</span><span class="o">.</span><span class="n">SANITIZE_PROPERTIES</span>
+        <span class="n">Chem</span><span class="o">.</span><span class="n">SanitizeMol</span><span class="p">(</span><span class="n">frag</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span>
+        <span class="n">frag</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">RemoveHs</span><span class="p">(</span><span class="n">frag</span><span class="p">,</span> <span class="n">sanitize</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">frag</span><span class="o">.</span><span class="n">UpdatePropertyCache</span><span class="p">(</span><span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="c1"># Keep the stereo flags carried over from the parent (cleanIt would drop</span>
     <span class="c1"># the cis/trans set for ring double bonds)</span>
     <span class="n">Chem</span><span class="o">.</span><span class="n">AssignStereochemistry</span><span class="p">(</span><span class="n">frag</span><span class="p">,</span> <span class="n">cleanIt</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -860,7 +895,7 @@
 <span class="w">    </span><span class="sd">"""(element counts including H, charge, radical electrons, heavy-bond</span>
 <span class="sd">    counts) of a SMILES."""</span>
     <span class="n">Chem</span> <span class="o">=</span> <span class="n">_rdkit</span><span class="p">()</span>
-    <span class="n">mol</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+    <span class="n">mol</span> <span class="o">=</span> <span class="n">mol_from_smiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">mol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">CBHError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Cannot parse the fragment SMILES '</span><span class="si">{</span><span class="n">smiles</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
     <span class="n">Chem</span><span class="o">.</span><span class="n">Kekulize</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">clearAromaticFlags</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -883,6 +918,27 @@
     <span class="k">return</span> <span class="n">elements</span><span class="p">,</span> <span class="n">charge</span><span class="p">,</span> <span class="n">radicals</span><span class="p">,</span> <span class="n">bonds</span>
 
 
+<span class="c1">#: Species whose SMILES puts two unpaired electrons on one atom but whose ground</span>
+<span class="c1">#: state is a singlet: the silylenes, the dihalocarbenes and BH. Methylene (CH2)</span>
+<span class="c1">#: and imidogen (NH) are ground-state triplets and are not listed.</span>
+<span class="n">SINGLET_GROUND_STATES</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"[SiH2]"</span><span class="p">,</span> <span class="s2">"Cl[Si]Cl"</span><span class="p">,</span> <span class="s2">"F[Si]F"</span><span class="p">,</span> <span class="s2">"F[C]F"</span><span class="p">,</span> <span class="s2">"Cl[C]Cl"</span><span class="p">,</span> <span class="s2">"[BH]"</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="ground_state_multiplicity">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.cbh.ground_state_multiplicity">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ground_state_multiplicity</span><span class="p">(</span><span class="n">smiles</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The spin multiplicity of a species' ground state: 1 for those in</span>
+<span class="sd">    `SINGLET_GROUND_STATES`, otherwise its unpaired electrons + 1, as the SMILES</span>
+<span class="sd">    implies (a radical centre ``[CH3]`` is a doublet, ``[CH2]`` a triplet)."""</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">radicals</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_composition</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="n">canonical_smiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="n">stereo</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">singlets</span> <span class="o">=</span> <span class="p">{</span><span class="n">canonical_smiles</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">stereo</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">SINGLET_GROUND_STATES</span><span class="p">}</span>
+    <span class="k">if</span> <span class="n">key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">singlets</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">radicals</span> <span class="o">+</span> <span class="mi">1</span></div>
+
+
+
 <span class="c1"># ---------------------------------------------------------------------------</span>
 <span class="c1"># The reactions</span>
 <span class="c1"># ---------------------------------------------------------------------------</span>
@@ -892,7 +948,7 @@
 <span class="w">    </span><span class="sd">"""The parent as a Kekulized RDKit mol with explicit H, plus the version</span>
 <span class="sd">    with aromatic flags for ring perception."""</span>
     <span class="n">Chem</span> <span class="o">=</span> <span class="n">_rdkit</span><span class="p">()</span>
-    <span class="n">mol</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+    <span class="n">mol</span> <span class="o">=</span> <span class="n">mol_from_smiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">mol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">CBHError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"RDKit cannot parse the SMILES '</span><span class="si">{</span><span class="n">smiles</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
     <span class="n">Chem</span><span class="o">.</span><span class="n">AssignStereochemistry</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">cleanIt</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -1147,7 +1203,8 @@
     <span class="kn">from</span><span class="w"> </span><span class="nn">rdkit</span><span class="w"> </span><span class="kn">import</span> <span class="n">Chem</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">rdkit.Chem</span><span class="w"> </span><span class="kn">import</span> <span class="n">AllChem</span>
 
-    <span class="n">mol</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">AddHs</span><span class="p">(</span><span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">))</span>
+    <span class="n">mol</span> <span class="o">=</span> <span class="n">mol_from_smiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+    <span class="n">mol</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">AddHs</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span> <span class="k">if</span> <span class="n">mol</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="n">mol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">CBHError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"RDKit cannot parse '</span><span class="si">{</span><span class="n">smiles</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
     <span class="n">params</span> <span class="o">=</span> <span class="n">AllChem</span><span class="o">.</span><span class="n">ETKDGv3</span><span class="p">()</span>
