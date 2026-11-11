@@ -32,6 +32,15 @@ from .geometry_store import GeometryRecord, EnergyRecord, PairingError  # noqa: 
 from .geometry_store import split_model_chemistry  # noqa: F401
 from .ladder import Ladder, build_ladder, LadderError  # noqa: F401
 from .zpe import zpe_scale_factor  # noqa: F401
+from .fragment_store import official_store_path  # noqa: F401
+from .layered_store import LayeredStore  # noqa: F401
+from .store_tools import (  # noqa: F401
+    build_official,
+    export_local,
+    layer_conflicts,
+    merge_stores,
+    migrate_store,
+)
 
 __all__ = [
     "ThermoDB",
@@ -59,6 +68,13 @@ __all__ = [
     "build_ladder",
     "LadderError",
     "zpe_scale_factor",
+    "LayeredStore",
+    "official_store_path",
+    "build_official",
+    "export_local",
+    "layer_conflicts",
+    "merge_stores",
+    "migrate_store",
     "ATcTEntry",
     "ATcTError",
     "AmbiguousEntry",

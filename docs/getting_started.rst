@@ -269,6 +269,51 @@ Results are checked before they go in, by write-back and by the harvest:
   as the conformer ``auto:<geometry hash>``; lookups take the lowest. The same
   minimum computed again is only logged.
 
+The official and local stores
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The store has two layers, two files beside the ATcT cache:
+
+``fragments.db``
+    The local store: everything this installation computes or harvests. It is the
+    only file that write-back, ``harvest``, ``merge``, ``migrate`` and supersede
+    write.
+``fragments-official.db``
+    The official store, published by SEAMM and replaced whole when a new version
+    is installed. It is only read, without locking, so it may sit on a network
+    filesystem. Its ``meta`` table gives its version.
+
+``LayeredStore`` reads them as one, the local store first:
+
+* the same key in both: the local row is used, unless the official store
+  superseded exactly that value, when the official row is used; values that
+  differ by more than 0.1 kJ/mol are noted;
+* conformers come from both, and the lowest wins, a tie within 0.1 kJ/mol going
+  to the local store; verified rows come before unverified ones in either;
+* an energy pairs with a geometry only on the same geometry hash, looked up in the
+  geometry's store first, then the other, so a local single point on an official
+  geometry is used. Every row says which store it came from.
+
+The command line has the tools to keep the stores in step::
+
+    seamm-thermochemistry-fragments migrate            # an older store up to date
+    seamm-thermochemistry-fragments merge OTHER.db ... # add another copy's rows
+    seamm-thermochemistry-fragments export --out MINE.db [--label TEXT]
+    seamm-thermochemistry-fragments duplicates --layers
+    seamm-thermochemistry-fragments official build --version V --out NEW.db \
+        [--previous OLD.db] CONTRIBUTION.db ...
+
+``migrate`` keeps a dated copy first, adds the ``meta`` table and stores the model
+chemistries bare with their program; keys do not change, and running it again does
+nothing. ``merge`` is insert-or-ignore: differing values are logged, and superseded
+values come along as history. ``export`` writes the local rows the official store
+lacks, or has with other values, to a contribution for the next official version;
+nothing about the host or user is added beyond the label. ``official build`` (for
+maintainers) stops at the first contributed value that differs from one already
+there, so that it is resolved with ``supersede`` and a reason; it writes the file's
+SHA-256 beside it. ``--official FILE`` names an official store other than the
+default; ``lookup`` and ``geometries`` read both.
+
 Geometries and energies at different levels
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
