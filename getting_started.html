@@ -7,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.11.11.10 documentation</title>
+    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.11.11.11 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="_static/documentation_options.js?v=895e3be8"></script>
+    <script src="_static/documentation_options.js?v=2d26bff1"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -55,7 +55,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.11.10" />
+  <meta name="docsearch:version" content="2026.11.11.11" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -491,6 +491,21 @@ with the published version anyway, run
 download is checked before it replaces anything. <code class="docutils literal notranslate"><span class="pre">install</span></code> never overwrites an
 existing database, and <code class="docutils literal notranslate"><span class="pre">uninstall</span></code> leaves one with local changes in place unless
 given <code class="docutils literal notranslate"><span class="pre">--force</span></code>.</p>
+<p>The same commands also set up what the isodesmic (CBH) thermochemistry needs, so a
+user has nothing more to do:</p>
+<ul class="simple">
+<li><p>the <strong>official fragment store</strong> (<code class="docutils literal notranslate"><span class="pre">fragments-official.db</span></code>, Zenodo concept
+10.5281/zenodo.24139305), installed beside the reference database and verified the
+same way. <code class="docutils literal notranslate"><span class="pre">update</span></code> replaces it whole by a newer published version, keeping a
+backup, unless the installed file is not a published version (then only with
+<code class="docutils literal notranslate"><span class="pre">--force</span></code>). The installation’s own <code class="docutils literal notranslate"><span class="pre">fragments.db</span></code> is never touched.</p></li>
+<li><p>the <strong>Active Thermochemical Tables</strong>, downloaded from atct.anl.gov when no version
+is cached. A newer ATcT version is added only on purpose, with
+<code class="docutils literal notranslate"><span class="pre">seamm-thermochemistry-atct</span> <span class="pre">download</span></code>: the Thermochemistry step uses the newest
+cached version by default, so a new version changes its reference values.</p></li>
+</ul>
+<p><code class="docutils literal notranslate"><span class="pre">check</span></code> reports all three and offers to install what is missing. A failure to get
+the fragment store or ATcT (no network, say) is reported and does not stop the rest.</p>
 </section>
 <section id="a-quick-example">
 <h2>A quick example<a class="headerlink" href="#a-quick-example" title="Link to this heading">#</a></h2>

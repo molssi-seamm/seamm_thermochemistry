@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.atct &#8212; SEAMM thermochemistry Plug-in 2026.11.11.10 documentation</title>
+    <title>seamm_thermochemistry.atct &#8212; SEAMM thermochemistry Plug-in 2026.11.11.11 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=895e3be8"></script>
+    <script src="../../_static/documentation_options.js?v=2d26bff1"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.11.10" />
+  <meta name="docsearch:version" content="2026.11.11.11" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -470,6 +470,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">urllib.error</span>
@@ -872,10 +873,12 @@
 
 <div class="viewcode-block" id="download_all">
 <a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.atct.download_all">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">download_all</span><span class="p">(</span><span class="n">base</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">user_agent</span><span class="o">=</span><span class="n">USER_AGENT</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">download_all</span><span class="p">(</span><span class="n">base</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">user_agent</span><span class="o">=</span><span class="n">USER_AGENT</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Download ``/all/`` into ``&lt;base&gt;/&lt;version&gt;/atct_all.json`` and write its</span>
-<span class="sd">    metadata. An existing version is never overwritten. `source` may be a local</span>
-<span class="sd">    file (a copy saved from a browser) instead of the API.</span>
+<span class="sd">    metadata. An existing version is never overwritten: with `exist_ok` that is</span>
+<span class="sd">    not an error (e.g. an installer's update, or two jobs fetching the same</span>
+<span class="sd">    missing version at once), otherwise it raises ATcTError. `source` may be a</span>
+<span class="sd">    local file (a copy saved from a browser) instead of the API.</span>
 
 <span class="sd">    Returns the version directory.</span>
 <span class="sd">    """</span>
@@ -900,11 +903,19 @@
     <span class="n">directory</span> <span class="o">=</span> <span class="n">base</span> <span class="o">/</span> <span class="n">version</span>
     <span class="n">target</span> <span class="o">=</span> <span class="n">directory</span> <span class="o">/</span> <span class="s2">"atct_all.json"</span>
     <span class="k">if</span> <span class="n">target</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">exist_ok</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">directory</span>
         <span class="k">raise</span> <span class="n">ATcTError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"ATcT version </span><span class="si">{</span><span class="n">version</span><span class="si">}</span><span class="s2"> is already in </span><span class="si">{</span><span class="n">directory</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
     <span class="n">directory</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">partial</span> <span class="o">=</span> <span class="n">directory</span> <span class="o">/</span> <span class="s2">"atct_all.json.download"</span>
+    <span class="c1"># A partial file of this process's own: two may download at once</span>
+    <span class="n">partial</span> <span class="o">=</span> <span class="n">directory</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"atct_all.json.download-</span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">getpid</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">partial</span><span class="p">,</span> <span class="s2">"w"</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span> <span class="k">as</span> <span class="n">fd</span><span class="p">:</span>
         <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">fd</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">target</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>  <span class="c1"># another process finished first: keep its copy</span>
+        <span class="n">partial</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="n">missing_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">exist_ok</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">directory</span>
+        <span class="k">raise</span> <span class="n">ATcTError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"ATcT version </span><span class="si">{</span><span class="n">version</span><span class="si">}</span><span class="s2"> is already in </span><span class="si">{</span><span class="n">directory</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
     <span class="n">partial</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
     <span class="n">metadata</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s2">"version"</span><span class="p">:</span> <span class="n">version</span><span class="p">,</span>
@@ -1232,11 +1243,24 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_covariance</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_save_covariance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Save the cached covariance blocks, merged with those another process</span>
+<span class="sd">        may have saved meanwhile (parallel iterations fetch blocks too), with an</span>
+<span class="sd">        atomic replace. A read-only cache keeps the blocks in memory only."""</span>
         <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">directory</span> <span class="o">/</span> <span class="s2">"covariance.json"</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">"w"</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span> <span class="k">as</span> <span class="n">fd</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span> <span class="k">as</span> <span class="n">fd</span><span class="p">:</span>
+                    <span class="n">on_disk</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
+                <span class="n">have</span> <span class="o">=</span> <span class="p">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="s2">"ids"</span><span class="p">])</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">covariance_cache</span><span class="p">[</span><span class="s2">"blocks"</span><span class="p">]}</span>
+                <span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="n">on_disk</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"blocks"</span><span class="p">,</span> <span class="p">[]):</span>
+                    <span class="k">if</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">block</span><span class="p">[</span><span class="s2">"ids"</span><span class="p">])</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">have</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">covariance_cache</span><span class="p">[</span><span class="s2">"blocks"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">block</span><span class="p">)</span>
+                        <span class="n">have</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">block</span><span class="p">[</span><span class="s2">"ids"</span><span class="p">]))</span>
+            <span class="n">partial</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">with_name</span><span class="p">(</span><span class="sa">f</span><span class="s2">"covariance.json.</span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">getpid</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">partial</span><span class="p">,</span> <span class="s2">"w"</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span> <span class="k">as</span> <span class="n">fd</span><span class="p">:</span>
                 <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">covariance_cache</span><span class="p">,</span> <span class="n">fd</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>  <span class="c1"># a read-only copy</span>
+            <span class="n">partial</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">OSError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>  <span class="c1"># a read-only copy, or a damaged file</span>
             <span class="k">pass</span>
 
 <div class="viewcode-block" id="ATcT.covariance">

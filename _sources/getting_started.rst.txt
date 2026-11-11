@@ -51,6 +51,22 @@ download is checked before it replaces anything. ``install`` never overwrites an
 existing database, and ``uninstall`` leaves one with local changes in place unless
 given ``--force``.
 
+The same commands also set up what the isodesmic (CBH) thermochemistry needs, so a
+user has nothing more to do:
+
+* the **official fragment store** (``fragments-official.db``, Zenodo concept
+  10.5281/zenodo.24139305), installed beside the reference database and verified the
+  same way. ``update`` replaces it whole by a newer published version, keeping a
+  backup, unless the installed file is not a published version (then only with
+  ``--force``). The installation's own ``fragments.db`` is never touched.
+* the **Active Thermochemical Tables**, downloaded from atct.anl.gov when no version
+  is cached. A newer ATcT version is added only on purpose, with
+  ``seamm-thermochemistry-atct download``: the Thermochemistry step uses the newest
+  cached version by default, so a new version changes its reference values.
+
+``check`` reports all three and offers to install what is missing. A failure to get
+the fragment store or ATcT (no network, say) is reported and does not stop the rest.
+
 A quick example
 ----------------
 

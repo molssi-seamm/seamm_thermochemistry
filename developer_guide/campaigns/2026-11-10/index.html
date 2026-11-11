@@ -7,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>2026-11-10 – Fragment store P5: write-back, in-job reuse, two layers, ATcT download &#8212; SEAMM thermochemistry Plug-in 2026.11.11.10 documentation</title>
+    <title>2026-11-10 – Fragment store P5: write-back, in-job reuse, two layers, ATcT download &#8212; SEAMM thermochemistry Plug-in 2026.11.11.11 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=895e3be8"></script>
+    <script src="../../../_static/documentation_options.js?v=2d26bff1"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -54,7 +54,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.11.10" />
+  <meta name="docsearch:version" content="2026.11.11.11" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -530,6 +530,16 @@ store, for Science):</strong> a valid row replaces a quarantined one with the sa
 <code class="docutils literal notranslate"><span class="pre">writeback_log</span></code> table (schema 4) records what each harvest and job wrote or
 refused. Until it is installed, ChemAI runs with <code class="docutils literal notranslate"><span class="pre">fragment-store-writable</span> <span class="pre">=</span>
 <span class="pre">no</span></code>.</p>
+<p><strong>Official v1 published 2026-11-11:</strong> Zenodo record 24139306 (DOI
+10.5281/zenodo.24139306, concept 10.5281/zenodo.24139305), built by the released
+2026.11.11.10 (job provenance reduced to job ids). <strong>P5d, seamm-thermochemistry part
+(2026.11.11.11):</strong> the installer installs and updates the official store from the
+concept and ATcT when none is cached; ATcT downloads and the covariance cache are
+safe for parallel jobs. Change from §5: <code class="docutils literal notranslate"><span class="pre">update</span></code> does not add a newer ATcT version
+by itself (ATcT now serves 1.228; machines have 1.220, and saved ladders are tied
+to their version), it stays a deliberate <code class="docutils literal notranslate"><span class="pre">seamm-thermochemistry-atct</span> <span class="pre">download</span></code>.
+The step’s part (run-time download, covariances “fetch if needed”, the uncertainty
+method column) follows design’s thermochemistry_step#24.</p>
 <p>Numbering: these phases are the fragment store’s P5 (P5a-P5e). The 11-08
 presets plan also had a P5 (long-bond and %[(T)] flags) and a P6 (pilot). Those
 keep their names and have nothing to do with this note.</p>
