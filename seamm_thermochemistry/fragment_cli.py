@@ -190,14 +190,14 @@ def main(argv=None):
                 )
                 label = f" conformer '{g['conformer']}'" if g["conformer"] else ""
                 print(
-                    f"{g['species']}{label} at {g['model_chemistry']}{flag}: "
+                    f"{g['species']}{label} at {_level(g)}{flag}: "
                     f"E = {g['E']:.3f}, ZPE = {g['ZPE']}, H = {g['H']} kJ/mol"
                     f"{imaginary}; {g['geometry_hash']} from {g['job']}"
                 )
                 for e in store.energies(g["geometry_hash"]):
                     eflag = "" if e["verified"] else " [unverified]"
                     print(
-                        f"    {e['model_chemistry']}{eflag}: E = {e['E']:.3f} kJ/mol "
+                        f"    {_level(e)}{eflag}: E = {e['E']:.3f} kJ/mol "
                         f"from {e['job']}"
                     )
         elif args.command == "superseded":
@@ -235,6 +235,15 @@ def main(argv=None):
     return 0
 
 
+def _level(row):
+    """The row's model chemistry as people write it: PROGRAM:model when the
+    program is known (rows store the bare model and the program)."""
+    model, program = F.split_model_chemistry(
+        row.get("model_chemistry"), row.get("program")
+    )
+    return f"{program}:{model}" if program else f"{model}"
+
+
 def _print(r):
     flag = "" if r["verified"] else " [unverified]"
     values = ", ".join(
@@ -242,7 +251,7 @@ def _print(r):
     )
     print(
         f"{r['species']} (q={r['charge']}, 2S+1={r['multiplicity']}) "
-        f"{r['model_chemistry']}{flag}: {values} kJ/mol; from {r['job']} "
+        f"{_level(r)}{flag}: {values} kJ/mol; from {r['job']} "
         f"on {r['date']}"
     )
 

@@ -50,7 +50,11 @@ from .geometry_store import (
     GeometryEnergyMixin,
     GeometryRecord,
     PairingError,
+    _as_list,
+    _unverified,
     hash_geometry,
+    same_model_chemistry,
+    split_model_chemistry,
 )
 
 logger = logging.getLogger(__name__)
@@ -64,6 +68,7 @@ __all__ = [
     "fragment_store_path",
     "harvest_job",
     "load_species_map",
+    "split_model_chemistry",
 ]
 
 DUPLICATE_TOLERANCE = 0.1  # kJ/mol
@@ -200,21 +205,31 @@ class FragmentRecord(dict):
         date=None,
     ):
         """Build a record. Without an energy fingerprint the record is keyed on
-        the model chemistry and code version and flagged unverified."""
+        the model chemistry and code version and flagged unverified. The model
+        chemistries are stored bare, with the program in ``program``
+        (:func:`split_model_chemistry`)."""
+        if not program:
+            _, program = split_model_chemistry(model_chemistry)
+        if not program:
+            _, program = split_model_chemistry(frequency_model_chemistry)
         verified = bool(energy_fingerprint)
         if not energy_fingerprint:
             if not model_chemistry:
                 raise ValueError(
                     "A record needs an energy fingerprint or a model chemistry."
                 )
-            energy_fingerprint = f"{UNVERIFIED}:{model_chemistry}@{version or '?'}"
+            energy_fingerprint = _unverified(model_chemistry, version, program)
         if frequency_fingerprint is None:
             frequency_fingerprint = ""
         if ZPE is None and H is None:
             frequency_fingerprint = ""
         elif not frequency_fingerprint:
             level = frequency_model_chemistry or model_chemistry
-            frequency_fingerprint = f"{UNVERIFIED}:{level}@{version or '?'}"
+            frequency_fingerprint = _unverified(level, version, program)
+        model_chemistry, program = split_model_chemistry(model_chemistry, program)
+        frequency_model_chemistry, _ = split_model_chemistry(
+            frequency_model_chemistry, program
+        )
         return FragmentRecord(
             species=species,
             charge=int(charge),
@@ -512,10 +527,11 @@ class FragmentStore(GeometryEnergyMixin):
         """The best record for a species at a level, or None.
 
         With fingerprints, the verified record with those fingerprints (the
-        frequency fingerprint may be None to accept any, including none).
-        Without, or when there is no verified record, an unverified record of
-        the same model chemistry (and code version if given); the caller sees
-        ``record["verified"]`` and reports it.
+        frequency fingerprint may be None to accept any, including none; each
+        may be one or several, see :meth:`geometries`). Without, or when there
+        is no verified record, an unverified record of the same model chemistry
+        (either spelling, see :func:`split_model_chemistry`; and code version if
+        given); the caller sees ``record["verified"]`` and reports it.
 
         Any error reading the store gives None and a log message.
         """
@@ -529,28 +545,34 @@ class FragmentStore(GeometryEnergyMixin):
         try:
             where = "species = ? AND charge = ? AND multiplicity = ?"
             args = [species, int(charge), int(multiplicity)]
-            if energy_fingerprint:
+            for fingerprint in _as_list(energy_fingerprint):
                 sql = where + " AND energy_fingerprint = ? AND verified = 1"
-                args_v = args + [energy_fingerprint]
+                args_v = args + [fingerprint]
                 if frequency_fingerprint is not None:
-                    sql += " AND frequency_fingerprint = ?"
-                    args_v.append(frequency_fingerprint)
+                    frequencies = _as_list(frequency_fingerprint) or [""]
+                    marks = ", ".join("?" * len(frequencies))
+                    sql += f" AND frequency_fingerprint IN ({marks})"
+                    args_v.extend(frequencies)
                 row = db.execute(
                     f"SELECT * FROM fragment WHERE {sql} ORDER BY id LIMIT 1", args_v
                 ).fetchone()
                 if row is not None:
                     return self._record(row)
             if model_chemistry:
-                sql = where + " AND verified = 0 AND model_chemistry = ?"
-                args_u = args + [model_chemistry]
+                sql = f"SELECT * FROM fragment WHERE {where} AND verified = 0"
+                args_u = list(args)
                 if version:
                     sql += " AND version = ?"
                     args_u.append(version)
-                row = db.execute(
-                    f"SELECT * FROM fragment WHERE {sql} ORDER BY id LIMIT 1", args_u
-                ).fetchone()
-                if row is not None:
-                    return self._record(row)
+                rows = [
+                    r
+                    for r in db.execute(sql + " ORDER BY id", args_u).fetchall()
+                    if same_model_chemistry(
+                        model_chemistry, r["model_chemistry"], None, r["program"]
+                    )
+                ]
+                if rows:
+                    return self._record(rows[0])
             return None
         except sqlite3.Error as e:
             logger.warning(f"The fragment store {self.path} could not be read: {e}")
@@ -880,30 +902,8 @@ def harvest_job(
                     properties,
                     (frequency_fingerprint.split("#")[0] + suffix if suffix else None),
                 )
-                record = FragmentRecord.make(
-                    species,
-                    charge=charge,
-                    multiplicity=multiplicity,
-                    E=E,
-                    ZPE=ZPE[1] if ZPE else None,
-                    H=H[1] if H else None,
-                    energy_fingerprint=fp,
-                    frequency_fingerprint=ffp,
-                    model_chemistry=model,
-                    geometry_hash=ghash,
-                    job=job,
-                    configuration=configuration.id,
-                    source=name,
-                )
-                if tables == "geometry":
-                    pass
-                elif supersede:
-                    outcome = store.supersede(record, supersede, force=force)
-                    counts["duplicate" if outcome == "unchanged" else outcome] += 1
-                else:
-                    counts[store.put(record)] += 1
 
-                # The geometry and energy tables
+                # The calculation record: program, version, geometry
                 def extra(base, kind="json"):
                     if not suffix:
                         return None
@@ -935,6 +935,31 @@ def harvest_job(
                 if isinstance(calculation, dict):
                     program = calculation.get("program")
                     version = calculation.get("version")
+                record = FragmentRecord.make(
+                    species,
+                    charge=charge,
+                    multiplicity=multiplicity,
+                    E=E,
+                    ZPE=ZPE[1] if ZPE else None,
+                    H=H[1] if H else None,
+                    energy_fingerprint=fp,
+                    frequency_fingerprint=ffp,
+                    model_chemistry=model,
+                    program=program,
+                    version=version,
+                    geometry_hash=ghash,
+                    job=job,
+                    configuration=configuration.id,
+                    source=name,
+                )
+                if tables == "geometry":
+                    pass
+                elif supersede:
+                    outcome = store.supersede(record, supersede, force=force)
+                    counts["duplicate" if outcome == "unchanged" else outcome] += 1
+                else:
+                    counts[store.put(record)] += 1
+
                 if ZPE or H:
                     symmetry = extra("symmetry number", kind="int")
                     if symmetry is None:
