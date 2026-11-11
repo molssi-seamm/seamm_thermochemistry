@@ -7,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.11.11.8 documentation</title>
+    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.11.11.9 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="_static/documentation_options.js?v=85984c45"></script>
+    <script src="_static/documentation_options.js?v=21e0c85c"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -55,7 +55,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.11.8" />
+  <meta name="docsearch:version" content="2026.11.11.9" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -755,11 +755,24 @@ the <code class="docutils literal notranslate"><span class="pre">--exclude</span
 conformer, to leave out only that conformer). Rows quarantined by hand in a store
 (unverified, with the model chemistry <code class="docutils literal notranslate"><span class="pre">UNUSABLE:</span> <span class="pre">&lt;reason&gt;</span></code>) are never found by a
 lookup; <code class="docutils literal notranslate"><span class="pre">migrate</span></code> leaves them as they are, <code class="docutils literal notranslate"><span class="pre">export</span></code> skips them, and <code class="docutils literal notranslate"><span class="pre">official</span>
-<span class="pre">build</span></code> drops them and lists them in its report. Ions and
-open-shell species are checked like the rest. The build writes
-<code class="docutils literal notranslate"><span class="pre">&lt;file&gt;.report.json</span></code> beside the file: the sources, the levels, the rows kept and
-left out, each exclusion with its reason, and the SHA-256. <code class="docutils literal notranslate"><span class="pre">--official</span> <span class="pre">FILE</span></code> names an official store other than the
-default; <code class="docutils literal notranslate"><span class="pre">lookup</span></code> and <code class="docutils literal notranslate"><span class="pre">geometries</span></code> read both.</p>
+<span class="pre">build</span></code> drops them and lists them in its report. A valid new row with the same key
+replaces a quarantined one, which is kept as superseded, and quarantined rows are not
+counted as conformers. Ions and open-shell species are checked like the rest. The
+build writes <code class="docutils literal notranslate"><span class="pre">&lt;file&gt;.report.json</span></code> beside the file: the sources, the levels, the rows
+kept and left out, each exclusion with its reason, and the SHA-256. <code class="docutils literal notranslate"><span class="pre">--official</span>
+<span class="pre">FILE</span></code> names an official store other than the default; <code class="docutils literal notranslate"><span class="pre">lookup</span></code> and <code class="docutils literal notranslate"><span class="pre">geometries</span></code>
+read both.</p>
+<p>Every harvest and every job’s write-back records what it did with each row – added,
+a duplicate, logged, superseded, or refused and why – in the store’s
+<code class="docutils literal notranslate"><span class="pre">writeback_log</span></code> table:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">seamm</span><span class="o">-</span><span class="n">thermochemistry</span><span class="o">-</span><span class="n">fragments</span> <span class="n">writeback</span><span class="o">-</span><span class="n">log</span> <span class="o">--</span><span class="n">job</span> <span class="mi">5700</span>
+</pre></div>
+</div>
+<p>The log is written by the harvest and by write-back (both go through
+<code class="docutils literal notranslate"><span class="pre">harvest_configuration</span></code>); direct calls to <code class="docutils literal notranslate"><span class="pre">put</span></code>, <code class="docutils literal notranslate"><span class="pre">put_geometry</span></code> or
+<code class="docutils literal notranslate"><span class="pre">put_energy</span></code> from a script of your own are not logged. <code class="docutils literal notranslate"><span class="pre">superseded</span> <span class="pre">SPECIES</span></code>
+shows, for a species, every superseded value – of its fragment records and of its
+geometry and energy rows – with the old and new values, the reason and the date.</p>
 </section>
 <section id="geometries-and-energies-at-different-levels">
 <h3>Geometries and energies at different levels<a class="headerlink" href="#geometries-and-energies-at-different-levels" title="Link to this heading">#</a></h3>

@@ -74,7 +74,14 @@ store was then quarantined by hand (Paul's OK): the six problem rows, with
 ``UNUSABLE: <reason>`` as model chemistry; 2026.11.11.6 makes the tools honour
 that, and a dry run on a copy of the quarantined store gives the same v1 (458
 species states; the quarantine covers all six exclusions). A ``quarantine``
-column (schema 4) would be cleaner than the convention; not needed for v1.
+column would be cleaner than the convention; not needed for v1.
+
+**Write-back follow-ups (2026.11.11.9, design's test on a copy of the live
+store, for Science):** a valid row replaces a quarantined one with the same key
+(kept as superseded); quarantined rows are not conformers; and a
+``writeback_log`` table (schema 4) records what each harvest and job wrote or
+refused. Until it is installed, ChemAI runs with ``fragment-store-writable =
+no``.
 
 Numbering: these phases are the fragment store's P5 (P5a-P5e). The 11-08
 presets plan also had a P5 (long-bond and %[(T)] flags) and a P6 (pilot). Those

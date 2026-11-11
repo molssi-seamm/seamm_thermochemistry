@@ -7,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>2026-11-10 – Fragment store P5: write-back, in-job reuse, two layers, ATcT download &#8212; SEAMM thermochemistry Plug-in 2026.11.11.8 documentation</title>
+    <title>2026-11-10 – Fragment store P5: write-back, in-job reuse, two layers, ATcT download &#8212; SEAMM thermochemistry Plug-in 2026.11.11.9 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=85984c45"></script>
+    <script src="../../../_static/documentation_options.js?v=21e0c85c"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -54,7 +54,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.11.8" />
+  <meta name="docsearch:version" content="2026.11.11.9" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -523,7 +523,13 @@ store was then quarantined by hand (Paul’s OK): the six problem rows, with
 <code class="docutils literal notranslate"><span class="pre">UNUSABLE:</span> <span class="pre">&lt;reason&gt;</span></code> as model chemistry; 2026.11.11.6 makes the tools honour
 that, and a dry run on a copy of the quarantined store gives the same v1 (458
 species states; the quarantine covers all six exclusions). A <code class="docutils literal notranslate"><span class="pre">quarantine</span></code>
-column (schema 4) would be cleaner than the convention; not needed for v1.</p>
+column would be cleaner than the convention; not needed for v1.</p>
+<p><strong>Write-back follow-ups (2026.11.11.9, design’s test on a copy of the live
+store, for Science):</strong> a valid row replaces a quarantined one with the same key
+(kept as superseded); quarantined rows are not conformers; and a
+<code class="docutils literal notranslate"><span class="pre">writeback_log</span></code> table (schema 4) records what each harvest and job wrote or
+refused. Until it is installed, ChemAI runs with <code class="docutils literal notranslate"><span class="pre">fragment-store-writable</span> <span class="pre">=</span>
+<span class="pre">no</span></code>.</p>
 <p>Numbering: these phases are the fragment store’s P5 (P5a-P5e). The 11-08
 presets plan also had a P5 (long-bond and %[(T)] flags) and a P6 (pilot). Those
 keep their names and have nothing to do with this note.</p>

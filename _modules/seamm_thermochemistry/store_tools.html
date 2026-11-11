@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.store_tools &#8212; SEAMM thermochemistry Plug-in 2026.11.11.8 documentation</title>
+    <title>seamm_thermochemistry.store_tools &#8212; SEAMM thermochemistry Plug-in 2026.11.11.9 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=85984c45"></script>
+    <script src="../../_static/documentation_options.js?v=21e0c85c"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.11.8" />
+  <meta name="docsearch:version" content="2026.11.11.9" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -615,8 +615,9 @@
 <div class="viewcode-block" id="migrate_store">
 <a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.store_tools.migrate_store">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">migrate_store</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">backup</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Bring a store up to date: the ``meta`` table and schema 3, and the model</span>
-<span class="sd">    chemistries stored bare with the program filled in (``ORCA:CMP@R2SCAN-3C``</span>
+<span class="w">    </span><span class="sd">"""Bring a store up to date: the ``meta`` and ``writeback_log`` tables</span>
+<span class="sd">    (schema 4), and the model chemistries stored bare with the program filled in</span>
+<span class="sd">    (``ORCA:CMP@R2SCAN-3C``</span>
 <span class="sd">    -&gt; ``CMP@R2SCAN-3C`` + ``ORCA``). A dated copy of the file is kept first.</span>
 <span class="sd">    Running it again changes nothing (and makes no copy).</span>
 
@@ -664,7 +665,9 @@
         <span class="n">copy</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">with_name</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">store</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">.pre-migrate-</span><span class="si">{</span><span class="n">stamp</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="n">shutil</span><span class="o">.</span><span class="n">copy2</span><span class="p">(</span><span class="n">store</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">copy</span><span class="p">)</span>
         <span class="n">result</span><span class="p">[</span><span class="s2">"backup"</span><span class="p">]</span> <span class="o">=</span> <span class="n">copy</span>
-    <span class="k">with</span> <span class="n">FragmentStore</span><span class="p">(</span><span class="n">store</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">create</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>  <span class="c1"># adds meta, schema 3</span>
+    <span class="k">with</span> <span class="n">FragmentStore</span><span class="p">(</span>
+        <span class="n">store</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="n">create</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>  <span class="c1"># adds meta, writeback_log: schema 4</span>
         <span class="n">db</span> <span class="o">=</span> <span class="n">writer</span><span class="o">.</span><span class="n">_connect</span><span class="p">(</span><span class="n">create</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">table</span><span class="p">,</span> <span class="n">changes</span> <span class="ow">in</span> <span class="n">plan</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">for</span> <span class="n">row_id</span><span class="p">,</span> <span class="n">new</span> <span class="ow">in</span> <span class="n">changes</span><span class="p">:</span>

@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.fragment_cli &#8212; SEAMM thermochemistry Plug-in 2026.11.11.8 documentation</title>
+    <title>seamm_thermochemistry.fragment_cli &#8212; SEAMM thermochemistry Plug-in 2026.11.11.9 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=85984c45"></script>
+    <script src="../../_static/documentation_options.js?v=21e0c85c"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.11.8" />
+  <meta name="docsearch:version" content="2026.11.11.9" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -437,6 +437,7 @@
 <span class="sd">    seamm-thermochemistry-fragments duplicates [--store FILE]</span>
 <span class="sd">    seamm-thermochemistry-fragments harvest JOB_DIR ... --supersede "REASON"</span>
 <span class="sd">    seamm-thermochemistry-fragments superseded [SMILES] [--store FILE]</span>
+<span class="sd">    seamm-thermochemistry-fragments writeback-log [--job JOB] [--species SMILES]</span>
 <span class="sd">    seamm-thermochemistry-fragments duplicates --layers [--official FILE]</span>
 <span class="sd">    seamm-thermochemistry-fragments migrate [--store FILE]</span>
 <span class="sd">    seamm-thermochemistry-fragments merge SOURCE.db ... [--store FILE]</span>
@@ -630,6 +631,13 @@
         <span class="n">help</span><span class="o">=</span><span class="s2">"Do not check multiplicities against ATcT's spin states."</span><span class="p">,</span>
     <span class="p">)</span>
 
+    <span class="n">wlog</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s2">"writeback-log"</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">"What harvests and jobs' write-back added to or refused from the store."</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">wlog</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--job"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Only this job (part of its label, e.g. 5689)."</span><span class="p">)</span>
+    <span class="n">wlog</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--species"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Only this species (canonical SMILES)."</span><span class="p">)</span>
+
     <span class="n">sup</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="s2">"superseded"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Show the superseded values."</span><span class="p">)</span>
     <span class="n">sup</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"species"</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s2">"?"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Canonical SMILES."</span><span class="p">)</span>
 
@@ -733,11 +741,43 @@
                     <span class="p">)</span>
             <span class="k">for</span> <span class="n">note</span> <span class="ow">in</span> <span class="n">store</span><span class="o">.</span><span class="n">notes</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"    note: </span><span class="si">{</span><span class="n">note</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">command</span> <span class="o">==</span> <span class="s2">"writeback-log"</span><span class="p">:</span>
+            <span class="n">store</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">FragmentStore</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">store</span><span class="p">)</span>
+            <span class="n">rows</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">write_log</span><span class="p">(</span><span class="n">job</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">job</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">species</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">rows</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">"Nothing logged."</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+                <span class="n">what</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s2">"table_name"</span><span class="p">]</span> <span class="ow">or</span> <span class="s2">"species"</span>
+                <span class="n">conformer</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">" conformer '</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'conformer'</span><span class="p">]</span><span class="si">}</span><span class="s2">'"</span> <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s2">"conformer"</span><span class="p">]</span> <span class="k">else</span> <span class="s2">""</span>
+                <span class="n">row</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">" row </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'row'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s2">"row"</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">""</span>
+                <span class="n">reason</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">": </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'reason'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s2">"reason"</span><span class="p">]</span> <span class="k">else</span> <span class="s2">""</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'date'</span><span class="p">]</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'kind'</span><span class="p">]</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'job'</span><span class="p">]</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'species'</span><span class="p">]</span><span class="si">}</span><span class="s2"> "</span>
+                    <span class="sa">f</span><span class="s2">"(q=</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'charge'</span><span class="p">]</span><span class="si">}</span><span class="s2">, 2S+1=</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'multiplicity'</span><span class="p">]</span><span class="si">}</span><span class="s2">)</span><span class="si">{</span><span class="n">conformer</span><span class="si">}</span><span class="s2"> "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">what</span><span class="si">}{</span><span class="n">row</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'outcome'</span><span class="p">]</span><span class="si">}{</span><span class="n">reason</span><span class="si">}</span><span class="s2">"</span>
+                <span class="p">)</span>
         <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">command</span> <span class="o">==</span> <span class="s2">"superseded"</span><span class="p">:</span>
             <span class="n">store</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">FragmentStore</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">store</span><span class="p">)</span>
             <span class="n">rows</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">superseded</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">species</span><span class="p">)</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">rows</span><span class="p">:</span>
+            <span class="n">others</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">superseded_rows</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">species</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">rows</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">others</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s2">"Nothing superseded."</span><span class="p">)</span>
+
+            <span class="k">def</span><span class="w"> </span><span class="nf">values</span><span class="p">(</span><span class="n">d</span><span class="p">):</span>
+                <span class="k">return</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"E"</span><span class="p">,</span> <span class="s2">"ZPE"</span><span class="p">,</span> <span class="s2">"H"</span><span class="p">)</span> <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">others</span><span class="p">:</span>
+                <span class="n">label</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">" conformer '</span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">'conformer'</span><span class="p">]</span><span class="si">}</span><span class="s2">'"</span> <span class="k">if</span> <span class="n">d</span><span class="p">[</span><span class="s2">"conformer"</span><span class="p">]</span> <span class="k">else</span> <span class="s2">""</span>
+                <span class="n">where</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">'table'</span><span class="p">]</span><span class="si">}</span><span class="s2"> row </span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">'row'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">'species'</span><span class="p">]</span><span class="si">}{</span><span class="n">label</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2"> on </span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">'date'</span><span class="p">]</span><span class="si">}</span><span class="s2">: "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">values</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">'old'</span><span class="p">])</span><span class="si">}</span><span class="s2"> [</span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">'old'</span><span class="p">][</span><span class="s1">'model_chemistry'</span><span class="p">]</span><span class="si">}</span><span class="s2">] (from "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">'old'</span><span class="p">][</span><span class="s1">'job'</span><span class="p">]</span><span class="si">}</span><span class="s2">) replaced by </span><span class="si">{</span><span class="n">values</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">'new'</span><span class="p">])</span><span class="si">}</span><span class="s2"> "</span>
+                    <span class="sa">f</span><span class="s2">"[</span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">'new'</span><span class="p">][</span><span class="s1">'model_chemistry'</span><span class="p">]</span><span class="si">}</span><span class="s2">] (from </span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">'new'</span><span class="p">][</span><span class="s1">'job'</span><span class="p">]</span><span class="si">}</span><span class="s2">); "</span>
+                    <span class="sa">f</span><span class="s2">"reason: </span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">'reason'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+                <span class="p">)</span>
             <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
                 <span class="n">old</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
                     <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"E"</span><span class="p">,</span> <span class="s2">"ZPE"</span><span class="p">,</span> <span class="s2">"H"</span><span class="p">)</span> <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>

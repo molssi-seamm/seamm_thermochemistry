@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.geometry_store &#8212; SEAMM thermochemistry Plug-in 2026.11.11.8 documentation</title>
+    <title>seamm_thermochemistry.geometry_store &#8212; SEAMM thermochemistry Plug-in 2026.11.11.9 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=85984c45"></script>
+    <script src="../../_static/documentation_options.js?v=21e0c85c"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.11.8" />
+  <meta name="docsearch:version" content="2026.11.11.9" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -511,11 +511,12 @@
     <span class="s2">"is_unusable"</span><span class="p">,</span>
 <span class="p">]</span>
 
-<span class="c1">#: The store's schema version (``PRAGMA user_version``): 3 adds the ``meta``</span>
+<span class="c1">#: The store's schema version (``PRAGMA user_version``): 4 adds the</span>
+<span class="c1">#: ``writeback_log`` table (what each job added or refused), 3 the ``meta``</span>
 <span class="c1">#: table (the layer: local, official or contribution; an official store's</span>
 <span class="c1">#: version), 2 the geometry, energy and row_history tables; 0 or 1 is the</span>
 <span class="c1">#: fragment table alone.</span>
-<span class="n">SCHEMA_VERSION</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="n">SCHEMA_VERSION</span> <span class="o">=</span> <span class="mi">4</span>
 <span class="c1">#: Imaginary modes at or below this (cm⁻¹, magnitude) are numerical noise</span>
 <span class="n">IMAGINARY_TOLERANCE</span> <span class="o">=</span> <span class="mf">20.0</span>
 <span class="n">DUPLICATE_TOLERANCE</span> <span class="o">=</span> <span class="mf">0.1</span>  <span class="c1"># kJ/mol, as for the fragment table</span>
@@ -571,6 +572,21 @@
 <span class="s2">    date TEXT,</span>
 <span class="s2">    UNIQUE (geometry_hash, energy_fingerprint)</span>
 <span class="s2">);</span>
+<span class="s2">CREATE TABLE IF NOT EXISTS writeback_log (</span>
+<span class="s2">    id INTEGER PRIMARY KEY,</span>
+<span class="s2">    date TEXT NOT NULL,</span>
+<span class="s2">    kind TEXT NOT NULL,</span>
+<span class="s2">    job TEXT,</span>
+<span class="s2">    species TEXT,</span>
+<span class="s2">    charge INTEGER,</span>
+<span class="s2">    multiplicity INTEGER,</span>
+<span class="s2">    conformer TEXT,</span>
+<span class="s2">    table_name TEXT,</span>
+<span class="s2">    row INTEGER,</span>
+<span class="s2">    outcome TEXT NOT NULL,</span>
+<span class="s2">    reason TEXT</span>
+<span class="s2">);</span>
+<span class="s2">CREATE INDEX IF NOT EXISTS writeback_log_job ON writeback_log (job);</span>
 <span class="s2">CREATE TABLE IF NOT EXISTS meta (</span>
 <span class="s2">    key TEXT PRIMARY KEY,</span>
 <span class="s2">    value TEXT</span>
@@ -1022,6 +1038,12 @@
         <span class="n">existing</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">"SELECT * FROM </span><span class="si">{</span><span class="n">table</span><span class="si">}</span><span class="s2"> WHERE </span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">values</span><span class="p">[:</span><span class="n">nkey</span><span class="p">]</span>
         <span class="p">)</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">is_unusable</span><span class="p">(</span><span class="n">existing</span><span class="p">[</span><span class="s2">"model_chemistry"</span><span class="p">])</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_unusable</span><span class="p">(</span>
+            <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"model_chemistry"</span><span class="p">)</span>
+        <span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_replace_quarantined</span><span class="p">(</span>
+                <span class="n">db</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">columns</span><span class="p">,</span> <span class="n">nkey</span><span class="p">,</span> <span class="n">record</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">existing</span>
+            <span class="p">)</span>
         <span class="n">difference</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_difference</span><span class="p">(</span><span class="n">existing</span><span class="p">,</span> <span class="n">record</span><span class="p">,</span> <span class="n">fields</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">difference</span> <span class="o">&lt;=</span> <span class="n">DUPLICATE_TOLERANCE</span><span class="p">:</span>
             <span class="k">return</span> <span class="s2">"duplicate"</span><span class="p">,</span> <span class="n">existing</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]</span>
@@ -1041,6 +1063,35 @@
             <span class="s2">"the stored ones and logged the attempt."</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="s2">"logged"</span><span class="p">,</span> <span class="n">existing</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_replace_quarantined</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">columns</span><span class="p">,</span> <span class="n">nkey</span><span class="p">,</span> <span class="n">record</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">existing</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""A row quarantined by hand ("UNUSABLE: &lt;reason&gt;") holds the key of a</span>
+<span class="sd">        valid new row: the new values replace it, and the old ones go to</span>
+<span class="sd">        ``row_history`` as superseded, with the quarantine's reason."""</span>
+        <span class="n">reason</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">existing</span><span class="p">[</span><span class="s2">"model_chemistry"</span><span class="p">])</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">":"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_history</span><span class="p">(</span>
+            <span class="n">db</span><span class="p">,</span>
+            <span class="n">table</span><span class="p">,</span>
+            <span class="n">existing</span><span class="p">[</span><span class="s2">"id"</span><span class="p">],</span>
+            <span class="s2">"superseded"</span><span class="p">,</span>
+            <span class="nb">dict</span><span class="p">(</span><span class="n">existing</span><span class="p">),</span>
+            <span class="nb">dict</span><span class="p">(</span><span class="n">record</span><span class="p">),</span>
+            <span class="n">reason</span><span class="o">=</span><span class="sa">f</span><span class="s2">"replaced a quarantined row: </span><span class="si">{</span><span class="n">reason</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">new</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">columns</span><span class="p">,</span> <span class="n">values</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">table</span> <span class="o">==</span> <span class="s2">"energy"</span> <span class="ow">and</span> <span class="n">new</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"geometry"</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">new</span><span class="p">[</span><span class="s2">"geometry"</span><span class="p">]</span> <span class="o">=</span> <span class="n">existing</span><span class="p">[</span><span class="s2">"geometry"</span><span class="p">]</span>
+        <span class="n">value_columns</span> <span class="o">=</span> <span class="n">columns</span><span class="p">[</span><span class="n">nkey</span><span class="p">:]</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"UPDATE </span><span class="si">{</span><span class="n">table</span><span class="si">}</span><span class="s2"> SET </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">c</span><span class="si">}</span><span class="s1"> = ?'</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">value_columns</span><span class="p">)</span><span class="si">}</span><span class="s2"> "</span>
+            <span class="s2">"WHERE id = ?"</span><span class="p">,</span>
+            <span class="p">[</span><span class="n">new</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">value_columns</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">existing</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]],</span>
+        <span class="p">)</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"Replaced the quarantined </span><span class="si">{</span><span class="n">table</span><span class="si">}</span><span class="s2"> row </span><span class="si">{</span><span class="n">existing</span><span class="p">[</span><span class="s1">'id'</span><span class="p">]</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">reason</span><span class="si">}</span><span class="s2">)."</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="s2">"superseded"</span><span class="p">,</span> <span class="n">existing</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]</span>
 
 <div class="viewcode-block" id="GeometryEnergyMixin.put_geometry">
 <a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.fragment_store.GeometryEnergyMixin.put_geometry">[docs]</a>
@@ -1082,7 +1133,12 @@
             <span class="s2">"multiplicity = ? AND frequency_fingerprint = ?"</span><span class="p">,</span>
             <span class="n">record</span><span class="o">.</span><span class="n">key</span><span class="p">[:</span><span class="mi">4</span><span class="p">],</span>
         <span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
-        <span class="n">rows</span> <span class="o">=</span> <span class="p">[</span><span class="n">_decode</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">GeometryRecord</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">]</span>
+        <span class="c1"># Rows quarantined by hand are neither conformers nor the lowest</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">_decode</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">GeometryRecord</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">is_unusable</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s2">"model_chemistry"</span><span class="p">])</span>
+        <span class="p">]</span>
         <span class="k">if</span> <span class="p">(</span>
             <span class="n">rows</span>
             <span class="ow">and</span> <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"E"</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
@@ -1461,6 +1517,115 @@
                 <span class="p">}</span>
             <span class="p">)</span>
         <span class="k">return</span> <span class="n">out</span></div>
+
+
+<div class="viewcode-block" id="GeometryEnergyMixin.superseded_rows">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.fragment_store.GeometryEnergyMixin.superseded_rows">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">superseded_rows</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""The superseded values of geometry and energy rows (``row_history``),</span>
+<span class="sd">        newest first: [{table, row, species, conformer, date, reason, old, new}],</span>
+<span class="sd">        old and new each with E (and ZPE, H, model chemistry, job, geometry hash).</span>
+<span class="sd">        With `species`, only its rows; an energy row belongs to the species of the</span>
+<span class="sd">        geometry with its geometry hash, before or after the change."""</span>
+        <span class="n">db</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reader</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">db</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">history</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                <span class="s2">"SELECT * FROM row_history WHERE kind = 'superseded' AND "</span>
+                <span class="s2">"table_name IN ('geometry', 'energy') ORDER BY id DESC"</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+        <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">OperationalError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="n">keep</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"E"</span><span class="p">,</span> <span class="s2">"ZPE"</span><span class="p">,</span> <span class="s2">"H"</span><span class="p">,</span> <span class="s2">"model_chemistry"</span><span class="p">,</span> <span class="s2">"job"</span><span class="p">,</span> <span class="s2">"geometry_hash"</span><span class="p">)</span>
+        <span class="n">species_of</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"SELECT geometry_hash, species FROM geometry"</span><span class="p">):</span>
+            <span class="n">species_of</span><span class="p">[</span><span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">history</span><span class="p">:</span>
+            <span class="n">old</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">h</span><span class="p">[</span><span class="s2">"old"</span><span class="p">])</span> <span class="k">if</span> <span class="n">h</span><span class="p">[</span><span class="s2">"old"</span><span class="p">]</span> <span class="k">else</span> <span class="p">{}</span>
+            <span class="n">new</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">h</span><span class="p">[</span><span class="s2">"new"</span><span class="p">])</span> <span class="k">if</span> <span class="n">h</span><span class="p">[</span><span class="s2">"new"</span><span class="p">]</span> <span class="k">else</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="p">(</span><span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">):</span>  <span class="c1"># geometry rows' old hashes, from their history</span>
+                <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"species"</span><span class="p">)</span> <span class="ow">and</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"geometry_hash"</span><span class="p">):</span>
+                    <span class="n">species_of</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s2">"geometry_hash"</span><span class="p">],</span> <span class="n">d</span><span class="p">[</span><span class="s2">"species"</span><span class="p">])</span>
+            <span class="n">who</span> <span class="o">=</span> <span class="n">old</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"species"</span><span class="p">)</span> <span class="ow">or</span> <span class="n">new</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"species"</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">who</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">who</span> <span class="o">=</span> <span class="n">species_of</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">old</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"geometry_hash"</span><span class="p">))</span> <span class="ow">or</span> <span class="n">species_of</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                    <span class="n">new</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"geometry_hash"</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s2">"table"</span><span class="p">:</span> <span class="n">h</span><span class="p">[</span><span class="s2">"table_name"</span><span class="p">],</span>
+                    <span class="s2">"row"</span><span class="p">:</span> <span class="n">h</span><span class="p">[</span><span class="s2">"row"</span><span class="p">],</span>
+                    <span class="s2">"species"</span><span class="p">:</span> <span class="n">who</span><span class="p">,</span>
+                    <span class="s2">"conformer"</span><span class="p">:</span> <span class="n">old</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"conformer"</span><span class="p">)</span> <span class="ow">or</span> <span class="n">new</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"conformer"</span><span class="p">),</span>
+                    <span class="s2">"date"</span><span class="p">:</span> <span class="n">h</span><span class="p">[</span><span class="s2">"date"</span><span class="p">],</span>
+                    <span class="s2">"reason"</span><span class="p">:</span> <span class="n">h</span><span class="p">[</span><span class="s2">"reason"</span><span class="p">],</span>
+                    <span class="s2">"old"</span><span class="p">:</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">old</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keep</span><span class="p">},</span>
+                    <span class="s2">"new"</span><span class="p">:</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">new</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keep</span><span class="p">},</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">species</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">out</span> <span class="k">if</span> <span class="n">d</span><span class="p">[</span><span class="s2">"species"</span><span class="p">]</span> <span class="o">==</span> <span class="n">species</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">out</span></div>
+
+
+<div class="viewcode-block" id="GeometryEnergyMixin.log_writes">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.fragment_store.GeometryEnergyMixin.log_writes">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">log_writes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entries</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">"write-back"</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Record what a harvest or a job's write-back did with each row:</span>
+<span class="sd">        `entries` are dicts with job, species, charge, multiplicity, conformer,</span>
+<span class="sd">        table_name, row, outcome and reason (any may be missing)."""</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">entries</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="n">db</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_writer</span><span class="p">()</span>
+        <span class="n">now</span> <span class="o">=</span> <span class="n">_now</span><span class="p">()</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">executemany</span><span class="p">(</span>
+            <span class="s2">"INSERT INTO writeback_log (date, kind, job, species, charge, "</span>
+            <span class="s2">"multiplicity, conformer, table_name, row, outcome, reason) "</span>
+            <span class="s2">"VALUES (?,?,?,?,?,?,?,?,?,?,?)"</span><span class="p">,</span>
+            <span class="p">[</span>
+                <span class="p">(</span>
+                    <span class="n">now</span><span class="p">,</span>
+                    <span class="n">kind</span><span class="p">,</span>
+                    <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"job"</span><span class="p">),</span>
+                    <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"species"</span><span class="p">),</span>
+                    <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"charge"</span><span class="p">),</span>
+                    <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"multiplicity"</span><span class="p">),</span>
+                    <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"conformer"</span><span class="p">),</span>
+                    <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"table_name"</span><span class="p">),</span>
+                    <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"row"</span><span class="p">),</span>
+                    <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"outcome"</span><span class="p">),</span>
+                    <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"reason"</span><span class="p">),</span>
+                <span class="p">)</span>
+                <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">entries</span>
+            <span class="p">],</span>
+        <span class="p">)</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="GeometryEnergyMixin.write_log">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.fragment_store.GeometryEnergyMixin.write_log">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">write_log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">job</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""The write-back and harvest log, newest first; of one job (its label</span>
+<span class="sd">        contains `job`) or species if given."""</span>
+        <span class="n">db</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reader</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">db</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="n">sql</span> <span class="o">=</span> <span class="s2">"SELECT * FROM writeback_log"</span>
+        <span class="n">where</span><span class="p">,</span> <span class="n">args</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">job</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">where</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"job LIKE ?"</span><span class="p">)</span>
+            <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"%</span><span class="si">{</span><span class="n">job</span><span class="si">}</span><span class="s2">%"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">species</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">where</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"species = ?"</span><span class="p">)</span>
+            <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">where</span><span class="p">:</span>
+            <span class="n">sql</span> <span class="o">+=</span> <span class="s2">" WHERE "</span> <span class="o">+</span> <span class="s2">" AND "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">where</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="nb">dict</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql</span> <span class="o">+</span> <span class="s2">" ORDER BY id DESC"</span><span class="p">,</span> <span class="n">args</span><span class="p">)]</span>
+        <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">OperationalError</span><span class="p">:</span>  <span class="c1"># a store from before the table</span>
+            <span class="k">return</span> <span class="p">[]</span></div>
 
 
 <div class="viewcode-block" id="GeometryEnergyMixin.history">
