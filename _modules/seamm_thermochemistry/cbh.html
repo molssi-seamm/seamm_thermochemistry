@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.cbh &#8212; SEAMM thermochemistry Plug-in 2026.11.11.6 documentation</title>
+    <title>seamm_thermochemistry.cbh &#8212; SEAMM thermochemistry Plug-in 2026.11.11.7 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=c9fa6b9e"></script>
+    <script src="../../_static/documentation_options.js?v=6d82ef87"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.11.6" />
+  <meta name="docsearch:version" content="2026.11.11.7" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -488,13 +488,16 @@
     <span class="s2">"DEFAULT_PROTECT"</span><span class="p">,</span>
     <span class="s2">"PROTECT_SMARTS"</span><span class="p">,</span>
     <span class="s2">"SINGLET_GROUND_STATES"</span><span class="p">,</span>
+    <span class="s2">"TRIPLET_GROUND_STATES"</span><span class="p">,</span>
     <span class="s2">"ground_state_multiplicity"</span><span class="p">,</span>
 <span class="p">]</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 <span class="c1"># SMARTS for groups whose hydrogen-capped fragments are meaningless: they are</span>
-<span class="c1"># contracted into one node. Overlapping matches are merged.</span>
+<span class="c1"># contracted into one node. Overlapping matches are merged. Hypervalent centres</span>
+<span class="c1"># (sulfoxide, sulfonyl, phosphoryl, perchlorate, SF5, ...) are found by valence,</span>
+<span class="c1"># not by SMARTS: see _protected_groups.</span>
 <span class="n">PROTECT_SMARTS</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">"nitro"</span><span class="p">:</span> <span class="s2">"[N+](=O)[O-]"</span><span class="p">,</span>
     <span class="s2">"nitro (hypervalent)"</span><span class="p">:</span> <span class="s2">"N(=O)=O"</span><span class="p">,</span>
@@ -502,14 +505,10 @@
     <span class="s2">"azide"</span><span class="p">:</span> <span class="s2">"N=[N+]=[N-]"</span><span class="p">,</span>
     <span class="s2">"diazo"</span><span class="p">:</span> <span class="s2">"[C,N]=[N+]=[N-]"</span><span class="p">,</span>
     <span class="s2">"diazonium"</span><span class="p">:</span> <span class="s2">"[N+]#N"</span><span class="p">,</span>
-    <span class="s2">"sulfoxide"</span><span class="p">:</span> <span class="s2">"[#16X3](=O)([#6,#7])[#6,#7]"</span><span class="p">,</span>
-    <span class="s2">"sulfonyl"</span><span class="p">:</span> <span class="s2">"[#16X4](=O)(=O)"</span><span class="p">,</span>
     <span class="s2">"sulfinyl (charge separated)"</span><span class="p">:</span> <span class="s2">"[S+]([O-])"</span><span class="p">,</span>
-    <span class="s2">"phosphoryl"</span><span class="p">:</span> <span class="s2">"[#15X4](=O)"</span><span class="p">,</span>
     <span class="s2">"phosphonium"</span><span class="p">:</span> <span class="s2">"[P+]"</span><span class="p">,</span>
     <span class="s2">"PF6-"</span><span class="p">:</span> <span class="s2">"[P-](F)(F)(F)(F)(F)F"</span><span class="p">,</span>
     <span class="s2">"BF4-"</span><span class="p">:</span> <span class="s2">"[B-](F)(F)(F)F"</span><span class="p">,</span>
-    <span class="s2">"perchlorate"</span><span class="p">:</span> <span class="s2">"[Cl](=O)(=O)(=O)[O-]"</span><span class="p">,</span>
 <span class="p">}</span>
 
 <span class="n">DEFAULT_PROTECT</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"aromatic"</span><span class="p">,</span> <span class="s2">"small rings"</span><span class="p">,</span> <span class="s2">"groups"</span><span class="p">)</span>
@@ -631,7 +630,7 @@
         <span class="n">Chem</span> <span class="o">=</span> <span class="n">_rdkit</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="n">mol</span>
         <span class="n">heavy</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">GetIdx</span><span class="p">()</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">mol</span><span class="o">.</span><span class="n">GetAtoms</span><span class="p">()</span> <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">GetAtomicNum</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">]</span>
-        <span class="n">groups</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">protected</span> <span class="o">=</span> <span class="n">_protected_groups</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">protect</span><span class="p">)</span>
+        <span class="n">groups</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">protected</span><span class="p">,</span> <span class="n">phantom_atoms</span> <span class="o">=</span> <span class="n">_protected_groups</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">protect</span><span class="p">)</span>
 
         <span class="c1"># Each heavy atom belongs to at most one group</span>
         <span class="n">owner</span> <span class="o">=</span> <span class="p">{}</span>
@@ -646,6 +645,12 @@
                 <span class="n">owner</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">nodes</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">nodes</span> <span class="o">=</span> <span class="n">nodes</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">owner</span> <span class="o">=</span> <span class="n">owner</span>
+        <span class="c1"># (centre node, neighbour atom, neighbour node) of each phantom</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">phantoms</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="n">owner</span><span class="p">[</span><span class="n">c</span><span class="p">],</span> <span class="n">x</span><span class="p">,</span> <span class="n">owner</span><span class="p">[</span><span class="n">x</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">phantom_atoms</span>
+            <span class="k">if</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">owner</span> <span class="ow">and</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">owner</span> <span class="ow">and</span> <span class="n">owner</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">!=</span> <span class="n">owner</span><span class="p">[</span><span class="n">x</span><span class="p">]</span>
+        <span class="p">]</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">adjacency</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="p">{}</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">nodes</span><span class="p">))}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">parallel</span> <span class="o">=</span> <span class="kc">False</span>
@@ -697,12 +702,31 @@
         <span class="k">return</span> <span class="n">atoms</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_hypervalent_centre</span><span class="p">(</span><span class="n">atom</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A hypervalent centre: S, Se, Te, P, As, Cl, Br or I with more bonds than</span>
+<span class="sd">    its normal valence, or a halogen cation bonded to two or more heavy atoms</span>
+<span class="sd">    (the [Cl+3] of perchloryl or chlorate written with charge separation)."""</span>
+    <span class="k">if</span> <span class="n">is_hypervalent</span><span class="p">(</span><span class="n">atom</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="n">heavy</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">nb</span> <span class="ow">in</span> <span class="n">atom</span><span class="o">.</span><span class="n">GetNeighbors</span><span class="p">()</span> <span class="k">if</span> <span class="n">nb</span><span class="o">.</span><span class="n">GetAtomicNum</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">atom</span><span class="o">.</span><span class="n">GetAtomicNum</span><span class="p">()</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">17</span><span class="p">,</span> <span class="mi">35</span><span class="p">,</span> <span class="mi">53</span><span class="p">)</span> <span class="ow">and</span> <span class="n">atom</span><span class="o">.</span><span class="n">GetFormalCharge</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">heavy</span> <span class="o">&gt;</span> <span class="mi">1</span>
+    <span class="p">)</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_protected_groups</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">protect</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""The atom groups to contract, merged where they overlap, and their</span>
-<span class="sd">    descriptions."""</span>
+<span class="w">    </span><span class="sd">"""The atom groups to contract, merged where they overlap, their</span>
+<span class="sd">    descriptions, and the phantom neighbours of hypervalent centres.</span>
+
+<span class="sd">    A hypervalent centre is kept with its heavy neighbours, except a neighbour</span>
+<span class="sd">    in a protected ring, which would fuse the group with the ring (every aryl</span>
+<span class="sd">    sulfone would become one trivial group). Such a neighbour is a *phantom*</span>
+<span class="sd">    (centre, neighbour) pair: it is added, capped like a methyl, to every</span>
+<span class="sd">    fragment that holds the centre but not the neighbour's ring (see</span>
+<span class="sd">    `cbh_reactions`)."""</span>
     <span class="n">Chem</span> <span class="o">=</span> <span class="n">_rdkit</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">protect</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">protect</span> <span class="o">==</span> <span class="s2">"none"</span> <span class="ow">or</span> <span class="n">protect</span> <span class="o">==</span> <span class="p">():</span>
-        <span class="k">return</span> <span class="p">[],</span> <span class="p">[]</span>
+        <span class="k">return</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">protect</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
         <span class="n">protect</span> <span class="o">=</span> <span class="p">(</span><span class="n">protect</span><span class="p">,)</span>
 
@@ -734,16 +758,27 @@
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ring</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">4</span><span class="p">:</span>
                 <span class="n">groups</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">ring</span><span class="p">))</span>
                 <span class="n">labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">ring</span><span class="p">)</span><span class="si">}</span><span class="s2">-membered ring"</span><span class="p">)</span>
+    <span class="n">phantoms</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">if</span> <span class="s2">"groups"</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
         <span class="c1"># A hypervalent centre (S, Se, P, Cl, ... with more bonds than its</span>
-        <span class="c1"># normal valence: sulfonyl, phosphoryl, SF4, SF5-R, ClF3, ...) with all of</span>
-        <span class="c1"># its heavy neighbours, so that CBH-0 gives a real molecule (dimethyl</span>
-        <span class="c1"># sulfone, phosphoric acid) rather than a hydride such as H2SO2 or SH6</span>
+        <span class="c1"># normal valence: sulfonyl, phosphoryl, SF4, SF5-R, ClF3, ...) with its</span>
+        <span class="c1"># heavy neighbours, so that CBH-0 gives a real molecule (dimethyl</span>
+        <span class="c1"># sulfone, phosphoric acid) rather than a hydride such as H2SO2 or SH6.</span>
+        <span class="c1"># A neighbour in a protected ring stays with its ring: a phantom.</span>
+        <span class="n">in_rings</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">atoms</span> <span class="ow">in</span> <span class="n">groups</span><span class="p">:</span>
+            <span class="n">in_rings</span> <span class="o">|=</span> <span class="n">atoms</span>
         <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">mol</span><span class="o">.</span><span class="n">GetAtoms</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">is_hypervalent</span><span class="p">(</span><span class="n">atom</span><span class="p">):</span>
-                <span class="n">atoms</span> <span class="o">=</span> <span class="p">{</span><span class="n">atom</span><span class="o">.</span><span class="n">GetIdx</span><span class="p">()}</span> <span class="o">|</span> <span class="p">{</span>
-                    <span class="n">nb</span><span class="o">.</span><span class="n">GetIdx</span><span class="p">()</span> <span class="k">for</span> <span class="n">nb</span> <span class="ow">in</span> <span class="n">atom</span><span class="o">.</span><span class="n">GetNeighbors</span><span class="p">()</span> <span class="k">if</span> <span class="n">nb</span><span class="o">.</span><span class="n">GetAtomicNum</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">1</span>
-                <span class="p">}</span>
+            <span class="k">if</span> <span class="n">_hypervalent_centre</span><span class="p">(</span><span class="n">atom</span><span class="p">):</span>
+                <span class="n">c</span> <span class="o">=</span> <span class="n">atom</span><span class="o">.</span><span class="n">GetIdx</span><span class="p">()</span>
+                <span class="n">atoms</span> <span class="o">=</span> <span class="p">{</span><span class="n">c</span><span class="p">}</span>
+                <span class="k">for</span> <span class="n">nb</span> <span class="ow">in</span> <span class="n">atom</span><span class="o">.</span><span class="n">GetNeighbors</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="n">nb</span><span class="o">.</span><span class="n">GetAtomicNum</span><span class="p">()</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                    <span class="k">if</span> <span class="n">nb</span><span class="o">.</span><span class="n">GetIdx</span><span class="p">()</span> <span class="ow">in</span> <span class="n">in_rings</span> <span class="ow">and</span> <span class="n">c</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">in_rings</span><span class="p">:</span>
+                        <span class="n">phantoms</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">c</span><span class="p">,</span> <span class="n">nb</span><span class="o">.</span><span class="n">GetIdx</span><span class="p">()))</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">atoms</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">nb</span><span class="o">.</span><span class="n">GetIdx</span><span class="p">())</span>
                 <span class="n">groups</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">atoms</span><span class="p">)</span>
                 <span class="n">labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"hypervalent </span><span class="si">{</span><span class="n">atom</span><span class="o">.</span><span class="n">GetSymbol</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="c1"># Two bonded atoms with opposite formal charges (CO as [C-]#[O+], the</span>
@@ -794,7 +829,7 @@
         <span class="n">counts</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">(</span><span class="n">names</span><span class="p">)</span>
         <span class="n">text</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2"> x </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">n</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">counts</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
         <span class="n">descriptions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">text</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">atoms</span><span class="p">)</span><span class="si">}</span><span class="s2"> atoms)"</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">merged</span><span class="p">,</span> <span class="n">descriptions</span>
+    <span class="k">return</span> <span class="n">merged</span><span class="p">,</span> <span class="n">descriptions</span><span class="p">,</span> <span class="n">phantoms</span>
 
 
 <span class="c1"># ---------------------------------------------------------------------------</span>
@@ -919,22 +954,44 @@
 
 
 <span class="c1">#: Species whose SMILES puts two unpaired electrons on one atom but whose ground</span>
-<span class="c1">#: state is a singlet: the silylenes, the dihalocarbenes and BH. Methylene (CH2)</span>
-<span class="c1">#: and imidogen (NH) are ground-state triplets and are not listed.</span>
-<span class="n">SINGLET_GROUND_STATES</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"[SiH2]"</span><span class="p">,</span> <span class="s2">"Cl[Si]Cl"</span><span class="p">,</span> <span class="s2">"F[Si]F"</span><span class="p">,</span> <span class="s2">"F[C]F"</span><span class="p">,</span> <span class="s2">"Cl[C]Cl"</span><span class="p">,</span> <span class="s2">"[BH]"</span><span class="p">)</span>
+<span class="c1">#: state is a singlet: the silylenes and germylene, the dihalocarbenes and</span>
+<span class="c1">#: halocarbenes, and BH, AlH, BF and BCl. Methylene (CH2) and imidogen (NH) are</span>
+<span class="c1">#: ground-state triplets and are not listed.</span>
+<span class="n">SINGLET_GROUND_STATES</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">"[SiH2]"</span><span class="p">,</span>
+    <span class="s2">"Cl[Si]Cl"</span><span class="p">,</span>
+    <span class="s2">"F[Si]F"</span><span class="p">,</span>
+    <span class="s2">"[GeH2]"</span><span class="p">,</span>
+    <span class="s2">"F[C]F"</span><span class="p">,</span>
+    <span class="s2">"Cl[C]Cl"</span><span class="p">,</span>
+    <span class="s2">"F[CH]"</span><span class="p">,</span>
+    <span class="s2">"Cl[CH]"</span><span class="p">,</span>
+    <span class="s2">"[BH]"</span><span class="p">,</span>
+    <span class="s2">"[AlH]"</span><span class="p">,</span>
+    <span class="s2">"F[B]"</span><span class="p">,</span>
+    <span class="s2">"Cl[B]"</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="c1">#: Species that a SMILES writes closed-shell but whose ground state is a triplet:</span>
+<span class="c1">#: O2 and its valence isoelectronic S2 and SO, ethylenedione (OCCO, whose singlet</span>
+<span class="c1">#: is a saddle point) and cyclic C3 (whose singlet opens to linear C3; ATcT's</span>
+<span class="c1">#: plain entry is the triplet).</span>
+<span class="n">TRIPLET_GROUND_STATES</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"O=O"</span><span class="p">,</span> <span class="s2">"S=S"</span><span class="p">,</span> <span class="s2">"O=S"</span><span class="p">,</span> <span class="s2">"O=C=C=O"</span><span class="p">,</span> <span class="s2">"C1=C=C=1"</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="ground_state_multiplicity">
 <a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.cbh.ground_state_multiplicity">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">ground_state_multiplicity</span><span class="p">(</span><span class="n">smiles</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""The spin multiplicity of a species' ground state: 1 for those in</span>
-<span class="sd">    `SINGLET_GROUND_STATES`, otherwise its unpaired electrons + 1, as the SMILES</span>
-<span class="sd">    implies (a radical centre ``[CH3]`` is a doublet, ``[CH2]`` a triplet)."""</span>
+<span class="sd">    `SINGLET_GROUND_STATES`, 3 for those in `TRIPLET_GROUND_STATES`, otherwise</span>
+<span class="sd">    its unpaired electrons + 1, as the SMILES implies (a radical centre</span>
+<span class="sd">    ``[CH3]`` is a doublet, ``[CH2]`` a triplet)."""</span>
     <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">radicals</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_composition</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
     <span class="n">key</span> <span class="o">=</span> <span class="n">canonical_smiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="n">stereo</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="n">singlets</span> <span class="o">=</span> <span class="p">{</span><span class="n">canonical_smiles</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">stereo</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">SINGLET_GROUND_STATES</span><span class="p">}</span>
-    <span class="k">if</span> <span class="n">key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">singlets</span><span class="p">:</span>
-        <span class="k">return</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">{</span><span class="n">canonical_smiles</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">stereo</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">SINGLET_GROUND_STATES</span><span class="p">}:</span>
+            <span class="k">return</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">{</span><span class="n">canonical_smiles</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">stereo</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">TRIPLET_GROUND_STATES</span><span class="p">}:</span>
+            <span class="k">return</span> <span class="mi">3</span>
     <span class="k">return</span> <span class="n">radicals</span> <span class="o">+</span> <span class="mi">1</span></div>
 
 
@@ -1037,9 +1094,17 @@
         <span class="n">key</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(</span><span class="n">node_set</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cache</span><span class="p">:</span>
             <span class="n">atoms</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">atoms</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+            <span class="c1"># A hypervalent centre keeps its ring neighbours, capped like a</span>
+            <span class="c1"># methyl, when the ring is not in the fragment</span>
+            <span class="n">atoms</span> <span class="o">|=</span> <span class="p">{</span><span class="n">x</span> <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">xn</span> <span class="ow">in</span> <span class="n">graph</span><span class="o">.</span><span class="n">phantoms</span> <span class="k">if</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">key</span> <span class="ow">and</span> <span class="n">xn</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">key</span><span class="p">}</span>
             <span class="n">generated</span> <span class="o">=</span> <span class="n">_fragment_smiles</span><span class="p">(</span><span class="n">mol_h</span><span class="p">,</span> <span class="n">atoms</span><span class="p">)</span>
             <span class="n">cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">canonical_smiles</span><span class="p">(</span><span class="n">generated</span><span class="p">),</span> <span class="n">generated</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">atom_fragment</span><span class="p">(</span><span class="n">idx</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""The species of one atom, every bond to it capped (CH4 for a carbon)."""</span>
+        <span class="n">generated</span> <span class="o">=</span> <span class="n">_fragment_smiles</span><span class="p">(</span><span class="n">mol_h</span><span class="p">,</span> <span class="p">{</span><span class="n">idx</span><span class="p">})</span>
+        <span class="k">return</span> <span class="n">canonical_smiles</span><span class="p">(</span><span class="n">generated</span><span class="p">),</span> <span class="n">generated</span>
 
     <span class="n">parent_elements</span><span class="p">,</span> <span class="n">parent_charge</span><span class="p">,</span> <span class="n">parent_radicals</span><span class="p">,</span> <span class="n">parent_bonds</span> <span class="o">=</span> <span class="n">_composition</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
 
@@ -1072,6 +1137,11 @@
         <span class="k">if</span> <span class="n">rung</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">nodes</span><span class="p">)):</span>
                 <span class="n">terms</span><span class="p">[</span><span class="n">fragment</span><span class="p">({</span><span class="n">i</span><span class="p">})]</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="c1"># Each phantom neighbour appears twice (in its ring and, capped, by</span>
+            <span class="c1"># the centre): take its own species away once. From CBH-1 up the</span>
+            <span class="c1"># phantoms cancel in the overlap sums.</span>
+            <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">graph</span><span class="o">.</span><span class="n">phantoms</span><span class="p">:</span>
+                <span class="n">terms</span><span class="p">[</span><span class="n">atom_fragment</span><span class="p">(</span><span class="n">x</span><span class="p">)]</span> <span class="o">-=</span> <span class="mi">1</span>
         <span class="k">elif</span> <span class="n">rung</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">k</span> <span class="o">=</span> <span class="p">(</span><span class="n">rung</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span>
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">graph</span><span class="o">.</span><span class="n">edges</span><span class="p">:</span>
