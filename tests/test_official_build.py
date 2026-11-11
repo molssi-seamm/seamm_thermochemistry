@@ -342,3 +342,84 @@ def test_a_singlet_dioxygen_row_is_refused(tmp_path):
         problems = T.sanity_check(s)
     assert set(problems) == {("O=O", 0, 1)}
     assert "ground state's (3, triplet" in problems[("O=O", 0, 1)][0]
+
+
+@pytest.mark.parametrize(
+    "job, short",
+    [
+        ("5689:/D3/psaxe/SEAMM/Jobs/projects/Thermochemistry/Job_005689", "5689"),
+        ("5669:/Users/someone/Downloads/jobs/Job_005669", "5669"),
+        ("/home/x/Job_000042", "Job_000042"),
+        ("/home/x/Job_000042/", "Job_000042"),
+        ("5689", "5689"),
+        ("SEAMM job 12", "SEAMM job 12"),
+        (None, None),
+    ],
+)
+def test_job_id_only(job, short):
+    assert T.job_id_only(job) == short
+
+
+def _with_paths(path):
+    """A contribution whose rows and history carry job directories."""
+    with FragmentStore(path, create=True, layer="contribution") as s:
+        symbols, xyz = _xyz("C")
+        g = GeometryRecord.make(
+            "C",
+            symbols,
+            xyz,
+            E=-1000.0,
+            ZPE=50.0,
+            H=-940.0,
+            frequency_fingerprint=GEO,
+            frequencies=[500.0, 1500.0],
+            job="5689:/D3/psaxe/SEAMM/Jobs/Job_005689",
+        )
+        s.put_geometry(g)
+        s.supersede_geometry(
+            GeometryRecord(g, E=-1001.0, job="5690:/D3/psaxe/SEAMM/Jobs/Job_005690"),
+            reason="a better SCF",
+        )
+        s.put_energy(
+            EnergyRecord.make(
+                g["geometry_hash"],
+                -1100.0,
+                energy_fingerprint=REVDSD,
+                job="5669:/Users/someone/Downloads/Job_005669",
+            )
+        )
+        s.put(
+            FragmentRecord.make(
+                "C",
+                E=-1000.0,
+                energy_fingerprint=GEO,
+                job="5689:/D3/psaxe/SEAMM/Jobs/Job_005689",
+            )
+        )
+
+
+def test_an_official_store_keeps_only_job_ids(tmp_path):
+    source = tmp_path / "source.db"
+    _with_paths(source)
+    out = tmp_path / "official.db"
+    build_official(out, "v", [source], frequency_fingerprints=[GEO])
+    text = out.read_bytes()
+    assert b"/D3/" not in text and b"/Users/" not in text
+    with FragmentStore(out, immutable=True) as s:
+        db = s._connect()
+        jobs = {
+            r[0]
+            for t in ("fragment", "geometry", "energy")
+            for r in db.execute(f"SELECT job FROM {t}")
+        }
+        assert jobs == {"5689", "5690", "5669"}
+        # The merge carries superseded values as E/ZPE/H, the date and reason:
+        # no job, so no path, in the history
+        (h,) = s.history("geometry")
+        assert h["old"]["E"] == -1000.0 and h["old"].get("job") is None
+    report = json.loads((tmp_path / "official.db.report.json").read_text())
+    assert report["job paths"] == "reduced to job ids"
+    # Kept when asked
+    kept = tmp_path / "kept.db"
+    build_official(kept, "v", [source], job_ids_only=False)
+    assert b"/D3/psaxe" in kept.read_bytes()

@@ -197,6 +197,12 @@ def main(argv=None):
         "charge, multiplicity, reason.",
     )
     build.add_argument(
+        "--keep-job-paths",
+        action="store_true",
+        help="Keep each job's directory in the provenance; by default only the job "
+        "id is kept, since an official store is published.",
+    )
+    build.add_argument(
         "--no-atct",
         action="store_true",
         help="Do not check multiplicities against ATcT's spin states.",
@@ -423,6 +429,7 @@ def main(argv=None):
                 energy_fingerprints=args.energy_fingerprint,
                 exclude=T.load_exclusions(args.exclude) if args.exclude else None,
                 atct=atct,
+                job_ids_only=not args.keep_job_paths,
             )
             _print_counts(counts)
             print(f"Built {path} (version {args.version}), sha256 {digest}")
