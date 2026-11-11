@@ -7,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.11.11.12 documentation</title>
+    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.11.11.13 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="_static/documentation_options.js?v=1ade359b"></script>
+    <script src="_static/documentation_options.js?v=bea6b182"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -55,7 +55,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.11.12" />
+  <meta name="docsearch:version" content="2026.11.11.13" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -969,7 +969,9 @@ carbon); from CBH-1 up these atoms cancel by themselves. So is every pair of bon
 formal charges (CO written [C-]#[O+], N-oxides, the bridges of
 Al<sub>2</sub>Cl<sub>6</sub>). RDKit’s valence check rejects hypervalent
 halogens (<code class="docutils literal notranslate"><span class="pre">FCl(F)F</span></code>); SMILES are read with <code class="docutils literal notranslate"><span class="pre">seamm_thermochemistry.smiles.</span>
-<span class="pre">mol_from_smiles</span></code>, which skips that check for S, Se, Te, P, As, Cl, Br and I only.
+<span class="pre">mol_from_smiles</span></code>, which skips that check for S, Se, Te, P, As, Cl, Br and I only;
+the ATcT index and its lookups read them the same way, so ClF<sub>3</sub>, BrO<sub>2</sub>
+or O=[S-](=O)=O are found like any other species.
 <code class="docutils literal notranslate"><span class="pre">cbh.ground_state_multiplicity(smiles)</span></code> gives the spin multiplicity of a
 species: its unpaired electrons + 1, except the ground-state singlets that a
 SMILES writes with two unpaired electrons (SiH<sub>2</sub>, SiCl<sub>2</sub>,

@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.atct &#8212; SEAMM thermochemistry Plug-in 2026.11.11.12 documentation</title>
+    <title>seamm_thermochemistry.atct &#8212; SEAMM thermochemistry Plug-in 2026.11.11.13 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=1ade359b"></script>
+    <script src="../../_static/documentation_options.js?v=bea6b182"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.11.12" />
+  <meta name="docsearch:version" content="2026.11.11.13" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -777,7 +777,12 @@
         <span class="c1"># Drop the stereo first, so that a hydrogen that only defined it</span>
         <span class="c1"># ([H]/N=C\O) is removed too</span>
         <span class="n">Chem</span><span class="o">.</span><span class="n">RemoveStereochemistry</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
-        <span class="n">mol</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">RemoveHs</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">mol</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">RemoveHs</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">Chem</span><span class="o">.</span><span class="n">rdchem</span><span class="o">.</span><span class="n">MolSanitizeException</span><span class="p">:</span>
+            <span class="c1"># A hypervalent molecule read without the valence check (ClF3,</span>
+            <span class="c1"># Br3, O=[S-](=O)=O) fails it again when RemoveHs re-sanitizes</span>
+            <span class="n">mol</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">RemoveHs</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">sanitize</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolToSmiles</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">isomericSmiles</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">keep_single_center</span><span class="p">:</span>
         <span class="n">centers</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">FindMolChiralCenters</span><span class="p">(</span>
