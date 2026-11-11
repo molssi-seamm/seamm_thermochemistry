@@ -579,6 +579,65 @@ class GeometryEnergyMixin:
             "geometry", _GEOMETRY_COLUMNS, _GEOMETRY_KEY, _GEOMETRY_VALUES, record
         )
 
+    def put_geometry_conformer(self, record, rmsd=None):
+        """Insert a geometry row, as a new conformer when it is one.
+
+        When the species already has geometries at this frequency level, a row
+        whose E + ZPE is lower than all of theirs by more than 0.1 kJ/mol, and
+        whose structure differs from each of theirs (symmetry-aware RMSD above
+        `rmsd` Å, by default ``fragment_store.CONFORMER_RMSD``), is stored as
+        the conformer ``auto:<geometry hash>`` instead of being only logged
+        against the existing row. Lookups take the lowest conformer. Anything
+        else -- the same minimum again, a higher conformer -- is put as by
+        :meth:`put_geometry` (inserted, a duplicate, or logged).
+
+        Returns (outcome, row id) as :meth:`put_geometry`.
+        """
+        from .fragment_store import CONFORMER_RMSD, conformer_rmsd
+
+        if rmsd is None:
+            rmsd = CONFORMER_RMSD
+        record = GeometryRecord(record)
+        db = self._writer()
+        rows = db.execute(
+            "SELECT * FROM geometry WHERE species = ? AND charge = ? AND "
+            "multiplicity = ? AND frequency_fingerprint = ?",
+            record.key[:4],
+        ).fetchall()
+        rows = [_decode(r, GeometryRecord) for r in rows]
+        if (
+            rows
+            and record.get("E") is not None
+            and record.get("ZPE") is not None
+            and all(r["geometry_hash"] != record["geometry_hash"] for r in rows)
+        ):
+            energy = record["E"] + record["ZPE"]
+            lowest = min(
+                (r["E"] + r["ZPE"] for r in rows if r["E"] is not None and r["ZPE"]),
+                default=None,
+            )
+            if lowest is not None and energy < lowest - DUPLICATE_TOLERANCE:
+                distinct = True
+                for r in rows:
+                    d = conformer_rmsd(
+                        r["symbols"],
+                        r["coordinates"],
+                        record["symbols"],
+                        record["coordinates"],
+                    )
+                    if d is None or d <= rmsd:
+                        distinct = False
+                        break
+                if distinct:
+                    label = record["geometry_hash"].split(":")[-1][:12]
+                    record["conformer"] = f"auto:{label}"
+                    logger.info(
+                        f"{record['species']}: a lower conformer, by "
+                        f"{lowest - energy:.2f} kJ/mol, stored as "
+                        f"'{record['conformer']}'."
+                    )
+        return self.put_geometry(record)
+
     def put_energy(self, record):
         """Insert an energy row unless its key exists.
 

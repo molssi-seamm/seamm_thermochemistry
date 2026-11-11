@@ -67,6 +67,9 @@ __all__ = [
     "PairingError",
     "fragment_store_path",
     "harvest_job",
+    "harvest_configuration",
+    "check_structure",
+    "store_is_writable",
     "load_species_map",
     "split_model_chemistry",
 ]
@@ -699,6 +702,7 @@ def harvest_job(
     force=False,
     species_map=None,
     tables="all",
+    structure_check=True,
 ):
     """Promote the species energies of one job into the store.
 
@@ -747,6 +751,10 @@ def harvest_job(
     An energy whose ``calculation`` record names a different geometry is
     refused (the pairing guard) and reported in "skipped".
 
+    With `structure_check` (the default) a structure whose bonds, perceived
+    again from its coordinates, are not those of its species, or that has atoms
+    too close together, is refused (see :func:`check_structure`).
+
     Returns {"inserted": n, "duplicate": n, "logged": n, "superseded": n,
     "skipped": [reasons], "geometry": {outcome: n}, "energy": {outcome: n}},
     the first four counting the fragment rows.
@@ -772,42 +780,9 @@ def harvest_job(
         pass
     job = f"{job_id}:{job_directory}" if job_id is not None else str(job_directory)
 
-    counts = {
-        "inserted": 0,
-        "duplicate": 0,
-        "logged": 0,
-        "superseded": 0,
-        "skipped": [],
-        "geometry": {},
-        "energy": {},
-    }
-
-    def tally(table, outcome):
-        counts[table][outcome] = counts[table].get(outcome, 0) + 1
-
+    counts = new_counts()
     if tables not in ("all", "geometry"):
         raise ValueError(f"tables must be 'all' or 'geometry', not '{tables}'")
-
-    def thermal_from_map(mapped, E):
-        """(ZPE, H, symmetry number) from the map's row, or None; raises
-        ValueError if the map's energy is not the job's."""
-        if mapped is None:
-            return None
-        try:
-            zpe = float(mapped["ZPE (kJ/mol)"])
-            h = float(mapped["H298 (kJ/mol)"])
-            e = float(mapped["E (kJ/mol)"])
-        except (KeyError, TypeError, ValueError):
-            return None
-        if abs(e - E) > DUPLICATE_TOLERANCE:
-            raise ValueError(
-                f"the species map's E ({e:.3f} kJ/mol) is not the job's ({E:.3f})"
-            )
-        try:
-            symmetry = int(mapped["symmetry number"])
-        except (KeyError, TypeError, ValueError):
-            symmetry = None
-        return zpe, E + (h - e), symmetry
 
     db = SystemDB(filename=f"file:{path}?mode=ro")
     try:
@@ -854,177 +829,543 @@ def harvest_job(
                 if mapped.get("multiplicity"):
                     multiplicity = int(mapped["multiplicity"])
                 conformer = mapped.get("conformer label") or ""
-            properties = configuration.properties
-            try:
-                energies = properties.get(pattern=energy, match="glob")
-            except Exception as e:  # pragma: no cover
-                counts["skipped"].append(f"{species}: {e}")
-                continue
-            if not energies:
-                counts["skipped"].append(f"{species}: no property matching '{energy}'")
-                continue
-            symbols = configuration.atoms.symbols
-            coordinates = configuration.atoms.get_coordinates(fractionals=False)
-            ghash = geometry_hash(symbols, coordinates)
-            try:
-                atomic_numbers = configuration.atoms.atomic_numbers
-            except Exception:  # pragma: no cover
-                atomic_numbers = None
-            fingerprint_hash = hash_geometry(symbols, coordinates, atomic_numbers)
-            for name, value in energies.items():
-                if isinstance(value, dict):
-                    value = value["value"]
-                fields = name.split("#")
-                model = fields[2] if len(fields) > 2 else None
-                suffix = "#" + "#".join(fields[1:]) if len(fields) > 1 else ""
-                E = _to_kj(value, properties.units(name))
-                zpe_name = zpe.split("#")[0] + suffix if suffix else zpe
-                h_name = enthalpy.split("#")[0] + suffix if suffix else enthalpy
-                ZPE = _property(properties, zpe_name)
-                H = _property(properties, h_name)
-                fp = _text_property(
-                    properties, fingerprint.split("#")[0] + suffix if suffix else None
-                )
-                mapped_symmetry = None
-                from_map = False
-                if ZPE is None and H is None:
-                    try:
-                        found = thermal_from_map(mapped, E)
-                    except ValueError as e:
-                        counts["skipped"].append(f"{system.name}: {e}")
-                        found = None
-                    if found is not None:
-                        ZPE = (zpe_name, found[0])
-                        H = (h_name, found[1])
-                        mapped_symmetry = found[2]
-                        from_map = True
-                ffp = _text_property(
-                    properties,
-                    (frequency_fingerprint.split("#")[0] + suffix if suffix else None),
-                )
+            harvest_configuration(
+                store,
+                configuration,
+                species,
+                charge=charge,
+                multiplicity=multiplicity,
+                conformer=conformer,
+                job=job,
+                mapped=mapped,
+                label=system.name,
+                energy=energy,
+                zpe=zpe,
+                enthalpy=enthalpy,
+                fingerprint=fingerprint,
+                frequency_fingerprint=frequency_fingerprint,
+                supersede=supersede,
+                force=force,
+                tables=tables,
+                structure_check=structure_check,
+                counts=counts,
+            )
+    finally:
+        db.close()
+    return counts
 
-                # The calculation record: program, version, geometry
-                def extra(base, kind="json"):
-                    if not suffix:
-                        return None
-                    full = base + suffix
-                    try:
-                        if not properties.exists(full):
-                            return None
-                        value = properties.get(full)
-                    except Exception:
-                        return None
-                    if isinstance(value, dict) and full in value:
-                        value = value[full]  # {name: {"value": ...}}
-                    if isinstance(value, dict) and "value" in value:
-                        value = value["value"]
-                    if kind == "json" and isinstance(value, str):
-                        try:
-                            value = json.loads(value)
-                        except ValueError:
-                            return None
-                    return value
 
-                calculation = extra("calculation")
-                calc_geometry = (
-                    calculation.get("geometry fingerprint")
-                    if isinstance(calculation, dict)
-                    else None
-                )
-                program = version = None
-                if isinstance(calculation, dict):
-                    program = calculation.get("program")
-                    version = calculation.get("version")
-                record = FragmentRecord.make(
+def new_counts():
+    """The tallies of a harvest (see :func:`harvest_job`)."""
+    return {
+        "inserted": 0,
+        "duplicate": 0,
+        "logged": 0,
+        "superseded": 0,
+        "skipped": [],
+        "geometry": {},
+        "energy": {},
+    }
+
+
+def _thermal_from_map(mapped, E):
+    """(ZPE, H, symmetry number) from a species map's row, or None; raises
+    ValueError if the map's energy is not the job's."""
+    if mapped is None:
+        return None
+    try:
+        zpe = float(mapped["ZPE (kJ/mol)"])
+        h = float(mapped["H298 (kJ/mol)"])
+        e = float(mapped["E (kJ/mol)"])
+    except (KeyError, TypeError, ValueError):
+        return None
+    if abs(e - E) > DUPLICATE_TOLERANCE:
+        raise ValueError(
+            f"the species map's E ({e:.3f} kJ/mol) is not the job's ({E:.3f})"
+        )
+    try:
+        symmetry = int(mapped["symmetry number"])
+    except (KeyError, TypeError, ValueError):
+        symmetry = None
+    return zpe, E + (h - e), symmetry
+
+
+def _imaginary_modes(properties, pattern="frequencies#*#*"):
+    """The largest imaginary mode (cm^-1, as a positive number) among the
+    frequencies stored on a configuration, or 0.0."""
+    try:
+        values = properties.get(pattern=pattern, match="glob")
+    except Exception:  # pragma: no cover
+        return 0.0
+    worst = 0.0
+    for value in (values or {}).values():
+        if isinstance(value, dict):
+            value = value.get("value")
+        if isinstance(value, str):
+            try:
+                value = json.loads(value)
+            except ValueError:
+                continue
+        for f in value or []:
+            try:
+                worst = max(worst, -float(f))
+            except (TypeError, ValueError):
+                continue
+    return worst
+
+
+def harvest_configuration(
+    store,
+    configuration,
+    species,
+    *,
+    charge=None,
+    multiplicity=None,
+    conformer="",
+    job=None,
+    mapped=None,
+    label=None,
+    energy="total energy#*#*",
+    zpe="ZPE#*#*",
+    enthalpy="H(298.15 K)#*#*",
+    fingerprint="settings fingerprint#*#*",
+    frequency_fingerprint="frequency fingerprint#*#*",
+    supersede=None,
+    force=False,
+    tables="all",
+    structure_check=True,
+    write_back=False,
+    counts=None,
+):
+    """Put one configuration's species into the store: what :func:`harvest_job`
+    does for each system of a job, and what the Thermochemistry step does for
+    each species it computes (write-back).
+
+    Every energy property matching `energy` gives a fragment row (unless
+    `tables` is "geometry") and an energy row on the configuration's geometry,
+    and, with the ZPE or enthalpy of the same level, a geometry row. See
+    :func:`harvest_job` for the properties read and the guards.
+
+    `write_back` adds the rules for results written by a running job:
+
+    * a geometry with an imaginary mode beyond ``IMAGINARY_TOLERANCE`` is
+      refused, with every energy on it (a harvest stores it, for provenance,
+      without returning it for reuse);
+    * a geometry lower in E + ZPE by more than 0.1 kJ/mol than every stored
+      conformer of the species at its level, and structurally distinct from
+      each (RMSD above ``CONFORMER_RMSD`` Å), is added as a new conformer
+      ``auto:<geometry hash>`` instead of being only logged; lookups use the
+      lowest.
+
+    Returns the tallies, `counts` updated in place when given.
+    """
+    from .geometry_store import IMAGINARY_TOLERANCE
+
+    if counts is None:
+        counts = new_counts()
+    name_for = label or species
+    if charge is None:
+        charge = configuration.charge
+    if multiplicity is None:
+        multiplicity = configuration.spin_multiplicity or 1
+
+    def tally(table, outcome):
+        counts[table][outcome] = counts[table].get(outcome, 0) + 1
+
+    properties = configuration.properties
+    try:
+        energies = properties.get(pattern=energy, match="glob")
+    except Exception as e:  # pragma: no cover
+        counts["skipped"].append(f"{species}: {e}")
+        return counts
+    if not energies:
+        counts["skipped"].append(f"{species}: no property matching '{energy}'")
+        return counts
+    symbols = configuration.atoms.symbols
+    coordinates = configuration.atoms.get_coordinates(fractionals=False)
+    ghash = geometry_hash(symbols, coordinates)
+    try:
+        atomic_numbers = configuration.atoms.atomic_numbers
+    except Exception:  # pragma: no cover
+        atomic_numbers = None
+    fingerprint_hash = hash_geometry(symbols, coordinates, atomic_numbers)
+
+    if structure_check:
+        problem = check_structure(symbols, coordinates, species, charge, multiplicity)
+        if problem:
+            counts["skipped"].append(f"{name_for}: refused, {problem}")
+            return counts
+    if write_back:
+        worst = _imaginary_modes(properties)
+        if worst > IMAGINARY_TOLERANCE:
+            counts["skipped"].append(
+                f"{name_for}: refused, an imaginary mode of {worst:.0f}i cm^-1"
+            )
+            return counts
+
+    for name, value in energies.items():
+        if isinstance(value, dict):
+            value = value["value"]
+        fields = name.split("#")
+        model = fields[2] if len(fields) > 2 else None
+        suffix = "#" + "#".join(fields[1:]) if len(fields) > 1 else ""
+        E = _to_kj(value, properties.units(name))
+        zpe_name = zpe.split("#")[0] + suffix if suffix else zpe
+        h_name = enthalpy.split("#")[0] + suffix if suffix else enthalpy
+        ZPE = _property(properties, zpe_name)
+        H = _property(properties, h_name)
+        fp = _text_property(
+            properties, fingerprint.split("#")[0] + suffix if suffix else None
+        )
+        mapped_symmetry = None
+        from_map = False
+        if ZPE is None and H is None:
+            try:
+                found = _thermal_from_map(mapped, E)
+            except ValueError as e:
+                counts["skipped"].append(f"{name_for}: {e}")
+                found = None
+            if found is not None:
+                ZPE = (zpe_name, found[0])
+                H = (h_name, found[1])
+                mapped_symmetry = found[2]
+                from_map = True
+        ffp = _text_property(
+            properties,
+            (frequency_fingerprint.split("#")[0] + suffix if suffix else None),
+        )
+
+        # The calculation record: program, version, geometry
+        def extra(base, kind="json"):
+            if not suffix:
+                return None
+            full = base + suffix
+            try:
+                if not properties.exists(full):
+                    return None
+                value = properties.get(full)
+            except Exception:
+                return None
+            if isinstance(value, dict) and full in value:
+                value = value[full]  # {name: {"value": ...}}
+            if isinstance(value, dict) and "value" in value:
+                value = value["value"]
+            if kind == "json" and isinstance(value, str):
+                try:
+                    value = json.loads(value)
+                except ValueError:
+                    return None
+            return value
+
+        calculation = extra("calculation")
+        calc_geometry = (
+            calculation.get("geometry fingerprint")
+            if isinstance(calculation, dict)
+            else None
+        )
+        program = version = None
+        if isinstance(calculation, dict):
+            program = calculation.get("program")
+            version = calculation.get("version")
+        record = FragmentRecord.make(
+            species,
+            charge=charge,
+            multiplicity=multiplicity,
+            E=E,
+            ZPE=ZPE[1] if ZPE else None,
+            H=H[1] if H else None,
+            energy_fingerprint=fp,
+            frequency_fingerprint=ffp,
+            model_chemistry=model,
+            program=program,
+            version=version,
+            geometry_hash=ghash,
+            job=job,
+            configuration=configuration.id,
+            source=name,
+        )
+        if tables == "geometry":
+            pass
+        elif supersede:
+            outcome = store.supersede(record, supersede, force=force)
+            counts["duplicate" if outcome == "unchanged" else outcome] += 1
+        else:
+            counts[store.put(record)] += 1
+
+        if ZPE or H:
+            symmetry = extra("symmetry number", kind="int")
+            if symmetry is None:
+                symmetry = mapped_symmetry
+            try:
+                geometry = GeometryRecord.make(
                     species,
+                    symbols,
+                    coordinates,
                     charge=charge,
                     multiplicity=multiplicity,
-                    E=E,
-                    ZPE=ZPE[1] if ZPE else None,
-                    H=H[1] if H else None,
-                    energy_fingerprint=fp,
-                    frequency_fingerprint=ffp,
+                    conformer=conformer,
+                    # Thermal corrections from the map were computed with
+                    # the energy's own calculation
+                    frequency_fingerprint=ffp or (fp if from_map else None),
+                    optimization_fingerprint=fp,
                     model_chemistry=model,
                     program=program,
                     version=version,
-                    geometry_hash=ghash,
+                    E=E,
+                    ZPE=ZPE[1] if ZPE else None,
+                    H=H[1] if H else None,
+                    frequencies=extra("frequencies"),
+                    symmetry_number=(int(symmetry) if symmetry is not None else None),
+                    moments=extra("moments of inertia"),
+                    atomic_numbers=atomic_numbers,
+                    geometry_hash=fingerprint_hash,
                     job=job,
                     configuration=configuration.id,
                     source=name,
                 )
-                if tables == "geometry":
-                    pass
-                elif supersede:
-                    outcome = store.supersede(record, supersede, force=force)
-                    counts["duplicate" if outcome == "unchanged" else outcome] += 1
-                else:
-                    counts[store.put(record)] += 1
-
-                if ZPE or H:
-                    symmetry = extra("symmetry number", kind="int")
-                    if symmetry is None:
-                        symmetry = mapped_symmetry
-                    try:
-                        geometry = GeometryRecord.make(
-                            species,
-                            symbols,
-                            coordinates,
-                            charge=charge,
-                            multiplicity=multiplicity,
-                            conformer=conformer,
-                            # Thermal corrections from the map were computed with
-                            # the energy's own calculation
-                            frequency_fingerprint=ffp or (fp if from_map else None),
-                            optimization_fingerprint=fp,
-                            model_chemistry=model,
-                            program=program,
-                            version=version,
-                            E=E,
-                            ZPE=ZPE[1] if ZPE else None,
-                            H=H[1] if H else None,
-                            frequencies=extra("frequencies"),
-                            symmetry_number=(
-                                int(symmetry) if symmetry is not None else None
-                            ),
-                            moments=extra("moments of inertia"),
-                            atomic_numbers=atomic_numbers,
-                            geometry_hash=fingerprint_hash,
-                            job=job,
-                            configuration=configuration.id,
-                            source=name,
-                        )
-                        if supersede:
-                            outcome, _ = store.supersede_geometry(
-                                geometry, supersede, force=force
-                            )
-                        else:
-                            outcome, _ = store.put_geometry(geometry)
-                        tally("geometry", outcome)
-                    except PairingError as e:
-                        counts["skipped"].append(f"{species}: {e}")
-                try:
-                    energy_row = EnergyRecord.make(
-                        fingerprint_hash,
-                        E,
-                        energy_fingerprint=fp,
-                        calculation_geometry=calc_geometry,
-                        model_chemistry=model,
-                        program=program,
-                        version=version,
-                        job=job,
-                        configuration=configuration.id,
-                        source=name,
-                    )
-                except PairingError as e:
-                    counts["skipped"].append(f"{species} ({name}): {e}")
-                    continue
                 if supersede:
-                    outcome, _ = store.supersede_energy(
-                        energy_row, supersede, force=force
+                    outcome, _ = store.supersede_geometry(
+                        geometry, supersede, force=force
                     )
+                elif write_back:
+                    outcome, _ = store.put_geometry_conformer(geometry)
                 else:
-                    outcome, _ = store.put_energy(energy_row)
-                tally("energy", outcome)
-    finally:
-        db.close()
+                    outcome, _ = store.put_geometry(geometry)
+                tally("geometry", outcome)
+            except PairingError as e:
+                counts["skipped"].append(f"{species}: {e}")
+        try:
+            energy_row = EnergyRecord.make(
+                fingerprint_hash,
+                E,
+                energy_fingerprint=fp,
+                calculation_geometry=calc_geometry,
+                model_chemistry=model,
+                program=program,
+                version=version,
+                job=job,
+                configuration=configuration.id,
+                source=name,
+            )
+        except PairingError as e:
+            counts["skipped"].append(f"{species} ({name}): {e}")
+            continue
+        if supersede:
+            outcome, _ = store.supersede_energy(energy_row, supersede, force=force)
+        else:
+            outcome, _ = store.put_energy(energy_row)
+        tally("energy", outcome)
     return counts
+
+
+# -- the structure guard and conformers ---------------------------------------
+
+#: Two geometries of a species closer than this (Å, symmetry-aware RMSD after
+#: alignment) are the same minimum, not two conformers
+CONFORMER_RMSD = 0.05
+
+
+def _perceive(symbols, coordinates):
+    """An RDKit molecule with the bonds perceived from the coordinates
+    (connectivity only, from covalent radii), or None."""
+    from rdkit import Chem
+    from rdkit.Chem import rdDetermineBonds
+
+    lines = [str(len(symbols)), ""]
+    for s, (x, y, z) in zip(symbols, coordinates):
+        lines.append(f"{s} {float(x):.6f} {float(y):.6f} {float(z):.6f}")
+    mol = Chem.MolFromXYZBlock("\n".join(lines) + "\n")
+    if mol is None:
+        return None
+    if mol.GetNumAtoms() > 1:
+        rdDetermineBonds.DetermineConnectivity(mol)
+    return mol
+
+
+def _skeleton(mol):
+    """A canonical text of a molecule's graph: elements and connections only,
+    no bond orders, charges or hydrogen counts beyond the explicit atoms."""
+    from rdkit import Chem
+
+    m = Chem.RWMol()
+    for atom in mol.GetAtoms():
+        a = Chem.Atom(atom.GetAtomicNum())
+        a.SetNoImplicit(True)
+        m.AddAtom(a)
+    for bond in mol.GetBonds():
+        m.AddBond(bond.GetBeginAtomIdx(), bond.GetEndAtomIdx(), Chem.BondType.SINGLE)
+    m = m.GetMol()
+    m.UpdatePropertyCache(strict=False)
+    Chem.FastFindRings(m)
+    return Chem.MolToSmiles(m, canonical=True)
+
+
+def check_structure(symbols, coordinates, species, charge=None, multiplicity=None):
+    """Why a structure is not one of its species, or None if it is.
+
+    The bonds are perceived again from the coordinates, not taken from the
+    structure's own (which came from the SMILES it was built from), so a
+    species that rearranged while it was optimized is caught. The graph
+    (elements and connections) must be that of `species`, whose formal charge
+    and radicals must agree with `charge` and `multiplicity`; and no atoms may be
+    too close together (:func:`molsystem.vsepr.check_contacts`, which also
+    catches ligands of a hypervalent centre on top of each other). Without RDKit
+    nothing is checked.
+    """
+    try:
+        from rdkit import Chem
+    except ImportError:  # pragma: no cover
+        return None
+    try:
+        reference = Chem.MolFromSmiles(species)
+    except Exception:
+        reference = None
+    if reference is None:
+        return f"the species {species} is not a SMILES RDKit can read"
+    if charge is not None and Chem.GetFormalCharge(reference) != int(charge):
+        return (
+            f"the charge {charge} is not that of {species} "
+            f"({Chem.GetFormalCharge(reference)})"
+        )
+    if multiplicity is not None:
+        radicals = sum(a.GetNumRadicalElectrons() for a in reference.GetAtoms())
+        unpaired = int(multiplicity) - 1
+        if unpaired < radicals or (unpaired - radicals) % 2:
+            return (
+                f"the multiplicity {multiplicity} does not fit {species} "
+                f"({radicals} radical electrons)"
+            )
+    reference = Chem.AddHs(reference)
+    symbols = [str(s).rstrip(":").strip().capitalize() for s in symbols]
+    if sorted(symbols) != sorted(a.GetSymbol() for a in reference.GetAtoms()):
+        return f"the atoms are not those of {species}"
+    try:
+        mol = _perceive(symbols, coordinates)
+    except Exception as e:  # pragma: no cover
+        return f"its bonds could not be perceived ({e})"
+    if mol is None:
+        return "its bonds could not be perceived"
+    if _skeleton(mol) != _skeleton(reference):
+        return (
+            f"its bonds, perceived from the coordinates, are not those of {species} "
+            "(it may have rearranged while it was optimized)"
+        )
+    try:
+        from molsystem.vsepr import check_contacts
+    except ImportError:  # pragma: no cover - an older molsystem
+        return None
+    bonds = [(b.GetBeginAtomIdx(), b.GetEndAtomIdx(), 1) for b in mol.GetBonds()]
+    try:
+        check_contacts(symbols, coordinates, bonds)
+    except RuntimeError as e:
+        return str(e).rstrip(".")
+    return None
+
+
+def conformer_rmsd(symbols_a, coordinates_a, symbols_b, coordinates_b):
+    """The symmetry-aware RMSD (Å) of two geometries of a species after the best
+    alignment, or None if it cannot be found."""
+    try:
+        from rdkit.Chem import rdMolAlign
+
+        a = _perceive(symbols_a, coordinates_a)
+        b = _perceive(symbols_b, coordinates_b)
+        if a is None or b is None:
+            return None
+        return float(rdMolAlign.GetBestRMS(a, b, maxMatches=10000))
+    except Exception:
+        return None
+
+
+# -- where the store may be written --------------------------------------------
+
+#: Filesystems on which SQLite's locking is reliable
+LOCAL_FILESYSTEMS = {
+    "apfs",
+    "hfs",
+    "zfs",
+    "ext2",
+    "ext3",
+    "ext4",
+    "xfs",
+    "btrfs",
+    "f2fs",
+    "jfs",
+    "tmpfs",
+}
+
+
+def filesystem_type(path):
+    """(filesystem type, mount point) of the filesystem holding `path`, or
+    (None, None) if it cannot be found."""
+    import os
+    import subprocess
+
+    path = Path(path).expanduser()
+    while not path.exists() and path != path.parent:
+        path = path.parent
+    real = os.path.realpath(path)
+    mounts = []
+    try:
+        with open("/proc/mounts") as fd:
+            for line in fd:
+                fields = line.split()
+                if len(fields) >= 3:
+                    mounts.append((fields[1].replace("\\040", " "), fields[2]))
+    except OSError:
+        try:
+            text = subprocess.run(
+                ["mount"], capture_output=True, text=True, timeout=10
+            ).stdout
+        except Exception:
+            return None, None
+        for line in text.splitlines():
+            # /dev/disk3s5 on /System/Volumes/Data (apfs, local, journaled)
+            if " on " not in line or " (" not in line:
+                continue
+            rest = line.split(" on ", 1)[1]
+            point, options = rest.rsplit(" (", 1)
+            mounts.append((point, options.split(",")[0].strip()))
+    best = None
+    for point, kind in mounts:
+        prefix = point.rstrip("/") + "/"
+        if real == point or real.startswith(prefix) or point == "/":
+            if best is None or len(point) > len(best[0]):
+                best = (point, kind)
+    if best is None:
+        return None, None
+    return best[1], best[0]
+
+
+def store_is_writable(path=None):
+    """(bool, reason): whether a running job may write the fragment store.
+
+    Only on a local filesystem: SQLite's locking is unreliable on network and
+    parallel filesystems (NFS, GPFS, Lustre). seamm.ini's ``[thermochemistry]``
+    ``fragment-store-writable = auto | yes | no`` overrides the check.
+    """
+    import configparser
+
+    from .db import _SEAMM_INI_PATH
+
+    setting = "auto"
+    try:
+        if _SEAMM_INI_PATH.exists():
+            parser = configparser.ConfigParser(interpolation=None)
+            parser.read(_SEAMM_INI_PATH)
+            setting = parser.get(
+                "thermochemistry", "fragment-store-writable", fallback="auto"
+            )
+    except Exception:  # pragma: no cover
+        pass
+    setting = (setting or "auto").strip().lower()
+    if setting in ("yes", "true", "1"):
+        return True, "fragment-store-writable = yes in seamm.ini"
+    if setting in ("no", "false", "0"):
+        return False, "fragment-store-writable = no in seamm.ini"
+    kind, point = filesystem_type(fragment_store_path(path).parent)
+    if kind is None:
+        return False, "its filesystem could not be identified"
+    if kind.lower() in LOCAL_FILESYSTEMS:
+        return True, f"on a local {kind} filesystem"
+    return False, f"on a {kind} filesystem ({point}), where SQLite is not safe"

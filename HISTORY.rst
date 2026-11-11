@@ -2,6 +2,23 @@
 History
 =======
 
+2026.11.11.1 -- Write-back from jobs; harvest of returning jobs; a structure guard
+    * ``harvest_configuration`` puts one computed structure into the fragment store:
+      what the harvest does for each system of a job, and what the Thermochemistry
+      step now does for each species it computes. With ``write_back`` a geometry
+      with an imaginary mode is refused, and a lower, structurally distinct
+      conformer (RMSD > 0.05 Å) is added as ``auto:<hash>`` instead of only logged.
+    * The harvest refuses a structure whose bonds, perceived again from its
+      coordinates, are not those of its species, or whose charge or multiplicity
+      does not fit, or that has atoms too close together (e.g. the fluorines of a
+      PF6- on top of each other). ``harvest --no-structure-check`` turns it off.
+    * ``store_is_writable()``: a job writes the store only on a local filesystem
+      (SQLite is not safe on NFS or GPFS); ``fragment-store-writable`` in seamm.ini's
+      ``[thermochemistry]`` section overrides it.
+    * A JobServer ``job_finished`` hook harvests a job that the step could not write
+      back (it leaves ``harvest_fragments.json``) when the job comes back to the
+      JobServer's host. Needs seamm-jobserver 2026.11.11.
+
 2026.11.11 -- Model chemistries stored with their program; lookups by several fingerprints
     * The fragment store keeps a model chemistry as the bare model and the program
       (``CMP@R2SCAN-3C`` and ``ORCA``), however it was given. The ORCA sub-steps

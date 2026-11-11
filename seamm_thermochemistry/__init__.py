@@ -23,6 +23,11 @@ from .atct import ATcT, ATcTEntry, ATcTError, AmbiguousEntry, MissingEntry  # no
 from .atct import reaction_uncertainty  # noqa: F401
 from .fragment_store import FragmentStore, FragmentRecord, harvest_job  # noqa: F401
 from .fragment_store import load_species_map  # noqa: F401
+from .fragment_store import (  # noqa: F401
+    check_structure,
+    harvest_configuration,
+    store_is_writable,
+)
 from .geometry_store import GeometryRecord, EnergyRecord, PairingError  # noqa: F401
 from .geometry_store import split_model_chemistry  # noqa: F401
 from .ladder import Ladder, build_ladder, LadderError  # noqa: F401
@@ -42,6 +47,9 @@ __all__ = [
     "FragmentStore",
     "FragmentRecord",
     "harvest_job",
+    "harvest_configuration",
+    "check_structure",
+    "store_is_writable",
     "load_species_map",
     "GeometryRecord",
     "EnergyRecord",
