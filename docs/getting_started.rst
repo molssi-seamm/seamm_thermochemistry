@@ -326,7 +326,8 @@ and checks every species state before writing anything:
   (CH2 and NH are triplets, SiH2 a singlet).
 
 A species state that fails stops the build, unless it is excluded with a reason in
-the ``--exclude`` file (columns species, charge, multiplicity, reason). Ions and
+the ``--exclude`` file (columns species, charge, multiplicity, reason, and optionally
+conformer, to leave out only that conformer). Ions and
 open-shell species are checked like the rest. The build writes
 ``<file>.report.json`` beside the file: the sources, the levels, the rows kept and
 left out, each exclusion with its reason, and the SHA-256. ``--official FILE`` names an official store other than the

@@ -1272,9 +1272,17 @@ def harvest_configuration(
 CONFORMER_RMSD = 0.05
 
 
-def _perceive(symbols, coordinates):
+#: The covalent-radius factors at which bonds are perceived, after RDKit's default
+#: (see :func:`check_structure`): the tighter ones keep the diagonals of strained
+#: four-membered rings and cages (1.8-2.1 Å) from reading as bonds, the looser
+#: ones keep long real bonds (N-N 1.75 Å, Cl-O 1.9 Å)
+COVALENT_FACTORS = (1.15, 1.2, 1.25, 1.3, 1.4, 1.5)
+
+
+def _perceive(symbols, coordinates, cov_factor=None):
     """An RDKit molecule with the bonds perceived from the coordinates
-    (connectivity only, from covalent radii), or None."""
+    (connectivity only): RDKit's default, or from covalent radii times
+    `cov_factor`. None if the coordinates cannot be read."""
     from rdkit import Chem
     from rdkit.Chem import rdDetermineBonds
 
@@ -1285,7 +1293,12 @@ def _perceive(symbols, coordinates):
     if mol is None:
         return None
     if mol.GetNumAtoms() > 1:
-        rdDetermineBonds.DetermineConnectivity(mol)
+        if cov_factor is None:
+            rdDetermineBonds.DetermineConnectivity(mol)
+        else:
+            rdDetermineBonds.DetermineConnectivity(
+                mol, useVdw=True, covFactor=float(cov_factor)
+            )
     return mol
 
 
@@ -1350,13 +1363,20 @@ def check_structure(symbols, coordinates, species, charge=None, multiplicity=Non
     symbols = [str(s).rstrip(":").strip().capitalize() for s in symbols]
     if sorted(symbols) != sorted(a.GetSymbol() for a in reference.GetAtoms()):
         return f"the atoms are not those of {species}"
-    try:
-        mol = _perceive(symbols, coordinates)
-    except Exception as e:  # pragma: no cover
-        return f"its bonds could not be perceived ({e})"
+    # The bonds must be the species' at RDKit's default or at one of the
+    # covalent-radius factors: strained rings and cages, or long bonds, can be
+    # misread at any one, but a rearranged structure is wrong at all of them
+    wanted = _skeleton(reference)
+    mol = None
+    for factor in (None,) + COVALENT_FACTORS:
+        try:
+            trial = _perceive(symbols, coordinates, factor)
+        except Exception:  # pragma: no cover
+            continue
+        if trial is not None and _skeleton(trial) == wanted:
+            mol = trial
+            break
     if mol is None:
-        return "its bonds could not be perceived"
-    if _skeleton(mol) != _skeleton(reference):
         return (
             f"its bonds, perceived from the coordinates, are not those of {species} "
             "(it may have rearranged while it was optimized)"

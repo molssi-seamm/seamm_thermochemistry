@@ -9,8 +9,14 @@ History
       and ATcT's labelled spin states). A failing state stops the build unless excluded
       with a reason (``--exclude``). ``--frequency-fingerprint`` and
       ``--energy-fingerprint`` keep only the rows reachable at those levels. A report
-      (``<file>.report.json``) records the sources, levels, rows, exclusions and
-      SHA-256.
+      (``<file>.report.json``) records the sources, levels, rows, exclusions,
+      SHA-256 and the seamm-thermochemistry that built it. An exclusion can name one
+      conformer (a ``conformer`` column), keeping the species' good conformers.
+    * The structure guard accepts a structure whose bonds are its species' at
+      RDKit's default perception or at a covalent-radius factor from 1.15 to 1.5:
+      the diagonals of strained four-membered rings and cages (azete, oxetene,
+      N2O3) no longer read as bonds, nor do long real bonds go missing. Structures
+      that rearranged or dissociated still fail at every factor.
     * Bugfix: the structure guard of 2026.11.11.1 refused two or more fluorines on
       one atom (CF2, CF3 and NF3 groups, so every fluorinated carbonate): it held them
       to the 2.2 Å meant for fluorines on different atoms, but such fluorines are

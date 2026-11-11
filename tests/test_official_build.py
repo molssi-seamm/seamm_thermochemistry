@@ -192,6 +192,7 @@ def test_problems_stop_the_build_until_excluded(contribution, tmp_path):
     )
     report = json.loads((tmp_path / "official.db.report.json").read_text())
     excluded = {(e["species"], e["reason"]): e["rows"] for e in report["excluded"]}
+    assert all(e["conformer"] is None for e in report["excluded"])
     assert excluded[("[CH3-]", "saddle point in job 5684 (687i)")] > 0
     with FragmentStore(out, immutable=True) as s:
         assert s.geometries("[BH]", multiplicity=3, frequency_fingerprint=GEO) == []
@@ -236,3 +237,44 @@ def test_singlet_carbenes_and_borylene_pass_the_structure_check():
     assert check_structure(symbols, xyz, "[BH]", 0, 1) is None
     assert check_structure(symbols, xyz, "[BH]", 0, 3) is None
     assert "multiplicity" in check_structure(symbols, xyz, "[BH]", 0, 2)
+
+
+def test_one_conformer_can_be_excluded(tmp_path):
+    """A rearranged conformer (here: dimethyl ether's coordinates filed as a
+    conformer of ethanol) is left out, the species' good conformer kept."""
+    path = tmp_path / "c.db"
+    with FragmentStore(path, create=True, layer="contribution") as s:
+        good = _put(s, "CCO")
+        bad = GeometryRecord.make(
+            "CCO",
+            *_xyz("COC"),
+            conformer="bad",
+            E=-1010.0,
+            ZPE=50.0,
+            H=-950.0,
+            frequency_fingerprint=GEO,
+            frequencies=[500.0, 1500.0],
+        )
+        s.put_geometry(bad)
+        s.put_energy(
+            EnergyRecord.make(bad["geometry_hash"], -1110.0, energy_fingerprint=REVDSD)
+        )
+    out = tmp_path / "official.db"
+    with pytest.raises(ValueError, match="conformer 'bad'"):
+        build_official(out, "v", [path], frequency_fingerprints=[GEO])
+    exclusions = tmp_path / "x.csv"
+    exclusions.write_text(
+        "species,charge,multiplicity,conformer,reason\n"
+        "CCO,0,1,bad,rearranged: dimethyl ether\n"
+    )
+    build_official(
+        out,
+        "v",
+        [path],
+        frequency_fingerprints=[GEO],
+        exclude=T.load_exclusions(exclusions),
+    )
+    with FragmentStore(out, immutable=True) as s:
+        (g,) = s.geometries("CCO", frequency_fingerprint=GEO)
+        assert g["geometry_hash"] == good["geometry_hash"]
+        assert s.energies(bad["geometry_hash"]) == []

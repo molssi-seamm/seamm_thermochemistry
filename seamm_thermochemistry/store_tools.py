@@ -75,6 +75,12 @@ def _now():
     return datetime.datetime.now().isoformat(timespec="seconds")
 
 
+def _package_version():
+    from . import __version__
+
+    return __version__
+
+
 def _sha256(path):
     h = hashlib.sha256()
     with open(path, "rb") as fd:
@@ -489,36 +495,59 @@ def _select(store, frequency_fingerprints=None, energy_fingerprints=None):
 
 
 def _exclude(store, excluded):
-    """Delete every row of the excluded species states; returns {state: rows}."""
+    """Delete the excluded rows: a whole species state, or one conformer of it
+    (the energies on a deleted geometry, and the fragment-table records made from
+    it, go too). `excluded` is {(species, charge, multiplicity, conformer or
+    None): reason}; returns {key: rows deleted}."""
+    from .fragment_store import geometry_hash as fragment_geometry_hash
+
     db = store._connect(create=True)
     removed = {}
-    for (species, charge, multiplicity), _ in excluded.items():
+    for key in excluded:
+        species, charge, multiplicity, conformer = key
         where = "species = ? AND charge = ? AND multiplicity = ?"
-        args = (species, int(charge), int(multiplicity))
-        hashes = [
-            r[0]
-            for r in db.execute(
-                f"SELECT geometry_hash FROM geometry WHERE {where}", args
-            )
-        ]
-        n = db.execute(f"DELETE FROM geometry WHERE {where}", args).rowcount
-        n += db.execute(f"DELETE FROM fragment WHERE {where}", args).rowcount
-        for h in hashes:
+        args = [species, int(charge), int(multiplicity)]
+        if conformer is not None:
+            where_g = where + " AND conformer = ?"
+            args_g = args + [conformer]
+        else:
+            where_g, args_g = where, args
+        geometries = db.execute(
+            f"SELECT geometry_hash, symbols, coordinates FROM geometry WHERE {where_g}",
+            args_g,
+        ).fetchall()
+        n = db.execute(f"DELETE FROM geometry WHERE {where_g}", args_g).rowcount
+        if conformer is None:
+            n += db.execute(f"DELETE FROM fragment WHERE {where}", args).rowcount
+        else:
+            # The fragment-table records made from this conformer's geometry
+            for g in geometries:
+                old_hash = fragment_geometry_hash(
+                    json.loads(g["symbols"]), json.loads(g["coordinates"])
+                )
+                n += db.execute(
+                    f"DELETE FROM fragment WHERE {where} AND geometry_hash = ?",
+                    args + [old_hash],
+                ).rowcount
+        for g in geometries:
             still = db.execute(
-                "SELECT COUNT(*) FROM geometry WHERE geometry_hash = ?", (h,)
+                "SELECT COUNT(*) FROM geometry WHERE geometry_hash = ?",
+                (g["geometry_hash"],),
             ).fetchone()[0]
             if not still:
                 n += db.execute(
-                    "DELETE FROM energy WHERE geometry_hash = ?", (h,)
+                    "DELETE FROM energy WHERE geometry_hash = ?", (g["geometry_hash"],)
                 ).rowcount
-        removed[(species, charge, multiplicity)] = n
+        removed[key] = n
     db.commit()
     return removed
 
 
 def load_exclusions(path):
-    """Exclusions from a CSV file with the columns species, charge, multiplicity
-    and reason: {(canonical species, charge, multiplicity): reason}."""
+    """Exclusions from a CSV file with the columns species, charge, multiplicity,
+    reason and, optionally, conformer (to leave out one conformer instead of the
+    whole species state): {(canonical species, charge, multiplicity, conformer or
+    None): reason}."""
     import csv
 
     from .atct import canonical_smiles
@@ -540,6 +569,7 @@ def load_exclusions(path):
                 species,
                 int(row.get("charge") or 0),
                 int(row.get("multiplicity") or 1),
+                (row.get("conformer") or "").strip() or None,
             )
             out[key] = reason
     return out
@@ -566,8 +596,9 @@ def build_official(
     `frequency_fingerprints` and `energy_fingerprints`, when given, keep only the
     rows reachable at those levels (e.g. the presets' r2SCAN-3c geometries and
     the revDSD energies on them). `exclude` ({(species, charge, multiplicity):
-    reason}, see :func:`load_exclusions`) leaves species states out, with the
-    reason in the report.
+    reason}, or with a fourth element, a conformer label, to leave out one
+    conformer; see :func:`load_exclusions`) leaves rows out, with the reason in
+    the report.
 
     Nothing is written when a contribution's values differ from a row already
     there (resolve it with ``supersede`` and a reason first), or when the sanity
@@ -577,7 +608,11 @@ def build_official(
     out = Path(out).expanduser()
     if out.exists():
         raise FileExistsError(f"{out} exists; build to a new file.")
-    exclude = dict(exclude or {})
+    # Older three-element keys exclude the whole species state
+    exclude = {
+        (tuple(k) + (None,) if len(k) == 3 else tuple(k)): v
+        for k, v in (exclude or {}).items()
+    }
     if previous is not None:
         with FragmentStore(previous, immutable=True) as old:
             if old.layer != "official":
@@ -591,6 +626,7 @@ def build_official(
         "frequency fingerprints": list(frequency_fingerprints or []),
         "energy fingerprints": list(energy_fingerprints or []),
         "atct": getattr(atct, "version", None),
+        "generator": f"seamm-thermochemistry {_package_version()}",
     }
     try:
         with FragmentStore(out, create=True, layer="official") as store:
@@ -620,6 +656,7 @@ def build_official(
                     "species": k[0],
                     "charge": k[1],
                     "multiplicity": k[2],
+                    "conformer": k[3],
                     "reason": reason,
                     "rows": removed.get(k, 0),
                 }

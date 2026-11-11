@@ -55,6 +55,19 @@ meant for fluorines on different atoms (now 2.0 Å). Building v1 waits for the D
 store: frequency key sha256:6b46c8c4..., energy keys sha256:1e16835c... and
 sha256:7ca1cbbc... (boron), the [CH3-] saddle from 5684 excluded.
 
+**Official v1 built 2026-11-11** (``~/Work/SEAMM/official_store_v1/``, from a
+read-only copy of ChemAI's settled store, sha256 2303508002b9..., migrated):
+458 species states, 597 geometries, 1078 energies (r2SCAN-3c, revDSD 1e16 and
+7ca1), 912 fragment records. The first build refused 11 species states; four were
+false positives of the bond perception (the diagonals of azete, oxetene and the
+N2O3 cage; one long N-N bond), which led to perceiving bonds at several
+covalent-radius factors. Six exclusions remain, with reasons in
+``exclude-v1.csv`` and the report: the [CH3-] saddle; C3 (ring opened); C1=CCC=1
+(became bicyclic); and three dissociated conformers, two of them the lowest of
+their species (N2O3 as NO2 + NO, Cl2O2 as two ClO), which lookups would otherwise
+have used. To publish: rebuild with the released seamm-thermochemistry, then Paul
+uploads to Zenodo.
+
 Numbering: these phases are the fragment store's P5 (P5a-P5e). The 11-08
 presets plan also had a P5 (long-bond and %[(T)] flags) and a P6 (pilot). Those
 keep their names and have nothing to do with this note.
