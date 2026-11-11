@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.fragment_store &#8212; SEAMM thermochemistry Plug-in 2026.11.11.4 documentation</title>
+    <title>seamm_thermochemistry.fragment_store &#8212; SEAMM thermochemistry Plug-in 2026.11.11.5 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=5a7a65ed"></script>
+    <script src="../../_static/documentation_options.js?v=fe02e1f4"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.11.4" />
+  <meta name="docsearch:version" content="2026.11.11.5" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -1753,9 +1753,17 @@
 <span class="n">CONFORMER_RMSD</span> <span class="o">=</span> <span class="mf">0.05</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_perceive</span><span class="p">(</span><span class="n">symbols</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">):</span>
+<span class="c1">#: The covalent-radius factors at which bonds are perceived, after RDKit's default</span>
+<span class="c1">#: (see :func:`check_structure`): the tighter ones keep the diagonals of strained</span>
+<span class="c1">#: four-membered rings and cages (1.8-2.1 Å) from reading as bonds, the looser</span>
+<span class="c1">#: ones keep long real bonds (N-N 1.75 Å, Cl-O 1.9 Å)</span>
+<span class="n">COVALENT_FACTORS</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.15</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">,</span> <span class="mf">1.25</span><span class="p">,</span> <span class="mf">1.3</span><span class="p">,</span> <span class="mf">1.4</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_perceive</span><span class="p">(</span><span class="n">symbols</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">cov_factor</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""An RDKit molecule with the bonds perceived from the coordinates</span>
-<span class="sd">    (connectivity only, from covalent radii), or None."""</span>
+<span class="sd">    (connectivity only): RDKit's default, or from covalent radii times</span>
+<span class="sd">    `cov_factor`. None if the coordinates cannot be read."""</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">rdkit</span><span class="w"> </span><span class="kn">import</span> <span class="n">Chem</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">rdkit.Chem</span><span class="w"> </span><span class="kn">import</span> <span class="n">rdDetermineBonds</span>
 
@@ -1766,7 +1774,12 @@
     <span class="k">if</span> <span class="n">mol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="n">mol</span><span class="o">.</span><span class="n">GetNumAtoms</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="n">rdDetermineBonds</span><span class="o">.</span><span class="n">DetermineConnectivity</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cov_factor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">rdDetermineBonds</span><span class="o">.</span><span class="n">DetermineConnectivity</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rdDetermineBonds</span><span class="o">.</span><span class="n">DetermineConnectivity</span><span class="p">(</span>
+                <span class="n">mol</span><span class="p">,</span> <span class="n">useVdw</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">covFactor</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">cov_factor</span><span class="p">)</span>
+            <span class="p">)</span>
     <span class="k">return</span> <span class="n">mol</span>
 
 
@@ -1797,7 +1810,8 @@
 <span class="sd">    structure's own (which came from the SMILES it was built from), so a</span>
 <span class="sd">    species that rearranged while it was optimized is caught. The graph</span>
 <span class="sd">    (elements and connections) must be that of `species`, whose formal charge</span>
-<span class="sd">    and radicals must agree with `charge` and `multiplicity`; and no atoms may be</span>
+<span class="sd">    must be `charge` and whose radical electrons must have the parity of the</span>
+<span class="sd">    unpaired electrons of `multiplicity`; and no atoms may be</span>
 <span class="sd">    too close together (:func:`molsystem.vsepr.check_contacts`, which also</span>
 <span class="sd">    catches ligands of a hypervalent centre on top of each other). Without RDKit</span>
 <span class="sd">    nothing is checked.</span>
@@ -1818,9 +1832,12 @@
             <span class="sa">f</span><span class="s2">"(</span><span class="si">{</span><span class="n">Chem</span><span class="o">.</span><span class="n">GetFormalCharge</span><span class="p">(</span><span class="n">reference</span><span class="p">)</span><span class="si">}</span><span class="s2">)"</span>
         <span class="p">)</span>
     <span class="k">if</span> <span class="n">multiplicity</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Only the parity is fixed by the SMILES: radical electrons may pair (a</span>
+        <span class="c1"># singlet carbene or silylene, BH, singlet O2) or not. Which spin state is</span>
+        <span class="c1"># the ground state is another check (store_tools.ground_state_multiplicity)</span>
         <span class="n">radicals</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">GetNumRadicalElectrons</span><span class="p">()</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">reference</span><span class="o">.</span><span class="n">GetAtoms</span><span class="p">())</span>
         <span class="n">unpaired</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">multiplicity</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
-        <span class="k">if</span> <span class="n">unpaired</span> <span class="o">&lt;</span> <span class="n">radicals</span> <span class="ow">or</span> <span class="p">(</span><span class="n">unpaired</span> <span class="o">-</span> <span class="n">radicals</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">unpaired</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="p">(</span><span class="n">unpaired</span> <span class="o">-</span> <span class="n">radicals</span><span class="p">)</span> <span class="o">%</span> <span class="mi">2</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">(</span>
                 <span class="sa">f</span><span class="s2">"the multiplicity </span><span class="si">{</span><span class="n">multiplicity</span><span class="si">}</span><span class="s2"> does not fit </span><span class="si">{</span><span class="n">species</span><span class="si">}</span><span class="s2"> "</span>
                 <span class="sa">f</span><span class="s2">"(</span><span class="si">{</span><span class="n">radicals</span><span class="si">}</span><span class="s2"> radical electrons)"</span>
@@ -1829,28 +1846,73 @@
     <span class="n">symbols</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">":"</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">symbols</span><span class="p">]</span>
     <span class="k">if</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">symbols</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">GetSymbol</span><span class="p">()</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">reference</span><span class="o">.</span><span class="n">GetAtoms</span><span class="p">()):</span>
         <span class="k">return</span> <span class="sa">f</span><span class="s2">"the atoms are not those of </span><span class="si">{</span><span class="n">species</span><span class="si">}</span><span class="s2">"</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">mol</span> <span class="o">=</span> <span class="n">_perceive</span><span class="p">(</span><span class="n">symbols</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">)</span>
-    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">"its bonds could not be perceived (</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">)"</span>
+    <span class="c1"># The bonds must be the species' at RDKit's default or at one of the</span>
+    <span class="c1"># covalent-radius factors: strained rings and cages, or long bonds, can be</span>
+    <span class="c1"># misread at any one, but a rearranged structure is wrong at all of them</span>
+    <span class="n">wanted</span> <span class="o">=</span> <span class="n">_skeleton</span><span class="p">(</span><span class="n">reference</span><span class="p">)</span>
+    <span class="n">mol</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">for</span> <span class="n">factor</span> <span class="ow">in</span> <span class="p">(</span><span class="kc">None</span><span class="p">,)</span> <span class="o">+</span> <span class="n">COVALENT_FACTORS</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">trial</span> <span class="o">=</span> <span class="n">_perceive</span><span class="p">(</span><span class="n">symbols</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">factor</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">trial</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">_skeleton</span><span class="p">(</span><span class="n">trial</span><span class="p">)</span> <span class="o">==</span> <span class="n">wanted</span><span class="p">:</span>
+            <span class="n">mol</span> <span class="o">=</span> <span class="n">trial</span>
+            <span class="k">break</span>
     <span class="k">if</span> <span class="n">mol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">"its bonds could not be perceived"</span>
-    <span class="k">if</span> <span class="n">_skeleton</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span> <span class="o">!=</span> <span class="n">_skeleton</span><span class="p">(</span><span class="n">reference</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">(</span>
             <span class="sa">f</span><span class="s2">"its bonds, perceived from the coordinates, are not those of </span><span class="si">{</span><span class="n">species</span><span class="si">}</span><span class="s2"> "</span>
             <span class="s2">"(it may have rearranged while it was optimized)"</span>
         <span class="p">)</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="kn">from</span><span class="w"> </span><span class="nn">molsystem.vsepr</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_contacts</span>
-    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>  <span class="c1"># pragma: no cover - an older molsystem</span>
-        <span class="k">return</span> <span class="kc">None</span>
-    <span class="n">bonds</span> <span class="o">=</span> <span class="p">[(</span><span class="n">b</span><span class="o">.</span><span class="n">GetBeginAtomIdx</span><span class="p">(),</span> <span class="n">b</span><span class="o">.</span><span class="n">GetEndAtomIdx</span><span class="p">(),</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">mol</span><span class="o">.</span><span class="n">GetBonds</span><span class="p">()]</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">check_contacts</span><span class="p">(</span><span class="n">symbols</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">bonds</span><span class="p">)</span>
-    <span class="k">except</span> <span class="ne">RuntimeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s2">"."</span><span class="p">)</span>
-    <span class="k">return</span> <span class="kc">None</span></div>
+    <span class="n">bonds</span> <span class="o">=</span> <span class="p">[(</span><span class="n">b</span><span class="o">.</span><span class="n">GetBeginAtomIdx</span><span class="p">(),</span> <span class="n">b</span><span class="o">.</span><span class="n">GetEndAtomIdx</span><span class="p">())</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">mol</span><span class="o">.</span><span class="n">GetBonds</span><span class="p">()]</span>
+    <span class="k">return</span> <span class="n">_contacts</span><span class="p">(</span><span class="n">symbols</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">bonds</span><span class="p">)</span></div>
 
+
+
+<span class="c1">#: The least distance (Å) between two fluorines on the same atom. Real ones are</span>
+<span class="c1">#: 2.12 Å or more apart (CF4 2.16, NF3 2.13, CF2= 2.17, PF6- 2.27); molsystem's</span>
+<span class="c1">#: 2.2 Å for fluorines applies to those that do not share an atom.</span>
+<span class="n">GEMINAL_F_F</span> <span class="o">=</span> <span class="mf">2.0</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_contacts</span><span class="p">(</span><span class="n">symbols</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">bonds</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Atoms too close together, as molsystem.vsepr.check_contacts judges them</span>
+<span class="sd">    (its limits for atoms more than two bonds apart, and for fluorines), except</span>
+<span class="sd">    that two fluorines on the same atom need only ``GEMINAL_F_F``. Returns why,</span>
+<span class="sd">    or None."""</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">molsystem.vsepr</span><span class="w"> </span><span class="kn">import</span> <span class="n">MIN_F_F</span><span class="p">,</span> <span class="n">MIN_HEAVY</span><span class="p">,</span> <span class="n">MIN_WITH_H</span>
+    <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>  <span class="c1"># pragma: no cover - an older molsystem</span>
+        <span class="n">MIN_F_F</span><span class="p">,</span> <span class="n">MIN_HEAVY</span><span class="p">,</span> <span class="n">MIN_WITH_H</span> <span class="o">=</span> <span class="mf">2.2</span><span class="p">,</span> <span class="mf">1.8</span><span class="p">,</span> <span class="mf">1.2</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">symbols</span><span class="p">)</span>
+    <span class="n">neighbors</span> <span class="o">=</span> <span class="p">[</span><span class="nb">set</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">bonds</span><span class="p">:</span>
+        <span class="n">neighbors</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+        <span class="n">neighbors</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+    <span class="n">xyz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">problems</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">neighbors</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+                <span class="k">continue</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">xyz</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">xyz</span><span class="p">[</span><span class="n">j</span><span class="p">]))</span>
+            <span class="n">shared</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">neighbors</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&amp;</span> <span class="n">neighbors</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">symbols</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"F"</span> <span class="ow">and</span> <span class="n">symbols</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"F"</span><span class="p">:</span>
+                <span class="n">limit</span> <span class="o">=</span> <span class="n">GEMINAL_F_F</span> <span class="k">if</span> <span class="n">shared</span> <span class="k">else</span> <span class="n">MIN_F_F</span>
+            <span class="k">elif</span> <span class="n">shared</span><span class="p">:</span>
+                <span class="k">continue</span>  <span class="c1"># 1-3 pairs are set by the bond angle</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">limit</span> <span class="o">=</span> <span class="n">MIN_WITH_H</span> <span class="k">if</span> <span class="s2">"H"</span> <span class="ow">in</span> <span class="p">(</span><span class="n">symbols</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">symbols</span><span class="p">[</span><span class="n">j</span><span class="p">])</span> <span class="k">else</span> <span class="n">MIN_HEAVY</span>
+            <span class="k">if</span> <span class="n">d</span> <span class="o">&lt;</span> <span class="n">limit</span><span class="p">:</span>
+                <span class="n">problems</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">limit</span><span class="p">))</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">problems</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="s2">"atoms too close together: "</span> <span class="o">+</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">symbols</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="si">}{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">symbols</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="si">}{</span><span class="n">j</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">d</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> Å (&lt; </span><span class="si">{</span><span class="n">limit</span><span class="si">}</span><span class="s2">)"</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">limit</span> <span class="ow">in</span> <span class="n">problems</span><span class="p">[:</span><span class="mi">5</span><span class="p">]</span>
+    <span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">conformer_rmsd</span><span class="p">(</span><span class="n">symbols_a</span><span class="p">,</span> <span class="n">coordinates_a</span><span class="p">,</span> <span class="n">symbols_b</span><span class="p">,</span> <span class="n">coordinates_b</span><span class="p">):</span>

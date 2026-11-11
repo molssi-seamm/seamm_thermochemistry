@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.fragment_cli &#8212; SEAMM thermochemistry Plug-in 2026.11.11.4 documentation</title>
+    <title>seamm_thermochemistry.fragment_cli &#8212; SEAMM thermochemistry Plug-in 2026.11.11.5 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=5a7a65ed"></script>
+    <script src="../../_static/documentation_options.js?v=fe02e1f4"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.11.4" />
+  <meta name="docsearch:version" content="2026.11.11.5" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -605,6 +605,30 @@
     <span class="n">build</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--out"</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"The new file."</span><span class="p">)</span>
     <span class="n">build</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--previous"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"The previous official store."</span><span class="p">)</span>
     <span class="n">build</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--source"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Where it is published, e.g. a DOI."</span><span class="p">)</span>
+    <span class="n">build</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">"--frequency-fingerprint"</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s2">"append"</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="p">[],</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">"Keep only geometries with this frequency fingerprint (repeat for "</span>
+        <span class="s2">"several), and what is on them."</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">build</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">"--energy-fingerprint"</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s2">"append"</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="p">[],</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">"Keep only energies with this fingerprint (repeat for several)."</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">build</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">"--exclude"</span><span class="p">,</span>
+        <span class="n">metavar</span><span class="o">=</span><span class="s2">"CSV"</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">"Species states to leave out, with the reason: columns species, "</span>
+        <span class="s2">"charge, multiplicity, reason."</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">build</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">"--no-atct"</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s2">"store_true"</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">"Do not check multiplicities against ATcT's spin states."</span><span class="p">,</span>
+    <span class="p">)</span>
 
     <span class="n">sup</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="s2">"superseded"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Show the superseded values."</span><span class="p">)</span>
     <span class="n">sup</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"species"</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s2">"?"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Canonical SMILES."</span><span class="p">)</span>
@@ -770,15 +794,28 @@
                 <span class="sa">f</span><span class="s2">"(</span><span class="si">{</span><span class="n">counts</span><span class="p">[</span><span class="s1">'differing'</span><span class="p">]</span><span class="si">}</span><span class="s2"> differing from the official store)."</span>
             <span class="p">)</span>
         <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">command</span> <span class="o">==</span> <span class="s2">"official"</span> <span class="ow">and</span> <span class="n">args</span><span class="o">.</span><span class="n">official_command</span> <span class="o">==</span> <span class="s2">"build"</span><span class="p">:</span>
+            <span class="n">atct</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">args</span><span class="o">.</span><span class="n">no_atct</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="kn">from</span><span class="w"> </span><span class="nn">.atct</span><span class="w"> </span><span class="kn">import</span> <span class="n">ATcT</span>
+
+                    <span class="n">atct</span> <span class="o">=</span> <span class="n">ATcT</span><span class="p">()</span>
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Note: no ATcT for the multiplicity check (</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">)."</span><span class="p">)</span>
             <span class="n">path</span><span class="p">,</span> <span class="n">digest</span><span class="p">,</span> <span class="n">counts</span> <span class="o">=</span> <span class="n">T</span><span class="o">.</span><span class="n">build_official</span><span class="p">(</span>
                 <span class="n">args</span><span class="o">.</span><span class="n">out</span><span class="p">,</span>
                 <span class="n">args</span><span class="o">.</span><span class="n">version</span><span class="p">,</span>
                 <span class="n">args</span><span class="o">.</span><span class="n">sources</span><span class="p">,</span>
                 <span class="n">previous</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">previous</span><span class="p">,</span>
                 <span class="n">source</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">source</span><span class="p">,</span>
+                <span class="n">frequency_fingerprints</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">frequency_fingerprint</span><span class="p">,</span>
+                <span class="n">energy_fingerprints</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">energy_fingerprint</span><span class="p">,</span>
+                <span class="n">exclude</span><span class="o">=</span><span class="n">T</span><span class="o">.</span><span class="n">load_exclusions</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">exclude</span><span class="p">)</span> <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">exclude</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="n">atct</span><span class="o">=</span><span class="n">atct</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="n">_print_counts</span><span class="p">(</span><span class="n">counts</span><span class="p">)</span>
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Built </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2"> (version </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s2">), sha256 </span><span class="si">{</span><span class="n">digest</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Report: </span><span class="si">{</span><span class="n">path</span><span class="o">.</span><span class="n">with_name</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">name</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s1">'.report.json'</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">command</span> <span class="o">==</span> <span class="s2">"duplicates"</span><span class="p">:</span>
             <span class="n">store</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">FragmentStore</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">store</span><span class="p">)</span>
             <span class="n">rows</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">duplicates</span><span class="p">()</span>

@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.store_tools &#8212; SEAMM thermochemistry Plug-in 2026.11.11.4 documentation</title>
+    <title>seamm_thermochemistry.store_tools &#8212; SEAMM thermochemistry Plug-in 2026.11.11.5 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=5a7a65ed"></script>
+    <script src="../../_static/documentation_options.js?v=fe02e1f4"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.11.4" />
+  <meta name="docsearch:version" content="2026.11.11.5" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -447,6 +447,7 @@
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
@@ -468,6 +469,9 @@
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">"ground_state_multiplicity"</span><span class="p">,</span>
+    <span class="s2">"sanity_check"</span><span class="p">,</span>
+    <span class="s2">"load_exclusions"</span><span class="p">,</span>
     <span class="s2">"migrate_store"</span><span class="p">,</span>
     <span class="s2">"export_local"</span><span class="p">,</span>
     <span class="s2">"merge_stores"</span><span class="p">,</span>
@@ -496,6 +500,12 @@
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_now</span><span class="p">():</span>
     <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(</span><span class="n">timespec</span><span class="o">=</span><span class="s2">"seconds"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_package_version</span><span class="p">():</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">__version__</span>
+
+    <span class="k">return</span> <span class="n">__version__</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_sha256</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
@@ -782,25 +792,289 @@
 
 
 
+<div class="viewcode-block" id="ground_state_multiplicity">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.store_tools.ground_state_multiplicity">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ground_state_multiplicity</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">atct</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""(multiplicity, source) of a species' ground state where it is known, or</span>
+<span class="sd">    (None, None).</span>
+
+<span class="sd">    Singlet for the species of :data:`.cbh.SINGLET_GROUND_STATES` (silylenes,</span>
+<span class="sd">    dihalocarbenes and BH, which a SMILES writes as triplets); else from ATcT when</span>
+<span class="sd">    it lists the species in labelled spin states: the plain entry is the ground</span>
+<span class="sd">    state, and the labelled entry with the same enthalpy of formation names its</span>
+<span class="sd">    multiplicity (CH2: plain = triplet; SiH2: plain = singlet). Unlike</span>
+<span class="sd">    :func:`.cbh.ground_state_multiplicity` this does not fall back on the radical</span>
+<span class="sd">    count, which is not knowledge of the ground state (O2 would be a singlet).</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.atct</span><span class="w"> </span><span class="kn">import</span> <span class="n">canonical_smiles</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.cbh</span><span class="w"> </span><span class="kn">import</span> <span class="n">SINGLET_GROUND_STATES</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">can</span> <span class="o">=</span> <span class="n">canonical_smiles</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">stereo</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="ow">or</span> <span class="n">species</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="n">can</span> <span class="o">=</span> <span class="n">species</span>
+    <span class="k">for</span> <span class="n">smiles</span> <span class="ow">in</span> <span class="n">SINGLET_GROUND_STATES</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">canonical_smiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="n">stereo</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">==</span> <span class="n">can</span><span class="p">:</span>
+                <span class="k">return</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">"singlet ground state (cbh.SINGLET_GROUND_STATES)"</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">continue</span>
+    <span class="k">if</span> <span class="n">atct</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">candidates</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">atct</span><span class="o">.</span><span class="n">candidates</span><span class="p">(</span><span class="n">can</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="n">charge</span><span class="p">)</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">is_gas</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+    <span class="n">plain</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">candidates</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">is_plain</span><span class="p">]</span>
+    <span class="n">labelled</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">candidates</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">multiplicity</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">plain</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">labelled</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+    <span class="n">value</span> <span class="o">=</span> <span class="n">plain</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"dfH0_298K"</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">labelled</span><span class="p">:</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"dfH0_298K"</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">e</span><span class="p">[</span><span class="s2">"dfH0_298K"</span><span class="p">])</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">))</span> <span class="o">&lt;</span> <span class="mf">1e-6</span><span class="p">)</span>
+        <span class="p">):</span>
+            <span class="k">return</span> <span class="n">e</span><span class="o">.</span><span class="n">multiplicity</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"ATcT </span><span class="si">{</span><span class="n">atct</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">e</span><span class="p">[</span><span class="s1">'id'</span><span class="p">]</span><span class="si">}</span><span class="s2">)"</span>
+    <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="sanity_check">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.store_tools.sanity_check">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">sanity_check</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">atct</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The problems that keep rows out of an official store, by species state:</span>
+<span class="sd">    {(species, charge, multiplicity): [reason, ...]}.</span>
+
+<span class="sd">    * a geometry with an imaginary mode beyond 20i (a saddle point);</span>
+<span class="sd">    * a geometry whose bonds, perceived again from its coordinates, are not its</span>
+<span class="sd">      species', whose charge or multiplicity do not fit its SMILES, or with atoms</span>
+<span class="sd">      too close together (:func:`.fragment_store.check_structure`);</span>
+<span class="sd">    * a multiplicity that is not the species' ground state, where that is known</span>
+<span class="sd">      (:func:`ground_state_multiplicity`).</span>
+
+<span class="sd">    Ions and open-shell species are checked like the rest, not excluded.</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.fragment_store</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_structure</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.geometry_store</span><span class="w"> </span><span class="kn">import</span> <span class="n">IMAGINARY_TOLERANCE</span>
+
+    <span class="n">problems</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">add</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">reason</span><span class="p">):</span>
+        <span class="n">problems</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="k">if</span> <span class="n">reason</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">problems</span><span class="p">[</span><span class="n">key</span><span class="p">]:</span>
+            <span class="n">problems</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">reason</span><span class="p">)</span>
+
+    <span class="n">states</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">_rows</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="s2">"geometry"</span><span class="p">):</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="p">(</span><span class="n">g</span><span class="p">[</span><span class="s2">"species"</span><span class="p">],</span> <span class="n">g</span><span class="p">[</span><span class="s2">"charge"</span><span class="p">],</span> <span class="n">g</span><span class="p">[</span><span class="s2">"multiplicity"</span><span class="p">])</span>
+        <span class="n">states</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"conformer '</span><span class="si">{</span><span class="n">g</span><span class="p">[</span><span class="s1">'conformer'</span><span class="p">]</span><span class="si">}</span><span class="s2">'"</span> <span class="k">if</span> <span class="n">g</span><span class="p">[</span><span class="s2">"conformer"</span><span class="p">]</span> <span class="k">else</span> <span class="s2">"geometry"</span>
+        <span class="k">if</span> <span class="n">g</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"n_imaginary"</span><span class="p">):</span>
+            <span class="n">add</span><span class="p">(</span>
+                <span class="n">key</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">g</span><span class="p">[</span><span class="s1">'n_imaginary'</span><span class="p">]</span><span class="si">}</span><span class="s2"> imaginary mode(s), the largest "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">g</span><span class="p">[</span><span class="s1">'max_imaginary'</span><span class="p">]</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">i cm^-1 (&gt; </span><span class="si">{</span><span class="n">IMAGINARY_TOLERANCE</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">i)"</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="n">problem</span> <span class="o">=</span> <span class="n">check_structure</span><span class="p">(</span>
+            <span class="n">g</span><span class="p">[</span><span class="s2">"symbols"</span><span class="p">],</span> <span class="n">g</span><span class="p">[</span><span class="s2">"coordinates"</span><span class="p">],</span> <span class="n">g</span><span class="p">[</span><span class="s2">"species"</span><span class="p">],</span> <span class="n">g</span><span class="p">[</span><span class="s2">"charge"</span><span class="p">],</span> <span class="n">g</span><span class="p">[</span><span class="s2">"multiplicity"</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">problem</span><span class="p">:</span>
+            <span class="n">add</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">problem</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">_rows</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="s2">"fragment"</span><span class="p">):</span>
+        <span class="n">states</span><span class="o">.</span><span class="n">add</span><span class="p">((</span><span class="n">f</span><span class="p">[</span><span class="s2">"species"</span><span class="p">],</span> <span class="n">f</span><span class="p">[</span><span class="s2">"charge"</span><span class="p">],</span> <span class="n">f</span><span class="p">[</span><span class="s2">"multiplicity"</span><span class="p">]))</span>
+    <span class="k">for</span> <span class="n">species</span><span class="p">,</span> <span class="n">charge</span><span class="p">,</span> <span class="n">multiplicity</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">states</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+        <span class="n">ground</span><span class="p">,</span> <span class="n">source</span> <span class="o">=</span> <span class="n">ground_state_multiplicity</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">charge</span><span class="p">,</span> <span class="n">atct</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ground</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">ground</span> <span class="o">!=</span> <span class="n">multiplicity</span><span class="p">:</span>
+            <span class="n">add</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">charge</span><span class="p">,</span> <span class="n">multiplicity</span><span class="p">),</span>
+                <span class="sa">f</span><span class="s2">"multiplicity </span><span class="si">{</span><span class="n">multiplicity</span><span class="si">}</span><span class="s2"> is not the ground state's (</span><span class="si">{</span><span class="n">ground</span><span class="si">}</span><span class="s2">, "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">source</span><span class="si">}</span><span class="s2">)"</span><span class="p">,</span>
+            <span class="p">)</span>
+    <span class="k">return</span> <span class="n">problems</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_select</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">frequency_fingerprints</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">energy_fingerprints</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Delete the rows not reachable at the given levels: geometry rows of other</span>
+<span class="sd">    frequency fingerprints, energy rows of other energy fingerprints or not on a</span>
+<span class="sd">    remaining geometry, and fragment rows of neither. Returns {table: n deleted}."""</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">_connect</span><span class="p">(</span><span class="n">create</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">deleted</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">freq</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">frequency_fingerprints</span> <span class="ow">or</span> <span class="p">[])</span>
+    <span class="n">energy</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">energy_fingerprints</span> <span class="ow">or</span> <span class="p">[])</span>
+    <span class="k">if</span> <span class="n">freq</span><span class="p">:</span>
+        <span class="n">marks</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">"?"</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">))</span>
+        <span class="n">deleted</span><span class="p">[</span><span class="s2">"geometry"</span><span class="p">]</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"DELETE FROM geometry WHERE frequency_fingerprint NOT IN (</span><span class="si">{</span><span class="n">marks</span><span class="si">}</span><span class="s2">)"</span><span class="p">,</span> <span class="n">freq</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">rowcount</span>
+    <span class="n">sql</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">"DELETE FROM energy WHERE geometry_hash NOT IN "</span>
+        <span class="s2">"(SELECT geometry_hash FROM geometry)"</span>
+    <span class="p">)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">energy</span><span class="p">:</span>
+        <span class="n">marks</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">"?"</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">energy</span><span class="p">))</span>
+        <span class="n">sql</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">" OR energy_fingerprint NOT IN (</span><span class="si">{</span><span class="n">marks</span><span class="si">}</span><span class="s2">)"</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="n">energy</span>
+    <span class="n">deleted</span><span class="p">[</span><span class="s2">"energy"</span><span class="p">]</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span><span class="o">.</span><span class="n">rowcount</span>
+    <span class="k">if</span> <span class="n">freq</span> <span class="ow">or</span> <span class="n">energy</span><span class="p">:</span>
+        <span class="n">allowed_e</span> <span class="o">=</span> <span class="n">freq</span> <span class="o">+</span> <span class="n">energy</span>
+        <span class="n">marks_e</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">"?"</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">allowed_e</span><span class="p">))</span>
+        <span class="n">sql</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"DELETE FROM fragment WHERE energy_fingerprint NOT IN (</span><span class="si">{</span><span class="n">marks_e</span><span class="si">}</span><span class="s2">)"</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">allowed_e</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">freq</span><span class="p">:</span>
+            <span class="n">marks_f</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">"?"</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">freq</span><span class="p">))</span>
+            <span class="n">sql</span> <span class="o">+=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">" OR (frequency_fingerprint != '' AND frequency_fingerprint NOT IN "</span>
+                <span class="sa">f</span><span class="s2">"(</span><span class="si">{</span><span class="n">marks_f</span><span class="si">}</span><span class="s2">))"</span>
+            <span class="p">)</span>
+            <span class="n">args</span> <span class="o">+=</span> <span class="n">freq</span>
+        <span class="n">deleted</span><span class="p">[</span><span class="s2">"fragment"</span><span class="p">]</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span><span class="o">.</span><span class="n">rowcount</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">deleted</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_exclude</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">excluded</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Delete the excluded rows: a whole species state, or one conformer of it</span>
+<span class="sd">    (the energies on a deleted geometry, and the fragment-table records made from</span>
+<span class="sd">    it, go too). `excluded` is {(species, charge, multiplicity, conformer or</span>
+<span class="sd">    None): reason}; returns {key: rows deleted}."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.fragment_store</span><span class="w"> </span><span class="kn">import</span> <span class="n">geometry_hash</span> <span class="k">as</span> <span class="n">fragment_geometry_hash</span>
+
+    <span class="n">db</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">_connect</span><span class="p">(</span><span class="n">create</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">removed</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">excluded</span><span class="p">:</span>
+        <span class="n">species</span><span class="p">,</span> <span class="n">charge</span><span class="p">,</span> <span class="n">multiplicity</span><span class="p">,</span> <span class="n">conformer</span> <span class="o">=</span> <span class="n">key</span>
+        <span class="n">where</span> <span class="o">=</span> <span class="s2">"species = ? AND charge = ? AND multiplicity = ?"</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="n">species</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">charge</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">multiplicity</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="n">conformer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">where_g</span> <span class="o">=</span> <span class="n">where</span> <span class="o">+</span> <span class="s2">" AND conformer = ?"</span>
+            <span class="n">args_g</span> <span class="o">=</span> <span class="n">args</span> <span class="o">+</span> <span class="p">[</span><span class="n">conformer</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">where_g</span><span class="p">,</span> <span class="n">args_g</span> <span class="o">=</span> <span class="n">where</span><span class="p">,</span> <span class="n">args</span>
+        <span class="n">geometries</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"SELECT geometry_hash, symbols, coordinates FROM geometry WHERE </span><span class="si">{</span><span class="n">where_g</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+            <span class="n">args_g</span><span class="p">,</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">"DELETE FROM geometry WHERE </span><span class="si">{</span><span class="n">where_g</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">args_g</span><span class="p">)</span><span class="o">.</span><span class="n">rowcount</span>
+        <span class="k">if</span> <span class="n">conformer</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">n</span> <span class="o">+=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">"DELETE FROM fragment WHERE </span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span><span class="o">.</span><span class="n">rowcount</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># The fragment-table records made from this conformer's geometry</span>
+            <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">geometries</span><span class="p">:</span>
+                <span class="n">old_hash</span> <span class="o">=</span> <span class="n">fragment_geometry_hash</span><span class="p">(</span>
+                    <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">g</span><span class="p">[</span><span class="s2">"symbols"</span><span class="p">]),</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">g</span><span class="p">[</span><span class="s2">"coordinates"</span><span class="p">])</span>
+                <span class="p">)</span>
+                <span class="n">n</span> <span class="o">+=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"DELETE FROM fragment WHERE </span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2"> AND geometry_hash = ?"</span><span class="p">,</span>
+                    <span class="n">args</span> <span class="o">+</span> <span class="p">[</span><span class="n">old_hash</span><span class="p">],</span>
+                <span class="p">)</span><span class="o">.</span><span class="n">rowcount</span>
+        <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">geometries</span><span class="p">:</span>
+            <span class="n">still</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                <span class="s2">"SELECT COUNT(*) FROM geometry WHERE geometry_hash = ?"</span><span class="p">,</span>
+                <span class="p">(</span><span class="n">g</span><span class="p">[</span><span class="s2">"geometry_hash"</span><span class="p">],),</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">still</span><span class="p">:</span>
+                <span class="n">n</span> <span class="o">+=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                    <span class="s2">"DELETE FROM energy WHERE geometry_hash = ?"</span><span class="p">,</span> <span class="p">(</span><span class="n">g</span><span class="p">[</span><span class="s2">"geometry_hash"</span><span class="p">],)</span>
+                <span class="p">)</span><span class="o">.</span><span class="n">rowcount</span>
+        <span class="n">removed</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">n</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">removed</span>
+
+
+<div class="viewcode-block" id="load_exclusions">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.store_tools.load_exclusions">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_exclusions</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Exclusions from a CSV file with the columns species, charge, multiplicity,</span>
+<span class="sd">    reason and, optionally, conformer (to leave out one conformer instead of the</span>
+<span class="sd">    whole species state): {(canonical species, charge, multiplicity, conformer or</span>
+<span class="sd">    None): reason}."""</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">csv</span>
+
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.atct</span><span class="w"> </span><span class="kn">import</span> <span class="n">canonical_smiles</span>
+
+    <span class="n">out</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(),</span> <span class="n">newline</span><span class="o">=</span><span class="s2">""</span><span class="p">)</span> <span class="k">as</span> <span class="n">fd</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">csv</span><span class="o">.</span><span class="n">DictReader</span><span class="p">(</span><span class="n">fd</span><span class="p">):</span>
+            <span class="n">species</span> <span class="o">=</span> <span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"species"</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="n">reason</span> <span class="o">=</span> <span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"reason"</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">species</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">reason</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">: excluding </span><span class="si">{</span><span class="n">species</span><span class="si">}</span><span class="s2"> needs a reason"</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">species</span> <span class="o">=</span> <span class="n">canonical_smiles</span><span class="p">(</span><span class="n">species</span><span class="p">)</span> <span class="ow">or</span> <span class="n">species</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="k">pass</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">species</span><span class="p">,</span>
+                <span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"charge"</span><span class="p">)</span> <span class="ow">or</span> <span class="mi">0</span><span class="p">),</span>
+                <span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"multiplicity"</span><span class="p">)</span> <span class="ow">or</span> <span class="mi">1</span><span class="p">),</span>
+                <span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"conformer"</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">out</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">reason</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+
 <div class="viewcode-block" id="build_official">
 <a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.store_tools.build_official">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">build_official</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">version</span><span class="p">,</span> <span class="n">sources</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">previous</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">build_official</span><span class="p">(</span>
+    <span class="n">out</span><span class="p">,</span>
+    <span class="n">version</span><span class="p">,</span>
+    <span class="n">sources</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">previous</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">source</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">frequency_fingerprints</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">energy_fingerprints</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">exclude</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">atct</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Build an official store: the previous official one (if given) plus the</span>
 <span class="sd">    contributions `sources`, marked official with `version` (and `source`, e.g.</span>
-<span class="sd">    its Zenodo DOI), compacted, with a ``.sha256`` file beside it.</span>
+<span class="sd">    its Zenodo DOI), compacted, with a ``.sha256`` file and a ``.report.json``</span>
+<span class="sd">    beside it.</span>
 
-<span class="sd">    A contribution whose values differ from a row already there stops the build,</span>
-<span class="sd">    and nothing is written: the maintainer resolves each with ``supersede`` and a</span>
-<span class="sd">    reason first. Returns (path, sha256, counts).</span>
+<span class="sd">    `frequency_fingerprints` and `energy_fingerprints`, when given, keep only the</span>
+<span class="sd">    rows reachable at those levels (e.g. the presets' r2SCAN-3c geometries and</span>
+<span class="sd">    the revDSD energies on them). `exclude` ({(species, charge, multiplicity):</span>
+<span class="sd">    reason}, or with a fourth element, a conformer label, to leave out one</span>
+<span class="sd">    conformer; see :func:`load_exclusions`) leaves rows out, with the reason in</span>
+<span class="sd">    the report.</span>
+
+<span class="sd">    Nothing is written when a contribution's values differ from a row already</span>
+<span class="sd">    there (resolve it with ``supersede`` and a reason first), or when the sanity</span>
+<span class="sd">    pass (:func:`sanity_check`; `atct` for the multiplicities) finds a problem in</span>
+<span class="sd">    a species state that is not excluded. Returns (path, sha256, counts).</span>
 <span class="sd">    """</span>
     <span class="n">out</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">out</span><span class="p">)</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">out</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
         <span class="k">raise</span> <span class="ne">FileExistsError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">out</span><span class="si">}</span><span class="s2"> exists; build to a new file."</span><span class="p">)</span>
+    <span class="c1"># Older three-element keys exclude the whole species state</span>
+    <span class="n">exclude</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="kc">None</span><span class="p">,)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span> <span class="k">else</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">k</span><span class="p">)):</span> <span class="n">v</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="p">(</span><span class="n">exclude</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+    <span class="p">}</span>
     <span class="k">if</span> <span class="n">previous</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">with</span> <span class="n">FragmentStore</span><span class="p">(</span><span class="n">previous</span><span class="p">,</span> <span class="n">immutable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">old</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">old</span><span class="o">.</span><span class="n">layer</span> <span class="o">!=</span> <span class="s2">"official"</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">previous</span><span class="si">}</span><span class="s2"> is not an official store."</span><span class="p">)</span>
         <span class="n">shutil</span><span class="o">.</span><span class="n">copy2</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">previous</span><span class="p">)</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(),</span> <span class="n">out</span><span class="p">)</span>
+    <span class="n">report</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">"version"</span><span class="p">:</span> <span class="n">version</span><span class="p">,</span>
+        <span class="s2">"built"</span><span class="p">:</span> <span class="n">_now</span><span class="p">(),</span>
+        <span class="s2">"previous"</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">previous</span><span class="p">)</span> <span class="k">if</span> <span class="n">previous</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">"sources"</span><span class="p">:</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sources</span><span class="p">],</span>
+        <span class="s2">"frequency fingerprints"</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">frequency_fingerprints</span> <span class="ow">or</span> <span class="p">[]),</span>
+        <span class="s2">"energy fingerprints"</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">energy_fingerprints</span> <span class="ow">or</span> <span class="p">[]),</span>
+        <span class="s2">"atct"</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">atct</span><span class="p">,</span> <span class="s2">"version"</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+        <span class="s2">"generator"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"seamm-thermochemistry </span><span class="si">{</span><span class="n">_package_version</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+    <span class="p">}</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">with</span> <span class="n">FragmentStore</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">create</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">layer</span><span class="o">=</span><span class="s2">"official"</span><span class="p">)</span> <span class="k">as</span> <span class="n">store</span><span class="p">:</span>
             <span class="n">counts</span> <span class="o">=</span> <span class="n">merge_stores</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">sources</span><span class="p">,</span> <span class="n">allow_official</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -820,6 +1094,43 @@
                     <span class="s2">"store; resolve them with 'supersede' first:</span><span class="se">\n</span><span class="s2">  "</span>
                     <span class="o">+</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">  "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">conflicts</span><span class="p">[:</span><span class="mi">50</span><span class="p">])</span>
                 <span class="p">)</span>
+            <span class="n">report</span><span class="p">[</span><span class="s2">"deselected"</span><span class="p">]</span> <span class="o">=</span> <span class="n">_select</span><span class="p">(</span>
+                <span class="n">store</span><span class="p">,</span> <span class="n">frequency_fingerprints</span><span class="p">,</span> <span class="n">energy_fingerprints</span>
+            <span class="p">)</span>
+            <span class="n">removed</span> <span class="o">=</span> <span class="n">_exclude</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">exclude</span><span class="p">)</span>
+            <span class="n">report</span><span class="p">[</span><span class="s2">"excluded"</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s2">"species"</span><span class="p">:</span> <span class="n">k</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                    <span class="s2">"charge"</span><span class="p">:</span> <span class="n">k</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                    <span class="s2">"multiplicity"</span><span class="p">:</span> <span class="n">k</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+                    <span class="s2">"conformer"</span><span class="p">:</span> <span class="n">k</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span>
+                    <span class="s2">"reason"</span><span class="p">:</span> <span class="n">reason</span><span class="p">,</span>
+                    <span class="s2">"rows"</span><span class="p">:</span> <span class="n">removed</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+                <span class="p">}</span>
+                <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">reason</span> <span class="ow">in</span> <span class="n">exclude</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="p">]</span>
+            <span class="k">if</span> <span class="n">check</span><span class="p">:</span>
+                <span class="n">problems</span> <span class="o">=</span> <span class="n">sanity_check</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">atct</span><span class="o">=</span><span class="n">atct</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">problems</span><span class="p">:</span>
+                    <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span>
+                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">s</span><span class="si">}</span><span class="s2"> (charge </span><span class="si">{</span><span class="n">q</span><span class="si">}</span><span class="s2">, multiplicity </span><span class="si">{</span><span class="n">m</span><span class="si">}</span><span class="s2">): "</span> <span class="o">+</span> <span class="s2">"; "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+                        <span class="k">for</span> <span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">m</span><span class="p">),</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">problems</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
+                    <span class="p">]</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">problems</span><span class="p">)</span><span class="si">}</span><span class="s2"> species states fail the sanity checks; fix "</span>
+                        <span class="s2">"them, or exclude them with a reason (--exclude):</span><span class="se">\n</span><span class="s2">  "</span>
+                        <span class="o">+</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">  "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">[:</span><span class="mi">100</span><span class="p">])</span>
+                    <span class="p">)</span>
+            <span class="n">db</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">_connect</span><span class="p">(</span><span class="n">create</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">report</span><span class="p">[</span><span class="s2">"rows"</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">t</span><span class="p">:</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">"SELECT COUNT(*) FROM </span><span class="si">{</span><span class="n">t</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"fragment"</span><span class="p">,</span> <span class="s2">"geometry"</span><span class="p">,</span> <span class="s2">"energy"</span><span class="p">)</span>
+            <span class="p">}</span>
+            <span class="n">report</span><span class="p">[</span><span class="s2">"species"</span><span class="p">]</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                <span class="s2">"SELECT COUNT(*) FROM (SELECT DISTINCT species, charge, "</span>
+                <span class="s2">"multiplicity FROM geometry)"</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">report</span><span class="p">[</span><span class="s2">"checked"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">check</span><span class="p">)</span>
             <span class="n">store</span><span class="o">.</span><span class="n">set_meta</span><span class="p">(</span>
                 <span class="n">layer</span><span class="o">=</span><span class="s2">"official"</span><span class="p">,</span>
                 <span class="n">version</span><span class="o">=</span><span class="n">version</span><span class="p">,</span>
@@ -827,12 +1138,14 @@
                 <span class="n">source</span><span class="o">=</span><span class="n">source</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">,</span>
                 <span class="n">schema</span><span class="o">=</span><span class="n">SCHEMA_VERSION</span><span class="p">,</span>
             <span class="p">)</span>
-            <span class="n">store</span><span class="o">.</span><span class="n">_connect</span><span class="p">(</span><span class="n">create</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"VACUUM"</span><span class="p">)</span>
+            <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"VACUUM"</span><span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
         <span class="n">out</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="n">missing_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">raise</span>
     <span class="n">digest</span> <span class="o">=</span> <span class="n">_sha256</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+    <span class="n">report</span><span class="p">[</span><span class="s2">"sha256"</span><span class="p">]</span> <span class="o">=</span> <span class="n">digest</span>
     <span class="n">out</span><span class="o">.</span><span class="n">with_name</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">".sha256"</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">digest</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="n">out</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">out</span><span class="o">.</span><span class="n">with_name</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">".report.json"</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">report</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">out</span><span class="p">,</span> <span class="n">digest</span><span class="p">,</span> <span class="n">counts</span></div>
 
 

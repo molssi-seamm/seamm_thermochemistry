@@ -7,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>2026-11-10 – Fragment store P5: write-back, in-job reuse, two layers, ATcT download &#8212; SEAMM thermochemistry Plug-in 2026.11.11.4 documentation</title>
+    <title>2026-11-10 – Fragment store P5: write-back, in-job reuse, two layers, ATcT download &#8212; SEAMM thermochemistry Plug-in 2026.11.11.5 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=5a7a65ed"></script>
+    <script src="../../../_static/documentation_options.js?v=fe02e1f4"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -54,7 +54,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.11.4" />
+  <meta name="docsearch:version" content="2026.11.11.5" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -494,6 +494,29 @@ with the rest of the installer; the official build’s sanity pass is P5e.
 <code class="docutils literal notranslate"><span class="pre">migrate</span></code> was run on a copy of ChemAI’s store (2026-11-11 06:14): 100
 fragment, 50 geometry and 639 energy rows normalized, all keys unchanged, a
 second run a no-op.</p>
+<p><strong>P5c released 2026-11-11</strong> (seamm-thermochemistry and thermochemistry-step
+2026.11.11.2). <strong>P5e code implemented 2026-11-11</strong> (branch <code class="docutils literal notranslate"><span class="pre">p5e-official</span></code>): the
+sanity pass, selection by fingerprint, exclusions with reasons and the report.
+The multiplicity check uses <code class="docutils literal notranslate"><span class="pre">cbh.SINGLET_GROUND_STATES</span></code> (design’s, from the CBH
+review: SiH2, SiCl2, SiF2, CF2, CCl2, BH) and ATcT’s labelled spin states; ATcT alone cannot catch BH (only a
+plain entry) or SiCl2 (absent). Writing it showed that the P5b structure guard
+refused singlet BH and carbenes (RDKit gives them two radical electrons); it now
+checks only the parity, and it held fluorines on one atom (CF2, CF3) to the 2.2 Å
+meant for fluorines on different atoms (now 2.0 Å). Building v1 waits for the DEFGRID3 harvest into ChemAI’s
+store: frequency key sha256:6b46c8c4…, energy keys sha256:1e16835c… and
+sha256:7ca1cbbc… (boron), the [CH3-] saddle from 5684 excluded.</p>
+<p><strong>Official v1 built 2026-11-11</strong> (<code class="docutils literal notranslate"><span class="pre">~/Work/SEAMM/official_store_v1/</span></code>, from a
+read-only copy of ChemAI’s settled store, sha256 2303508002b9…, migrated):
+458 species states, 597 geometries, 1078 energies (r2SCAN-3c, revDSD 1e16 and
+7ca1), 912 fragment records. The first build refused 11 species states; four were
+false positives of the bond perception (the diagonals of azete, oxetene and the
+N2O3 cage; one long N-N bond), which led to perceiving bonds at several
+covalent-radius factors. Six exclusions remain, with reasons in
+<code class="docutils literal notranslate"><span class="pre">exclude-v1.csv</span></code> and the report: the [CH3-] saddle; C3 (ring opened); C1=CCC=1
+(became bicyclic); and three dissociated conformers, two of them the lowest of
+their species (N2O3 as NO2 + NO, Cl2O2 as two ClO), which lookups would otherwise
+have used. To publish: rebuild with the released seamm-thermochemistry, then Paul
+uploads to Zenodo.</p>
 <p>Numbering: these phases are the fragment store’s P5 (P5a-P5e). The 11-08
 presets plan also had a P5 (long-bond and %[(T)] flags) and a P6 (pilot). Those
 keep their names and have nothing to do with this note.</p>

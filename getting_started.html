@@ -7,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.11.11.4 documentation</title>
+    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.11.11.5 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="_static/documentation_options.js?v=5a7a65ed"></script>
+    <script src="_static/documentation_options.js?v=fe02e1f4"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -55,7 +55,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.11.4" />
+  <meta name="docsearch:version" content="2026.11.11.5" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -736,7 +736,25 @@ lacks, or has with other values, to a contribution for the next official version
 nothing about the host or user is added beyond the label. <code class="docutils literal notranslate"><span class="pre">official</span> <span class="pre">build</span></code> (for
 maintainers) stops at the first contributed value that differs from one already
 there, so that it is resolved with <code class="docutils literal notranslate"><span class="pre">supersede</span></code> and a reason; it writes the file’s
-SHA-256 beside it. <code class="docutils literal notranslate"><span class="pre">--official</span> <span class="pre">FILE</span></code> names an official store other than the
+SHA-256 beside it.</p>
+<p><code class="docutils literal notranslate"><span class="pre">official</span> <span class="pre">build</span></code> also keeps only the rows reachable at the levels given with
+<code class="docutils literal notranslate"><span class="pre">--frequency-fingerprint</span></code> and <code class="docutils literal notranslate"><span class="pre">--energy-fingerprint</span></code> (repeat each for several),
+and checks every species state before writing anything:</p>
+<ul class="simple">
+<li><p>no geometry with an imaginary mode beyond 20i (a saddle point);</p></li>
+<li><p>the structure guard (bonds perceived again, charge, the parity of the spin, no
+atoms too close together);</p></li>
+<li><p>the ground-state spin, where it is known: singlet for the silylenes,
+dihalocarbenes and BH of <code class="docutils literal notranslate"><span class="pre">cbh.SINGLET_GROUND_STATES</span></code>, whose SMILES would make
+them triplets, and from ATcT when it lists a species in labelled spin states
+(CH2 and NH are triplets, SiH2 a singlet).</p></li>
+</ul>
+<p>A species state that fails stops the build, unless it is excluded with a reason in
+the <code class="docutils literal notranslate"><span class="pre">--exclude</span></code> file (columns species, charge, multiplicity, reason, and optionally
+conformer, to leave out only that conformer). Ions and
+open-shell species are checked like the rest. The build writes
+<code class="docutils literal notranslate"><span class="pre">&lt;file&gt;.report.json</span></code> beside the file: the sources, the levels, the rows kept and
+left out, each exclusion with its reason, and the SHA-256. <code class="docutils literal notranslate"><span class="pre">--official</span> <span class="pre">FILE</span></code> names an official store other than the
 default; <code class="docutils literal notranslate"><span class="pre">lookup</span></code> and <code class="docutils literal notranslate"><span class="pre">geometries</span></code> read both.</p>
 </section>
 <section id="geometries-and-energies-at-different-levels">
