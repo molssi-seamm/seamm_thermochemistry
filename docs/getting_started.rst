@@ -345,6 +345,10 @@ a duplicate, logged, superseded, or refused and why -- in the store's
 
     seamm-thermochemistry-fragments writeback-log --job 5700
 
+The log is written by the harvest and by write-back (both go through
+``harvest_configuration``); direct calls to ``put``, ``put_geometry`` or
+``put_energy`` from a script of your own are not logged.
+
 
 Geometries and energies at different levels
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
