@@ -2,7 +2,7 @@
 History
 =======
 
-2026.11.11.13 -- ATcT lookups of hypervalent halogens no longer raise
+2026.11.11.13 -- Bugfix: ATcT lookups of hypervalent halogens no longer raise
     * Bug fix: ``canonical_smiles(..., stereo=False)`` raised RDKit's
       ``AtomValenceException`` for molecules read without the valence check (ClF3,
       BrF5, BrO2, Br3, ClO2, charged S such as O=[S-](=O)=O) when ``RemoveHs``
