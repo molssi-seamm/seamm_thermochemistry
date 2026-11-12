@@ -1269,6 +1269,11 @@ def harvest_configuration(
             return value
 
         calculation = extra("calculation")
+        # The parts of the energy (HF, correlation, ...) as the program reported
+        # them, kept with the energy row (its byproducts)
+        byproducts = extra("energy parts")
+        if not isinstance(byproducts, dict):
+            byproducts = None
         calc_geometry = (
             calculation.get("geometry fingerprint")
             if isinstance(calculation, dict)
@@ -1358,6 +1363,7 @@ def harvest_configuration(
                 model_chemistry=model,
                 program=program,
                 version=version,
+                byproducts=byproducts,
                 job=job,
                 configuration=configuration.id,
                 source=name,

@@ -718,7 +718,11 @@ class GeometryEnergyMixin:
         """Insert an energy row unless its key exists.
 
         The row is linked to the geometry row with the same hash when there is
-        one. Returns ("inserted" | "duplicate" | "logged", row id).
+        one. A duplicate (the same key and energy within the tolerance) that
+        brings the energy's parts (``byproducts``) when the stored row has none
+        adds them to it: a calculation recomputed because its row lacked the
+        parts a recipe needs then need not be recomputed again. Returns
+        ("inserted" | "duplicate" | "parts added" | "logged", row id).
         """
         record = EnergyRecord(record)
         if record.get("geometry") is None:
@@ -728,7 +732,31 @@ class GeometryEnergyMixin:
                 (record["geometry_hash"],),
             ).fetchone()
             record["geometry"] = row["id"] if row is not None else None
-        return self._put("energy", _ENERGY_COLUMNS, 2, _ENERGY_VALUES, record)
+        outcome, row_id = self._put(
+            "energy", _ENERGY_COLUMNS, 2, _ENERGY_VALUES, record
+        )
+        if outcome == "duplicate" and record.get("byproducts"):
+            db = self._writer()
+            existing = db.execute(
+                "SELECT byproducts FROM energy WHERE id = ?", (row_id,)
+            ).fetchone()
+            if existing["byproducts"] in (None, "", "null"):
+                db.execute(
+                    "UPDATE energy SET byproducts = ? WHERE id = ?",
+                    (json.dumps(record["byproducts"]), row_id),
+                )
+                self._history(
+                    db,
+                    "energy",
+                    row_id,
+                    "parts added",
+                    {"byproducts": None},
+                    {"byproducts": record["byproducts"], "job": record.get("job")},
+                    difference=0.0,
+                )
+                db.commit()
+                return "parts added", row_id
+        return outcome, row_id
 
     def _supersede(self, table, columns, nkey, fields, record, reason, force, put):
         if not reason:
