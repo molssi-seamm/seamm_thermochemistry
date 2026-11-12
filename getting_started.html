@@ -7,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.11.12 documentation</title>
+    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.11.12.1 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="_static/documentation_options.js?v=b41936cd"></script>
+    <script src="_static/documentation_options.js?v=900c25b8"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -55,7 +55,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.12" />
+  <meta name="docsearch:version" content="2026.11.12.1" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -615,6 +615,37 @@ quadrature. Never convert an
 ATcT value between 0 K and 298.15 K yourself, and never mix TN versions in one
 reaction. The index needs RDKit (<code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">seamm-thermochemistry[cbh]</span></code>).</p>
 </section>
+<section id="reference-values-atct-lacks">
+<h2>Reference values ATcT lacks<a class="headerlink" href="#reference-values-atct-lacks" title="Link to this heading">#</a></h2>
+<p>Some CBH reference species are not in ATcT, for elements such as Ge, As or Se, or
+for larger organic molecules. The <strong>reference library</strong> holds enthalpies of
+formation for them from evaluated compilations and measurements:</p>
+<ul class="simple">
+<li><p>printed JANAF (NIST SRD 13);</p></li>
+<li><p>CODATA key values;</p></li>
+<li><p>the NBS tables of 1982;</p></li>
+<li><p>spectroscopic D0 values;</p></li>
+<li><p>W4-17;</p></li>
+<li><p>NIST WebBook measurements (SRD 69).</p></li>
+</ul>
+<p>Each value keeps its original citation, the compilation it came from, its
+uncertainty as stated, and why it was chosen.</p>
+<p>There are two files beside the ATcT cache. <code class="docutils literal notranslate"><span class="pre">references-official.db</span></code> is the
+published library; it is read, never written. <code class="docutils literal notranslate"><span class="pre">references.db</span></code> is your own,
+for references you add.</p>
+<p><a class="reference internal" href="api/seamm_thermochemistry.html#seamm_thermochemistry.resolver.ReferenceResolver" title="seamm_thermochemistry.resolver.ReferenceResolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">ReferenceResolver</span></code></a> takes each reference
+from ATcT first, then from your own references (if enabled), then from the
+library’s sources in a fixed order of rank, and then from computed references.
+For an element ATcT lacks, it takes all the references containing that element
+from one source where it can, so that the source’s errors cancel.</p>
+<p>A library value’s uncertainty is its 95 % uncertainty plus the source’s rms
+offset from ATcT, and it is combined with ATcT’s in quadrature. Results that
+use the library are labelled “mixed” (or “mixed: several sources”) instead of
+“ATcT-only”.</p>
+<p><code class="docutils literal notranslate"><span class="pre">seamm-thermochemistry-references</span> <span class="pre">list</span></code> and <code class="docutils literal notranslate"><span class="pre">show</span> <span class="pre">SMILES</span></code> show what the
+library holds. The Thermochemistry step’s “Supplementary references” parameter
+chooses whether it is used.</p>
+</section>
 <section id="the-fragment-energy-store">
 <h2>The fragment-energy store<a class="headerlink" href="#the-fragment-energy-store" title="Link to this heading">#</a></h2>
 <p>Fragments recur between targets, so their energies are kept in a store,
@@ -1044,6 +1075,7 @@ batch of targets computes each fragment once.</p>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#two-reference-conventions-one-schema">Two reference conventions, one schema</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#importing-orca-results">Importing ORCA results</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#active-thermochemical-tables">Active Thermochemical Tables</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#reference-values-atct-lacks">Reference values ATcT lacks</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-fragment-energy-store">The fragment-energy store</a><ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#write-back-from-jobs-and-the-harvest-of-jobs-that-come-back">Write-back from jobs, and the harvest of jobs that come back</a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#the-official-and-local-stores">The official and local stores</a></li>

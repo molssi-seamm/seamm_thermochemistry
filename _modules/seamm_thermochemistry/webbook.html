@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>seamm_thermochemistry.webbook &#8212; SEAMM thermochemistry Plug-in 2026.11.12.1 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=6a604523" />
+    <link rel="stylesheet" type="text/css" href="../../_static/css/custom.css" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../_static/scripts/fontawesome.js?digest=75c7c72ae941e8b558d8"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
+
+    <script src="../../_static/documentation_options.js?v=900c25b8"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script data-sd-tabs-storage-prefix="sphinx-design-tab-id-" src="../../_static/design-tabs.js?v=fcb327ea"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/seamm_thermochemistry/webbook';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="2026.11.12.1" />
+  
+    
+    <script src="../../_static/searchtools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation" aria-expanded="false" aria-controls="pst-primary-sidebar-modal">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/SEAMM logo.png" class="logo__image only-light" alt=""/>
+    <img src="../../_static/SEAMM Inverted 288x181.png" class="logo__image only-dark pst-js-only" alt=""/>
+  
+  
+    <p class="title logo__title">SEAMM-THERMOCHEMISTRY</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api.html">
+    API Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../developer_guide/index.html">
+    Developer Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-external" href="https://molssi-seamm.github.io">
+    SEAMM Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-external" href="https://molssi.org">
+    MolSSI
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/molssi-seamm/seamm_thermochemistry" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/MolSSI_NSF" title="Twitter" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-twitter fa-lg" aria-hidden="true"></i><span class="visually-hidden">Twitter</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal" tabindex="-1"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api.html">
+    API Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../developer_guide/index.html">
+    Developer Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-external" href="https://molssi-seamm.github.io">
+    SEAMM Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-external" href="https://molssi.org">
+    MolSSI
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/molssi-seamm/seamm_thermochemistry" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/MolSSI_NSF" title="Twitter" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-twitter fa-lg" aria-hidden="true"></i><span class="visually-hidden">Twitter</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-house"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">seamm_thermochemistry.webbook</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for seamm_thermochemistry.webbook</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="sd">"""The NIST Chemistry WebBook (SRD 69) as a source of the reference library.</span>
+
+<span class="sd">A maintainer tool, in two stages so that the network part is separate and</span>
+<span class="sd">can be repeated:</span>
+
+<span class="sd">``fetch``</span>
+<span class="sd">    Looks each species up by InChI (gas-phase thermochemistry, SI units),</span>
+<span class="sd">    saves the page in a cache directory, waits between requests and logs</span>
+<span class="sd">    each one (URL, date, sha256). A stereo InChI that the WebBook does not</span>
+<span class="sd">    find is retried without its stereo layers, and the retry is recorded.</span>
+<span class="sd">``import``</span>
+<span class="sd">    Offline and deterministic: parses every gas-phase enthalpy of formation</span>
+<span class="sd">    on the cached pages into the library, with the original citation the</span>
+<span class="sd">    WebBook gives, then chooses one value per species by</span>
+<span class="sd">    :func:`.references.select_measurement`.</span>
+
+<span class="sd">Rows the WebBook marks as evaluations (class "cal", e.g. JANAF reviews) are</span>
+<span class="sd">kept but held: the value is taken from the evaluation's own source.</span>
+<span class="sd">"""</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">csv</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">html</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">urllib.parse</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">urllib.request</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.references</span><span class="w"> </span><span class="kn">import</span> <span class="ne">ReferenceError</span>
+
+<span class="n">SOURCE</span> <span class="o">=</span> <span class="s2">"WebBook-SRD69"</span>
+<span class="n">SOURCE_RANK</span> <span class="o">=</span> <span class="mi">50</span>
+<span class="n">SOURCE_CITATION</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">"NIST Chemistry WebBook, NIST Standard Reference Database 69, eds. P. J. "</span>
+    <span class="s2">"Linstrom and W. G. Mallard, https://webbook.nist.gov (values cited to the "</span>
+    <span class="s2">"original measurements)"</span>
+<span class="p">)</span>
+<span class="n">URL</span> <span class="o">=</span> <span class="s2">"https://webbook.nist.gov/cgi/cbook.cgi"</span>
+<span class="n">USER_AGENT</span> <span class="o">=</span> <span class="s2">"seamm-thermochemistry reference-library builder"</span>
+
+<span class="c1">#: The index of a cache directory: one row per page</span>
+<span class="n">INDEX</span> <span class="o">=</span> <span class="s2">"index.csv"</span>
+<span class="n">INDEX_FIELDS</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"file"</span><span class="p">,</span> <span class="s2">"smiles"</span><span class="p">,</span> <span class="s2">"charge"</span><span class="p">,</span> <span class="s2">"multiplicity"</span><span class="p">,</span> <span class="s2">"inchi"</span><span class="p">,</span> <span class="s2">"inchi_retry"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_clean</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">html</span><span class="o">.</span><span class="n">unescape</span><span class="p">(</span>
+        <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">"\s+"</span><span class="p">,</span> <span class="s2">" "</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">"&lt;[^&gt;]+&gt;"</span><span class="p">,</span> <span class="s2">" "</span><span class="p">,</span> <span class="n">text</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">))</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="parse_value">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.webbook.parse_value">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_value</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""(value, uncertainty) from a WebBook cell such as ``132.9 ± 0.6``; the</span>
+<span class="sd">    uncertainty is None when not given, and both None for no number."""</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s2">"\s*([-+]?\d+\.?\d*)\s*(?:±\s*(\d+\.?\d*))?"</span><span class="p">,</span> <span class="n">text</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">m</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)),</span> <span class="nb">float</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span> <span class="k">if</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="year_of">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.webbook.year_of">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">year_of</span><span class="p">(</span><span class="n">reference</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The last four-digit year in a reference such as "Roux et al., 2008"."""</span>
+    <span class="n">years</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">"(1[89]\d\d|20\d\d)"</span><span class="p">,</span> <span class="n">reference</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">years</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="k">if</span> <span class="n">years</span> <span class="k">else</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="parse_page">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.webbook.parse_page">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_page</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The gas-phase enthalpies of formation on a WebBook page.</span>
+
+<span class="sd">    Returns {"title", "found", "cas", "formula", "rows"}, each row a dict</span>
+<span class="sd">    with ``class`` (exp or cal), ``value``, ``uncertainty``, ``units``,</span>
+<span class="sd">    ``method``, ``reference`` (short), ``citation`` (full), ``year`` and</span>
+<span class="sd">    ``comment``.</span>
+<span class="sd">    """</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">"&lt;title&gt;(.*?)&lt;/title&gt;"</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">S</span><span class="p">)</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="n">_clean</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span> <span class="k">if</span> <span class="n">m</span> <span class="k">else</span> <span class="s2">""</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">"title"</span><span class="p">:</span> <span class="n">title</span><span class="p">,</span>
+        <span class="s2">"found"</span><span class="p">:</span> <span class="nb">bool</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+        <span class="ow">and</span> <span class="s2">"not found"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">title</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="ow">and</span> <span class="s2">"not found"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">text</span><span class="p">[:</span><span class="mi">3000</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="ow">and</span> <span class="s2">"Information from the InChI"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">title</span><span class="p">,</span>
+        <span class="s2">"rows"</span><span class="p">:</span> <span class="p">[],</span>
+    <span class="p">}</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">"CAS Registry Number:&lt;/strong&gt;\s*([0-9-]+)"</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
+    <span class="n">result</span><span class="p">[</span><span class="s2">"cas"</span><span class="p">]</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">m</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">"Formula&lt;/a&gt;:&lt;/strong&gt;(.*?)&lt;/li&gt;"</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">S</span><span class="p">)</span>
+    <span class="n">result</span><span class="p">[</span><span class="s2">"formula"</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">"&lt;sup&gt;.*?&lt;/sup&gt;"</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+        <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"&lt;sub&gt;"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"&lt;/sub&gt;"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">m</span>
+        <span class="k">else</span> <span class="kc">None</span>
+    <span class="p">)</span>
+    <span class="n">refs</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">rid</span><span class="p">,</span> <span class="n">body</span> <span class="ow">in</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span>
+        <span class="sa">r</span><span class="s1">'&lt;span id="(ref-\d+)"&gt;(.*?)(?=&lt;span id="ref-|&lt;/p&gt;\s*(?:&lt;p&gt;\s*&lt;span '</span>
+        <span class="sa">r</span><span class="s1">'id="ref-|&lt;/div|&lt;hr|&lt;h2))'</span><span class="p">,</span>
+        <span class="n">text</span><span class="p">,</span>
+        <span class="n">re</span><span class="o">.</span><span class="n">S</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">'&lt;span class="Z3988".*?&lt;/span&gt;'</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span> <span class="n">body</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">S</span><span class="p">)</span>
+        <span class="n">refs</span><span class="p">[</span><span class="n">rid</span><span class="p">]</span> <span class="o">=</span> <span class="n">_clean</span><span class="p">(</span><span class="n">body</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">" [ all data ]"</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s1">'&lt;h2 id="Thermo-Gas"&gt;(.*?)(&lt;h2 |&lt;hr)'</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">S</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">m</span><span class="p">:</span>
+        <span class="k">for</span> <span class="bp">cls</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span>
+            <span class="sa">r</span><span class="s1">'&lt;tr class="(exp|cal)"&gt;(.*?)&lt;/tr&gt;'</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">re</span><span class="o">.</span><span class="n">S</span>
+        <span class="p">):</span>
+            <span class="n">cells</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">"&lt;td[^&gt;]*&gt;(.*?)&lt;/td&gt;"</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">S</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cells</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">quantity</span> <span class="o">=</span> <span class="n">_clean</span><span class="p">(</span><span class="n">cells</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">" "</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">quantity</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"ΔfH°gas"</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="n">value</span><span class="p">,</span> <span class="n">uncertainty</span> <span class="o">=</span> <span class="n">parse_value</span><span class="p">(</span><span class="n">_clean</span><span class="p">(</span><span class="n">cells</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+            <span class="n">link</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s1">'href="#(ref-\d+)"'</span><span class="p">,</span> <span class="n">cells</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span>
+            <span class="n">short</span> <span class="o">=</span> <span class="n">_clean</span><span class="p">(</span><span class="n">cells</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span>
+            <span class="n">full</span> <span class="o">=</span> <span class="n">refs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">link</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="s2">""</span><span class="p">)</span> <span class="k">if</span> <span class="n">link</span> <span class="k">else</span> <span class="s2">""</span>
+            <span class="n">result</span><span class="p">[</span><span class="s2">"rows"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s2">"class"</span><span class="p">:</span> <span class="bp">cls</span><span class="p">,</span>
+                    <span class="s2">"value"</span><span class="p">:</span> <span class="n">value</span><span class="p">,</span>
+                    <span class="s2">"uncertainty"</span><span class="p">:</span> <span class="n">uncertainty</span><span class="p">,</span>
+                    <span class="s2">"units"</span><span class="p">:</span> <span class="n">_clean</span><span class="p">(</span><span class="n">cells</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span>
+                    <span class="s2">"method"</span><span class="p">:</span> <span class="n">_clean</span><span class="p">(</span><span class="n">cells</span><span class="p">[</span><span class="mi">3</span><span class="p">]),</span>
+                    <span class="s2">"reference"</span><span class="p">:</span> <span class="n">short</span><span class="p">,</span>
+                    <span class="s2">"citation"</span><span class="p">:</span> <span class="n">full</span> <span class="ow">or</span> <span class="n">short</span><span class="p">,</span>
+                    <span class="s2">"year"</span><span class="p">:</span> <span class="n">year_of</span><span class="p">(</span><span class="n">short</span><span class="p">),</span>
+                    <span class="s2">"comment"</span><span class="p">:</span> <span class="n">_clean</span><span class="p">(</span><span class="n">cells</span><span class="p">[</span><span class="mi">5</span><span class="p">])</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cells</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">5</span> <span class="k">else</span> <span class="s2">""</span><span class="p">,</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
+    <span class="k">return</span> <span class="n">result</span></div>
+
+
+
+<div class="viewcode-block" id="non_stereo_inchi">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.webbook.non_stereo_inchi">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">non_stereo_inchi</span><span class="p">(</span><span class="n">inchi</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""An InChI without its stereo layers (/t, /m, /s)."""</span>
+    <span class="k">return</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">"/[tms][^/]*"</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span> <span class="n">inchi</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="page_url">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.webbook.page_url">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">page_url</span><span class="p">(</span><span class="n">inchi</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">URL</span> <span class="o">+</span> <span class="s2">"?"</span> <span class="o">+</span> <span class="n">urllib</span><span class="o">.</span><span class="n">parse</span><span class="o">.</span><span class="n">urlencode</span><span class="p">({</span><span class="s2">"InChI"</span><span class="p">:</span> <span class="n">inchi</span><span class="p">,</span> <span class="s2">"Units"</span><span class="p">:</span> <span class="s2">"SI"</span><span class="p">,</span> <span class="s2">"Mask"</span><span class="p">:</span> <span class="s2">"1"</span><span class="p">})</span>
+    <span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_sha256</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">())</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="read_index">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.webbook.read_index">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_index</span><span class="p">(</span><span class="n">directory</span><span class="p">):</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span> <span class="o">/</span> <span class="n">INDEX</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="k">return</span> <span class="p">[]</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s2">""</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span> <span class="k">as</span> <span class="n">fd</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">csv</span><span class="o">.</span><span class="n">DictReader</span><span class="p">(</span><span class="n">fd</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="fetch">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.webbook.fetch">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">fetch</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">directory</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">delay</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span> <span class="n">user_agent</span><span class="o">=</span><span class="n">USER_AGENT</span><span class="p">,</span> <span class="n">opener</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Fetch WebBook pages into a cache directory.</span>
+
+<span class="sd">    `species` is a list of (smiles, charge, multiplicity). Pages already in</span>
+<span class="sd">    the cache are not fetched again. Returns the index rows written.</span>
+<span class="sd">    """</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">rdkit</span><span class="w"> </span><span class="kn">import</span> <span class="n">Chem</span>
+
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.smiles</span><span class="w"> </span><span class="kn">import</span> <span class="n">mol_from_smiles</span>
+
+    <span class="n">directory</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
+    <span class="n">directory</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">opener</span> <span class="o">=</span> <span class="n">opener</span> <span class="ow">or</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlopen</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s2">"smiles"</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="s2">"charge"</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="s2">"multiplicity"</span><span class="p">])</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">read_index</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="n">log</span> <span class="o">=</span> <span class="n">directory</span> <span class="o">/</span> <span class="s2">"fetch_log.csv"</span>
+    <span class="n">new_log</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">log</span><span class="o">.</span><span class="n">exists</span><span class="p">()</span>
+    <span class="n">written</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">with</span> <span class="p">(</span>
+        <span class="nb">open</span><span class="p">(</span><span class="n">directory</span> <span class="o">/</span> <span class="n">INDEX</span><span class="p">,</span> <span class="s2">"a"</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s2">""</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span> <span class="k">as</span> <span class="n">fi</span><span class="p">,</span>
+        <span class="nb">open</span><span class="p">(</span><span class="n">log</span><span class="p">,</span> <span class="s2">"a"</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s2">""</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span> <span class="k">as</span> <span class="n">fl</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="n">iw</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">DictWriter</span><span class="p">(</span><span class="n">fi</span><span class="p">,</span> <span class="n">INDEX_FIELDS</span><span class="p">)</span>
+        <span class="n">lw</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span><span class="n">fl</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">fi</span><span class="o">.</span><span class="n">tell</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">iw</span><span class="o">.</span><span class="n">writeheader</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">new_log</span><span class="p">:</span>
+            <span class="n">lw</span><span class="o">.</span><span class="n">writerow</span><span class="p">((</span><span class="s2">"date"</span><span class="p">,</span> <span class="s2">"url"</span><span class="p">,</span> <span class="s2">"file"</span><span class="p">,</span> <span class="s2">"sha256"</span><span class="p">,</span> <span class="s2">"purpose"</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">smiles</span><span class="p">,</span> <span class="n">charge</span><span class="p">,</span> <span class="n">multiplicity</span> <span class="ow">in</span> <span class="n">species</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">charge</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">multiplicity</span><span class="p">))</span> <span class="ow">in</span> <span class="n">index</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">inchi</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolToInchi</span><span class="p">(</span><span class="n">mol_from_smiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">))</span>
+            <span class="n">tries</span> <span class="o">=</span> <span class="p">[</span><span class="n">inchi</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">non_stereo_inchi</span><span class="p">(</span><span class="n">inchi</span><span class="p">)</span> <span class="o">!=</span> <span class="n">inchi</span><span class="p">:</span>
+                <span class="n">tries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">non_stereo_inchi</span><span class="p">(</span><span class="n">inchi</span><span class="p">))</span>
+            <span class="n">row</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">for</span> <span class="n">attempt</span> <span class="ow">in</span> <span class="n">tries</span><span class="p">:</span>
+                <span class="n">url</span> <span class="o">=</span> <span class="n">page_url</span><span class="p">(</span><span class="n">attempt</span><span class="p">)</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha1</span><span class="p">(</span><span class="n">attempt</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()[:</span><span class="mi">12</span><span class="p">]</span> <span class="o">+</span> <span class="s2">".html"</span>
+                <span class="n">path</span> <span class="o">=</span> <span class="n">directory</span> <span class="o">/</span> <span class="n">name</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                    <span class="n">request</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span>
+                        <span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">"User-Agent"</span><span class="p">:</span> <span class="n">user_agent</span><span class="p">}</span>
+                    <span class="p">)</span>
+                    <span class="k">with</span> <span class="n">opener</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">60</span><span class="p">)</span> <span class="k">as</span> <span class="n">response</span><span class="p">:</span>
+                        <span class="n">path</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+                    <span class="n">lw</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span>
+                        <span class="p">(</span>
+                            <span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(),</span>
+                            <span class="n">url</span><span class="p">,</span>
+                            <span class="n">name</span><span class="p">,</span>
+                            <span class="n">_sha256</span><span class="p">(</span><span class="n">path</span><span class="p">),</span>
+                            <span class="sa">f</span><span class="s2">"WebBook gas thermochemistry </span><span class="si">{</span><span class="n">smiles</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span>
+                    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">delay</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">parse_page</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">errors</span><span class="o">=</span><span class="s2">"ignore"</span><span class="p">))[</span><span class="s2">"found"</span><span class="p">]:</span>
+                    <span class="n">row</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="s2">"file"</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
+                        <span class="s2">"smiles"</span><span class="p">:</span> <span class="n">smiles</span><span class="p">,</span>
+                        <span class="s2">"charge"</span><span class="p">:</span> <span class="n">charge</span><span class="p">,</span>
+                        <span class="s2">"multiplicity"</span><span class="p">:</span> <span class="n">multiplicity</span><span class="p">,</span>
+                        <span class="s2">"inchi"</span><span class="p">:</span> <span class="n">inchi</span><span class="p">,</span>
+                        <span class="s2">"inchi_retry"</span><span class="p">:</span> <span class="n">attempt</span> <span class="k">if</span> <span class="n">attempt</span> <span class="o">!=</span> <span class="n">inchi</span> <span class="k">else</span> <span class="s2">""</span><span class="p">,</span>
+                    <span class="p">}</span>
+                    <span class="k">break</span>
+            <span class="k">if</span> <span class="n">row</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">row</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s2">"file"</span><span class="p">:</span> <span class="s2">""</span><span class="p">,</span>
+                    <span class="s2">"smiles"</span><span class="p">:</span> <span class="n">smiles</span><span class="p">,</span>
+                    <span class="s2">"charge"</span><span class="p">:</span> <span class="n">charge</span><span class="p">,</span>
+                    <span class="s2">"multiplicity"</span><span class="p">:</span> <span class="n">multiplicity</span><span class="p">,</span>
+                    <span class="s2">"inchi"</span><span class="p">:</span> <span class="n">inchi</span><span class="p">,</span>
+                    <span class="s2">"inchi_retry"</span><span class="p">:</span> <span class="s2">""</span><span class="p">,</span>
+                <span class="p">}</span>
+            <span class="n">iw</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+            <span class="n">written</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">written</span></div>
+
+
+
+<div class="viewcode-block" id="import_webbook">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.webbook.import_webbook">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">import_webbook</span><span class="p">(</span><span class="n">library</span><span class="p">,</span> <span class="n">directory</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Read the cached WebBook pages listed in a cache's index into `library`.</span>
+
+<span class="sd">    Returns a list of (smiles, outcome, detail): outcome is "added" (with</span>
+<span class="sd">    the number of values), "no page", "no gas-phase value" or "refused".</span>
+<span class="sd">    """</span>
+    <span class="n">directory</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
+    <span class="n">library</span><span class="o">.</span><span class="n">add_source</span><span class="p">(</span><span class="n">SOURCE</span><span class="p">,</span> <span class="s2">"measured"</span><span class="p">,</span> <span class="n">SOURCE_RANK</span><span class="p">,</span> <span class="n">citation</span><span class="o">=</span><span class="n">SOURCE_CITATION</span><span class="p">)</span>
+    <span class="n">report</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">read_index</span><span class="p">(</span><span class="n">directory</span><span class="p">):</span>
+        <span class="n">smiles</span> <span class="o">=</span> <span class="n">entry</span><span class="p">[</span><span class="s2">"smiles"</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"file"</span><span class="p">):</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">smiles</span><span class="p">,</span> <span class="s2">"no page"</span><span class="p">,</span> <span class="s2">""</span><span class="p">))</span>
+            <span class="k">continue</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="n">directory</span> <span class="o">/</span> <span class="n">entry</span><span class="p">[</span><span class="s2">"file"</span><span class="p">]</span>
+        <span class="n">page</span> <span class="o">=</span> <span class="n">parse_page</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">errors</span><span class="o">=</span><span class="s2">"ignore"</span><span class="p">))</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">page</span><span class="p">[</span><span class="s2">"rows"</span><span class="p">]</span> <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s2">"value"</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">r</span><span class="p">[</span><span class="s2">"units"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"kJ/mol"</span>
+        <span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">page</span><span class="p">[</span><span class="s2">"found"</span><span class="p">]</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">rows</span><span class="p">:</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">smiles</span><span class="p">,</span> <span class="s2">"no gas-phase value"</span><span class="p">,</span> <span class="n">page</span><span class="p">[</span><span class="s2">"title"</span><span class="p">]))</span>
+            <span class="k">continue</span>
+        <span class="n">retry</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"inchi_retry"</span><span class="p">)</span> <span class="ow">or</span> <span class="kc">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">species</span> <span class="o">=</span> <span class="n">library</span><span class="o">.</span><span class="n">add_species</span><span class="p">(</span>
+                <span class="n">smiles</span><span class="p">,</span>
+                <span class="nb">int</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"charge"</span><span class="p">)</span> <span class="ow">or</span> <span class="mi">0</span><span class="p">),</span>
+                <span class="nb">int</span><span class="p">(</span><span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"multiplicity"</span><span class="p">)</span> <span class="ow">or</span> <span class="mi">1</span><span class="p">),</span>
+                <span class="n">formula</span><span class="o">=</span><span class="n">page</span><span class="p">[</span><span class="s2">"formula"</span><span class="p">]</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">page</span><span class="p">[</span><span class="s2">"title"</span><span class="p">],</span>
+                <span class="n">cas</span><span class="o">=</span><span class="n">page</span><span class="p">[</span><span class="s2">"cas"</span><span class="p">],</span>
+                <span class="n">inchi</span><span class="o">=</span><span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"inchi"</span><span class="p">)</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="n">inchi_retry</span><span class="o">=</span><span class="n">retry</span><span class="p">,</span>
+                <span class="n">notes</span><span class="o">=</span><span class="p">(</span>
+                    <span class="s2">"found on the non-stereo InChI; the stereoisomer is not verified"</span>
+                    <span class="k">if</span> <span class="n">retry</span>
+                    <span class="k">else</span> <span class="kc">None</span>
+                <span class="p">),</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ReferenceError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">smiles</span><span class="p">,</span> <span class="s2">"refused"</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)))</span>
+            <span class="k">continue</span>
+        <span class="n">retrieved</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">page_url</span><span class="p">(</span><span class="n">retry</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'inchi'</span><span class="p">)</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">''</span><span class="p">)</span><span class="si">}</span><span class="s2"> sha256 </span><span class="si">{</span><span class="n">_sha256</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s2">"class"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"cal"</span><span class="p">:</span>
+                <span class="n">status</span> <span class="o">=</span> <span class="s2">"held"</span>
+                <span class="n">note</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="s2">"an evaluation shown by the WebBook: taken from the "</span>
+                    <span class="s2">"evaluation's own source instead"</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">status</span> <span class="o">=</span> <span class="s2">"review"</span> <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s2">"method"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"Review"</span> <span class="k">else</span> <span class="s2">"measured"</span>
+                <span class="n">note</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="s2">"derived from another value on the page"</span>
+                    <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s2">"method"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"N/A"</span>
+                    <span class="k">else</span> <span class="kc">None</span>
+                <span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">library</span><span class="o">.</span><span class="n">add_measurement</span><span class="p">(</span>
+                    <span class="n">species</span><span class="p">,</span>
+                    <span class="n">SOURCE</span><span class="p">,</span>
+                    <span class="n">citation</span><span class="o">=</span><span class="n">r</span><span class="p">[</span><span class="s2">"citation"</span><span class="p">],</span>
+                    <span class="n">dfh_298k</span><span class="o">=</span><span class="n">r</span><span class="p">[</span><span class="s2">"value"</span><span class="p">],</span>
+                    <span class="n">uncertainty</span><span class="o">=</span><span class="n">r</span><span class="p">[</span><span class="s2">"uncertainty"</span><span class="p">],</span>
+                    <span class="n">unc_level</span><span class="o">=</span><span class="s2">"unstated"</span><span class="p">,</span>
+                    <span class="n">status</span><span class="o">=</span><span class="n">status</span><span class="p">,</span>
+                    <span class="n">year</span><span class="o">=</span><span class="n">r</span><span class="p">[</span><span class="s2">"year"</span><span class="p">],</span>
+                    <span class="n">source_ref</span><span class="o">=</span><span class="n">page</span><span class="p">[</span><span class="s2">"title"</span><span class="p">],</span>
+                    <span class="n">method</span><span class="o">=</span><span class="n">r</span><span class="p">[</span><span class="s2">"method"</span><span class="p">],</span>
+                    <span class="n">comment</span><span class="o">=</span><span class="n">r</span><span class="p">[</span><span class="s2">"comment"</span><span class="p">]</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
+                    <span class="n">retrieved</span><span class="o">=</span><span class="n">retrieved</span><span class="p">,</span>
+                    <span class="n">notes</span><span class="o">=</span><span class="n">note</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ReferenceError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">smiles</span><span class="p">,</span> <span class="s2">"refused"</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)))</span>
+                <span class="k">break</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">library</span><span class="o">.</span><span class="n">choose</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">SOURCE</span><span class="p">)</span>
+            <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">smiles</span><span class="p">,</span> <span class="s2">"added"</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">))))</span>
+    <span class="n">library</span><span class="o">.</span><span class="n">apply_overrides</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">report</span></div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.24.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

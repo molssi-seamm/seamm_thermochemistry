@@ -28,6 +28,14 @@ seamm\_thermochemistry.cbh module
    :show-inheritance:
    :undoc-members:
 
+seamm\_thermochemistry.curated module
+-------------------------------------
+
+.. automodule:: seamm_thermochemistry.curated
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 seamm\_thermochemistry.db module
 --------------------------------
 
@@ -132,10 +140,34 @@ seamm\_thermochemistry.layered\_store module
    :show-inheritance:
    :undoc-members:
 
+seamm\_thermochemistry.references module
+----------------------------------------
+
+.. automodule:: seamm_thermochemistry.references
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+seamm\_thermochemistry.references\_cli module
+---------------------------------------------
+
+.. automodule:: seamm_thermochemistry.references_cli
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 seamm\_thermochemistry.report module
 ------------------------------------
 
 .. automodule:: seamm_thermochemistry.report
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+seamm\_thermochemistry.resolver module
+--------------------------------------
+
+.. automodule:: seamm_thermochemistry.resolver
    :members:
    :show-inheritance:
    :undoc-members:
@@ -152,6 +184,14 @@ seamm\_thermochemistry.store\_tools module
 ------------------------------------------
 
 .. automodule:: seamm_thermochemistry.store_tools
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+seamm\_thermochemistry.webbook module
+-------------------------------------
+
+.. automodule:: seamm_thermochemistry.webbook
    :members:
    :show-inheritance:
    :undoc-members:

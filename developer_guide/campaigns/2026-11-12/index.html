@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>2026-11-12 – The supplementary reference library (R1) &#8212; SEAMM thermochemistry Plug-in 2026.11.12.1 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/sphinx-design.min.css?v=6a604523" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/css/custom.css" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../../_static/scripts/fontawesome.js?digest=75c7c72ae941e8b558d8"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
+
+    <script src="../../../_static/documentation_options.js?v=900c25b8"></script>
+    <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    <script data-sd-tabs-storage-prefix="sphinx-design-tab-id-" src="../../../_static/design-tabs.js?v=fcb327ea"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'developer_guide/campaigns/2026-11-12/index';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link rel="prev" title="2026-11-10 – Fragment store P5: write-back, in-job reuse, two layers, ATcT download" href="../2026-11-10/index.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="2026.11.12.1" />
+  
+    
+    <script src="../../../_static/searchtools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script src="../../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation" aria-expanded="false" aria-controls="pst-primary-sidebar-modal">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../_static/SEAMM logo.png" class="logo__image only-light" alt=""/>
+    <img src="../../../_static/SEAMM Inverted 288x181.png" class="logo__image only-dark pst-js-only" alt=""/>
+  
+  
+    <p class="title logo__title">SEAMM-THERMOCHEMISTRY</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../api.html">
+    API Documentation
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../../index.html">
+    Developer Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-external" href="https://molssi-seamm.github.io">
+    SEAMM Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-external" href="https://molssi.org">
+    MolSSI
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/molssi-seamm/seamm_thermochemistry" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/MolSSI_NSF" title="Twitter" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-twitter fa-lg" aria-hidden="true"></i><span class="visually-hidden">Twitter</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+    <button type="button" class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page" aria-expanded="false" aria-controls="pst-secondary-sidebar-modal">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal" tabindex="-1"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../../api.html">
+    API Documentation
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="../../index.html">
+    Developer Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-external" href="https://molssi-seamm.github.io">
+    SEAMM Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-external" href="https://molssi.org">
+    MolSSI
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/molssi-seamm/seamm_thermochemistry" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/MolSSI_NSF" title="Twitter" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-twitter fa-lg" aria-hidden="true"></i><span class="visually-hidden">Twitter</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item pst-sidebar-collapse"><button type="button" id="pst-collapse-sidebar-button" aria-expanded="true" aria-controls="pst-primary-sidebar">
+  <svg class="pst-icon" role="img" aria-hidden="true" focusable="false" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path fill="currentColor" d="M3 15.5C2.36232 15.5 1.74874 15.2564 1.28478 14.8189C0.820828 14.3815 0.541576 13.7832 0.504167 13.1467L0.5 13L0.5 3C0.499965 2.36232 0.743605 1.74874 1.18107 1.28478C1.61854 0.820828 2.21676 0.541576 2.85333 0.504167L3 0.5L13 0.5C13.6377 0.499965 14.2513 0.743605 14.7152 1.18107C15.1792 1.61854 15.4584 2.21676 15.4958 2.85333L15.5 3L15.5 13C15.5 13.6377 15.2564 14.2513 14.8189 14.7152C14.3815 15.1792 13.7832 15.4584 13.1467 15.4958L13 15.5L3 15.5ZM3 13.8333L10.5 13.8333L10.5 2.16667L3 2.16667C2.79589 2.16669 2.59889 2.24163 2.44636 2.37726C2.29383 2.5129 2.19638 2.69979 2.1725 2.9025L2.16667 3L2.16667 13C2.16669 13.2041 2.24163 13.4011 2.37726 13.5536C2.5129 13.7062 2.69979 13.8036 2.9025 13.8275L3 13.8333ZM6.65583 10.325L6.5775 10.2558L4.91083 8.58917C4.76735 8.44567 4.68116 8.25476 4.66843 8.05223C4.65569 7.84971 4.71729 7.6495 4.84167 7.48917L4.91083 7.41083L6.5775 5.74417C6.72747 5.59471 6.9287 5.50794 7.14032 5.50148C7.35194 5.49502 7.55809 5.56935 7.7169 5.70937C7.8757 5.8494 7.97525 6.04463 7.99533 6.25539C8.01541 6.46616 7.95451 6.67667 7.825 6.84417L7.75583 6.9225L6.67917 8L7.75583 9.0775C7.89931 9.22099 7.98551 9.41191 7.99824 9.61443C8.01097 9.81695 7.94938 10.0172 7.825 10.1775L7.75583 10.2558C7.61234 10.3993 7.42142 10.4855 7.2189 10.4982C7.01638 10.511 6.81617 10.4494 6.65583 10.325Z"/>
+  </svg>
+  <span class="pst-collapse-sidebar-label">Collapse Sidebar</span>
+  <span class="pst-expand-sidebar-label">Expand Sidebar</span>
+</button></div>
+        <div class="sidebar-primary-item">
+
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"><ul class="current nav bd-sidenav">
+<li class="toctree-l1 current active has-children"><a class="reference internal" href="../index.html">Campaigns</a><details open="open"><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../2026-11-10/index.html">2026-11-10 – Fragment store P5: write-back, in-job reuse, two layers, ATcT download</a></li>
+<li class="toctree-l2 current active"><a aria-current="page" class="current reference internal" href="#">2026-11-12 – The supplementary reference library (R1)</a></li>
+</ul>
+</details></li>
+</ul>
+</div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-house"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Developer Documentation</a></li>
+    
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Campaigns</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">2026-11-12 – The supplementary reference library (R1)</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="the-supplementary-reference-library-r1">
+<h1>2026-11-12 – The supplementary reference library (R1)<a class="headerlink" href="#the-supplementary-reference-library-r1" title="Link to this heading">#</a></h1>
+<p>Status: <strong>R1 and R2 released 2026-11-12</strong> (seamm-thermochemistry 2026.11.12.1,
+thermochemistry-step 2026.11.12.2): the library file, the curated-CSV reader, the
+NIST WebBook importer and the resolver. Paul ruled on 2026-11-12 that the
+WebBook, JANAF and NBS-82 values may be used and shipped, each citing its
+original source and crediting the compilation. Publishing the library file (R3)
+follows.</p>
+<p>Background:</p>
+<ul class="simple">
+<li><p>the CBH reference-library design of 2026-10-29 (§2 resolution order, §3 the
+library, §6 user references, §8 licensing), and its addendum of 2026-11-11;</p></li>
+<li><p>the reference-data pilot of 2026-11-12, Paul’s decision 8. Thermo curated the
+references ATcT lacks for the PPE1694 set: 62 species and 70 of its 123 targets
+can be closed from existing data.</p></li>
+</ul>
+<p>The library holds enthalpies of formation that ATcT lacks, with every value a
+source gives, the one chosen and why.</p>
+<section id="the-files">
+<h2>The files<a class="headerlink" href="#the-files" title="Link to this heading">#</a></h2>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">references-official.db</span></code></dt><dd><p>Published on Zenodo, installed beside the ATcT cache and the fragment stores
+(<code class="docutils literal notranslate"><span class="pre">&lt;...&gt;/Parameters/thermochemistry/</span></code>), and never written locally.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">references.db</span></code></dt><dd><p>The local layer: user references and computed ones not yet published.</p>
+</dd>
+</dl>
+<p><a class="reference internal" href="../../../api/seamm_thermochemistry.html#seamm_thermochemistry.references.LayeredReferences" title="seamm_thermochemistry.references.LayeredReferences"><code class="xref py py-class docutils literal notranslate"><span class="pre">LayeredReferences</span></code></a> reads both. Within a
+rank the local layer comes first. Each file carries a schema version, and a file
+from newer code is never written, as for the fragment store.</p>
+<p>The tables:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">source</span></code></dt><dd><p>Name, kind, rank (the resolution order), citation, licence and when it was
+checked, and the offset against ATcT (rms, number of shared species, ATcT
+version).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">species</span></code></dt><dd><p>Canonical SMILES (the CBH key), charge, multiplicity, Hill formula, CAS,
+InChI, and the non-stereo InChI when that was needed to find the species.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">measurement</span></code></dt><dd><p>Every value a source gives, chosen or not:</p>
+<ul class="simple">
+<li><p>ΔfH at 298.15 K and/or 0 K;</p></li>
+<li><p>the uncertainty <strong>as stated</strong>, with its level;</p></li>
+<li><p>status (measured, review, estimate, derived, held, computed, user);</p></li>
+<li><p>year, H298 − H0, standard state, ion convention;</p></li>
+<li><p>the original citation, method, comment, and where it was retrieved.</p></li>
+</ul>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">reference</span></code></dt><dd><p>The value chosen per species and source, with the rule that chose it, the
+spread, a flag, the value it overrides and why, and any human accept (who, when,
+why).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">derivation</span></code></dt><dd><p>For a derived value: the reaction, its partners and their sources, and ΔrH.</p>
+</dd>
+</dl>
+</section>
+<section id="the-rules">
+<h2>The rules<a class="headerlink" href="#the-rules" title="Link to this heading">#</a></h2>
+<ul>
+<li><p><strong>Burcat is never a source.</strong> A source named Burcat, or a value citing it, is
+refused.</p></li>
+<li><p><strong>No P species from the online JANAF tables.</strong> Their PH3 and PH2 sit ~17.5 kJ/mol
+off the printed edition: early JANAF used red P. P species come from the printed
+edition.</p></li>
+<li><p><strong>Estimates are never chosen automatically.</strong> They are stored, and used only after
+an accept, which records who, when and why.</p></li>
+<li><p><strong>The replacement rule.</strong> A later source replaces an earlier one only when its
+95 % uncertainty is below a third of the earlier one’s <strong>and</strong> the two agree within
+the earlier one’s uncertainty. Both values are kept, with the reason. In the
+pilot, D0 replaces JANAF for NaH and KH.</p></li>
+<li><p><strong>Derived values are checked.</strong> Each derived value has its derivation, and
+<code class="docutils literal notranslate"><span class="pre">check</span></code> recomputes it from its partners’ current values. JANAF’s tabulated PCl5
+(−360.18) fails; the derived −376.08 passes.</p></li>
+<li><p><strong>Ions are stored in ATcT’s stationary-electron convention.</strong> A value in the
+thermal-electron convention is converted on entry, by −6.197 kJ/mol per unit of
+charge at 298.15 K (JANAF H⁺ 1536.25 → 1530.05, as ATcT). An ion without its
+convention is refused.</p></li>
+<li><p><strong>Choosing among one source’s measurements</strong> (thermo’s rule):</p>
+<ol class="arabic simple">
+<li><p>a review value;</p></li>
+<li><p>else the most recent with a stated uncertainty, ties going to the smaller;</p></li>
+<li><p>else the most recent.</p></li>
+</ol>
+<p>Values derived from another on the page (WebBook “N/A”) come last, and
+evaluations the WebBook shows (“cal” rows) are held.</p>
+</li>
+<li><p><strong>Spreads</strong> (science’s Q3):</p>
+<ul class="simple">
+<li><p>flagged when another measurement differs from the chosen one by more than
+their combined uncertainties;</p></li>
+<li><p><strong>held</strong> (not chosen) when that exceeds three times the combined uncertainties
+and there is no review value, until a human accepts one.</p></li>
+</ul>
+</li>
+<li><p><strong>0 K-only values</strong> (W4-17) are used only when no source gives a value at
+298.15 K.</p></li>
+</ul>
+<p><strong>The sources, in rank order</strong> (science, 2026-11-12): printed JANAF, derived
+values, CODATA, the NBS tables of 1982 (NBS-82), D0, W4-17, the WebBook. NBS-82
+(Wagman et al., JPCRD 11, Suppl. 2) was added the same day for six Ge, As and Se
+species. It states no uncertainty, so its values get the 4 kJ/mol floor, and its
+H298 − H0 is kept with each value.</p>
+<p>Uncertainties (science’s Q2):</p>
+<ul class="simple">
+<li><p>95 % and 2σ values as stated; 1σ and unstated levels doubled;</p></li>
+<li><p>a measured value with no uncertainty gets 4 kJ/mol;</p></li>
+<li><p>W4-17 combines the atoms (2σ) with twice its 1 kJ/mol method error.</p></li>
+</ul>
+<p>The source’s offset, the rms of (source − ATcT) over at least 5 shared species, is
+added in quadrature and kept in its own column.</p>
+</section>
+<section id="the-command-line">
+<h2>The command line<a class="headerlink" href="#the-command-line" title="Link to this heading">#</a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">seamm</span><span class="o">-</span><span class="n">thermochemistry</span><span class="o">-</span><span class="n">references</span> <span class="n">sources</span> <span class="o">|</span> <span class="nb">list</span> <span class="o">|</span> <span class="n">check</span> <span class="p">[</span><span class="o">--</span><span class="n">library</span> <span class="n">FILE</span><span class="p">]</span>
+<span class="n">seamm</span><span class="o">-</span><span class="n">thermochemistry</span><span class="o">-</span><span class="n">references</span> <span class="n">show</span> <span class="n">SMILES</span> <span class="p">[</span><span class="o">--</span><span class="n">local</span> <span class="n">FILE</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">official</span> <span class="n">FILE</span><span class="p">]</span>
+<span class="n">seamm</span><span class="o">-</span><span class="n">thermochemistry</span><span class="o">-</span><span class="n">references</span> <span class="n">accept</span> <span class="n">MEASUREMENT</span> <span class="o">--</span><span class="n">by</span> <span class="n">WHO</span> <span class="o">--</span><span class="n">reason</span> <span class="n">TEXT</span>
+<span class="n">seamm</span><span class="o">-</span><span class="n">thermochemistry</span><span class="o">-</span><span class="n">references</span> <span class="n">add</span><span class="o">-</span><span class="n">curated</span> <span class="n">DIR</span> <span class="o">--</span><span class="n">library</span> <span class="n">FILE</span>
+<span class="n">seamm</span><span class="o">-</span><span class="n">thermochemistry</span><span class="o">-</span><span class="n">references</span> <span class="n">webbook</span> <span class="n">fetch</span> <span class="n">SPECIES</span><span class="o">.</span><span class="n">csv</span> <span class="o">--</span><span class="n">cache</span> <span class="n">DIR</span>
+<span class="n">seamm</span><span class="o">-</span><span class="n">thermochemistry</span><span class="o">-</span><span class="n">references</span> <span class="n">webbook</span> <span class="kn">import</span><span class="w"> </span><span class="o">--</span><span class="n">cache</span> <span class="n">DIR</span> <span class="o">--</span><span class="n">library</span> <span class="n">FILE</span>
+<span class="n">seamm</span><span class="o">-</span><span class="n">thermochemistry</span><span class="o">-</span><span class="n">references</span> <span class="n">offsets</span> <span class="o">--</span><span class="n">library</span> <span class="n">FILE</span> <span class="p">[</span><span class="o">--</span><span class="n">atct</span><span class="o">-</span><span class="n">version</span> <span class="n">V</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>The importers (<code class="docutils literal notranslate"><span class="pre">add-curated</span></code>, <code class="docutils literal notranslate"><span class="pre">webbook</span></code>, <code class="docutils literal notranslate"><span class="pre">offsets</span></code>) are maintainer tools that
+build a library file for publication. Users only install the published file, and
+never contact NIST.</p>
+<p><code class="docutils literal notranslate"><span class="pre">webbook</span> <span class="pre">fetch</span></code> looks species up by InChI and saves the pages, 3 s apart, logging
+each request. A stereo InChI the WebBook does not find is retried without its stereo
+layers; the retry is recorded and noted as “stereoisomer not verified”.
+<code class="docutils literal notranslate"><span class="pre">webbook</span> <span class="pre">import</span></code> then reads the saved pages offline.</p>
+</section>
+<section id="acceptance-r1d">
+<h2>Acceptance (R1d)<a class="headerlink" href="#acceptance-r1d" title="Link to this heading">#</a></h2>
+<p>A library was built from thermo’s curated CSVs and the pilot’s cached WebBook pages
+and compared with the pilot’s choices. The result is 58 species and 65 targets.</p>
+<p>Four species are held under the spread rule: imidazole, isoxazole, and 3- and
+5-methylisoxazole. Their measurements differ by 3.2–6.2 times their combined
+uncertainties, and none has a review value. Accepting the pilot’s choice for them
+gives exactly the pilot’s <strong>62 species and 70 targets</strong>, with identical values.</p>
+<p>Science’s decision (2026-11-12): the two methylisoxazoles are accepted (their
+conflict is only with Tappi 1940). Isoxazole stays held: Steele et al. 1996, 82.0 ±
+0.6, against McCormick &amp; Hamilton 1978, 78.58 ± 0.54, both modern. Imidazole stays
+held and goes on the tier-A compute list. The decisions (accepts and holds, with the reasons) are kept in a CSV and
+reapplied with <code class="docutils literal notranslate"><span class="pre">accept-file</span></code> whenever the library is rebuilt. Result: <strong>60 species
+and 65 targets</strong>. Isoxazole blocks 4 targets and imidazole 1.</p>
+<p>Later the same day thermo added NBS-82 (six Ge, As and Se species) and science held
+POF3, whose JANAF (−1254.25) and NBS-82 (−1211.3) values disagree by 43 kJ/mol,
+pending a computed arbitration. A hold may name several sources (“JANAF-1998 /
+NBS-82”); a source with no value, or whose file already holds it, is passed over.
+Result: <strong>65 species and 70 targets</strong>, as thermo’s own count.</p>
+<p>The one other difference is HCO⁺: 826.80 kJ/mol against the pilot’s 833.0. That is
+the conversion of JANAF’s thermal-electron value to ATcT’s convention, as intended.</p>
+<p>The tests contain no WebBook data. They use a synthetic page with the WebBook’s
+markup and made-up values.</p>
+</section>
+<section id="offsets-against-atct">
+<h2>Offsets against ATcT<a class="headerlink" href="#offsets-against-atct" title="Link to this heading">#</a></h2>
+<p>The pilot’s species are, by construction, ones ATcT lacks, so the library itself
+shares almost nothing with ATcT. Thermo therefore supplied a <strong>calibration set</strong>
+(<code class="docutils literal notranslate"><span class="pre">add_calibration</span></code>; <code class="docutils literal notranslate"><span class="pre">offsets</span> <span class="pre">--calibration</span></code>). It holds the values each source
+gives for species ATcT 1.228 has, and these are used only to measure the source,
+never as references.</p>
+<p>Offsets with ATcT 1.228:</p>
+<ul class="simple">
+<li><p>JANAF (printed): n = 10, rms 0.38 kJ/mol;</p></li>
+<li><p>WebBook: n = 9, rms 1.16 kJ/mol. The largest difference is methyl acetate,
++2.98, from a value with no stated uncertainty;</p></li>
+<li><p>CODATA: n = 8 atoms from the library itself, rms 0.69 kJ/mol. B and Si are
+excluded, as a recorded exclusion (“CODATA key value known superseded: B, Si”;
+<code class="docutils literal notranslate"><span class="pre">offsets</span> <span class="pre">--exclude</span></code>), since ATcT has revised both. Over all 10 atoms it is
+2.39, which is kept beside it;</p></li>
+<li><p>NBS-82: n = 10, rms 2.81 kJ/mol (mean +1.02), over the same species as the
+JANAF set. CF4 (+8.6) is a noted outlier, not an exclusion (science): NBS-82
+states no uncertainties and is the oldest evaluation used, and its obscure
+inorganics are where an unrevised value like CF4’s would hide. With the
+4 kJ/mol floor its values carry 4.89 kJ/mol (GeH4 90.80 ± 4.89);</p></li>
+<li><p>D0, W4-17 and the derived values: under 5 shared species, so no offset.</p></li>
+</ul>
+<p>Each offset is added in quadrature to the source’s 95 % uncertainties, and is kept
+in its own column so it can be shown and changed.</p>
+<p>A value derived from others inherits its partners’ offsets through the
+derivation, sqrt(Σ (ν_i offset_i)²) (science, 2026-11-12). PCl5, derived from
+JANAF’s PCl3 and JANAF’s ΔrH, inherits JANAF’s 0.38. A D0 value with its atoms
+recorded as partners inherits CODATA’s offset for the metal atom only. Partners
+resolve as the step would: the H atom comes from ATcT and adds nothing. NaH:
+138.59 ± 1.55 (95 %, with 0.69 inherited); KH: 132.54 ± 1.06.</p>
+<p><strong>Caveat (science):</strong> the calibration species are well studied, so an offset is a
+<em>lower bound</em> for the obscure species the library actually serves. It does not
+measure their reliability; the stated uncertainties and the spread rule do that.</p>
+</section>
+<section id="the-resolver-r2a">
+<h2>The resolver (R2a)<a class="headerlink" href="#the-resolver-r2a" title="Link to this heading">#</a></h2>
+<p><a class="reference internal" href="../../../api/seamm_thermochemistry.html#seamm_thermochemistry.resolver.ReferenceResolver" title="seamm_thermochemistry.resolver.ReferenceResolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">ReferenceResolver</span></code></a> resolves a target’s
+reference species.</p>
+<p><strong>The order.</strong> ATcT comes first. Then the user’s own references, if enabled.
+Then the library’s sources by rank, and computed references, if enabled.
+“Supplementary references = none” reproduces today’s ATcT-only behaviour and
+reads no library.</p>
+<p><strong>One source per element.</strong> For each element ATcT lacks, i.e. whose gas-phase atom
+is not in ATcT:</p>
+<ul class="simple">
+<li><p>the references containing it are taken from the first source, by rank, that
+has all of them;</p></li>
+<li><p>a replacement (override) inside that source still applies to a single
+species. The element then has two sources: the result is labelled “mixed:
+several sources” with the sources named, and a one-line note says so;</p></li>
+<li><p>when no single source has them all, each reference takes its own best value,
+under the same label.</p></li>
+</ul>
+<p><strong>The values</strong> come back in the layout of an ATcT entry:</p>
+<ul class="simple">
+<li><p>the uncertainty is the 95 % value with the offset added;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">atct_coefficients</span></code> is empty, since these values have no covariance with
+ATcT, so they are combined in quadrature;</p></li>
+<li><p>the entry carries its source, layer, citation, rule, flag, and any override or
+decision.</p></li>
+</ul>
+<p><strong>0 K values.</strong> A reference given only at 298.15 K is converted to 0 K with
+<a class="reference internal" href="../../../api/seamm_thermochemistry.html#seamm_thermochemistry.resolver.dfh_0k_from_298k" title="seamm_thermochemistry.resolver.dfh_0k_from_298k"><code class="xref py py-func docutils literal notranslate"><span class="pre">dfh_0k_from_298k()</span></code></a>, using the species’ own
+H298 − H0 (the step computes it) and CODATA’s values for the elements.</p>
+<p><strong>The result labels:</strong> ATcT-only, mixed, mixed: several sources, computed
+references, user references.</p>
+</section>
+<section id="next">
+<h2>Next<a class="headerlink" href="#next" title="Link to this heading">#</a></h2>
+<ul class="simple">
+<li><p><strong>R2b</strong> is in thermochemistry-step 2026.11.12.2. It covers:</p>
+<ul>
+<li><p>the two parameters;</p></li>
+<li><p>the species table’s source column;</p></li>
+<li><p>the result label and the <code class="docutils literal notranslate"><span class="pre">references</span></code> property;</p></li>
+<li><p>the non-ATcT uncertainty in quadrature;</p></li>
+<li><p>the 0 K conversion;</p></li>
+<li><p>the missing-reference message.</p></li>
+</ul>
+</li>
+<li><p><strong>R3:</strong> publishing <code class="docutils literal notranslate"><span class="pre">references-official.db</span></code> on Zenodo and installing it. In
+the meantime, an interim file built by the released package is installed under
+that name on the clusters.</p></li>
+</ul>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="../2026-11-10/index.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">2026-11-10 – Fragment store P5: write-back, in-job reuse, two layers, ATcT download</p>
+      </div>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal" tabindex="-1"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-files">The files</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-rules">The rules</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-command-line">The command line</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#acceptance-r1d">Acceptance (R1d)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#offsets-against-atct">Offsets against ATcT</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#the-resolver-r2a">The resolver (R2a)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#next">Next</a></li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+
+  <div class="tocsection sourcelink">
+    <a href="../../../_sources/developer_guide/campaigns/2026-11-12/index.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8"></script>
+<script defer src="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.24.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

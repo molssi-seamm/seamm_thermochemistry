@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>seamm_thermochemistry.resolver &#8212; SEAMM thermochemistry Plug-in 2026.11.12.1 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=6a604523" />
+    <link rel="stylesheet" type="text/css" href="../../_static/css/custom.css" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../_static/scripts/fontawesome.js?digest=75c7c72ae941e8b558d8"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
+
+    <script src="../../_static/documentation_options.js?v=900c25b8"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script data-sd-tabs-storage-prefix="sphinx-design-tab-id-" src="../../_static/design-tabs.js?v=fcb327ea"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/seamm_thermochemistry/resolver';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="2026.11.12.1" />
+  
+    
+    <script src="../../_static/searchtools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation" aria-expanded="false" aria-controls="pst-primary-sidebar-modal">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/SEAMM logo.png" class="logo__image only-light" alt=""/>
+    <img src="../../_static/SEAMM Inverted 288x181.png" class="logo__image only-dark pst-js-only" alt=""/>
+  
+  
+    <p class="title logo__title">SEAMM-THERMOCHEMISTRY</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api.html">
+    API Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../developer_guide/index.html">
+    Developer Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-external" href="https://molssi-seamm.github.io">
+    SEAMM Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-external" href="https://molssi.org">
+    MolSSI
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/molssi-seamm/seamm_thermochemistry" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/MolSSI_NSF" title="Twitter" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-twitter fa-lg" aria-hidden="true"></i><span class="visually-hidden">Twitter</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal" tabindex="-1"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api.html">
+    API Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../developer_guide/index.html">
+    Developer Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-external" href="https://molssi-seamm.github.io">
+    SEAMM Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-external" href="https://molssi.org">
+    MolSSI
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/molssi-seamm/seamm_thermochemistry" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/MolSSI_NSF" title="Twitter" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-twitter fa-lg" aria-hidden="true"></i><span class="visually-hidden">Twitter</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-house"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">seamm_thermochemistry.resolver</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for seamm_thermochemistry.resolver</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="sd">"""Resolving the reference species of CBH reactions: ATcT first, then the</span>
+<span class="sd">supplementary reference library.</span>
+
+<span class="sd">The order (the reference-library design, §2, and the 2026-11-12 decisions):</span>
+
+<span class="sd">1. ATcT, the version installed. If every reference is in ATcT, nothing else</span>
+<span class="sd">   is used and the result is "ATcT-only".</span>
+<span class="sd">2. The user's own references (the local layer's ``user`` source), when the</span>
+<span class="sd">   job enables them.</span>
+<span class="sd">3. The library's sources by rank: printed JANAF, derived values, CODATA, the</span>
+<span class="sd">   NBS tables of 1982, D0, W4-17 (0 K only, used only without a 298.15 K</span>
+<span class="sd">   value), the WebBook measurements.</span>
+<span class="sd">4. Computed references, when enabled.</span>
+
+<span class="sd">**One source per element.** For each element that ATcT does not have (its</span>
+<span class="sd">gas-phase atom is not in ATcT), the references containing it are taken from</span>
+<span class="sd">the first source, in rank order, that has all of them, so that the source's</span>
+<span class="sd">shared error cancels in the reaction. A later source still replaces that</span>
+<span class="sd">source's value for a species where the replacement rule says so (science,</span>
+<span class="sd">2026-11-12): the element then has several sources, the result is labelled</span>
+<span class="sd">"mixed: several sources" with the sources named, and a one-line note says so.</span>
+<span class="sd">It never blocks. When no single source has them all, each reference takes its</span>
+<span class="sd">own best value, with the same label.</span>
+
+<span class="sd">The values come back in the layout of an ATcT entry (``dfH0_0K``,</span>
+<span class="sd">``dfH0_298K``, ``uncertainty_298K`` at 95 %, ``id``), with</span>
+<span class="sd">``atct_coefficients`` empty (they have no covariance with ATcT) and the</span>
+<span class="sd">library's details (``source``, ``layer``, ``citation``, ...).</span>
+<span class="sd">"""</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.atct</span><span class="w"> </span><span class="kn">import</span> <span class="n">AmbiguousEntry</span><span class="p">,</span> <span class="n">MissingEntry</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.cbh</span><span class="w"> </span><span class="kn">import</span> <span class="n">CBHError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.references</span><span class="w"> </span><span class="kn">import</span> <span class="n">LayeredReferences</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="c1">#: The settings of "Supplementary references"</span>
+<span class="n">SUPPLEMENTARY</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"none"</span><span class="p">,</span> <span class="s2">"compilations"</span><span class="p">,</span> <span class="s2">"compilations and computed"</span><span class="p">)</span>
+
+<span class="c1">#: The result labels, in increasing order of importance</span>
+<span class="n">LABELS</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">"ATcT-only"</span><span class="p">,</span>
+    <span class="s2">"mixed"</span><span class="p">,</span>
+    <span class="s2">"mixed: several sources"</span><span class="p">,</span>
+    <span class="s2">"computed references"</span><span class="p">,</span>
+    <span class="s2">"user references"</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1">#: H298 - H0 of the elements' standard states, kJ/mol per formula unit of the</span>
+<span class="c1">#: standard state, from CODATA Key Values (Cox, Wagman &amp; Medvedev 1989)</span>
+<span class="n">CODATA_H298_H0</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"H"</span><span class="p">:</span> <span class="p">(</span><span class="mf">8.468</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>  <span class="c1"># H2(g)</span>
+    <span class="s2">"C"</span><span class="p">:</span> <span class="p">(</span><span class="mf">1.050</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>  <span class="c1"># graphite</span>
+    <span class="s2">"N"</span><span class="p">:</span> <span class="p">(</span><span class="mf">8.670</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>  <span class="c1"># N2(g)</span>
+    <span class="s2">"O"</span><span class="p">:</span> <span class="p">(</span><span class="mf">8.680</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>  <span class="c1"># O2(g)</span>
+    <span class="s2">"F"</span><span class="p">:</span> <span class="p">(</span><span class="mf">8.825</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>  <span class="c1"># F2(g)</span>
+    <span class="s2">"Cl"</span><span class="p">:</span> <span class="p">(</span><span class="mf">9.181</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>  <span class="c1"># Cl2(g)</span>
+    <span class="s2">"Br"</span><span class="p">:</span> <span class="p">(</span><span class="mf">24.52</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>  <span class="c1"># Br2(l)</span>
+    <span class="s2">"S"</span><span class="p">:</span> <span class="p">(</span><span class="mf">4.412</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>  <span class="c1"># rhombic</span>
+    <span class="s2">"P"</span><span class="p">:</span> <span class="p">(</span><span class="mf">5.360</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>  <span class="c1"># white</span>
+    <span class="s2">"Si"</span><span class="p">:</span> <span class="p">(</span><span class="mf">3.217</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="s2">"B"</span><span class="p">:</span> <span class="p">(</span><span class="mf">1.222</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="s2">"Al"</span><span class="p">:</span> <span class="p">(</span><span class="mf">4.540</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="s2">"Li"</span><span class="p">:</span> <span class="p">(</span><span class="mf">4.632</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="s2">"Na"</span><span class="p">:</span> <span class="p">(</span><span class="mf">6.460</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="s2">"K"</span><span class="p">:</span> <span class="p">(</span><span class="mf">7.088</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="s2">"Be"</span><span class="p">:</span> <span class="p">(</span><span class="mf">1.950</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="s2">"Mg"</span><span class="p">:</span> <span class="p">(</span><span class="mf">4.998</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="s2">"Ca"</span><span class="p">:</span> <span class="p">(</span><span class="mf">5.736</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="s2">"Ge"</span><span class="p">:</span> <span class="p">(</span><span class="mf">4.636</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="element_h298_h0">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.resolver.element_h298_h0">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">element_h298_h0</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">"""{symbol: H298 - H0 of the element's standard state, per atom}, kJ/mol</span>
+<span class="sd">    (CODATA; CODATA has no Ga, As or Se)."""</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="o">/</span> <span class="n">n</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span> <span class="ow">in</span> <span class="n">CODATA_H298_H0</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span></div>
+
+
+
+<div class="viewcode-block" id="formula_counts">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.resolver.formula_counts">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">formula_counts</span><span class="p">(</span><span class="n">formula</span><span class="p">):</span>
+    <span class="n">counts</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">symbol</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">"([A-Z][a-z]?)(\d*)"</span><span class="p">,</span> <span class="n">formula</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">):</span>
+        <span class="n">counts</span><span class="p">[</span><span class="n">symbol</span><span class="p">]</span> <span class="o">=</span> <span class="n">counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="k">if</span> <span class="n">n</span> <span class="k">else</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">counts</span></div>
+
+
+
+<div class="viewcode-block" id="dfh_0k_from_298k">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.resolver.dfh_0k_from_298k">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">dfh_0k_from_298k</span><span class="p">(</span><span class="n">dfh_298k</span><span class="p">,</span> <span class="n">h298_h0_species</span><span class="p">,</span> <span class="n">formula</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""ΔfH(0 K) from ΔfH(298.15 K), the species' own H298 - H0 and the</span>
+<span class="sd">    elements' (standard states, per atom)::</span>
+
+<span class="sd">        ΔfH(0) = ΔfH(298) - [H298 - H0](species) + Σ n_E [H298 - H0](E)</span>
+<span class="sd">    """</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="n">element_h298_h0</span><span class="p">()</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="k">for</span> <span class="n">symbol</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">formula_counts</span><span class="p">(</span><span class="n">formula</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">symbol</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">table</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No H298 - H0 for the element </span><span class="si">{</span><span class="n">symbol</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="n">total</span> <span class="o">+=</span> <span class="n">n</span> <span class="o">*</span> <span class="n">table</span><span class="p">[</span><span class="n">symbol</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">dfh_298k</span> <span class="o">-</span> <span class="n">h298_h0_species</span> <span class="o">+</span> <span class="n">total</span></div>
+
+
+
+<div class="viewcode-block" id="ReferenceResolver">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.resolver.ReferenceResolver">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ReferenceResolver</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Resolve CBH reference species from ATcT and the reference library.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    atct : ATcT</span>
+<span class="sd">        The ATcT tables.</span>
+<span class="sd">    supplementary : str</span>
+<span class="sd">        "none" (ATcT only, today's behaviour), "compilations", or</span>
+<span class="sd">        "compilations and computed" (the default, Paul's decision 4).</span>
+<span class="sd">    use_user : bool</span>
+<span class="sd">        Use the user's own references (the local layer's ``user`` kind).</span>
+<span class="sd">    layers : LayeredReferences, optional</span>
+<span class="sd">        The libraries; by default the installed ones.</span>
+<span class="sd">    multiplicity : callable, optional</span>
+<span class="sd">        multiplicity(smiles) for a reference species (the CBH convention).</span>
+<span class="sd">    """</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">atct</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">supplementary</span><span class="o">=</span><span class="s2">"compilations and computed"</span><span class="p">,</span>
+        <span class="n">use_user</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">layers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">multiplicity</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="k">if</span> <span class="n">supplementary</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">SUPPLEMENTARY</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"Supplementary references must be one of </span><span class="si">{</span><span class="n">SUPPLEMENTARY</span><span class="si">}</span><span class="s2">, not "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">supplementary</span><span class="si">!r}</span><span class="s2">"</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">atct</span> <span class="o">=</span> <span class="n">atct</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">supplementary</span> <span class="o">=</span> <span class="n">supplementary</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_user</span> <span class="o">=</span> <span class="n">use_user</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">multiplicity</span> <span class="o">=</span> <span class="n">multiplicity</span>
+        <span class="k">if</span> <span class="n">supplementary</span> <span class="o">==</span> <span class="s2">"none"</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">use_user</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">layers</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">layers</span> <span class="o">=</span> <span class="n">layers</span> <span class="k">if</span> <span class="n">layers</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">LayeredReferences</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_atct_elements</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">notes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">set_in_atct</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_in_atct</span><span class="p">)</span>
+
+    <span class="c1"># -- helpers --------------------------------------------------------------</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_charge_mult</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smiles</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.cbh</span><span class="w"> </span><span class="kn">import</span> <span class="n">_composition</span>
+
+        <span class="n">_</span><span class="p">,</span> <span class="n">charge</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_composition</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+        <span class="n">mult</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">multiplicity</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">multiplicity</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">charge</span><span class="p">,</span> <span class="n">mult</span>
+
+<div class="viewcode-block" id="ReferenceResolver.atct_lookup">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.resolver.ReferenceResolver.atct_lookup">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">atct_lookup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smiles</span><span class="p">):</span>
+        <span class="n">charge</span><span class="p">,</span> <span class="n">mult</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_charge_mult</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">atct</span><span class="o">.</span><span class="n">lookup</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="n">charge</span><span class="p">,</span> <span class="n">multiplicity</span><span class="o">=</span><span class="n">mult</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_in_atct</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smiles</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">multiplicity</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">atct</span><span class="o">.</span><span class="n">lookup</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="n">charge</span><span class="p">,</span> <span class="n">multiplicity</span><span class="o">=</span><span class="n">multiplicity</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">except</span> <span class="p">(</span><span class="n">MissingEntry</span><span class="p">,</span> <span class="n">AmbiguousEntry</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="ReferenceResolver.atct_has_element">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.resolver.ReferenceResolver.atct_has_element">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">atct_has_element</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">symbol</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Whether ATcT has the element's gas-phase atom."""</span>
+        <span class="k">if</span> <span class="n">symbol</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_atct_elements</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">atct</span><span class="o">.</span><span class="n">lookup</span><span class="p">(</span><span class="sa">f</span><span class="s2">"[</span><span class="si">{</span><span class="n">symbol</span><span class="si">}</span><span class="s2">]"</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_atct_elements</span><span class="p">[</span><span class="n">symbol</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">except</span> <span class="p">(</span><span class="n">MissingEntry</span><span class="p">,</span> <span class="n">AmbiguousEntry</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_atct_elements</span><span class="p">[</span><span class="n">symbol</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_atct_elements</span><span class="p">[</span><span class="n">symbol</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_atct_elements</span><span class="p">[</span><span class="n">symbol</span><span class="p">]</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_allowed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ref</span><span class="p">):</span>
+        <span class="n">kind</span> <span class="o">=</span> <span class="n">ref</span><span class="p">[</span><span class="s2">"source_kind"</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">"user"</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_user</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">supplementary</span> <span class="o">==</span> <span class="s2">"none"</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">"computed"</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">supplementary</span> <span class="o">==</span> <span class="s2">"compilations and computed"</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+<div class="viewcode-block" id="ReferenceResolver.candidates">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.resolver.ReferenceResolver.candidates">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">candidates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smiles</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""The library's usable values for a species, best rank first."""</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="n">charge</span><span class="p">,</span> <span class="n">mult</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_charge_mult</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">candidates</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="n">charge</span><span class="p">,</span> <span class="n">mult</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_allowed</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+        <span class="p">]</span></div>
+
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_best</span><span class="p">(</span><span class="n">candidates</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""The preferred value among candidates (overrides applied within a</span>
+<span class="sd">        layer), as LayeredReferences.lookup does."""</span>
+        <span class="n">allowed</span> <span class="o">=</span> <span class="p">{</span><span class="n">r</span><span class="p">[</span><span class="s2">"reference_id"</span><span class="p">]:</span> <span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">}</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s2">"preferred"</span><span class="p">]:</span>
+                <span class="k">return</span> <span class="n">r</span>
+        <span class="c1"># The preferred value may be filtered out (e.g. a computed one):</span>
+        <span class="c1"># the best remaining by rank, at 298.15 K first</span>
+        <span class="n">at_298</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">candidates</span> <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s2">"dfh_298k"</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="n">pool</span> <span class="o">=</span> <span class="n">at_298</span> <span class="ow">or</span> <span class="nb">list</span><span class="p">(</span><span class="n">allowed</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">pool</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">pool</span> <span class="k">else</span> <span class="kc">None</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_follow_override</span><span class="p">(</span><span class="n">candidates</span><span class="p">,</span> <span class="n">start</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""The value that replaces `start` through the chain of overrides."""</span>
+        <span class="n">current</span> <span class="o">=</span> <span class="n">start</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">later</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">r</span>
+                <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">candidates</span>
+                <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s2">"overrides"</span><span class="p">]</span> <span class="o">==</span> <span class="n">current</span><span class="p">[</span><span class="s2">"reference_id"</span><span class="p">]</span>
+                <span class="ow">and</span> <span class="n">r</span><span class="p">[</span><span class="s2">"layer"</span><span class="p">]</span> <span class="o">==</span> <span class="n">current</span><span class="p">[</span><span class="s2">"layer"</span><span class="p">]</span>
+            <span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">later</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">current</span>
+            <span class="n">current</span> <span class="o">=</span> <span class="n">later</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smiles</span><span class="p">,</span> <span class="n">ref</span><span class="p">):</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="n">ref</span><span class="p">[</span><span class="s2">"total_uncertainty"</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">"id"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ref</span><span class="p">[</span><span class="s1">'source_name'</span><span class="p">]</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">ref</span><span class="p">[</span><span class="s1">'layer'</span><span class="p">]</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">ref</span><span class="p">[</span><span class="s1">'id'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+            <span class="s2">"smiles"</span><span class="p">:</span> <span class="n">smiles</span><span class="p">,</span>
+            <span class="s2">"dfH0_0K"</span><span class="p">:</span> <span class="n">ref</span><span class="p">[</span><span class="s2">"dfh_0k"</span><span class="p">],</span>
+            <span class="s2">"dfH0_298K"</span><span class="p">:</span> <span class="n">ref</span><span class="p">[</span><span class="s2">"dfh_298k"</span><span class="p">],</span>
+            <span class="s2">"uncertainty_298K"</span><span class="p">:</span> <span class="n">u</span><span class="p">,</span>
+            <span class="s2">"exact"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s2">"atct_coefficients"</span><span class="p">:</span> <span class="p">{},</span>
+            <span class="s2">"source"</span><span class="p">:</span> <span class="n">ref</span><span class="p">[</span><span class="s2">"source_name"</span><span class="p">],</span>
+            <span class="s2">"source_kind"</span><span class="p">:</span> <span class="n">ref</span><span class="p">[</span><span class="s2">"source_kind"</span><span class="p">],</span>
+            <span class="s2">"layer"</span><span class="p">:</span> <span class="n">ref</span><span class="p">[</span><span class="s2">"layer"</span><span class="p">],</span>
+            <span class="s2">"citation"</span><span class="p">:</span> <span class="n">ref</span><span class="p">[</span><span class="s2">"citation"</span><span class="p">],</span>
+            <span class="s2">"rule"</span><span class="p">:</span> <span class="n">ref</span><span class="p">[</span><span class="s2">"rule"</span><span class="p">],</span>
+            <span class="s2">"flag"</span><span class="p">:</span> <span class="n">ref</span><span class="p">[</span><span class="s2">"flag"</span><span class="p">],</span>
+            <span class="s2">"override_reason"</span><span class="p">:</span> <span class="n">ref</span><span class="p">[</span><span class="s2">"override_reason"</span><span class="p">],</span>
+            <span class="s2">"decision_reason"</span><span class="p">:</span> <span class="n">ref</span><span class="p">[</span><span class="s2">"decision_reason"</span><span class="p">],</span>
+            <span class="s2">"unc_level"</span><span class="p">:</span> <span class="n">ref</span><span class="p">[</span><span class="s2">"unc_level"</span><span class="p">],</span>
+            <span class="s2">"offset"</span><span class="p">:</span> <span class="n">ref</span><span class="p">[</span><span class="s2">"offset_kj"</span><span class="p">],</span>
+            <span class="s2">"offset_from"</span><span class="p">:</span> <span class="n">ref</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"offset_from"</span><span class="p">),</span>
+            <span class="s2">"formula"</span><span class="p">:</span> <span class="n">ref</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"formula"</span><span class="p">),</span>
+        <span class="p">}</span>
+
+    <span class="c1"># -- resolving ----------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="ReferenceResolver.resolve">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.resolver.ReferenceResolver.resolve">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">resolve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Resolve a set of reference species (canonical SMILES).</span>
+
+<span class="sd">        Returns (entries, missing, label, notes): entries {smiles: entry},</span>
+<span class="sd">        ATcT entries carrying ``atct_coefficients`` {id: 1} and ``source``</span>
+<span class="sd">        "ATcT"; missing {smiles: reason}; the result label (LABELS); and</span>
+<span class="sd">        one-line notes about mixed sources, flags and conversions.</span>
+<span class="sd">        """</span>
+        <span class="n">entries</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">missing</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">notes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">library_species</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">smiles</span> <span class="ow">in</span> <span class="n">species</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">entry</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">atct_lookup</span><span class="p">(</span><span class="n">smiles</span><span class="p">))</span>
+                <span class="n">entry</span><span class="p">[</span><span class="s2">"atct_coefficients"</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">entry</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]:</span> <span class="mf">1.0</span><span class="p">}</span>
+                <span class="n">entry</span><span class="p">[</span><span class="s2">"source"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"ATcT"</span>
+                <span class="n">entries</span><span class="p">[</span><span class="n">smiles</span><span class="p">]</span> <span class="o">=</span> <span class="n">entry</span>
+            <span class="k">except</span> <span class="p">(</span><span class="n">MissingEntry</span><span class="p">,</span> <span class="n">AmbiguousEntry</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">library_species</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+                <span class="n">missing</span><span class="p">[</span><span class="n">smiles</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">CBHError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">missing</span><span class="p">[</span><span class="n">smiles</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+
+        <span class="c1"># The library: one source per element ATcT lacks</span>
+        <span class="n">cands</span> <span class="o">=</span> <span class="p">{</span><span class="n">s</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">candidates</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">library_species</span><span class="p">}</span>
+        <span class="n">assigned</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">uncovered</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">smiles</span> <span class="ow">in</span> <span class="n">library_species</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">cands</span><span class="p">[</span><span class="n">smiles</span><span class="p">]:</span>
+                <span class="k">continue</span>
+            <span class="k">for</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_elements</span><span class="p">(</span><span class="n">smiles</span><span class="p">):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">atct_has_element</span><span class="p">(</span><span class="n">symbol</span><span class="p">):</span>
+                    <span class="n">uncovered</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+        <span class="n">several</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">uncovered</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">uncovered</span><span class="p">[</span><span class="n">e</span><span class="p">])):</span>
+            <span class="n">group</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">uncovered</span><span class="p">[</span><span class="n">symbol</span><span class="p">]</span> <span class="k">if</span> <span class="n">s</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">assigned</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">group</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">sources</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">group</span><span class="p">:</span>
+                <span class="n">names</span> <span class="o">=</span> <span class="p">{</span><span class="n">r</span><span class="p">[</span><span class="s2">"source_name"</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">cands</span><span class="p">[</span><span class="n">s</span><span class="p">]}</span>
+                <span class="n">sources</span> <span class="o">=</span> <span class="n">names</span> <span class="k">if</span> <span class="n">sources</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">sources</span> <span class="o">&amp;</span> <span class="n">names</span>
+            <span class="n">ranked</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s2">"source_rank"</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="s2">"source_name"</span><span class="p">])</span>
+                    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">group</span>
+                    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">cands</span><span class="p">[</span><span class="n">s</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s2">"source_name"</span><span class="p">]</span> <span class="ow">in</span> <span class="p">(</span><span class="n">sources</span> <span class="ow">or</span> <span class="p">())</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">ranked</span><span class="p">:</span>
+                <span class="n">source</span> <span class="o">=</span> <span class="n">ranked</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">group</span><span class="p">:</span>
+                    <span class="n">own</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">cands</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s2">"source_name"</span><span class="p">]</span> <span class="o">==</span> <span class="n">source</span><span class="p">]</span>
+                    <span class="c1"># local layer first within the source</span>
+                    <span class="n">start</span> <span class="o">=</span> <span class="n">own</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">chosen</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_follow_override</span><span class="p">(</span><span class="n">cands</span><span class="p">[</span><span class="n">s</span><span class="p">],</span> <span class="n">start</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">chosen</span><span class="p">[</span><span class="s2">"dfh_298k"</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span>
+                        <span class="n">r</span><span class="p">[</span><span class="s2">"dfh_298k"</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">cands</span><span class="p">[</span><span class="n">s</span><span class="p">]</span>
+                    <span class="p">):</span>
+                        <span class="c1"># a 0 K-only value is used only without a 298 K one</span>
+                        <span class="n">chosen</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_best</span><span class="p">(</span><span class="n">cands</span><span class="p">[</span><span class="n">s</span><span class="p">])</span>
+                    <span class="n">assigned</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="n">chosen</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">group</span><span class="p">:</span>
+                    <span class="n">assigned</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_best</span><span class="p">(</span><span class="n">cands</span><span class="p">[</span><span class="n">s</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">smiles</span> <span class="ow">in</span> <span class="n">library_species</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">smiles</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">assigned</span> <span class="ow">and</span> <span class="n">cands</span><span class="p">[</span><span class="n">smiles</span><span class="p">]:</span>
+                <span class="n">assigned</span><span class="p">[</span><span class="n">smiles</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_best</span><span class="p">(</span><span class="n">cands</span><span class="p">[</span><span class="n">smiles</span><span class="p">])</span>
+
+        <span class="k">for</span> <span class="n">smiles</span><span class="p">,</span> <span class="n">ref</span> <span class="ow">in</span> <span class="n">assigned</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">ref</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">entries</span><span class="p">[</span><span class="n">smiles</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_entry</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="n">ref</span><span class="p">)</span>
+            <span class="n">missing</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">ref</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"flag"</span><span class="p">):</span>
+                <span class="n">notes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">smiles</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">ref</span><span class="p">[</span><span class="s1">'source_name'</span><span class="p">]</span><span class="si">}</span><span class="s2">): </span><span class="si">{</span><span class="n">ref</span><span class="p">[</span><span class="s1">'flag'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+        <span class="c1"># Several sources for one element?</span>
+        <span class="k">for</span> <span class="n">symbol</span><span class="p">,</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">uncovered</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">names</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">({</span><span class="n">entries</span><span class="p">[</span><span class="n">s</span><span class="p">][</span><span class="s2">"source"</span><span class="p">]</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">group</span> <span class="k">if</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">entries</span><span class="p">})</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">several</span><span class="p">[</span><span class="n">symbol</span><span class="p">]</span> <span class="o">=</span> <span class="n">names</span>
+                <span class="n">notes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"The references with </span><span class="si">{</span><span class="n">symbol</span><span class="si">}</span><span class="s2"> come from several sources: "</span>
+                    <span class="o">+</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">names</span><span class="p">)</span>
+                    <span class="o">+</span> <span class="s2">" (one source per element is the aim; the values are "</span>
+                    <span class="s2">"used as they are)."</span>
+                <span class="p">)</span>
+
+        <span class="n">label</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="n">entries</span><span class="p">,</span> <span class="n">several</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">notes</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">notes</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">entries</span><span class="p">,</span> <span class="n">missing</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">notes</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_elements</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smiles</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.references</span><span class="w"> </span><span class="kn">import</span> <span class="n">elements</span>
+
+        <span class="k">return</span> <span class="n">elements</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ReferenceResolver.label">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.resolver.ReferenceResolver.label">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">label</span><span class="p">(</span><span class="n">entries</span><span class="p">,</span> <span class="n">several</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""The result label for the references used."""</span>
+        <span class="n">kinds</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source_kind"</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">entries</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">e</span><span class="p">[</span><span class="s2">"source"</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">"ATcT"</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="s2">"user"</span> <span class="ow">in</span> <span class="n">kinds</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">"user references"</span>
+        <span class="k">if</span> <span class="s2">"computed"</span> <span class="ow">in</span> <span class="n">kinds</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">"computed references"</span>
+        <span class="k">if</span> <span class="n">several</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span>
+                <span class="s2">"mixed: several sources ("</span>
+                <span class="o">+</span> <span class="s2">"; "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">v</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">several</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
+                <span class="o">+</span> <span class="s2">")"</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">kinds</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">"mixed"</span>
+        <span class="k">return</span> <span class="s2">"ATcT-only"</span></div>
+
+
+<div class="viewcode-block" id="ReferenceResolver.versions">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.resolver.ReferenceResolver.versions">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">versions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""The ATcT version and the libraries' versions and paths, for the</span>
+<span class="sd">        result's ``references`` property."""</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"ATcT"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">atct</span><span class="o">.</span><span class="n">version</span><span class="p">}</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">result</span><span class="p">[</span><span class="s2">"libraries"</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">versions</span>
+        <span class="n">result</span><span class="p">[</span><span class="s2">"supplementary"</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">supplementary</span>
+        <span class="n">result</span><span class="p">[</span><span class="s2">"use user references"</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_user</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+</div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.24.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

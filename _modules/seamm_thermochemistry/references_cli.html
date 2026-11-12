@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>seamm_thermochemistry.references_cli &#8212; SEAMM thermochemistry Plug-in 2026.11.12.1 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=6a604523" />
+    <link rel="stylesheet" type="text/css" href="../../_static/css/custom.css" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../_static/scripts/fontawesome.js?digest=75c7c72ae941e8b558d8"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
+
+    <script src="../../_static/documentation_options.js?v=900c25b8"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script data-sd-tabs-storage-prefix="sphinx-design-tab-id-" src="../../_static/design-tabs.js?v=fcb327ea"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/seamm_thermochemistry/references_cli';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="2026.11.12.1" />
+  
+    
+    <script src="../../_static/searchtools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation" aria-expanded="false" aria-controls="pst-primary-sidebar-modal">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/SEAMM logo.png" class="logo__image only-light" alt=""/>
+    <img src="../../_static/SEAMM Inverted 288x181.png" class="logo__image only-dark pst-js-only" alt=""/>
+  
+  
+    <p class="title logo__title">SEAMM-THERMOCHEMISTRY</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api.html">
+    API Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../developer_guide/index.html">
+    Developer Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-external" href="https://molssi-seamm.github.io">
+    SEAMM Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-external" href="https://molssi.org">
+    MolSSI
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/molssi-seamm/seamm_thermochemistry" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/MolSSI_NSF" title="Twitter" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-twitter fa-lg" aria-hidden="true"></i><span class="visually-hidden">Twitter</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal" tabindex="-1"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api.html">
+    API Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../developer_guide/index.html">
+    Developer Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-external" href="https://molssi-seamm.github.io">
+    SEAMM Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-external" href="https://molssi.org">
+    MolSSI
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/molssi-seamm/seamm_thermochemistry" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/MolSSI_NSF" title="Twitter" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-twitter fa-lg" aria-hidden="true"></i><span class="visually-hidden">Twitter</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-house"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">seamm_thermochemistry.references_cli</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for seamm_thermochemistry.references_cli</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="sd">"""``seamm-thermochemistry-references``: the supplementary reference library</span>
+<span class="sd">from the command line::</span>
+
+<span class="sd">    seamm-thermochemistry-references sources [--library FILE]</span>
+<span class="sd">    seamm-thermochemistry-references list [--library FILE]</span>
+<span class="sd">    seamm-thermochemistry-references show SMILES [--charge Q] [--multiplicity M]</span>
+<span class="sd">                                      [--local FILE] [--official FILE]</span>
+<span class="sd">    seamm-thermochemistry-references check [--library FILE]</span>
+<span class="sd">    seamm-thermochemistry-references accept MEASUREMENT --by WHO --reason TEXT</span>
+<span class="sd">                                      [--library FILE]</span>
+<span class="sd">    seamm-thermochemistry-references accept-file ACCEPTS.csv --library FILE</span>
+<span class="sd">    seamm-thermochemistry-references add-curated DIR --library FILE</span>
+<span class="sd">    seamm-thermochemistry-references webbook fetch SPECIES.csv --cache DIR</span>
+<span class="sd">    seamm-thermochemistry-references webbook import --cache DIR --library FILE</span>
+<span class="sd">    seamm-thermochemistry-references offsets --library FILE [--atct-version V]</span>
+<span class="sd">                                      [--calibration FILE]</span>
+<span class="sd">                                      [--exclude SOURCE:SMILES,...:REASON]</span>
+
+<span class="sd">``add-curated`` (maintainers) reads hand-curated CSVs (printed JANAF, CODATA,</span>
+<span class="sd">NBS-82, D0, W4-17, derived values) into a library file being built for</span>
+<span class="sd">publication; it always names its file. ``webbook fetch`` saves NIST WebBook</span>
+<span class="sd">pages for the species in a CSV (smiles, charge, multiplicity) into a cache, a</span>
+<span class="sd">few seconds apart and logged; ``webbook import`` reads the cache into a</span>
+<span class="sd">library, offline. ``offsets`` measures each source against ATcT (rms over</span>
+<span class="sd">shared species).</span>
+
+<span class="sd">``--library`` is one library file, by default the local layer</span>
+<span class="sd">(``references.db``); ``show`` reads both layers, local and official</span>
+<span class="sd">(``references-official.db``). ``accept`` releases an estimate or a held</span>
+<span class="sd">species, recording who and why.</span>
+<span class="sd">"""</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">references</span> <span class="k">as</span> <span class="n">R</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_fmt</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">digits</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s2">""</span> <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">value</span><span class="si">:</span><span class="s2">.</span><span class="si">{</span><span class="n">digits</span><span class="si">}</span><span class="s2">f</span><span class="si">}</span><span class="s2">"</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_library</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">write</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">R</span><span class="o">.</span><span class="n">local_references_path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">write</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No reference library at </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">R</span><span class="o">.</span><span class="n">ReferenceLibrary</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">create</span><span class="o">=</span><span class="n">write</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="cmd_sources">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.references_cli.cmd_sources">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">cmd_sources</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+    <span class="n">library</span> <span class="o">=</span> <span class="n">_library</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">library</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'rank'</span><span class="si">:</span><span class="s2">&gt;4</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="s1">'name'</span><span class="si">:</span><span class="s2">&lt;16</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'kind'</span><span class="si">:</span><span class="s2">&lt;11</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'offset'</span><span class="si">:</span><span class="s2">&gt;7</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'n'</span><span class="si">:</span><span class="s2">&gt;4</span><span class="si">}</span><span class="s2">  citation"</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">library</span><span class="o">.</span><span class="n">sources</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">s</span><span class="p">[</span><span class="s1">'rank'</span><span class="p">]</span><span class="si">:</span><span class="s2">&gt;4</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="n">s</span><span class="p">[</span><span class="s1">'name'</span><span class="p">]</span><span class="si">:</span><span class="s2">&lt;16</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">s</span><span class="p">[</span><span class="s1">'kind'</span><span class="p">]</span><span class="si">:</span><span class="s2">&lt;11</span><span class="si">}</span><span class="s2"> "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">_fmt</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="s1">'offset_kj'</span><span class="p">])</span><span class="si">:</span><span class="s2">&gt;7</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">s</span><span class="p">[</span><span class="s1">'offset_n'</span><span class="p">]</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">''</span><span class="si">:</span><span class="s2">&gt;4</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="n">s</span><span class="p">[</span><span class="s1">'citation'</span><span class="p">]</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">''</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="cmd_list">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.references_cli.cmd_list">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">cmd_list</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+    <span class="n">library</span> <span class="o">=</span> <span class="n">_library</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">library</span><span class="p">)</span>
+    <span class="n">db</span> <span class="o">=</span> <span class="n">library</span><span class="o">.</span><span class="n">_connect</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"SELECT * FROM species ORDER BY formula, smiles"</span><span class="p">):</span>
+        <span class="n">best</span> <span class="o">=</span> <span class="n">library</span><span class="o">.</span><span class="n">best</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">"id"</span><span class="p">])</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">best</span><span class="p">[</span><span class="s1">'dfh_298k'</span><span class="p">]</span><span class="si">:</span><span class="s2">9.2f</span><span class="si">}</span><span class="s2"> ± </span><span class="si">{</span><span class="n">_fmt</span><span class="p">(</span><span class="n">best</span><span class="p">[</span><span class="s1">'expanded_uncertainty'</span><span class="p">])</span><span class="si">:</span><span class="s2">&gt;5</span><span class="si">}</span><span class="s2"> "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">best</span><span class="p">[</span><span class="s1">'source_name'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+            <span class="k">if</span> <span class="n">best</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">best</span><span class="p">[</span><span class="s2">"dfh_298k"</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="s2">"  (none chosen)"</span>
+        <span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">'formula'</span><span class="p">]</span><span class="si">:</span><span class="s2">&lt;10</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">'smiles'</span><span class="p">]</span><span class="si">:</span><span class="s2">&lt;30</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">row</span><span class="p">[</span><span class="s1">'charge'</span><span class="p">]</span><span class="si">:</span><span class="s2">&gt;2</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="cmd_show">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.references_cli.cmd_show">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">cmd_show</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+    <span class="n">layers</span> <span class="o">=</span> <span class="n">R</span><span class="o">.</span><span class="n">LayeredReferences</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">local</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">official</span><span class="p">)</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">candidates</span><span class="p">(</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">smiles</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">charge</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">multiplicity</span><span class="p">,</span> <span class="n">include_held</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">rows</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No reference values for </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">smiles</span><span class="si">}</span><span class="s2"> (charge </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">charge</span><span class="si">}</span><span class="s2">)."</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mi">1</span>
+    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+        <span class="n">mark</span> <span class="o">=</span> <span class="s2">"*"</span> <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s2">"preferred"</span><span class="p">]</span> <span class="k">else</span> <span class="s2">" "</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">mark</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'layer'</span><span class="p">]</span><span class="si">:</span><span class="s2">&lt;8</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'source_name'</span><span class="p">]</span><span class="si">:</span><span class="s2">&lt;14</span><span class="si">}</span><span class="s2"> "</span>
+            <span class="sa">f</span><span class="s2">"ΔfH298 </span><span class="si">{</span><span class="n">_fmt</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">'dfh_298k'</span><span class="p">])</span><span class="si">:</span><span class="s2">&gt;9</span><span class="si">}</span><span class="s2">  ΔfH0 </span><span class="si">{</span><span class="n">_fmt</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">'dfh_0k'</span><span class="p">])</span><span class="si">:</span><span class="s2">&gt;9</span><span class="si">}</span><span class="s2">  "</span>
+            <span class="sa">f</span><span class="s2">"± </span><span class="si">{</span><span class="n">_fmt</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">'uncertainty'</span><span class="p">])</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'unc_level'</span><span class="p">]</span><span class="si">}</span><span class="s2">) -&gt; 95 % "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">_fmt</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">'expanded_uncertainty'</span><span class="p">])</span><span class="si">}</span><span class="s2">, total </span><span class="si">{</span><span class="n">_fmt</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">'total_uncertainty'</span><span class="p">])</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="s2">""</span> <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s2">"state"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"chosen"</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'state'</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="si">}</span><span class="s2">, "</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"    </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'citation'</span><span class="p">]</span><span class="si">}</span><span class="s2">  [</span><span class="si">{</span><span class="n">state</span><span class="si">}{</span><span class="n">r</span><span class="p">[</span><span class="s1">'status'</span><span class="p">]</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'rule'</span><span class="p">]</span><span class="si">}</span><span class="s2">]"</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"flag"</span><span class="p">,</span> <span class="s2">"override_reason"</span><span class="p">,</span> <span class="s2">"converted"</span><span class="p">,</span> <span class="s2">"decision_reason"</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"    </span><span class="si">{</span><span class="n">key</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">'_'</span><span class="p">,</span><span class="w"> </span><span class="s1">' '</span><span class="p">)</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="mi">0</span></div>
+
+
+
+<div class="viewcode-block" id="cmd_check">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.references_cli.cmd_check">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">cmd_check</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+    <span class="n">library</span> <span class="o">=</span> <span class="n">_library</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">library</span><span class="p">)</span>
+    <span class="n">problems</span> <span class="o">=</span> <span class="n">library</span><span class="o">.</span><span class="n">check</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">problems</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">p</span><span class="p">[</span><span class="s1">'smiles'</span><span class="p">]</span><span class="si">}</span><span class="s2"> (measurement </span><span class="si">{</span><span class="n">p</span><span class="p">[</span><span class="s1">'measurement'</span><span class="p">]</span><span class="si">}</span><span class="s2">): </span><span class="si">{</span><span class="n">p</span><span class="p">[</span><span class="s1">'problem'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">problems</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"Every derived value agrees with its derivation."</span><span class="p">)</span>
+    <span class="k">return</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">problems</span> <span class="k">else</span> <span class="mi">0</span></div>
+
+
+
+<div class="viewcode-block" id="cmd_accept">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.references_cli.cmd_accept">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">cmd_accept</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+    <span class="n">library</span> <span class="o">=</span> <span class="n">_library</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">library</span><span class="p">,</span> <span class="n">write</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">ref</span> <span class="o">=</span> <span class="n">library</span><span class="o">.</span><span class="n">accept</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">measurement</span><span class="p">,</span> <span class="n">by</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">by</span><span class="p">,</span> <span class="n">reason</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">reason</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Accepted measurement </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">measurement</span><span class="si">}</span><span class="s2"> (reference </span><span class="si">{</span><span class="n">ref</span><span class="si">}</span><span class="s2">)."</span><span class="p">)</span>
+    <span class="k">return</span> <span class="mi">0</span></div>
+
+
+
+<div class="viewcode-block" id="cmd_accept_file">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.references_cli.cmd_accept_file">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">cmd_accept_file</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+    <span class="n">library</span> <span class="o">=</span> <span class="n">R</span><span class="o">.</span><span class="n">ReferenceLibrary</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">library</span><span class="p">,</span> <span class="n">create</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">refs</span> <span class="o">=</span> <span class="n">library</span><span class="o">.</span><span class="n">accept_file</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">file</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Applied </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">refs</span><span class="p">)</span><span class="si">}</span><span class="s2"> accepts."</span><span class="p">)</span>
+    <span class="k">return</span> <span class="mi">0</span></div>
+
+
+
+<div class="viewcode-block" id="cmd_add_curated">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.references_cli.cmd_add_curated">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">cmd_add_curated</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.curated</span><span class="w"> </span><span class="kn">import</span> <span class="n">import_curated</span>
+
+    <span class="n">library</span> <span class="o">=</span> <span class="n">R</span><span class="o">.</span><span class="n">ReferenceLibrary</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">library</span><span class="p">,</span> <span class="n">create</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">layer</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">layer</span><span class="p">)</span>
+    <span class="n">report</span><span class="p">,</span> <span class="n">problems</span> <span class="o">=</span> <span class="n">import_curated</span><span class="p">(</span><span class="n">library</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">directory</span><span class="p">)</span>
+    <span class="n">counts</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">filename</span><span class="p">,</span> <span class="n">smiles</span><span class="p">,</span> <span class="n">outcome</span><span class="p">,</span> <span class="n">detail</span> <span class="ow">in</span> <span class="n">report</span><span class="p">:</span>
+        <span class="n">counts</span><span class="p">[</span><span class="n">outcome</span><span class="p">]</span> <span class="o">=</span> <span class="n">counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">outcome</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">outcome</span> <span class="o">!=</span> <span class="s2">"added"</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">outcome</span><span class="si">:</span><span class="s2">&gt;8</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">smiles</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="n">detail</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">counts</span><span class="o">.</span><span class="n">items</span><span class="p">())))</span>
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">problems</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"PROBLEM  </span><span class="si">{</span><span class="n">p</span><span class="p">[</span><span class="s1">'smiles'</span><span class="p">]</span><span class="si">}</span><span class="s2"> (measurement </span><span class="si">{</span><span class="n">p</span><span class="p">[</span><span class="s1">'measurement'</span><span class="p">]</span><span class="si">}</span><span class="s2">): </span><span class="si">{</span><span class="n">p</span><span class="p">[</span><span class="s1">'problem'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">problems</span> <span class="k">else</span> <span class="mi">0</span></div>
+
+
+
+<div class="viewcode-block" id="cmd_webbook">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.references_cli.cmd_webbook">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">cmd_webbook</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">csv</span>
+
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">webbook</span>
+
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">action</span> <span class="o">==</span> <span class="s2">"fetch"</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">args</span><span class="o">.</span><span class="n">species</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">(</span><span class="s2">"webbook fetch needs a CSV of species"</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">species</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s2">""</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span> <span class="k">as</span> <span class="n">fd</span><span class="p">:</span>
+            <span class="n">species</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="p">(</span>
+                    <span class="n">r</span><span class="p">[</span><span class="s2">"smiles"</span><span class="p">],</span>
+                    <span class="nb">int</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"charge"</span><span class="p">)</span> <span class="ow">or</span> <span class="mi">0</span><span class="p">),</span>
+                    <span class="nb">int</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"multiplicity"</span><span class="p">)</span> <span class="ow">or</span> <span class="mi">1</span><span class="p">),</span>
+                <span class="p">)</span>
+                <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">csv</span><span class="o">.</span><span class="n">DictReader</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
+            <span class="p">]</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="n">webbook</span><span class="o">.</span><span class="n">fetch</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">cache</span><span class="p">,</span> <span class="n">delay</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">delay</span><span class="p">)</span>
+        <span class="n">found</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span> <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s2">"file"</span><span class="p">])</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span><span class="si">}</span><span class="s2"> new species looked up, </span><span class="si">{</span><span class="n">found</span><span class="si">}</span><span class="s2"> found."</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">args</span><span class="o">.</span><span class="n">library</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">(</span><span class="s2">"webbook import needs --library"</span><span class="p">)</span>
+    <span class="n">library</span> <span class="o">=</span> <span class="n">R</span><span class="o">.</span><span class="n">ReferenceLibrary</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">library</span><span class="p">,</span> <span class="n">create</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">layer</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">layer</span><span class="p">)</span>
+    <span class="n">counts</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">smiles</span><span class="p">,</span> <span class="n">outcome</span><span class="p">,</span> <span class="n">detail</span> <span class="ow">in</span> <span class="n">webbook</span><span class="o">.</span><span class="n">import_webbook</span><span class="p">(</span><span class="n">library</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">cache</span><span class="p">):</span>
+        <span class="n">counts</span><span class="p">[</span><span class="n">outcome</span><span class="p">]</span> <span class="o">=</span> <span class="n">counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">outcome</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">outcome</span> <span class="o">==</span> <span class="s2">"refused"</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">" refused  </span><span class="si">{</span><span class="n">smiles</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="n">detail</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">counts</span><span class="o">.</span><span class="n">items</span><span class="p">())))</span>
+    <span class="k">return</span> <span class="mi">0</span></div>
+
+
+
+<div class="viewcode-block" id="cmd_offsets">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.references_cli.cmd_offsets">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">cmd_offsets</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.atct</span><span class="w"> </span><span class="kn">import</span> <span class="n">ATcT</span>
+
+    <span class="n">library</span> <span class="o">=</span> <span class="n">R</span><span class="o">.</span><span class="n">ReferenceLibrary</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">library</span><span class="p">,</span> <span class="n">create</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">calibration</span><span class="p">:</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">library</span><span class="o">.</span><span class="n">add_calibration</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">calibration</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Read </span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2"> calibration values from </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">calibration</span><span class="si">}</span><span class="s2">."</span><span class="p">)</span>
+    <span class="n">atct</span> <span class="o">=</span> <span class="n">ATcT</span><span class="p">(</span><span class="n">version</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">atct_version</span><span class="p">,</span> <span class="n">base</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">atct_base</span><span class="p">)</span>
+    <span class="n">exclude</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">args</span><span class="o">.</span><span class="n">exclude</span> <span class="ow">or</span> <span class="p">[]:</span>
+        <span class="n">source</span><span class="p">,</span> <span class="n">smiles</span><span class="p">,</span> <span class="n">reason</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">":"</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">exclude</span><span class="p">[</span><span class="n">source</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">smiles</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">","</span><span class="p">)),</span> <span class="n">reason</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">R</span><span class="o">.</span><span class="n">compute_offsets</span><span class="p">(</span><span class="n">library</span><span class="p">,</span> <span class="n">atct</span><span class="p">,</span> <span class="n">exclude</span><span class="o">=</span><span class="n">exclude</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"Offsets against ATcT ver. </span><span class="si">{</span><span class="n">atct</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s2"> (rms of source - ATcT); a lower "</span>
+        <span class="s2">"bound for the species the library serves:"</span>
+    <span class="p">)</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="p">(</span><span class="n">rms</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">diffs</span><span class="p">)</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">used</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s2">"used"</span>
+            <span class="k">if</span> <span class="n">n</span> <span class="o">&gt;=</span> <span class="n">R</span><span class="o">.</span><span class="n">OFFSET_MIN_SHARED</span>
+            <span class="k">else</span> <span class="sa">f</span><span class="s2">"not used (&lt; </span><span class="si">{</span><span class="n">R</span><span class="o">.</span><span class="n">OFFSET_MIN_SHARED</span><span class="si">}</span><span class="s2">)"</span>
+        <span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"  </span><span class="si">{</span><span class="n">name</span><span class="si">:</span><span class="s2">&lt;16</span><span class="si">}</span><span class="s2"> n = </span><span class="si">{</span><span class="n">n</span><span class="si">:</span><span class="s2">&gt;3</span><span class="si">}</span><span class="s2">  rms = </span><span class="si">{</span><span class="n">_fmt</span><span class="p">(</span><span class="n">rms</span><span class="p">)</span><span class="si">}</span><span class="s2"> kJ/mol  </span><span class="si">{</span><span class="n">used</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="n">library</span><span class="o">.</span><span class="n">source</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">source</span><span class="p">[</span><span class="s2">"offset_excluded"</span><span class="p">]:</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"      excluding </span><span class="si">{</span><span class="n">source</span><span class="p">[</span><span class="s1">'offset_excluded'</span><span class="p">]</span><span class="si">}</span><span class="s2">; over all "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">source</span><span class="p">[</span><span class="s1">'offset_full_n'</span><span class="p">]</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">_fmt</span><span class="p">(</span><span class="n">source</span><span class="p">[</span><span class="s1">'offset_full_kj'</span><span class="p">])</span><span class="si">}</span><span class="s2"> kJ/mol"</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">smiles</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">diffs</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"      </span><span class="si">{</span><span class="n">smiles</span><span class="si">:</span><span class="s2">&lt;28</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">d</span><span class="si">:</span><span class="s2">+8.2f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="mi">0</span></div>
+
+
+
+<div class="viewcode-block" id="main">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.references_cli.main">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="n">argv</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
+        <span class="n">prog</span><span class="o">=</span><span class="s2">"seamm-thermochemistry-references"</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">"The supplementary reference library of enthalpies of formation."</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">sub</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">add_subparsers</span><span class="p">(</span><span class="n">dest</span><span class="o">=</span><span class="s2">"command"</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">p</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="s2">"sources"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"List the sources, with their offsets."</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--library"</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">cmd_sources</span><span class="p">)</span>
+
+    <span class="n">p</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="s2">"list"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"List the species and their chosen values."</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--library"</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">cmd_list</span><span class="p">)</span>
+
+    <span class="n">p</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="s2">"show"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Every value for one species, both layers."</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"smiles"</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--charge"</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--multiplicity"</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--local"</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--official"</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">cmd_show</span><span class="p">)</span>
+
+    <span class="n">p</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="s2">"check"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Check every derived value."</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--library"</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">cmd_check</span><span class="p">)</span>
+
+    <span class="n">p</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="s2">"accept"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Accept an estimate or a held value."</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"measurement"</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--by"</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--reason"</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--library"</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">cmd_accept</span><span class="p">)</span>
+
+    <span class="n">p</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="s2">"accept-file"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Apply accepts kept in a CSV (maintainers)."</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"file"</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--library"</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">cmd_accept_file</span><span class="p">)</span>
+
+    <span class="n">p</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="s2">"add-curated"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Read curated CSVs (maintainers)."</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"directory"</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--library"</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--layer"</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">"official"</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">(</span><span class="s2">"official"</span><span class="p">,</span> <span class="s2">"local"</span><span class="p">))</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">cmd_add_curated</span><span class="p">)</span>
+
+    <span class="n">p</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="s2">"webbook"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"NIST WebBook pages (maintainers)."</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"action"</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">(</span><span class="s2">"fetch"</span><span class="p">,</span> <span class="s2">"import"</span><span class="p">))</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"species"</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s2">"?"</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--cache"</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--library"</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--layer"</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">"official"</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">(</span><span class="s2">"official"</span><span class="p">,</span> <span class="s2">"local"</span><span class="p">))</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--delay"</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">3.0</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">cmd_webbook</span><span class="p">)</span>
+
+    <span class="n">p</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="s2">"offsets"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Measure each source against ATcT."</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--library"</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--atct-version"</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--atct-base"</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--calibration"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"CSV of calibration values"</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">"--exclude"</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s2">"append"</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">"SOURCE:SMILES[,SMILES]:REASON -- leave species out of an offset"</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"-v"</span><span class="p">,</span> <span class="s2">"--verbose"</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s2">"store_true"</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">cmd_offsets</span><span class="p">)</span>
+
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">(</span><span class="n">argv</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">args</span><span class="o">.</span><span class="n">func</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="ow">or</span> <span class="mi">0</span>
+    <span class="k">except</span> <span class="p">(</span><span class="n">R</span><span class="o">.</span><span class="n">ReferenceError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">,</span> <span class="ne">FileNotFoundError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mi">2</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">"__main__"</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">main</span><span class="p">())</span>
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.24.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>
