@@ -155,7 +155,8 @@ def import_curated(library, directory, *, files=None):
         path = directory / filename
         if not path.exists():
             continue
-        library.add_source(source, kind, rank, citation=citation, retrieved=str(path))
+        # The file name only: a published library carries no local paths
+        library.add_source(source, kind, rank, citation=citation, retrieved=path.name)
         with open(path, newline="", encoding="utf-8") as fd:
             for row in csv.DictReader(fd):
                 smiles = row["smiles"].strip()

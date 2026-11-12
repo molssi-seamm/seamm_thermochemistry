@@ -403,6 +403,7 @@ def test_curated_nbs82_unstated_uncertainty(tmp_path):
     assert [r[2] for r in report] == ["added"] and problems == []
     source = library.source("NBS-82")
     assert source["kind"] == "evaluated"
+    assert source["retrieved"] == "nbs82.csv"  # no local path
     with pytest.raises(KeyError):
         library.source("CODATA-1989")  # only the files present
     assert curated.CURATED_SOURCES["codata.csv"][2] < source["rank"]
