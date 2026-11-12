@@ -385,6 +385,11 @@ class GeometryRecord(dict):
         )
 
 
+#: Parts are added to a stored row only when its energy agrees with the new one
+#: within 1e-10 E_h (in kJ/mol, the store's unit)
+PARTS_TOLERANCE_KJ = 1e-10 * 2625.4996394798254
+
+
 class EnergyRecord(dict):
     """A row of the ``energy`` table."""
 
@@ -738,9 +743,30 @@ class GeometryEnergyMixin:
         if outcome == "duplicate" and record.get("byproducts"):
             db = self._writer()
             existing = db.execute(
-                "SELECT byproducts FROM energy WHERE id = ?", (row_id,)
+                "SELECT byproducts, E FROM energy WHERE id = ?", (row_id,)
             ).fetchone()
             if existing["byproducts"] in (None, "", "null"):
+                # Only for the same calculation: the key (geometry, settings
+                # fingerprint) matched, and the energy must agree to round-off
+                difference = abs(float(existing["E"]) - float(record["E"]))
+                if difference > PARTS_TOLERANCE_KJ:
+                    self._history(
+                        db,
+                        "energy",
+                        row_id,
+                        "parts refused",
+                        {"E": existing["E"]},
+                        {"E": record["E"], "job": record.get("job")},
+                        difference=difference,
+                        reason="the energy differs by more than 1e-10 E_h",
+                    )
+                    db.commit()
+                    logger.warning(
+                        f"Energy parts not added to row {row_id}: its energy differs "
+                        f"from the new one by {difference:.2e} kJ/mol (more than "
+                        "1e-10 E_h); the row is left as it is."
+                    )
+                    return "duplicate", row_id
                 db.execute(
                     "UPDATE energy SET byproducts = ? WHERE id = ?",
                     (json.dumps(record["byproducts"]), row_id),

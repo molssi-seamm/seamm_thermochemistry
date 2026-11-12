@@ -67,3 +67,31 @@ def test_a_duplicate_with_parts_adds_them(store):  # noqa: F811
         "SELECT kind FROM row_history WHERE table_name = 'energy'"
     )
     assert [r[0] for r in history.fetchall()] == ["parts added"]
+
+
+def test_parts_are_not_added_when_the_energy_differs(store):  # noqa: F811
+    """Not the same calculation (energy off by more than 1e-10 E_h): the row is
+    left without parts and the attempt is logged."""
+    plain = EnergyRecord.make("g:2", -1000.0, energy_fingerprint="fp:y")
+    store.put_energy(plain)
+    off = EnergyRecord.make(
+        "g:2", -1000.0 + 1e-6, energy_fingerprint="fp:y", byproducts=PARTS
+    )
+    assert store.put_energy(off)[0] == "duplicate"
+    row = store.energy("g:2", energy_fingerprint=["fp:y"])
+    assert row["byproducts"] is None
+    history = store._connect().execute(
+        "SELECT kind, reason FROM row_history WHERE table_name = 'energy'"
+    )
+    ((kind, reason),) = history.fetchall()
+    assert kind == "parts refused" and "1e-10" in reason
+
+
+def test_parts_need_the_same_fingerprint(store):  # noqa: F811
+    """Another settings fingerprint is another row, never this one's parts."""
+    store.put_energy(EnergyRecord.make("g:3", -1000.0, energy_fingerprint="fp:a"))
+    other = EnergyRecord.make(
+        "g:3", -1000.0, energy_fingerprint="fp:b", byproducts=PARTS
+    )
+    assert store.put_energy(other)[0] == "inserted"
+    assert store.energy("g:3", energy_fingerprint=["fp:a"])["byproducts"] is None
