@@ -168,6 +168,11 @@ Offsets with ATcT 1.228:
 Each offset is added in quadrature to the source's 95 % uncertainties, and is kept
 in its own column so it can be shown and changed.
 
+A value derived from others inherits its partners' offsets through the
+derivation, sqrt(Σ (ν_i offset_i)²) (science, 2026-11-12). PCl5, derived from
+JANAF's PCl3 and JANAF's ΔrH, inherits JANAF's 0.38. A D0 value with its atoms
+recorded as partners inherits CODATA's offset for both atoms.
+
 **Caveat (science):** the calibration species are well studied, so an offset is a
 *lower bound* for the obscure species the library actually serves. It does not
 measure their reliability; the stated uncertainties and the spread rule do that.

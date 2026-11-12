@@ -239,6 +239,7 @@ class ReferenceResolver:
             "decision_reason": ref["decision_reason"],
             "unc_level": ref["unc_level"],
             "offset": ref["offset_kj"],
+            "offset_from": ref.get("offset_from"),
             "formula": ref.get("formula"),
         }
 

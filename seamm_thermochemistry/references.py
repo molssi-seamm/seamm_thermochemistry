@@ -898,6 +898,11 @@ class ReferenceLibrary:
             row["expanded_uncertainty"] = expanded_uncertainty(
                 row["uncertainty"], row["unc_level"], row["status"]
             )
+            row["offset_from"] = row["source_name"] if row["offset_kj"] else None
+            if row["offset_kj"] is None:
+                inherited = self.inherited_offset(row["id"])
+                if inherited is not None:
+                    row["offset_kj"], row["offset_from"] = inherited
             row["total_uncertainty"] = (
                 None
                 if row["expanded_uncertainty"] is None
@@ -905,6 +910,33 @@ class ReferenceLibrary:
             )
             result.append(row)
         return result
+
+    def inherited_offset(self, measurement_id):
+        """The offset a value derived from others inherits (science,
+        2026-11-12): the partners' source offsets propagated through the
+        derivation, sqrt(Σ (ν_i offset_i)²). Returns (offset, "from ...") or
+        None when there is no derivation or no partner source has an offset."""
+        db = self._connect()
+        d = db.execute(
+            "SELECT reaction FROM derivation WHERE measurement = ?", (measurement_id,)
+        ).fetchone()
+        if d is None:
+            return None
+        total = 0.0
+        names = []
+        for p in json.loads(d["reaction"]):
+            if p.get("target") or p.get("element"):
+                continue
+            try:
+                offset = self.source(p["source"])["offset_kj"]
+            except KeyError:
+                offset = None
+            if offset:
+                total += (p["coefficient"] * offset) ** 2
+                names.append(p["source"])
+        if not names:
+            return None
+        return math.sqrt(total), "inherited from " + ", ".join(sorted(set(names)))
 
     def apply_overrides(self):
         """Mark, for every species, which source's value wins by
@@ -973,7 +1005,9 @@ class ReferenceLibrary:
         citation=None,
         notes=None,
     ):
-        """Record how a derived value was derived.
+        """Record how a value was derived from others: every derived value
+        has one, and so may a value a source derived (e.g. ΔfH from a D0 and
+        the atoms), so that its offset is inherited and it can be checked.
 
         `reaction` is a list of dicts, one per species, each with its
         ``coefficient`` (products positive): the derived species has
@@ -981,9 +1015,7 @@ class ReferenceLibrary:
         ``multiplicity``) and the ``source`` its value comes from, or
         ``"element": True`` for an element in its reference state (ΔfH = 0).
         """
-        m = self._measurement(measurement_id)
-        if m["status"] != "derived":
-            raise ReferenceError(f"Measurement {measurement_id} is not a derived value")
+        self._measurement(measurement_id)
         targets = [p for p in reaction if p.get("target")]
         if len(targets) != 1:
             raise ReferenceError("A derivation needs exactly one target")
@@ -1018,8 +1050,8 @@ class ReferenceLibrary:
         return None
 
     def check(self):
-        """Check every derived value against its partners' current values,
-        and that every derived value has a derivation.
+        """Check every value with a derivation against its partners' current
+        values, and that every derived value has a derivation.
 
         Returns a list of problems (dicts with ``measurement``, ``smiles``
         and ``problem``); empty when all is well."""
@@ -1027,7 +1059,8 @@ class ReferenceLibrary:
         problems = []
         for m in db.execute(
             "SELECT m.*, sp.smiles FROM measurement m "
-            "JOIN species sp ON sp.id = m.species WHERE m.status = 'derived'"
+            "JOIN species sp ON sp.id = m.species WHERE m.status = 'derived' "
+            "OR m.id IN (SELECT measurement FROM derivation)"
         ):
             m = dict(m)
             d = db.execute(

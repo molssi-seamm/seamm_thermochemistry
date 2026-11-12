@@ -193,7 +193,7 @@ def import_curated(library, directory, *, files=None):
                     report.append((filename, smiles, "refused", str(e)))
                     continue
                 touched.add((species, source))
-                if status == "derived":
+                if status == "derived" or row.get("partners"):
                     derivation = _derivation(row)
                     if derivation is not None:
                         derivations.append((measurement, derivation, row))

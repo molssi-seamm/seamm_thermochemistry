@@ -635,3 +635,32 @@ def test_calibration_offsets(lib, tmp_path):
     assert lib.source("JANAF-1998")["offset_kj"] is None  # n = 1
     # calibration species are never references
     assert lib.species("CC") == []
+
+
+def test_derived_values_inherit_offsets(lib):
+    pcl5, m = _pcl5(lib, -376.08)
+    lib.set_offset("JANAF-1998", 0.38, 10, "1.228")
+    (ref,) = lib.references(pcl5)
+    assert ref["offset_kj"] == pytest.approx(0.38)
+    assert ref["offset_from"] == "inherited from JANAF-1998"
+    assert ref["total_uncertainty"] == pytest.approx((11.0**2 + 0.38**2) ** 0.5)
+    # a D0 value derived from two CODATA atoms inherits both
+    lib.set_offset("CODATA-1989", 2.39, 10, "1.228")
+    for smiles in ("[Na]", "[H]"):
+        sid = lib.add_species(smiles, multiplicity=2)
+        lib.add_measurement(sid, "CODATA-1989", dfh_298k=0.0, citation="c")
+        lib.choose(sid, "CODATA-1989")
+    nah = lib.add_species("[NaH]")
+    m = lib.add_measurement(nah, "D0", dfh_298k=138.59, uncertainty=1.39, citation="d")
+    lib.choose(nah, "D0")
+    lib.add_derivation(
+        m,
+        [
+            {"target": True, "coefficient": 1},
+            {"smiles": "[Na]", "source": "CODATA-1989", "coefficient": -1},
+            {"smiles": "[H]", "source": "CODATA-1989", "coefficient": -1},
+        ],
+        138.59,
+    )  # fmt: skip
+    (ref,) = lib.references(nah)
+    assert ref["offset_kj"] == pytest.approx(2.39 * 2**0.5)
