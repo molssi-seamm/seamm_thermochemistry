@@ -1,6 +1,16 @@
 =======
 History
 =======
+2026.11.12.2 -- The official reference library from Zenodo
+    * The installer installs and updates the official reference library,
+      ``references-official.db`` (Zenodo concept DOI 10.5281/zenodo.24175073),
+      beside the ATcT cache, as it does the official fragment store: a newer
+      published version replaces it whole, keeping a backup; an edited copy is kept
+      unless ``update --force``. ``check`` reports it.
+    * ``scripts/publish_references_to_zenodo.py`` (maintainers) publishes a library
+      built with ``seamm-thermochemistry-references``, stamping its DOI and version
+      into the file and writing a build report.
+
 2026.11.12.1 -- The supplementary reference library
     * A library of enthalpies of formation that ATcT lacks, ``references.db`` (local)
       and ``references-official.db`` (published), beside the ATcT cache. It keeps
