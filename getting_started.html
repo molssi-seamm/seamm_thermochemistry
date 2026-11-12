@@ -7,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.11.11.13 documentation</title>
+    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.11.12 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="_static/documentation_options.js?v=bea6b182"></script>
+    <script src="_static/documentation_options.js?v=b41936cd"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -55,7 +55,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.11.13" />
+  <meta name="docsearch:version" content="2026.11.12" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -654,6 +654,13 @@ all is replaced, with the old ones kept in <code class="docutils literal notrans
 scale factor is applied when the values are used (for example
 <code class="docutils literal notranslate"><span class="pre">seamm-thermochemistry-ladder</span> <span class="pre">build</span> <span class="pre">...</span> <span class="pre">--zpe-scale</span> <span class="pre">0.9863</span></code>), so changing a
 factor never needs a new harvest.</p>
+<p>An energy row also keeps the <em>parts</em> of its energy (the HF energy, the correlation
+energies, the triples, and so on) when the calculation reported them, in its
+<code class="docutils literal notranslate"><span class="pre">byproducts</span></code>. They come from an <code class="docutils literal notranslate"><span class="pre">energy</span> <span class="pre">parts#...</span></code> property of the same level,
+which the Thermochemistry step writes, and composite recipes that treat the parts
+separately use them. The parts are added to a stored row that has none only for the
+same calculation: the same key, and an energy that agrees within 1e-10 E_h.
+Otherwise the row is left as it is and the attempt is logged.</p>
 <p>In Python:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">seamm_thermochemistry</span><span class="w"> </span><span class="kn">import</span> <span class="n">FragmentStore</span>
 <span class="n">store</span> <span class="o">=</span> <span class="n">FragmentStore</span><span class="p">()</span>                 <span class="c1"># read-only, empty if no file</span>

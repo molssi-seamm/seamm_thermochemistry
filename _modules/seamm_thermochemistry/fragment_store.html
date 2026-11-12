@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.fragment_store &#8212; SEAMM thermochemistry Plug-in 2026.11.11.13 documentation</title>
+    <title>seamm_thermochemistry.fragment_store &#8212; SEAMM thermochemistry Plug-in 2026.11.12 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=bea6b182"></script>
+    <script src="../../_static/documentation_options.js?v=b41936cd"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.11.13" />
+  <meta name="docsearch:version" content="2026.11.12" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -1749,6 +1749,11 @@
             <span class="k">return</span> <span class="n">value</span>
 
         <span class="n">calculation</span> <span class="o">=</span> <span class="n">extra</span><span class="p">(</span><span class="s2">"calculation"</span><span class="p">)</span>
+        <span class="c1"># The parts of the energy (HF, correlation, ...) as the program reported</span>
+        <span class="c1"># them, kept with the energy row (its byproducts)</span>
+        <span class="n">byproducts</span> <span class="o">=</span> <span class="n">extra</span><span class="p">(</span><span class="s2">"energy parts"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">byproducts</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">byproducts</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">calc_geometry</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">calculation</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"geometry fingerprint"</span><span class="p">)</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">calculation</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span>
@@ -1838,6 +1843,7 @@
                 <span class="n">model_chemistry</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
                 <span class="n">program</span><span class="o">=</span><span class="n">program</span><span class="p">,</span>
                 <span class="n">version</span><span class="o">=</span><span class="n">version</span><span class="p">,</span>
+                <span class="n">byproducts</span><span class="o">=</span><span class="n">byproducts</span><span class="p">,</span>
                 <span class="n">job</span><span class="o">=</span><span class="n">job</span><span class="p">,</span>
                 <span class="n">configuration</span><span class="o">=</span><span class="n">configuration</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
                 <span class="n">source</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>

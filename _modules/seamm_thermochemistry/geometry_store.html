@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.geometry_store &#8212; SEAMM thermochemistry Plug-in 2026.11.11.13 documentation</title>
+    <title>seamm_thermochemistry.geometry_store &#8212; SEAMM thermochemistry Plug-in 2026.11.12 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=bea6b182"></script>
+    <script src="../../_static/documentation_options.js?v=b41936cd"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.11.13" />
+  <meta name="docsearch:version" content="2026.11.12" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -830,6 +830,11 @@
 
 
 
+<span class="c1">#: Parts are added to a stored row only when its energy agrees with the new one</span>
+<span class="c1">#: within 1e-10 E_h (in kJ/mol, the store's unit)</span>
+<span class="n">PARTS_TOLERANCE_KJ</span> <span class="o">=</span> <span class="mf">1e-10</span> <span class="o">*</span> <span class="mf">2625.4996394798254</span>
+
+
 <div class="viewcode-block" id="EnergyRecord">
 <a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.fragment_store.EnergyRecord">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">EnergyRecord</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
@@ -1179,7 +1184,11 @@
 <span class="w">        </span><span class="sd">"""Insert an energy row unless its key exists.</span>
 
 <span class="sd">        The row is linked to the geometry row with the same hash when there is</span>
-<span class="sd">        one. Returns ("inserted" | "duplicate" | "logged", row id).</span>
+<span class="sd">        one. A duplicate (the same key and energy within the tolerance) that</span>
+<span class="sd">        brings the energy's parts (``byproducts``) when the stored row has none</span>
+<span class="sd">        adds them to it: a calculation recomputed because its row lacked the</span>
+<span class="sd">        parts a recipe needs then need not be recomputed again. Returns</span>
+<span class="sd">        ("inserted" | "duplicate" | "parts added" | "logged", row id).</span>
 <span class="sd">        """</span>
         <span class="n">record</span> <span class="o">=</span> <span class="n">EnergyRecord</span><span class="p">(</span><span class="n">record</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"geometry"</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1189,7 +1198,52 @@
                 <span class="p">(</span><span class="n">record</span><span class="p">[</span><span class="s2">"geometry_hash"</span><span class="p">],),</span>
             <span class="p">)</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
             <span class="n">record</span><span class="p">[</span><span class="s2">"geometry"</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]</span> <span class="k">if</span> <span class="n">row</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_put</span><span class="p">(</span><span class="s2">"energy"</span><span class="p">,</span> <span class="n">_ENERGY_COLUMNS</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">_ENERGY_VALUES</span><span class="p">,</span> <span class="n">record</span><span class="p">)</span></div>
+        <span class="n">outcome</span><span class="p">,</span> <span class="n">row_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_put</span><span class="p">(</span>
+            <span class="s2">"energy"</span><span class="p">,</span> <span class="n">_ENERGY_COLUMNS</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">_ENERGY_VALUES</span><span class="p">,</span> <span class="n">record</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">outcome</span> <span class="o">==</span> <span class="s2">"duplicate"</span> <span class="ow">and</span> <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"byproducts"</span><span class="p">):</span>
+            <span class="n">db</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_writer</span><span class="p">()</span>
+            <span class="n">existing</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                <span class="s2">"SELECT byproducts, E FROM energy WHERE id = ?"</span><span class="p">,</span> <span class="p">(</span><span class="n">row_id</span><span class="p">,)</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">existing</span><span class="p">[</span><span class="s2">"byproducts"</span><span class="p">]</span> <span class="ow">in</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">""</span><span class="p">,</span> <span class="s2">"null"</span><span class="p">):</span>
+                <span class="c1"># Only for the same calculation: the key (geometry, settings</span>
+                <span class="c1"># fingerprint) matched, and the energy must agree to round-off</span>
+                <span class="n">difference</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">existing</span><span class="p">[</span><span class="s2">"E"</span><span class="p">])</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">record</span><span class="p">[</span><span class="s2">"E"</span><span class="p">]))</span>
+                <span class="k">if</span> <span class="n">difference</span> <span class="o">&gt;</span> <span class="n">PARTS_TOLERANCE_KJ</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_history</span><span class="p">(</span>
+                        <span class="n">db</span><span class="p">,</span>
+                        <span class="s2">"energy"</span><span class="p">,</span>
+                        <span class="n">row_id</span><span class="p">,</span>
+                        <span class="s2">"parts refused"</span><span class="p">,</span>
+                        <span class="p">{</span><span class="s2">"E"</span><span class="p">:</span> <span class="n">existing</span><span class="p">[</span><span class="s2">"E"</span><span class="p">]},</span>
+                        <span class="p">{</span><span class="s2">"E"</span><span class="p">:</span> <span class="n">record</span><span class="p">[</span><span class="s2">"E"</span><span class="p">],</span> <span class="s2">"job"</span><span class="p">:</span> <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"job"</span><span class="p">)},</span>
+                        <span class="n">difference</span><span class="o">=</span><span class="n">difference</span><span class="p">,</span>
+                        <span class="n">reason</span><span class="o">=</span><span class="s2">"the energy differs by more than 1e-10 E_h"</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">"Energy parts not added to row </span><span class="si">{</span><span class="n">row_id</span><span class="si">}</span><span class="s2">: its energy differs "</span>
+                        <span class="sa">f</span><span class="s2">"from the new one by </span><span class="si">{</span><span class="n">difference</span><span class="si">:</span><span class="s2">.2e</span><span class="si">}</span><span class="s2"> kJ/mol (more than "</span>
+                        <span class="s2">"1e-10 E_h); the row is left as it is."</span>
+                    <span class="p">)</span>
+                    <span class="k">return</span> <span class="s2">"duplicate"</span><span class="p">,</span> <span class="n">row_id</span>
+                <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                    <span class="s2">"UPDATE energy SET byproducts = ? WHERE id = ?"</span><span class="p">,</span>
+                    <span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">record</span><span class="p">[</span><span class="s2">"byproducts"</span><span class="p">]),</span> <span class="n">row_id</span><span class="p">),</span>
+                <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_history</span><span class="p">(</span>
+                    <span class="n">db</span><span class="p">,</span>
+                    <span class="s2">"energy"</span><span class="p">,</span>
+                    <span class="n">row_id</span><span class="p">,</span>
+                    <span class="s2">"parts added"</span><span class="p">,</span>
+                    <span class="p">{</span><span class="s2">"byproducts"</span><span class="p">:</span> <span class="kc">None</span><span class="p">},</span>
+                    <span class="p">{</span><span class="s2">"byproducts"</span><span class="p">:</span> <span class="n">record</span><span class="p">[</span><span class="s2">"byproducts"</span><span class="p">],</span> <span class="s2">"job"</span><span class="p">:</span> <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"job"</span><span class="p">)},</span>
+                    <span class="n">difference</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+                <span class="k">return</span> <span class="s2">"parts added"</span><span class="p">,</span> <span class="n">row_id</span>
+        <span class="k">return</span> <span class="n">outcome</span><span class="p">,</span> <span class="n">row_id</span></div>
 
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_supersede</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">columns</span><span class="p">,</span> <span class="n">nkey</span><span class="p">,</span> <span class="n">fields</span><span class="p">,</span> <span class="n">record</span><span class="p">,</span> <span class="n">reason</span><span class="p">,</span> <span class="n">force</span><span class="p">,</span> <span class="n">put</span><span class="p">):</span>
