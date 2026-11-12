@@ -253,7 +253,7 @@ def main(argv=None):
     args = parser.parse_args(argv)
     try:
         return args.func(args) or 0
-    except (R.ReferenceError, KeyError, FileNotFoundError) as e:
+    except (R.ReferenceError, KeyError, FileNotFoundError, ValueError) as e:
         print(f"Error: {e}", file=sys.stderr)
         return 2
 
