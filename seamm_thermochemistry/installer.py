@@ -48,6 +48,13 @@ class Installer(seamm_installer.InstallerBase):
     fragment_store_concept_id = 24139305
     fragment_store_filename = "fragments-official.db"
 
+    # The official reference library of the CBH thermochemistry (enthalpies of
+    # formation ATcT lacks): Zenodo record 24175074 (DOI 10.5281/zenodo.24175074),
+    # concept 24175073, whose newest version is installed and replaced whole on
+    # update (never the installation's own references.db).
+    reference_library_concept_id = 24175073
+    reference_library_filename = "references-official.db"
+
     def __init__(self, logger=logger):
         super().__init__(logger=logger)
         logger.debug("Initializing the seamm_thermochemistry installer.")
@@ -104,11 +111,17 @@ class Installer(seamm_installer.InstallerBase):
         from .atct import ATcT
 
         official = self._official_path()
+        library = self._references_path()
         versions = ATcT.available(self._atct_base())
         if official.exists():
             print(
                 f"    The official fragment store, version "
                 f"{self._official_version(official)}, is at {official}."
+            )
+        if library.exists():
+            print(
+                f"    The official reference library, version "
+                f"{self._references_version(library)}, is at {library}."
             )
         if versions:
             print(f"    ATcT versions cached: {', '.join(versions)}.")
@@ -116,6 +129,7 @@ class Installer(seamm_installer.InstallerBase):
             what
             for what, ok in (
                 ("the official fragment store", official.exists()),
+                ("the official reference library", library.exists()),
                 ("the ATcT tables", bool(versions)),
             )
             if not ok
@@ -123,13 +137,15 @@ class Installer(seamm_installer.InstallerBase):
         if missing and (
             self.options.yes
             or self.ask_yes_no(
-                f"{' and '.join(missing).capitalize()} are not installed. Download "
+                f"{', '.join(missing).capitalize()} are not installed. Download "
                 "them now?",
                 default="yes",
             )
         ):
             if not official.exists():
                 self.install_official_store()
+            if not library.exists():
+                self.install_reference_library()
             if not versions:
                 self.install_atct()
         return True
@@ -316,37 +332,58 @@ class Installer(seamm_installer.InstallerBase):
         Returns "installed", "updated", "up to date", "kept" or "failed"; never
         raises.
         """
-        path = self._official_path()
-        filename = self.fragment_store_filename
+        return self._install_published(
+            "the official fragment store",
+            self._official_record,
+            self._official_path(),
+            self.fragment_store_filename,
+            "fragment-store-md5",
+            self._official_version,
+            force,
+        )
+
+    def install_reference_library(self, force=False):
+        """Install or update the official reference library from Zenodo, as the
+        official fragment store. Returns as `install_official_store`."""
+        return self._install_published(
+            "the official reference library",
+            self._references_record,
+            self._references_path(),
+            self.reference_library_filename,
+            "reference-library-md5",
+            self._references_version,
+            force,
+        )
+
+    def _install_published(self, what, get_record, path, filename, key, version, force):
+        """Install or update one published file: see `install_official_store`."""
         try:
-            record = self._official_record()
+            record = get_record()
             latest = self._file_md5(record, filename)
             if path.exists():
                 local = self._md5(path)
                 if latest is not None and local == latest:
-                    self._record_official(path)
+                    self._record_md5(key, path)
                     print(
-                        f"The official fragment store at {path} is up to date "
-                        f"(version {self._official_version(path)})."
+                        f"{what.capitalize()} at {path} is up to date (version "
+                        f"{version(path)})."
                     )
                     return "up to date"
-                recorded = self.configuration.get_values(self.section).get(
-                    "fragment-store-md5", ""
-                )
+                recorded = self.configuration.get_values(self.section).get(key, "")
                 published = local == recorded or local in self._published_file_md5s(
                     record, filename
                 )
                 if not published and not force:
                     print(
-                        f"The official fragment store at {path} is not a published "
-                        "version, so it was not replaced. 'update --force' replaces "
-                        "it, keeping a backup."
+                        f"{what.capitalize()} at {path} is not a published version, "
+                        "so it was not replaced. 'update --force' replaces it, keeping "
+                        "a backup."
                     )
                     return "kept"
             path.parent.mkdir(parents=True, exist_ok=True)
             partial = path.with_name(path.name + ".download")
             partial.unlink(missing_ok=True)
-            print("Getting the official thermochemistry fragment store from Zenodo...")
+            print(f"Getting {what} from Zenodo...")
             record.download_file(filename, partial)
             if latest is not None and self._md5(partial) != latest:
                 partial.unlink(missing_ok=True)
@@ -362,23 +399,45 @@ class Installer(seamm_installer.InstallerBase):
                 path.replace(path.with_name(f"{path.name}.bak-{stamp}"))
                 outcome = "updated"
             partial.replace(path)
-            self._record_official(path)
-            print(
-                f"Installed the official fragment store, version "
-                f"{self._official_version(path)}, to {path}."
-            )
+            self._record_md5(key, path)
+            print(f"Installed {what}, version {version(path)}, to {path}.")
             return outcome
         except Exception as e:
-            print(f"Could not install the official fragment store: {e}")
+            print(f"Could not install {what}: {e}")
             return "failed"
 
     def _record_official(self, path):
+        self._record_md5("fragment-store-md5", path)
+
+    def _record_md5(self, key, path):
         if not self.configuration.section_exists(self.section):
             self.configuration.add_section(self.section)
-        self.configuration.set_value(
-            self.section, "fragment-store-md5", self._md5(path)
-        )
+        self.configuration.set_value(self.section, key, self._md5(path))
         self.configuration.save()
+
+    # ---- the official reference library ----------------------------------------
+
+    def _references_path(self):
+        """The official reference library: references-official.db beside the
+        reference database (Parameters/thermochemistry/), the parent of the ATcT
+        directory, where the Thermochemistry step reads it."""
+        return self._configured_database_path().parent / self.reference_library_filename
+
+    def _references_record(self):
+        return Zenodo().get_latest_public_record(self.reference_library_concept_id)
+
+    def _references_version(self, path):
+        """The version recorded in a reference library, or None."""
+        try:
+            from .references import ReferenceLibrary
+
+            library = ReferenceLibrary(path, immutable=True)
+            try:
+                return library.version
+            finally:
+                library.close()
+        except Exception:
+            return None
 
     def install_atct(self, newest=False):
         """Download ATcT when no version is cached; with `newest`, also add the
@@ -423,8 +482,10 @@ class Installer(seamm_installer.InstallerBase):
         return version
 
     def _install_extras(self, force=False):
-        """The official fragment store and ATcT, after the reference database."""
+        """The official fragment store, the official reference library and ATcT,
+        after the reference database."""
         self.install_official_store(force=force)
+        self.install_reference_library(force=force)
         self.install_atct()
 
     # ---- the installer's commands ----------------------------------------------
@@ -455,9 +516,10 @@ class Installer(seamm_installer.InstallerBase):
         has been edited, e.g. with curated reference energies, is kept as it is and
         reported; ``update --force`` replaces it, keeping a backup.
 
-        The official fragment store is brought to its newest published version
-        the same way, and the newest ATcT version is downloaded if it is not
-        cached yet (older versions are kept).
+        The official fragment store and the official reference library are
+        brought to their newest published versions the same way, and the newest
+        ATcT version is downloaded if it is not cached yet (older versions are
+        kept).
         """
         if self._shared_report():
             return
@@ -536,9 +598,22 @@ class Installer(seamm_installer.InstallerBase):
                     "installer installed, so it was left in place."
                 )
 
+        library = self._references_path()
+        if library.exists():
+            recorded = data.get("reference-library-md5", "")
+            if force or self._md5(library) == recorded:
+                print(f"Deleting the official reference library at {library}.")
+                library.unlink()
+            else:
+                print(
+                    f"The official reference library at {library} is not the copy "
+                    "this installer installed, so it was left in place."
+                )
+
         self.configuration.set_value(self.section, "database-path", "")
         self.configuration.set_value(self.section, "database-md5", "")
         self.configuration.set_value(self.section, "fragment-store-md5", "")
+        self.configuration.set_value(self.section, "reference-library-md5", "")
         self.configuration.save()
         print("Done!")
 

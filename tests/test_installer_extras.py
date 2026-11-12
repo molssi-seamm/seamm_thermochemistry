@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-"""The installer's official fragment store and ATcT (P5d): the store is installed
+"""The installer's official fragment store, official reference library and ATcT
+(P5d, R3): the store is installed
 from its Zenodo concept, verified, replaced whole by a newer published version
 and kept when edited; ATcT's newest version is fetched when not cached. Zenodo
 and ATcT are never contacted: the records and downloads are stand-ins.
@@ -158,6 +159,46 @@ def test_no_network_is_reported_not_raised(inst, monkeypatch, capsys):
     monkeypatch.setattr(installer, "_official_record", offline)
     assert installer.install_official_store() == "failed"
     assert "no route" in capsys.readouterr().out
+
+
+def reference_library(path, version):
+    """A real (tiny) official reference library file, returned as bytes."""
+    pytest.importorskip("rdkit")
+    from seamm_thermochemistry.references import ReferenceLibrary
+
+    library = ReferenceLibrary(path, create=True, layer="official")
+    library.set_meta("version", version)
+    library.close()
+    return Path(path).read_bytes()
+
+
+def test_reference_library_install_update_and_kept(inst, tmp_path, monkeypatch):
+    """The official reference library is installed beside the ATcT directory,
+    where the Thermochemistry step reads it, replaced by a newer published
+    version with a backup, and kept when it is not a published version."""
+    installer, params = inst
+    v1 = reference_library(tmp_path / "r1.db", "2026.11.12")
+    v2 = reference_library(tmp_path / "r2.db", "2026.12.1")
+    monkeypatch.setattr(
+        installer, "_published_file_md5s", lambda r, f: {md5(v1), md5(v2)}
+    )
+    name = "references-official.db"
+    monkeypatch.setattr(installer, "_references_record", lambda: Record(v1, name))
+    assert installer.install_reference_library() == "installed"
+    path = params / name
+    assert path.parent == installer._atct_base().parent
+    assert installer._references_version(path) == "2026.11.12"
+    assert installer.configuration.get_values("thermochemistry")[
+        "reference-library-md5"
+    ] == md5(v1)
+    assert installer.install_reference_library() == "up to date"
+    monkeypatch.setattr(installer, "_references_record", lambda: Record(v2, name))
+    assert installer.install_reference_library() == "updated"
+    assert installer._references_version(path) == "2026.12.1"
+    assert len(list(params.glob(name + ".bak-*"))) == 1
+    path.write_bytes(b"edited by hand")
+    assert installer.install_reference_library() == "kept"
+    assert installer.install_reference_library(force=True) == "updated"
 
 
 FIXTURE = Path(__file__).parent / "data" / "atct_fixture.json"
