@@ -10,6 +10,7 @@ from the command line::
     seamm-thermochemistry-references check [--library FILE]
     seamm-thermochemistry-references accept MEASUREMENT --by WHO --reason TEXT
                                       [--library FILE]
+    seamm-thermochemistry-references accept-file ACCEPTS.csv --library FILE
     seamm-thermochemistry-references add-curated DIR --library FILE
     seamm-thermochemistry-references webbook fetch SPECIES.csv --cache DIR
     seamm-thermochemistry-references webbook import --cache DIR --library FILE
@@ -104,6 +105,13 @@ def cmd_accept(args):
     library = _library(args.library, write=True)
     ref = library.accept(args.measurement, by=args.by, reason=args.reason)
     print(f"Accepted measurement {args.measurement} (reference {ref}).")
+    return 0
+
+
+def cmd_accept_file(args):
+    library = R.ReferenceLibrary(args.library, create=True)
+    refs = library.accept_file(args.file)
+    print(f"Applied {len(refs)} accepts.")
     return 0
 
 
@@ -211,6 +219,11 @@ def main(argv=None):
     p.add_argument("--reason", required=True)
     p.add_argument("--library")
     p.set_defaults(func=cmd_accept)
+
+    p = sub.add_parser("accept-file", help="Apply accepts kept in a CSV (maintainers).")
+    p.add_argument("file")
+    p.add_argument("--library", required=True)
+    p.set_defaults(func=cmd_accept_file)
 
     p = sub.add_parser("add-curated", help="Read curated CSVs (maintainers).")
     p.add_argument("directory")

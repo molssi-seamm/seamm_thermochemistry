@@ -309,6 +309,8 @@ def select_measurement(
         rule = "most recent"
     if len(usable) == 1:
         rule = "single value"
+    if chosen.get("dfh_298k") is None:
+        rule += "; 0 K only: used only when no source has a 298.15 K value"
 
     spread = max(abs(value(m) - value(chosen)) for m in usable)
     flag = None
@@ -757,6 +759,42 @@ class ReferenceLibrary:
         )
         db.commit()
         return ref_id
+
+    def accept_value(self, smiles, charge, source, dfh_298k, *, by, reason):
+        """Accept a source's value for a species, found by its value at
+        298.15 K (within 0.01 kJ/mol), so that an accept can be kept in a
+        file and reapplied whenever the library is rebuilt."""
+        matches = []
+        for row in self.species(smiles, charge):
+            for m in self.measurements(row["id"], source):
+                if m["dfh_298k"] is not None and abs(m["dfh_298k"] - dfh_298k) <= 0.01:
+                    matches.append(m)
+        if len(matches) != 1:
+            raise ReferenceError(
+                f"{smiles} ({source}): {len(matches)} values of {dfh_298k} kJ/mol "
+                "to accept, not one"
+            )
+        return self.accept(matches[0]["id"], by=by, reason=reason)
+
+    def accept_file(self, path):
+        """Apply the accepts in a CSV (smiles, charge, source, dfh_298k, by,
+        reason). Returns the reference ids."""
+        import csv
+
+        result = []
+        with open(path, newline="", encoding="utf-8") as fd:
+            for row in csv.DictReader(fd):
+                result.append(
+                    self.accept_value(
+                        row["smiles"],
+                        int(row.get("charge") or 0),
+                        row["source"],
+                        float(row["dfh_298k"]),
+                        by=row["by"],
+                        reason=row["reason"],
+                    )
+                )
+        return result
 
     def references(self, species_id, *, include_held=False):
         """The chosen values of every source for a species, best rank first,

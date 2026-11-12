@@ -563,3 +563,33 @@ def test_offsets_need_five_shared_species(lib):
     assert result["CODATA-1989"][1] == 1
     assert lib.source("CODATA-1989")["offset_kj"] is None  # too few
     assert lib.source("CODATA-1989")["offset_atct"] == "test"
+
+
+def test_accept_file_and_0k_rule(lib, tmp_path):
+    sid = lib.add_species("Cc1ccon1", formula="C4H5NO")
+    _webbook(lib, sid, 35.6, 0.67, 1978, cite="Hamilton et al. 1978")
+    _webbook(lib, sid, 20.0, 3.0, 1940, cite="Tappi 1940")
+    lib.choose(sid, "WebBook-SRD69")
+    assert lib.best(sid) is None  # held: 5x the combined uncertainty
+    accepts = tmp_path / "accepts.csv"
+    accepts.write_text(
+        "smiles,charge,source,dfh_298k,by,reason\n"
+        'Cc1ccon1,0,WebBook-SRD69,35.6,science,"modern calorimetry preferred"\n'
+    )
+    lib.accept_file(accepts)
+    assert lib.best(sid)["dfh_298k"] == 35.6
+    assert lib.best(sid)["accept_reason"] == "modern calorimetry preferred"
+    bad = tmp_path / "bad.csv"
+    bad.write_text(
+        "smiles,charge,source,dfh_298k,by,reason\nCc1ccon1,0,WebBook-SRD69,1.0,x,y\n"
+    )
+    with pytest.raises(R.ReferenceError, match="not one"):
+        lib.accept_file(bad)
+
+    aid = lib.add_species("[AlH3]", formula="AlH3")
+    lib.add_measurement(
+        aid, "W4-17", dfh_0k=135.12, uncertainty=4.47, unc_level="mixed",
+        status="computed", citation="Karton et al. 2017",
+    )  # fmt: skip
+    lib.choose(aid, "W4-17")
+    assert "0 K only" in lib.best(aid)["rule"]
