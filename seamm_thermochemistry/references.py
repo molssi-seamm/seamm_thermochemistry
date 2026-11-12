@@ -81,6 +81,9 @@ CREATE TABLE IF NOT EXISTS source (
     offset_kj REAL,
     offset_n INTEGER,
     offset_atct TEXT,
+    offset_full_kj REAL,
+    offset_full_n INTEGER,
+    offset_excluded TEXT,
     notes TEXT
 );
 CREATE TABLE IF NOT EXISTS species (
@@ -370,6 +373,9 @@ class ReferenceLibrary:
         self._create = create
         self._immutable = immutable and not create
         self._new_layer = layer
+        #: optional callable(smiles, charge, multiplicity) -> bool: whether
+        #: ATcT has a species, so a derivation partner it has adds no offset
+        self.in_atct = None
         if create:
             self.path.parent.mkdir(parents=True, exist_ok=True)
             self._connect()
@@ -500,17 +506,22 @@ class ReferenceLibrary:
         db = self._connect()
         return [dict(r) for r in db.execute("SELECT * FROM source ORDER BY rank")]
 
-    def set_offset(self, source, offset_kj, n, atct_version):
+    def set_offset(
+        self, source, offset_kj, n, atct_version, *, full=None, excluded=None
+    ):
         """Record a source's offset against ATcT: the rms of (source - ATcT)
         over the `n` species both have. Fewer than OFFSET_MIN_SHARED species
-        record no offset (None), only the count."""
+        record no offset (None), only the count. `full` is (rms, n) over every
+        shared species when some were `excluded` (a recorded reason)."""
         db = self._writer()
         sid = self.source(source)["id"]
         value = offset_kj if n >= OFFSET_MIN_SHARED else None
+        full_kj, full_n = full if full is not None else (offset_kj, n)
         db.execute(
-            "UPDATE source SET offset_kj = ?, offset_n = ?, offset_atct = ? "
+            "UPDATE source SET offset_kj = ?, offset_n = ?, offset_atct = ?, "
+            "offset_full_kj = ?, offset_full_n = ?, offset_excluded = ? "
             "WHERE id = ?",
-            (value, n, atct_version, sid),
+            (value, n, atct_version, full_kj, full_n, excluded, sid),
         )
         db.commit()
 
@@ -914,7 +925,9 @@ class ReferenceLibrary:
     def inherited_offset(self, measurement_id):
         """The offset a value derived from others inherits (science,
         2026-11-12): the partners' source offsets propagated through the
-        derivation, sqrt(Σ (ν_i offset_i)²). Returns (offset, "from ...") or
+        derivation, sqrt(Σ (ν_i offset_i)²). A partner ATcT has (see
+        :attr:`in_atct`) is resolved from ATcT and adds nothing. Returns
+        (offset, "from ...") or
         None when there is no derivation or no partner source has an offset."""
         db = self._connect()
         d = db.execute(
@@ -927,6 +940,10 @@ class ReferenceLibrary:
         for p in json.loads(d["reaction"]):
             if p.get("target") or p.get("element"):
                 continue
+            if self.in_atct is not None and self.in_atct(
+                p["smiles"], p.get("charge", 0), p.get("multiplicity")
+            ):
+                continue  # resolved from ATcT: no offset
             try:
                 offset = self.source(p["source"])["offset_kj"]
             except KeyError:
@@ -1140,6 +1157,11 @@ class LayeredReferences:
         if official.exists():
             self.layers.append(("official", ReferenceLibrary(official, immutable=True)))
 
+    def set_in_atct(self, function):
+        """Tell every layer how to know whether ATcT has a species."""
+        for _, library in self.layers:
+            library.in_atct = function
+
     @property
     def versions(self):
         """{layer: (version, path)} of the libraries read."""
@@ -1178,7 +1200,7 @@ class LayeredReferences:
             library.close()
 
 
-def compute_offsets(library, atct=None):
+def compute_offsets(library, atct=None, *, exclude=None):
     """Measure each source's offset against ATcT and record it.
 
     The differences source - ATcT come from two places: the library's own
@@ -1193,7 +1215,11 @@ def compute_offsets(library, atct=None):
     It is not a measure of their reliability; the stated uncertainties and
     the spread rule are.
 
-    Returns {source: (rms, n, [(smiles, diff)])}.
+    `exclude` is {source: (set of SMILES, reason)}: species left out of the
+    offset for a recorded reason (e.g. CODATA key values known to be
+    superseded); the offset over every species is kept beside it.
+
+    Returns {source: (rms, n, [(smiles, diff)])}, over the species used.
     """
     from .atct import ATcTError
 
@@ -1236,8 +1262,35 @@ def compute_offsets(library, atct=None):
                 continue
             versions.add(row["atct_version"])
             diffs.append((row["smiles"], row["dfh_298k"] - row["atct_298k"]))
+
+        def rms_of(values):
+            return (
+                math.sqrt(sum(d * d for _, d in values) / len(values))
+                if values
+                else None
+            )
+
+        full = (rms_of(diffs), len(diffs))
+        excluded = None
+        if exclude and source["name"] in exclude:
+            from .atct import canonical_smiles
+
+            smiles_set, reason = exclude[source["name"]]
+            drop = {canonical_smiles(x) for x in smiles_set}
+            kept = [(x, d) for x, d in diffs if canonical_smiles(x) not in drop]
+            if len(kept) != len(diffs):
+                names = [x for x, _ in diffs if canonical_smiles(x) in drop]
+                excluded = f"{reason} ({', '.join(names)})"
+            diffs = kept
         n = len(diffs)
-        rms = math.sqrt(sum(d * d for _, d in diffs) / n) if n else None
-        library.set_offset(source["name"], rms, n, ", ".join(sorted(versions)))
+        rms = rms_of(diffs)
+        library.set_offset(
+            source["name"],
+            rms,
+            n,
+            ", ".join(sorted(versions)),
+            full=full if excluded else None,
+            excluded=excluded,
+        )
         result[source["name"]] = (rms, n, diffs)
     return result

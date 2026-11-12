@@ -145,6 +145,8 @@ class ReferenceResolver:
             self.layers = layers if layers is not None else LayeredReferences()
         self._atct_elements = {}
         self.notes = []
+        if self.layers is not None:
+            self.layers.set_in_atct(self._in_atct)
 
     # -- helpers --------------------------------------------------------------
 
@@ -158,6 +160,13 @@ class ReferenceResolver:
     def atct_lookup(self, smiles):
         charge, mult = self._charge_mult(smiles)
         return self.atct.lookup(smiles, charge=charge, multiplicity=mult)
+
+    def _in_atct(self, smiles, charge=0, multiplicity=None):
+        try:
+            self.atct.lookup(smiles, charge=charge, multiplicity=multiplicity)
+            return True
+        except (MissingEntry, AmbiguousEntry):
+            return False
 
     def atct_has_element(self, symbol):
         """Whether ATcT has the element's gas-phase atom."""

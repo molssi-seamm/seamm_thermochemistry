@@ -161,8 +161,10 @@ Offsets with ATcT 1.228:
 - JANAF (printed): n = 10, rms 0.38 kJ/mol;
 - WebBook: n = 9, rms 1.16 kJ/mol. The largest difference is methyl acetate,
   +2.98, from a value with no stated uncertainty;
-- CODATA: n = 10 atoms from the library itself, rms 2.39 kJ/mol, driven by B and
-  Si, whose atoms ATcT has revised;
+- CODATA: n = 8 atoms from the library itself, rms 0.69 kJ/mol. B and Si are
+  excluded, as a recorded exclusion ("CODATA key value known superseded: B, Si";
+  ``offsets --exclude``), since ATcT has revised both. Over all 10 atoms it is
+  2.39, which is kept beside it;
 - D0, W4-17 and the derived values: under 5 shared species, so no offset.
 
 Each offset is added in quadrature to the source's 95 % uncertainties, and is kept
@@ -171,7 +173,9 @@ in its own column so it can be shown and changed.
 A value derived from others inherits its partners' offsets through the
 derivation, sqrt(Σ (ν_i offset_i)²) (science, 2026-11-12). PCl5, derived from
 JANAF's PCl3 and JANAF's ΔrH, inherits JANAF's 0.38. A D0 value with its atoms
-recorded as partners inherits CODATA's offset for both atoms.
+recorded as partners inherits CODATA's offset for the metal atom only. Partners
+resolve as the step would: the H atom comes from ATcT and adds nothing. NaH:
+138.59 ± 1.55 (95 %, with 0.69 inherited); KH: 132.54 ± 1.06.
 
 **Caveat (science):** the calibration species are well studied, so an offset is a
 *lower bound* for the obscure species the library actually serves. It does not

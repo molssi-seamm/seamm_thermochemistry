@@ -16,6 +16,7 @@ from the command line::
     seamm-thermochemistry-references webbook import --cache DIR --library FILE
     seamm-thermochemistry-references offsets --library FILE [--atct-version V]
                                       [--calibration FILE]
+                                      [--exclude SOURCE:SMILES,...:REASON]
 
 ``add-curated`` (maintainers) reads hand-curated CSVs (printed JANAF, CODATA,
 D0, W4-17, derived values) into a library file being built for publication;
@@ -178,7 +179,11 @@ def cmd_offsets(args):
         n = library.add_calibration(args.calibration)
         print(f"Read {n} calibration values from {args.calibration}.")
     atct = ATcT(version=args.atct_version, base=args.atct_base)
-    result = R.compute_offsets(library, atct)
+    exclude = {}
+    for item in args.exclude or []:
+        source, smiles, reason = item.split(":", 2)
+        exclude[source] = (set(smiles.split(",")), reason)
+    result = R.compute_offsets(library, atct, exclude=exclude)
     print(
         f"Offsets against ATcT ver. {atct.version} (rms of source - ATcT); a lower "
         "bound for the species the library serves:"
@@ -190,6 +195,12 @@ def cmd_offsets(args):
             else f"not used (< {R.OFFSET_MIN_SHARED})"
         )
         print(f"  {name:<16} n = {n:>3}  rms = {_fmt(rms)} kJ/mol  {used}")
+        source = library.source(name)
+        if source["offset_excluded"]:
+            print(
+                f"      excluding {source['offset_excluded']}; over all "
+                f"{source['offset_full_n']}: {_fmt(source['offset_full_kj'])} kJ/mol"
+            )
         if args.verbose:
             for smiles, d in diffs:
                 print(f"      {smiles:<28} {d:+8.2f}")
@@ -255,6 +266,11 @@ def main(argv=None):
     p.add_argument("--atct-version")
     p.add_argument("--atct-base")
     p.add_argument("--calibration", help="CSV of calibration values")
+    p.add_argument(
+        "--exclude",
+        action="append",
+        help="SOURCE:SMILES[,SMILES]:REASON -- leave species out of an offset",
+    )
     p.add_argument("-v", "--verbose", action="store_true")
     p.set_defaults(func=cmd_offsets)
 

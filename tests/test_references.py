@@ -664,3 +664,48 @@ def test_derived_values_inherit_offsets(lib):
     )  # fmt: skip
     (ref,) = lib.references(nah)
     assert ref["offset_kj"] == pytest.approx(2.39 * 2**0.5)
+
+
+def test_offset_exclusions_and_atct_partners(lib):
+    lib.add_source("D0x", "measured", 31)
+    values = {"[H]": 0.0, "[C]": -0.18, "[N]": 0.16, "[O]": -0.05, "[F]": -0.01}
+    values.update({"[Cl]": 0.0, "[S]": -1.93, "[B]": -5.36, "[Si]": -4.96})
+    lines = [
+        "smiles,source,dfH298_kJmol,ATcT_version,ATcT_id,ATcT_dfH298_kJmol,citation"
+    ]
+    for smiles, d in values.items():
+        lines.append(f"{smiles},CODATA-1989,{100 + d},1.228,x,100,c")
+    import pathlib
+    import tempfile
+
+    path = pathlib.Path(tempfile.mkdtemp()) / "cal.csv"
+    path.write_text("\n".join(lines) + "\n")
+    lib.add_calibration(path)
+    reason = "CODATA key value known superseded: B, Si"
+    R.compute_offsets(lib, exclude={"CODATA-1989": ({"[B]", "[Si]"}, reason)})
+    src = lib.source("CODATA-1989")
+    assert src["offset_n"] == 7 and src["offset_full_n"] == 9
+    assert src["offset_kj"] == pytest.approx(0.736, abs=0.001)
+    assert src["offset_full_kj"] > 2.5
+    assert reason in src["offset_excluded"] and "[B]" in src["offset_excluded"]
+
+    # NaH from D0: partners Na and H (CODATA); ATcT has H, so only Na counts
+    for smiles in ("[Na]", "[H]"):
+        sid = lib.add_species(smiles, multiplicity=2)
+        lib.add_measurement(sid, "CODATA-1989", dfh_298k=0.0, citation="c")
+        lib.choose(sid, "CODATA-1989")
+    nah = lib.add_species("[NaH]")
+    m = lib.add_measurement(nah, "D0x", dfh_298k=138.59, uncertainty=1.39, citation="d")
+    lib.choose(nah, "D0x")
+    lib.add_derivation(
+        m,
+        [
+            {"target": True, "coefficient": 1},
+            {"smiles": "[Na]", "source": "CODATA-1989", "coefficient": -1},
+            {"smiles": "[H]", "source": "CODATA-1989", "coefficient": -1},
+        ],
+        138.59,
+    )
+    lib.in_atct = lambda smiles, charge=0, multiplicity=None: smiles == "[H]"
+    (ref,) = lib.references(nah)
+    assert ref["offset_kj"] == pytest.approx(src["offset_kj"])
