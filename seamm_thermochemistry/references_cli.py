@@ -10,6 +10,11 @@ from the command line::
     seamm-thermochemistry-references check [--library FILE]
     seamm-thermochemistry-references accept MEASUREMENT --by WHO --reason TEXT
                                       [--library FILE]
+    seamm-thermochemistry-references add-curated DIR --library FILE
+
+``add-curated`` (maintainers) reads hand-curated CSVs (printed JANAF, CODATA,
+D0, W4-17, derived values) into a library file being built for publication;
+it always names its file.
 
 ``--library`` is one library file, by default the local layer
 (``references.db``); ``show`` reads both layers, local and official
@@ -96,6 +101,24 @@ def cmd_accept(args):
     return 0
 
 
+def cmd_add_curated(args):
+    from .curated import import_curated
+
+    library = R.ReferenceLibrary(args.library, create=True, layer=args.layer)
+    report, problems = import_curated(library, args.directory)
+    counts = {}
+    for filename, smiles, outcome, detail in report:
+        counts[outcome] = counts.get(outcome, 0) + 1
+        if outcome != "added":
+            print(f"{outcome:>8}  {filename}: {smiles}  {detail}")
+    print(", ".join(f"{n} {k}" for k, n in sorted(counts.items())))
+    for p in problems:
+        print(
+            f"PROBLEM  {p['smiles']} (measurement {p['measurement']}): {p['problem']}"
+        )
+    return 1 if problems else 0
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(
         prog="seamm-thermochemistry-references",
@@ -129,6 +152,12 @@ def main(argv=None):
     p.add_argument("--reason", required=True)
     p.add_argument("--library")
     p.set_defaults(func=cmd_accept)
+
+    p = sub.add_parser("add-curated", help="Read curated CSVs (maintainers).")
+    p.add_argument("directory")
+    p.add_argument("--library", required=True)
+    p.add_argument("--layer", default="official", choices=("official", "local"))
+    p.set_defaults(func=cmd_add_curated)
 
     args = parser.parse_args(argv)
     try:

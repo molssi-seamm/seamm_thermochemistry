@@ -264,7 +264,8 @@ def select_measurement(
 ):
     """Choose one value among a source's measurements of one species.
 
-    `measurements` are dicts with at least ``dfh_298k``, ``uncertainty``,
+    `measurements` are dicts with at least ``dfh_298k`` (or ``dfh_0k`` when
+    that is all a source gives), ``uncertainty``,
     ``status``, ``year`` and ``id``. The rule (thermo's pilot, science
     2026-11-12): a review value; else the most recent with a stated
     uncertainty (ties to the smaller uncertainty); else the most recent.
@@ -278,10 +279,12 @@ def select_measurement(
     Returns (chosen, rule, spread, flag, state), or None if nothing can be
     chosen. `state` is "chosen" or "held".
     """
+
+    def value(m):
+        return m["dfh_298k"] if m.get("dfh_298k") is not None else m.get("dfh_0k")
+
     usable = [
-        m
-        for m in measurements
-        if m.get("dfh_298k") is not None and m.get("status") in choosable
+        m for m in measurements if value(m) is not None and m.get("status") in choosable
     ]
     if not usable:
         return None
@@ -303,7 +306,7 @@ def select_measurement(
     if len(usable) == 1:
         rule = "single value"
 
-    spread = max(abs(m["dfh_298k"] - chosen["dfh_298k"]) for m in usable)
+    spread = max(abs(value(m) - value(chosen)) for m in usable)
     flag = None
     state = "chosen"
     worst = 0.0
@@ -315,12 +318,12 @@ def select_measurement(
             combined = math.hypot(chosen["uncertainty"], m["uncertainty"])
             if combined <= 0:
                 continue
-            ratio = abs(m["dfh_298k"] - chosen["dfh_298k"]) / combined
+            ratio = abs(value(m) - value(chosen)) / combined
             if ratio > worst:
                 worst, outlier = ratio, m
     if worst > 1.0:
         flag = (
-            f"spread: {outlier['dfh_298k']:.2f} "
+            f"spread: {value(outlier):.2f} "
             f"({outlier.get('citation') or 'measurement ' + str(outlier['id'])}) "
             f"differs by {worst:.1f}x the combined uncertainties"
         )
@@ -700,7 +703,7 @@ class ReferenceLibrary:
         :func:`select_measurement`, and record it. Returns the reference id,
         or None if nothing can be chosen."""
         choosable = ("measured", "review", "derived", "user")
-        if self.source(source)["kind"] == "computed":
+        if self.source(source)["kind"] in ("computed", "literature"):
             choosable += ("computed",)
         result = select_measurement(self.measurements(species_id, source), choosable)
         if result is None:
@@ -822,10 +825,14 @@ class ReferenceLibrary:
 
     def best(self, species_id):
         """The value to use for a species: the best-ranked chosen value,
-        unless a later source overrides it. None if there is none."""
+        unless a later source overrides it. A value at 0 K only (W4-17) is
+        used only when no source gives one at 298.15 K. None if there is
+        none."""
         refs = self.references(species_id)
         if not refs:
             return None
+        at_298 = [r for r in refs if r["dfh_298k"] is not None]
+        refs = at_298 or refs
         by_id = {r["reference_id"]: r for r in refs}
         best = refs[0]
         while True:

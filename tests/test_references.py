@@ -330,3 +330,63 @@ def test_cli(lib, capsys):
     )
     out = capsys.readouterr().out
     assert "Every derived value agrees" in out and "-376.08" in out
+
+
+def test_a_0k_only_value_is_used_only_without_a_298k_one(lib):
+    sid = lib.add_species("c1ccsc1", formula="C4H4S")
+    lib.add_measurement(
+        sid,
+        "W4-17",
+        dfh_0k=126.28,
+        uncertainty=2.7,
+        unc_level="mixed",
+        status="computed",
+        citation="Karton et al. 2017",
+    )
+    lib.choose(sid, "W4-17")
+    assert lib.best(sid)["source_name"] == "W4-17"
+    _webbook(lib, sid, 114.9, 1.0, 1990)
+    lib.choose(sid, "WebBook-SRD69")
+    assert lib.best(sid)["source_name"] == "WebBook-SRD69"
+
+
+def test_curated_reader(tmp_path):
+    from pathlib import Path
+
+    from seamm_thermochemistry import curated
+
+    library = R.ReferenceLibrary(tmp_path / "r.db", create=True)
+    report, problems = curated.import_curated(
+        library, Path(__file__).parent / "data" / "curated"
+    )
+    outcome = {(f, s): o for f, s, o, _ in report}
+    assert outcome[("janaf_printed.csv", "C#[O+]")] == "refused"  # no convention
+    assert outcome[("janaf_printed.csv", "ClP(Cl)(Cl)(Cl)Cl")] == "held"
+    assert outcome[("janaf_printed.csv", "FS(F)(F)(F)(F)F")] == "held"
+    assert problems == []  # PCl5's derivation holds
+
+    def best(smiles):
+        (row,) = library.species(smiles)
+        return library.best(row["id"])
+
+    assert best("[NaH]")["source_name"] == "D0"  # the override
+    assert best("[LiH]")["source_name"] == "JANAF-1998"
+    assert best("ClP(Cl)(Cl)(Cl)Cl")["dfh_298k"] == -376.08
+    assert best("[BeH2]") is None  # an estimate
+    assert best("FS(F)(F)(F)(F)F") is None  # held in every source
+    assert best("[AlH3]")["dfh_298k"] is None  # W4-17, 0 K only
+    assert best("[AlH3]")["unc_level"] == "mixed"
+    p = library.species("[P]")[0]
+    assert p["multiplicity"] == 4  # blank in CODATA: the ground state
+    library.close()
+
+
+def test_cli_add_curated(tmp_path, capsys):
+    from pathlib import Path
+
+    path = str(tmp_path / "official.db")
+    data = str(Path(__file__).parent / "data" / "curated")
+    assert references_cli.main(["add-curated", data, "--library", path]) == 0
+    out = capsys.readouterr().out
+    assert "refused" in out and "C#[O+]" in out
+    assert R.ReferenceLibrary(path).layer == "official"
