@@ -34,6 +34,7 @@ import logging
 import re
 
 from .atct import AmbiguousEntry, MissingEntry
+from .cbh import CBHError
 from .references import LayeredReferences
 
 logger = logging.getLogger(__name__)
@@ -274,6 +275,8 @@ class ReferenceResolver:
                 entries[smiles] = entry
             except (MissingEntry, AmbiguousEntry) as e:
                 library_species.append(smiles)
+                missing[smiles] = str(e)
+            except CBHError as e:
                 missing[smiles] = str(e)
 
         # The library: one source per element ATcT lacks

@@ -170,3 +170,9 @@ def test_dfh_0k_from_298k():
     table = RS.element_h298_h0()
     assert value == pytest.approx(-241.826 - 9.904 + 2 * table["H"] + table["O"])
     assert value == pytest.approx(-238.92, abs=0.05)
+
+
+def test_unreadable_smiles_is_missing(layers):
+    r = RS.ReferenceResolver(FakeATcT(), layers=layers)
+    entries, missing, label, _ = r.resolve(["C", "?"])
+    assert "?" in missing and entries["C"]["source"] == "ATcT"
