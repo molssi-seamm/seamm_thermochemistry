@@ -1,6 +1,13 @@
 =======
 History
 =======
+2026.11.12 -- The parts of energies in the fragment store
+    * An energy row keeps the parts of its energy (HF, correlation, triples, ...)
+      when the calculation reported them, from the job's ``energy parts`` property,
+      for composite recipes that treat the parts separately.
+    * A row stored without parts gets them when the same calculation is harvested
+      again with them: the same key and an energy within 1e-10 E_h. Otherwise the
+      row is left as it is and the attempt is logged.
 
 2026.11.11.13 -- Bugfix: ATcT lookups of hypervalent halogens no longer raise
     * Bug fix: ``canonical_smiles(..., stereo=False)`` raised RDKit's
