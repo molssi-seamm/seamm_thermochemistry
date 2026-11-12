@@ -1,5 +1,5 @@
 2026-11-12 -- The supplementary reference library (R1)
-=====================================================
+=======================================================
 
 Status: **R1 implemented 2026-11-12** (branch ``reference-library``): the library
 file, the curated-CSV reader and the NIST WebBook importer. No data is bundled or
@@ -76,6 +76,7 @@ The rules
   charge at 298.15 K (JANAF H⁺ 1536.25 → 1530.05, as ATcT). An ion without its
   convention is refused.
 - **Choosing among one source's measurements** (thermo's rule):
+
   1. a review value;
   2. else the most recent with a stated uncertainty, ties going to the smaller;
   3. else the most recent.
@@ -83,6 +84,7 @@ The rules
   Values derived from another on the page (WebBook "N/A") come last, and
   evaluations the WebBook shows ("cal" rows) are held.
 - **Spreads** (science's Q3):
+
   - flagged when another measurement differs from the chosen one by more than
     their combined uncertainties;
   - **held** (not chosen) when that exceeds three times the combined uncertainties
