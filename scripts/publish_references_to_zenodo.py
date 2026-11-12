@@ -38,7 +38,7 @@ CONCEPT_ID = 24175073
 FILENAME = "references-official.db"
 REPORT = FILENAME + ".report.json"
 
-TITLE = "SEAMM Thermochemistry Reference Library"
+TITLE = "SEAMM Thermochemistry Reference Library (enthalpies of formation)"
 KEYWORDS = [
     "SEAMM",
     "thermochemistry",
