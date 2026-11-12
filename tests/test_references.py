@@ -360,15 +360,18 @@ def test_curated_reader(tmp_path):
         library, Path(__file__).parent / "data" / "curated"
     )
     outcome = {(f, s): o for f, s, o, _ in report}
-    assert outcome[("janaf_printed.csv", "C#[O+]")] == "refused"  # no convention
+    assert outcome[("janaf_printed.csv", "C#[O+]")] == "added"
     assert outcome[("janaf_printed.csv", "ClP(Cl)(Cl)(Cl)Cl")] == "held"
     assert outcome[("janaf_printed.csv", "FS(F)(F)(F)(F)F")] == "held"
     assert problems == []  # PCl5's derivation holds
 
-    def best(smiles):
-        (row,) = library.species(smiles)
+    def best(smiles, charge=0):
+        (row,) = library.species(smiles, charge)
         return library.best(row["id"])
 
+    # JANAF's thermal-electron HCO+ in ATcT's stationary-electron convention
+    assert best("C#[O+]", 1)["dfh_298k"] == pytest.approx(833.0 - R.ELECTRON_H298)
+    assert best("C#[O+]", 1)["dfh_0k"] == 827.2
     assert best("[NaH]")["source_name"] == "D0"  # the override
     assert best("[LiH]")["source_name"] == "JANAF-1998"
     assert best("ClP(Cl)(Cl)(Cl)Cl")["dfh_298k"] == -376.08
@@ -388,5 +391,175 @@ def test_cli_add_curated(tmp_path, capsys):
     data = str(Path(__file__).parent / "data" / "curated")
     assert references_cli.main(["add-curated", data, "--library", path]) == 0
     out = capsys.readouterr().out
-    assert "refused" in out and "C#[O+]" in out
+    assert "held" in out and "FS(F)(F)(F)(F)F" in out
     assert R.ReferenceLibrary(path).layer == "official"
+
+
+DFH = "&#916;<sub>f</sub>H&#176;<sub>gas</sub>"
+
+
+def _page():
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).parent / "data" / "webbook"))
+    from make_page import page
+
+    return page(
+        "Testazole",
+        "C<sub>3</sub>H<sub>4</sub>N<sub>2</sub>",
+        "99999-99-9",
+        [
+            (
+                "exp",
+                DFH,
+                "120.0",
+                "kJ/mol",
+                "N/A",
+                "ref-1",
+                "Derived, 1991",
+                "from solid",
+            ),
+            (
+                "exp",
+                DFH,
+                "131.0 &#177; 1.9",
+                "kJ/mol",
+                "Cm",
+                "ref-2",
+                "Older, 1987",
+                "",
+            ),
+            (
+                "exp",
+                DFH,
+                "130.0 &#177; 0.6",
+                "kJ/mol",
+                "Ccb",
+                "ref-3",
+                "Newer, 1987",
+                "",
+            ),
+            ("cal", DFH, "128.", "kJ/mol", "Review", "ref-4", "Evaluator, 1998", ""),
+            (
+                "exp",
+                "S&#176;<sub>gas</sub>",
+                "260.",
+                "J/mol*K",
+                "N/A",
+                "ref-1",
+                "x",
+                "",
+            ),
+        ],
+        [
+            ("ref-1", "Derived, 1991 Derived, D., J. Test 1, 1 (1991)."),
+            ("ref-2", "Older, 1987 Older, O., J. Test 2, 2 (1987)."),
+            ("ref-3", "Newer, 1987 Newer, N., J. Test 3, 3 (1987)."),
+            ("ref-4", "Evaluator, 1998 Evaluator, E., Tables (1998)."),
+        ],
+    )
+
+
+def test_webbook_parse_page():
+    from seamm_thermochemistry import webbook
+
+    page = webbook.parse_page(_page())
+    assert page["found"] and page["cas"] == "99999-99-9"
+    assert page["formula"] == "C3H4N2"
+    assert len(page["rows"]) == 4  # the entropy row is not an enthalpy
+    first = page["rows"][1]
+    assert (first["value"], first["uncertainty"], first["method"]) == (131.0, 1.9, "Cm")
+    assert first["year"] == 1987 and first["citation"].startswith("Older, 1987 Older")
+    assert webbook.parse_value("128.") == (128.0, None)
+    assert webbook.parse_value("N/A") == (None, None)
+
+
+def test_webbook_import(tmp_path):
+    import csv
+
+    from seamm_thermochemistry import webbook
+
+    cache = tmp_path / "cache"
+    cache.mkdir()
+    (cache / "a.html").write_text(_page())
+    with open(cache / webbook.INDEX, "w", newline="") as fd:
+        w = csv.DictWriter(fd, webbook.INDEX_FIELDS)
+        w.writeheader()
+        w.writerow(dict(file="a.html", smiles="c1c[nH]cn1", charge=0, multiplicity=1))
+        w.writerow(dict(file="", smiles="C1CC1", charge=0, multiplicity=1))
+    library = R.ReferenceLibrary(tmp_path / "r.db", create=True)
+    report = webbook.import_webbook(library, cache)
+    assert ("C1CC1", "no page", "") in report
+    (sp,) = library.species("c1c[nH]cn1")
+    assert sp["cas"] == "99999-99-9"
+    statuses = sorted(m["status"] for m in library.measurements(sp["id"]))
+    assert statuses == ["held", "measured", "measured", "measured"]  # cal held
+    best = library.best(sp["id"])
+    # same year: the smaller uncertainty; the N/A value is a last resort
+    assert best["dfh_298k"] == 130.0
+    assert best["citation"].startswith("Newer")
+    assert best["expanded_uncertainty"] == 1.2  # unstated level: doubled
+    assert best["flag"] is None  # 1.0 apart, within hypot(0.6, 1.9)
+    library.close()
+
+
+def test_webbook_fetch_retries_without_stereo(tmp_path):
+    import io
+
+    from seamm_thermochemistry import webbook
+
+    urls = []
+
+    class Response(io.BytesIO):
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+    def opener(request, timeout=None):
+        urls.append(request.full_url)
+        if "%2Ft" in request.full_url:  # the stereo InChI: not found
+            return Response(b"<html><title>Name Not Found</title></html>")
+        return Response(_page().encode())
+
+    rows = webbook.fetch([("C[C@H]1C[C@@H]1C", 0, 1)], tmp_path, delay=0, opener=opener)
+    assert len(urls) == 2
+    assert rows[0]["inchi_retry"] and "/t" not in rows[0]["inchi_retry"]
+    assert (tmp_path / "fetch_log.csv").read_text().count("webbook.nist.gov") == 2
+    # cached: nothing is fetched again
+    assert webbook.fetch([("C[C@H]1C[C@@H]1C", 0, 1)], tmp_path, opener=opener) == []
+    assert len(urls) == 2
+
+
+def test_offsets_need_five_shared_species(lib):
+    from seamm_thermochemistry.atct import MissingEntry
+
+    atct_values = {}
+    for i, smiles in enumerate(["C", "CC", "CCC", "CCCC", "CCCCC", "CCCCCC"]):
+        sid = lib.add_species(smiles)
+        lib.add_measurement(
+            sid, "WebBook-SRD69", dfh_298k=-10.0 * i, uncertainty=1.0, citation="x"
+        )
+        lib.choose(sid, "WebBook-SRD69")
+        atct_values[lib._species_row(sid)["smiles"]] = -10.0 * i - (1 if i % 2 else -1)
+    sid = lib.add_species("O")
+    lib.add_measurement(sid, "CODATA-1989", dfh_298k=-241.0, citation="y")
+    lib.choose(sid, "CODATA-1989")
+    atct_values["O"] = -241.8
+
+    class FakeATcT:
+        version = "test"
+
+        def lookup(self, smiles, charge=0, multiplicity=None):
+            if smiles not in atct_values:
+                raise MissingEntry(smiles)
+            return {"dfH0_298K": atct_values[smiles]}
+
+    result = R.compute_offsets(lib, FakeATcT())
+    assert result["WebBook-SRD69"][:2] == (1.0, 6)
+    assert lib.source("WebBook-SRD69")["offset_kj"] == 1.0
+    assert result["CODATA-1989"][1] == 1
+    assert lib.source("CODATA-1989")["offset_kj"] is None  # too few
+    assert lib.source("CODATA-1989")["offset_atct"] == "test"

@@ -11,10 +11,16 @@ from the command line::
     seamm-thermochemistry-references accept MEASUREMENT --by WHO --reason TEXT
                                       [--library FILE]
     seamm-thermochemistry-references add-curated DIR --library FILE
+    seamm-thermochemistry-references webbook fetch SPECIES.csv --cache DIR
+    seamm-thermochemistry-references webbook import --cache DIR --library FILE
+    seamm-thermochemistry-references offsets --library FILE [--atct-version V]
 
 ``add-curated`` (maintainers) reads hand-curated CSVs (printed JANAF, CODATA,
 D0, W4-17, derived values) into a library file being built for publication;
-it always names its file.
+it always names its file. ``webbook fetch`` saves NIST WebBook pages for the
+species in a CSV (smiles, charge, multiplicity) into a cache, a few seconds
+apart and logged; ``webbook import`` reads the cache into a library, offline.
+``offsets`` measures each source against ATcT (rms over shared species).
 
 ``--library`` is one library file, by default the local layer
 (``references.db``); ``show`` reads both layers, local and official
@@ -119,6 +125,59 @@ def cmd_add_curated(args):
     return 1 if problems else 0
 
 
+def cmd_webbook(args):
+    import csv
+
+    from . import webbook
+
+    if args.action == "fetch":
+        if not args.species:
+            raise SystemExit("webbook fetch needs a CSV of species")
+        with open(args.species, newline="", encoding="utf-8") as fd:
+            species = [
+                (
+                    r["smiles"],
+                    int(r.get("charge") or 0),
+                    int(r.get("multiplicity") or 1),
+                )
+                for r in csv.DictReader(fd)
+            ]
+        rows = webbook.fetch(species, args.cache, delay=args.delay)
+        found = sum(1 for r in rows if r["file"])
+        print(f"{len(rows)} new species looked up, {found} found.")
+        return 0
+    if not args.library:
+        raise SystemExit("webbook import needs --library")
+    library = R.ReferenceLibrary(args.library, create=True, layer=args.layer)
+    counts = {}
+    for smiles, outcome, detail in webbook.import_webbook(library, args.cache):
+        counts[outcome] = counts.get(outcome, 0) + 1
+        if outcome == "refused":
+            print(f" refused  {smiles}  {detail}")
+    print(", ".join(f"{n} {k}" for k, n in sorted(counts.items())))
+    return 0
+
+
+def cmd_offsets(args):
+    from .atct import ATcT
+
+    library = R.ReferenceLibrary(args.library, create=True)
+    atct = ATcT(version=args.atct_version, base=args.atct_base)
+    result = R.compute_offsets(library, atct)
+    print(f"Offsets against ATcT ver. {atct.version} (rms of source - ATcT):")
+    for name, (rms, n, diffs) in result.items():
+        used = (
+            "used"
+            if n >= R.OFFSET_MIN_SHARED
+            else f"not used (< {R.OFFSET_MIN_SHARED})"
+        )
+        print(f"  {name:<16} n = {n:>3}  rms = {_fmt(rms)} kJ/mol  {used}")
+        if args.verbose:
+            for smiles, d in diffs:
+                print(f"      {smiles:<28} {d:+8.2f}")
+    return 0
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(
         prog="seamm-thermochemistry-references",
@@ -158,6 +217,22 @@ def main(argv=None):
     p.add_argument("--library", required=True)
     p.add_argument("--layer", default="official", choices=("official", "local"))
     p.set_defaults(func=cmd_add_curated)
+
+    p = sub.add_parser("webbook", help="NIST WebBook pages (maintainers).")
+    p.add_argument("action", choices=("fetch", "import"))
+    p.add_argument("species", nargs="?")
+    p.add_argument("--cache", required=True)
+    p.add_argument("--library")
+    p.add_argument("--layer", default="official", choices=("official", "local"))
+    p.add_argument("--delay", type=float, default=3.0)
+    p.set_defaults(func=cmd_webbook)
+
+    p = sub.add_parser("offsets", help="Measure each source against ATcT.")
+    p.add_argument("--library", required=True)
+    p.add_argument("--atct-version")
+    p.add_argument("--atct-base")
+    p.add_argument("-v", "--verbose", action="store_true")
+    p.set_defaults(func=cmd_offsets)
 
     args = parser.parse_args(argv)
     try:

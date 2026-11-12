@@ -269,6 +269,7 @@ def select_measurement(
     ``status``, ``year`` and ``id``. The rule (thermo's pilot, science
     2026-11-12): a review value; else the most recent with a stated
     uncertainty (ties to the smaller uncertainty); else the most recent.
+    Values whose ``method`` is "N/A" (derived from another value) come last.
     Only values whose status is in `choosable` are chosen: never estimates
     or held values, and computed ones only from a computed source. The spread flag is
     raised when another measurement with an uncertainty differs from the
@@ -289,7 +290,10 @@ def select_measurement(
     if not usable:
         return None
     reviews = [m for m in usable if m["status"] == "review"]
-    with_u = [m for m in usable if m.get("uncertainty") is not None]
+    # A value the WebBook marks "N/A" is derived from another on the page
+    # (e.g. a condensed-phase value plus a sublimation enthalpy): last resort
+    direct = [m for m in usable if m.get("method") != "N/A"] or usable
+    with_u = [m for m in direct if m.get("uncertainty") is not None]
 
     def recent(m):
         return m.get("year") or 0
@@ -301,7 +305,7 @@ def select_measurement(
         chosen = max(with_u, key=lambda m: (recent(m), -m["uncertainty"]))
         rule = "most recent with an uncertainty"
     else:
-        chosen = max(usable, key=recent)
+        chosen = max(direct, key=recent)
         rule = "most recent"
     if len(usable) == 1:
         rule = "single value"
@@ -1021,3 +1025,45 @@ class LayeredReferences:
     def close(self):
         for _, library in self.layers:
             library.close()
+
+
+def compute_offsets(library, atct):
+    """Measure each source's offset against ATcT and record it.
+
+    For every species with a chosen value at 298.15 K that ATcT also has,
+    the difference source - ATcT is taken; a source's offset is the rms of
+    its differences over at least OFFSET_MIN_SHARED species (science,
+    2026-11-12), else none. Returns {source: (rms, n, [(smiles, diff)])}.
+    """
+    from .atct import ATcTError
+
+    db = library._connect()
+    result = {}
+    for source in library.sources():
+        diffs = []
+        for row in db.execute(
+            "SELECT sp.* FROM reference r JOIN species sp ON sp.id = r.species "
+            "WHERE r.source = ? AND r.state = 'chosen'",
+            (source["id"],),
+        ):
+            mine = [
+                r
+                for r in library.references(row["id"])
+                if r["source_name"] == source["name"]
+            ]
+            if not mine or mine[0]["dfh_298k"] is None:
+                continue
+            try:
+                entry = atct.lookup(
+                    row["smiles"],
+                    charge=row["charge"],
+                    multiplicity=row["multiplicity"],
+                )
+            except (ATcTError, KeyError):
+                continue
+            diffs.append((row["smiles"], mine[0]["dfh_298k"] - entry["dfH0_298K"]))
+        n = len(diffs)
+        rms = math.sqrt(sum(d * d for _, d in diffs) / n) if n else None
+        library.set_offset(source["name"], rms, n, atct.version)
+        result[source["name"]] = (rms, n, diffs)
+    return result
