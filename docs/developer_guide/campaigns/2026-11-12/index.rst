@@ -1,10 +1,12 @@
 2026-11-12 -- The supplementary reference library (R1)
 =======================================================
 
-Status: **R1 implemented 2026-11-12** (branch ``reference-library``): the library
-file, the curated-CSV reader and the NIST WebBook importer. No data is bundled or
-published. The step does not use the library yet (R2). Publishing (R3) waits for
-Paul's decision on the NIST terms (SRD 69 for the WebBook, SRD 13 for JANAF).
+Status: **R1 and R2 released 2026-11-12** (seamm-thermochemistry 2026.11.12.1,
+thermochemistry-step 2026.11.12.2): the library file, the curated-CSV reader, the
+NIST WebBook importer and the resolver. Paul ruled on 2026-11-12 that the
+WebBook, JANAF and NBS-82 values may be used and shipped, each citing its
+original source and crediting the compilation. Publishing the library file (R3)
+follows.
 
 Background:
 
@@ -238,9 +240,15 @@ references, user references.
 Next
 ----
 
-- **R2b:** the resolver's use in thermochemistry_step, coordinated with Design.
-  This covers the two parameters, the species table's source column, the result
-  label and ``references`` property, the non-ATcT uncertainty in quadrature, the
-  0 K conversion, and the missing-reference message.
-- **R3:** publishing ``references-official.db`` and installing it, after Paul's
-  decision on the NIST terms.
+- **R2b** is in thermochemistry-step 2026.11.12.2. It covers:
+
+  - the two parameters;
+  - the species table's source column;
+  - the result label and the ``references`` property;
+  - the non-ATcT uncertainty in quadrature;
+  - the 0 K conversion;
+  - the missing-reference message.
+
+- **R3:** publishing ``references-official.db`` on Zenodo and installing it. In
+  the meantime, an interim file built by the released package is installed under
+  that name on the clusters.

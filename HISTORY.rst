@@ -12,11 +12,19 @@ History
       a later source replaces an earlier one only when it is three times as precise
       and agrees; derived values are rechecked against their partners; ions are
       stored in ATcT's stationary-electron convention.
+    * Sources, in rank order: printed JANAF, derived values, CODATA, the NBS tables
+      of 1982, spectroscopic D0, W4-17 and NIST WebBook measurements. Each value
+      cites its original source and credits the compilation.
+    * ``ReferenceResolver`` takes each CBH reference species from ATcT, else the
+      user's own references, else the library by rank, else computed references,
+      with one source per element where possible. Library uncertainties include
+      each source's rms offset from ATcT and are combined in quadrature.
     * ``seamm-thermochemistry-references`` lists and shows values, checks
-      derivations and records accepts. For maintainers building the published
-      library, it also reads curated CSVs (printed JANAF, CODATA, the NBS tables of
-      1982, D0, W4-17, derived values), reads NIST WebBook pages, and measures each source against ATcT.
-    * Nothing uses the library yet, and no data is included.
+      derivations and records accepts and holds. For maintainers building the
+      published library, it also reads curated CSVs, reads NIST WebBook pages, and
+      measures each source against ATcT.
+    * The library file itself is published separately; the Thermochemistry step
+      uses it from thermochemistry-step 2026.11.12.2.
 
 2026.11.12 -- The parts of energies in the fragment store
     * An energy row keeps the parts of its energy (HF, correlation, triples, ...)

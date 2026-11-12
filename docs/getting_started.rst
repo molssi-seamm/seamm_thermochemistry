@@ -181,6 +181,42 @@ quadrature. Never convert an
 ATcT value between 0 K and 298.15 K yourself, and never mix TN versions in one
 reaction. The index needs RDKit (``pip install seamm-thermochemistry[cbh]``).
 
+Reference values ATcT lacks
+---------------------------
+
+Some CBH reference species are not in ATcT, for elements such as Ge, As or Se, or
+for larger organic molecules. The **reference library** holds enthalpies of
+formation for them from evaluated compilations and measurements:
+
+- printed JANAF (NIST SRD 13);
+- CODATA key values;
+- the NBS tables of 1982;
+- spectroscopic D0 values;
+- W4-17;
+- NIST WebBook measurements (SRD 69).
+
+Each value keeps its original citation, the compilation it came from, its
+uncertainty as stated, and why it was chosen.
+
+There are two files beside the ATcT cache. ``references-official.db`` is the
+published library; it is read, never written. ``references.db`` is your own,
+for references you add.
+
+:class:`~seamm_thermochemistry.resolver.ReferenceResolver` takes each reference
+from ATcT first, then from your own references (if enabled), then from the
+library's sources in a fixed order of rank, and then from computed references.
+For an element ATcT lacks, it takes all the references containing that element
+from one source where it can, so that the source's errors cancel.
+
+A library value's uncertainty is its 95 % uncertainty plus the source's rms
+offset from ATcT, and it is combined with ATcT's in quadrature. Results that
+use the library are labelled "mixed" (or "mixed: several sources") instead of
+"ATcT-only".
+
+``seamm-thermochemistry-references list`` and ``show SMILES`` show what the
+library holds. The Thermochemistry step's "Supplementary references" parameter
+chooses whether it is used.
+
 The fragment-energy store
 -------------------------
 
