@@ -19,11 +19,12 @@ from the command line::
                                       [--exclude SOURCE:SMILES,...:REASON]
 
 ``add-curated`` (maintainers) reads hand-curated CSVs (printed JANAF, CODATA,
-D0, W4-17, derived values) into a library file being built for publication;
-it always names its file. ``webbook fetch`` saves NIST WebBook pages for the
-species in a CSV (smiles, charge, multiplicity) into a cache, a few seconds
-apart and logged; ``webbook import`` reads the cache into a library, offline.
-``offsets`` measures each source against ATcT (rms over shared species).
+NBS-82, D0, W4-17, derived values) into a library file being built for
+publication; it always names its file. ``webbook fetch`` saves NIST WebBook
+pages for the species in a CSV (smiles, charge, multiplicity) into a cache, a
+few seconds apart and logged; ``webbook import`` reads the cache into a
+library, offline. ``offsets`` measures each source against ATcT (rms over
+shared species).
 
 ``--library`` is one library file, by default the local layer
 (``references.db``); ``show`` reads both layers, local and official

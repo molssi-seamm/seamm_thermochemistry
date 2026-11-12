@@ -9,9 +9,9 @@ The order (the reference-library design, §2, and the 2026-11-12 decisions):
    is used and the result is "ATcT-only".
 2. The user's own references (the local layer's ``user`` source), when the
    job enables them.
-3. The library's sources by rank: printed JANAF, derived values, CODATA, D0,
-   W4-17 (0 K only, used only without a 298.15 K value), the WebBook
-   measurements.
+3. The library's sources by rank: printed JANAF, derived values, CODATA, the
+   NBS tables of 1982, D0, W4-17 (0 K only, used only without a 298.15 K
+   value), the WebBook measurements.
 4. Computed references, when enabled.
 
 **One source per element.** For each element that ATcT does not have (its

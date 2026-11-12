@@ -14,8 +14,8 @@ History
       stored in ATcT's stationary-electron convention.
     * ``seamm-thermochemistry-references`` lists and shows values, checks
       derivations and records accepts. For maintainers building the published
-      library, it also reads curated CSVs (printed JANAF, CODATA, D0, W4-17, derived
-      values), reads NIST WebBook pages, and measures each source against ATcT.
+      library, it also reads curated CSVs (printed JANAF, CODATA, the NBS tables of
+      1982, D0, W4-17, derived values), reads NIST WebBook pages, and measures each source against ATcT.
     * Nothing uses the library yet, and no data is included.
 
 2026.11.12 -- The parts of energies in the fragment store

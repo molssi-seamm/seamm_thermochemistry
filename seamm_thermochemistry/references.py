@@ -836,21 +836,40 @@ class ReferenceLibrary:
     def hold(self, smiles, charge, source, *, by, reason):
         """A person holds a source's value for a species (not used), with
         why: e.g. two modern measurements in conflict, awaiting a computed
-        arbitration. Recorded with who and when."""
+        arbitration. Recorded with who and when.
+
+        `source` may name several sources separated by "/" (e.g.
+        "JANAF-1998 / NBS-82": the two disagree, so neither is used). Each
+        must be a source in the library; a source with no value for the
+        species, or whose values its own file already holds, is passed over.
+        Returns the number of values held here."""
         if not by or not reason:
             raise ReferenceError("A hold needs who decided it and why")
-        sid = self.source(source)["id"]
+        names = [name.strip() for name in source.split("/") if name.strip()]
+        sids = [self.source(name)["id"] for name in names]
         rows = self.species(smiles, charge)
         db = self._writer()
         n = 0
-        for row in rows:
-            n += db.execute(
-                "UPDATE reference SET state = 'held', decided_by = ?, "
-                "decided_on = ?, decision_reason = ? WHERE species = ? AND source = ?",
-                (by, _now(), reason, row["id"], sid),
-            ).rowcount
+        found = 0
+        for sid in sids:
+            for row in rows:
+                k = db.execute(
+                    "UPDATE reference SET state = 'held', decided_by = ?, "
+                    "decided_on = ?, decision_reason = ? "
+                    "WHERE species = ? AND source = ?",
+                    (by, _now(), reason, row["id"], sid),
+                ).rowcount
+                n += k
+                if k == 0:
+                    # Already held by its source file: nothing was chosen
+                    k = db.execute(
+                        "SELECT COUNT(*) FROM measurement WHERE species = ? "
+                        "AND source = ?",
+                        (row["id"], sid),
+                    ).fetchone()[0]
+                found += min(k, 1)
         db.commit()
-        if n != 1:
+        if found == 0 or (len(names) == 1 and n > 1):
             raise ReferenceError(f"{smiles} ({source}): {n} values to hold, not one")
         return n
 

@@ -3,7 +3,8 @@
 """Reading hand-curated reference values into a reference library.
 
 The curated files (one CSV per source: printed JANAF, CODATA key values,
-spectroscopic D0, W4-17, derived values) share common columns::
+the NBS tables of 1982, spectroscopic D0, W4-17, derived values) share
+common columns::
 
     smiles, formula, charge, multiplicity, name, phase, dfH0_kJmol,
     dfH298_kJmol, unc_kJmol, unc_level, status, citation, notes
@@ -41,6 +42,14 @@ CURATED_SOURCES = {
         1989,
         "J. D. Cox, D. D. Wagman and V. A. Medvedev, CODATA Key Values for "
         "Thermodynamics (Hemisphere, 1989)",
+    ),
+    "nbs82.csv": (
+        "NBS-82",
+        "evaluated",
+        25,
+        1982,
+        "D. D. Wagman et al., The NBS Tables of Chemical Thermodynamic "
+        "Properties, J. Phys. Chem. Ref. Data 11, Suppl. 2 (1982)",
     ),
     "d0.csv": ("D0", "measured", 30, None, "Spectroscopic dissociation energies"),
     "w4_17.csv": (
@@ -168,8 +177,10 @@ def import_curated(library, directory, *, files=None):
                         formula=row.get("formula") or None,
                         name=row.get("name") or None,
                     )
-                    h298_h0 = _float(row.get("H298_H0_mol")) or _float(
-                        row.get("H298_H0_atom")
+                    h298_h0 = (
+                        _float(row.get("H298_H0_kJmol"))
+                        or _float(row.get("H298_H0_mol"))
+                        or _float(row.get("H298_H0_atom"))
                     )
                     measurement = library.add_measurement(
                         species,

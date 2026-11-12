@@ -92,6 +92,12 @@ The rules
 - **0 K-only values** (W4-17) are used only when no source gives a value at
   298.15 K.
 
+**The sources, in rank order** (science, 2026-11-12): printed JANAF, derived
+values, CODATA, the NBS tables of 1982 (NBS-82), D0, W4-17, the WebBook. NBS-82
+(Wagman et al., JPCRD 11, Suppl. 2) was added the same day for six Ge, As and Se
+species. It states no uncertainty, so its values get the 4 kJ/mol floor, and its
+H298 − H0 is kept with each value.
+
 Uncertainties (science's Q2):
 
 - 95 % and 2σ values as stated; 1σ and unstated levels doubled;
@@ -141,6 +147,12 @@ held and goes on the tier-A compute list. The decisions (accepts and holds, with
 reapplied with ``accept-file`` whenever the library is rebuilt. Result: **60 species
 and 65 targets**. Isoxazole blocks 4 targets and imidazole 1.
 
+Later the same day thermo added NBS-82 (six Ge, As and Se species) and science held
+POF3, whose JANAF (−1254.25) and NBS-82 (−1211.3) values disagree by 43 kJ/mol,
+pending a computed arbitration. A hold may name several sources ("JANAF-1998 /
+NBS-82"); a source with no value, or whose file already holds it, is passed over.
+Result: **65 species and 70 targets**, as thermo's own count.
+
 The one other difference is HCO⁺: 826.80 kJ/mol against the pilot's 833.0. That is
 the conversion of JANAF's thermal-electron value to ATcT's convention, as intended.
 
@@ -165,6 +177,11 @@ Offsets with ATcT 1.228:
   excluded, as a recorded exclusion ("CODATA key value known superseded: B, Si";
   ``offsets --exclude``), since ATcT has revised both. Over all 10 atoms it is
   2.39, which is kept beside it;
+- NBS-82: n = 10, rms 2.81 kJ/mol (mean +1.02), over the same species as the
+  JANAF set. CF4 (+8.6) is a noted outlier, not an exclusion (science): NBS-82
+  states no uncertainties and is the oldest evaluation used, and its obscure
+  inorganics are where an unrevised value like CF4's would hide. With the
+  4 kJ/mol floor its values carry 4.89 kJ/mol (GeH4 90.80 ± 4.89);
 - D0, W4-17 and the derived values: under 5 shared species, so no offset.
 
 Each offset is added in quadrature to the source's 95 % uncertainties, and is kept

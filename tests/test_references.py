@@ -384,6 +384,39 @@ def test_curated_reader(tmp_path):
     library.close()
 
 
+def test_curated_nbs82_unstated_uncertainty(tmp_path):
+    """NBS-82 states no uncertainty: the 4 kJ/mol floor applies, its H298 - H0
+    column is read, and it ranks between CODATA and D0. Made-up values."""
+    from seamm_thermochemistry import curated
+
+    header = (
+        "smiles,formula,charge,multiplicity,name,phase,dfH0_kJmol,dfH298_kJmol,"
+        "unc_kJmol,unc_level,status,citation,notes,H298_H0_kJmol\n"
+    )
+    row = (
+        "[GeH4],H4Ge,0,1,Germane,g,100.0,90.0,,unstated (NBS-82 gives none),"
+        'evaluated,"NBS-82, test row",,10.5\n'
+    )
+    (tmp_path / "nbs82.csv").write_text(header + row)
+    library = R.ReferenceLibrary(tmp_path / "r.db", create=True)
+    report, problems = curated.import_curated(library, tmp_path)
+    assert [r[2] for r in report] == ["added"] and problems == []
+    source = library.source("NBS-82")
+    assert source["kind"] == "evaluated"
+    with pytest.raises(KeyError):
+        library.source("CODATA-1989")  # only the files present
+    assert curated.CURATED_SOURCES["codata.csv"][2] < source["rank"]
+    assert source["rank"] < curated.CURATED_SOURCES["d0.csv"][2]
+    (sp,) = library.species("[GeH4]")
+    best = library.best(sp["id"])
+    assert best["source_name"] == "NBS-82"
+    assert best["dfh_298k"] == 90.0 and best["h298_h0"] == 10.5
+    assert R.expanded_uncertainty(
+        best["uncertainty"], best["unc_level"], best["status"]
+    ) == pytest.approx(R.UNSTATED_FLOOR)
+    library.close()
+
+
 def test_cli_add_curated(tmp_path, capsys):
     from pathlib import Path
 
@@ -613,6 +646,26 @@ def test_hold_by_decision(lib, tmp_path):
     assert "arbitration" in held["decision_reason"]
     with pytest.raises(R.ReferenceError, match="not one"):
         lib.hold("C", 0, "WebBook-SRD69", by="x", reason="y")
+
+
+def test_hold_in_several_sources(lib):
+    """A hold naming two sources that disagree (as POF3: JANAF vs NBS-82)
+    holds whichever has a value; made-up values."""
+    sid = lib.add_species("O=P(F)(F)F", formula="F3OP")
+    lib.add_measurement(
+        sid, "JANAF-1998", dfh_298k=-1000.0, uncertainty=8.0,
+        unc_level="unstated", status="measured", citation=JANAF,
+    )  # fmt: skip
+    lib.choose(sid, "JANAF-1998")
+    assert lib.best(sid)["source_name"] == "JANAF-1998"
+    n = lib.hold(
+        "O=P(F)(F)F", 0, "JANAF-1998 / CODATA-1989", by="science", reason="disagree"
+    )
+    assert n == 1 and lib.best(sid) is None
+    with pytest.raises(KeyError):
+        lib.hold("O=P(F)(F)F", 0, "JANAF-1998 / NBS-1066", by="x", reason="y")
+    with pytest.raises(R.ReferenceError, match="not one"):
+        lib.hold("O=P(F)(F)F", 0, "CODATA-1989 / D0", by="x", reason="y")
 
 
 def test_calibration_offsets(lib, tmp_path):
