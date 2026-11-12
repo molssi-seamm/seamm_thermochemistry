@@ -1,6 +1,23 @@
 =======
 History
 =======
+2026.11.12.1 -- The supplementary reference library
+    * A library of enthalpies of formation that ATcT lacks, ``references.db`` (local)
+      and ``references-official.db`` (published), beside the ATcT cache. It keeps
+      every value each source gives with its original citation, the value chosen and
+      why, and how derived values were derived. Uncertainties are kept as stated,
+      with their level.
+    * Built-in rules: Burcat is never a source; no P species from the online JANAF
+      tables; estimates are used only when someone accepts them, which is recorded;
+      a later source replaces an earlier one only when it is three times as precise
+      and agrees; derived values are rechecked against their partners; ions are
+      stored in ATcT's stationary-electron convention.
+    * ``seamm-thermochemistry-references`` lists and shows values, checks
+      derivations and records accepts. For maintainers building the published
+      library, it also reads curated CSVs (printed JANAF, CODATA, D0, W4-17, derived
+      values), reads NIST WebBook pages, and measures each source against ATcT.
+    * Nothing uses the library yet, and no data is included.
+
 2026.11.12 -- The parts of energies in the fragment store
     * An energy row keeps the parts of its energy (HF, correlation, triples, ...)
       when the calculation reported them, from the job's ``energy parts`` property,
