@@ -7,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>2026-11-12 – The supplementary reference library (R1) &#8212; SEAMM thermochemistry Plug-in 2026.11.12.1 documentation</title>
+    <title>2026-11-12 – The supplementary reference library (R1) &#8212; SEAMM thermochemistry Plug-in 2026.11.12.2 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../../_static/documentation_options.js?v=900c25b8"></script>
+    <script src="../../../_static/documentation_options.js?v=a7f4afd2"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -54,7 +54,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.12.1" />
+  <meta name="docsearch:version" content="2026.11.12.2" />
   
     
     <script src="../../../_static/searchtools.js"></script>
@@ -457,12 +457,12 @@
                   
   <section id="the-supplementary-reference-library-r1">
 <h1>2026-11-12 – The supplementary reference library (R1)<a class="headerlink" href="#the-supplementary-reference-library-r1" title="Link to this heading">#</a></h1>
-<p>Status: <strong>R1 and R2 released 2026-11-12</strong> (seamm-thermochemistry 2026.11.12.1,
+<p>Status: <strong>R1, R2 and R3 done 2026-11-12</strong> (seamm-thermochemistry 2026.11.12.1,
 thermochemistry-step 2026.11.12.2): the library file, the curated-CSV reader, the
 NIST WebBook importer and the resolver. Paul ruled on 2026-11-12 that the
 WebBook, JANAF and NBS-82 values may be used and shipped, each citing its
-original source and crediting the compilation. Publishing the library file (R3)
-follows.</p>
+original source and crediting the compilation. The official library is on Zenodo
+(10.5281/zenodo.24175074), installed by seamm-thermochemistry 2026.11.12.2.</p>
 <p>Background:</p>
 <ul class="simple">
 <li><p>the CBH reference-library design of 2026-10-29 (§2 resolution order, §3 the
@@ -690,9 +690,14 @@ references, user references.</p>
 <li><p>the missing-reference message.</p></li>
 </ul>
 </li>
-<li><p><strong>R3:</strong> publishing <code class="docutils literal notranslate"><span class="pre">references-official.db</span></code> on Zenodo and installing it. In
-the meantime, an interim file built by the released package is installed under
-that name on the clusters.</p></li>
+<li><p><strong>R3, done 2026-11-12:</strong> the official library, version 2026.11.12, is published
+on Zenodo: <a class="reference external" href="https://zenodo.org/records/24175074">https://zenodo.org/records/24175074</a> (DOI 10.5281/zenodo.24175074,
+concept 10.5281/zenodo.24175073), under CC-BY-4.0. Each value cites its original
+source, and NIST is credited for JANAF, the NBS tables and the WebBook. The
+record was built with the maintainer commands and published with
+<code class="docutils literal notranslate"><span class="pre">scripts/publish_references_to_zenodo.py</span></code>, which stamps the DOI and version
+into the file. The installer (seamm-thermochemistry 2026.11.12.2) installs and
+updates it as it does the official fragment store.</p></li>
 </ul>
 </section>
 </section>

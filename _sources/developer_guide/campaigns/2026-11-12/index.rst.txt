@@ -1,12 +1,12 @@
 2026-11-12 -- The supplementary reference library (R1)
 =======================================================
 
-Status: **R1 and R2 released 2026-11-12** (seamm-thermochemistry 2026.11.12.1,
+Status: **R1, R2 and R3 done 2026-11-12** (seamm-thermochemistry 2026.11.12.1,
 thermochemistry-step 2026.11.12.2): the library file, the curated-CSV reader, the
 NIST WebBook importer and the resolver. Paul ruled on 2026-11-12 that the
 WebBook, JANAF and NBS-82 values may be used and shipped, each citing its
-original source and crediting the compilation. Publishing the library file (R3)
-follows.
+original source and crediting the compilation. The official library is on Zenodo
+(10.5281/zenodo.24175074), installed by seamm-thermochemistry 2026.11.12.2.
 
 Background:
 
@@ -249,6 +249,11 @@ Next
   - the 0 K conversion;
   - the missing-reference message.
 
-- **R3:** publishing ``references-official.db`` on Zenodo and installing it. In
-  the meantime, an interim file built by the released package is installed under
-  that name on the clusters.
+- **R3, done 2026-11-12:** the official library, version 2026.11.12, is published
+  on Zenodo: https://zenodo.org/records/24175074 (DOI 10.5281/zenodo.24175074,
+  concept 10.5281/zenodo.24175073), under CC-BY-4.0. Each value cites its original
+  source, and NIST is credited for JANAF, the NBS tables and the WebBook. The
+  record was built with the maintainer commands and published with
+  ``scripts/publish_references_to_zenodo.py``, which stamps the DOI and version
+  into the file. The installer (seamm-thermochemistry 2026.11.12.2) installs and
+  updates it as it does the official fragment store.

@@ -59,13 +59,16 @@ user has nothing more to do:
   same way. ``update`` replaces it whole by a newer published version, keeping a
   backup, unless the installed file is not a published version (then only with
   ``--force``). The installation's own ``fragments.db`` is never touched.
+* the **official reference library** (``references-official.db``, Zenodo concept
+  10.5281/zenodo.24175073): enthalpies of formation that ATcT lacks, installed and
+  updated the same way. The installation's own ``references.db`` is never touched.
 * the **Active Thermochemical Tables**, downloaded from atct.anl.gov when no version
   is cached. A newer ATcT version is added only on purpose, with
   ``seamm-thermochemistry-atct download``: the Thermochemistry step uses the newest
   cached version by default, so a new version changes its reference values.
 
-``check`` reports all three and offers to install what is missing. A failure to get
-the fragment store or ATcT (no network, say) is reported and does not stop the rest.
+``check`` reports all of them and offers to install what is missing. A failure to get
+the fragment store, the reference library or ATcT (no network, say) is reported and does not stop the rest.
 
 A quick example
 ----------------
@@ -199,7 +202,8 @@ Each value keeps its original citation, the compilation it came from, its
 uncertainty as stated, and why it was chosen.
 
 There are two files beside the ATcT cache. ``references-official.db`` is the
-published library; it is read, never written. ``references.db`` is your own,
+published library (Zenodo, concept DOI 10.5281/zenodo.24175073), installed by the
+installer; it is read, never written. ``references.db`` is your own,
 for references you add.
 
 :class:`~seamm_thermochemistry.resolver.ReferenceResolver` takes each reference
