@@ -30,9 +30,10 @@ from pathlib import Path
 from seamm_thermochemistry.references import SCHEMA_VERSION, ReferenceLibrary
 from seamm_util import Zenodo
 
-#: The published record's concept id, stable across versions: None until the
-#: first version exists
-CONCEPT_ID = None
+#: The published record's concept id, stable across versions: version
+#: 2026.11.12 is https://zenodo.org/records/24175074, concept DOI
+#: 10.5281/zenodo.24175073
+CONCEPT_ID = 24175073
 
 FILENAME = "references-official.db"
 REPORT = FILENAME + ".report.json"
