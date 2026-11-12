@@ -225,6 +225,14 @@ scale factor is applied when the values are used (for example
 ``seamm-thermochemistry-ladder build ... --zpe-scale 0.9863``), so changing a
 factor never needs a new harvest.
 
+An energy row also keeps the *parts* of its energy (the HF energy, the correlation
+energies, the triples, and so on) when the calculation reported them, in its
+``byproducts``. They come from an ``energy parts#...`` property of the same level,
+which the Thermochemistry step writes, and composite recipes that treat the parts
+separately use them. The parts are added to a stored row that has none only for the
+same calculation: the same key, and an energy that agrees within 1e-10 E_h.
+Otherwise the row is left as it is and the attempt is logged.
+
 In Python::
 
     from seamm_thermochemistry import FragmentStore
