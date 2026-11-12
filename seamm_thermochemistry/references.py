@@ -135,6 +135,17 @@ CREATE TABLE IF NOT EXISTS reference (
     decision_reason TEXT,
     UNIQUE (species, source)
 );
+CREATE TABLE IF NOT EXISTS calibration (
+    id INTEGER PRIMARY KEY,
+    source INTEGER NOT NULL REFERENCES source (id),
+    smiles TEXT NOT NULL,
+    dfh_298k REAL NOT NULL,
+    atct_version TEXT NOT NULL,
+    atct_id TEXT,
+    atct_298k REAL NOT NULL,
+    citation TEXT,
+    UNIQUE (source, smiles, atct_version)
+);
 CREATE TABLE IF NOT EXISTS derivation (
     id INTEGER PRIMARY KEY,
     measurement INTEGER UNIQUE NOT NULL REFERENCES measurement (id),
@@ -502,6 +513,41 @@ class ReferenceLibrary:
             (value, n, atct_version, sid),
         )
         db.commit()
+
+    def add_calibration(self, path, *, source_names=None):
+        """Read calibration values: a source's values for species ATcT has,
+        used only to measure the source's offset, never as references.
+
+        The CSV has smiles, source, dfH298_kJmol, ATcT_version, ATcT_id,
+        ATcT_dfH298_kJmol and citation. `source_names` maps the file's source
+        names to the library's. Returns the number of rows read."""
+        import csv
+
+        names = {"Pedley-TRC (NIST WebBook)": "WebBook-SRD69"}
+        names.update(source_names or {})
+        db = self._writer()
+        n = 0
+        with open(path, newline="", encoding="utf-8") as fd:
+            for row in csv.DictReader(fd):
+                name = names.get(row["source"], row["source"])
+                sid = self.source(name)["id"]
+                db.execute(
+                    "INSERT OR REPLACE INTO calibration (source, smiles, dfh_298k, "
+                    "atct_version, atct_id, atct_298k, citation) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    (
+                        sid,
+                        row["smiles"],
+                        float(row["dfH298_kJmol"]),
+                        row["ATcT_version"],
+                        row.get("ATcT_id"),
+                        float(row["ATcT_dfH298_kJmol"]),
+                        row.get("citation"),
+                    ),
+                )
+                n += 1
+        db.commit()
+        return n
 
     # -- species --------------------------------------------------------------
 
@@ -1079,6 +1125,7 @@ class LayeredReferences:
                         best is not None and ref["reference_id"] == best["reference_id"]
                     )
                     ref["smiles"] = row["smiles"]
+                    ref["formula"] = row["formula"]
                     result.append(ref)
         order = {"local": 0, "official": 1}
         result.sort(key=lambda r: (r["source_rank"], order[r["layer"]]))
@@ -1098,13 +1145,22 @@ class LayeredReferences:
             library.close()
 
 
-def compute_offsets(library, atct):
+def compute_offsets(library, atct=None):
     """Measure each source's offset against ATcT and record it.
 
-    For every species with a chosen value at 298.15 K that ATcT also has,
-    the difference source - ATcT is taken; a source's offset is the rms of
-    its differences over at least OFFSET_MIN_SHARED species (science,
-    2026-11-12), else none. Returns {source: (rms, n, [(smiles, diff)])}.
+    The differences source - ATcT come from two places: the library's own
+    values for species ATcT also has (with `atct`), and the calibration
+    values (:meth:`ReferenceLibrary.add_calibration`), which are used for
+    nothing else. A source's offset is the rms of its differences over at
+    least OFFSET_MIN_SHARED species (science, 2026-11-12), else none. It is
+    added in quadrature to the source's uncertainties.
+
+    Caveat (science): the calibration species are well studied, so the
+    offset is a *lower bound* for the obscure species the library serves.
+    It is not a measure of their reliability; the stated uncertainties and
+    the spread rule are.
+
+    Returns {source: (rms, n, [(smiles, diff)])}.
     """
     from .atct import ATcTError
 
@@ -1112,11 +1168,16 @@ def compute_offsets(library, atct):
     result = {}
     for source in library.sources():
         diffs = []
-        for row in db.execute(
-            "SELECT sp.* FROM reference r JOIN species sp ON sp.id = r.species "
-            "WHERE r.source = ? AND r.state = 'chosen'",
-            (source["id"],),
-        ):
+        versions = set()
+        if atct is None:
+            rows = []
+        else:
+            rows = db.execute(
+                "SELECT sp.* FROM reference r JOIN species sp ON sp.id = r.species "
+                "WHERE r.source = ? AND r.state = 'chosen'",
+                (source["id"],),
+            ).fetchall()
+        for row in rows:
             mine = [
                 r
                 for r in library.references(row["id"])
@@ -1133,8 +1194,17 @@ def compute_offsets(library, atct):
             except (ATcTError, KeyError):
                 continue
             diffs.append((row["smiles"], mine[0]["dfh_298k"] - entry["dfH0_298K"]))
+            versions.add(atct.version)
+        seen = {smiles for smiles, _ in diffs}
+        for row in db.execute(
+            "SELECT * FROM calibration WHERE source = ?", (source["id"],)
+        ):
+            if row["smiles"] in seen:
+                continue
+            versions.add(row["atct_version"])
+            diffs.append((row["smiles"], row["dfh_298k"] - row["atct_298k"]))
         n = len(diffs)
         rms = math.sqrt(sum(d * d for _, d in diffs) / n) if n else None
-        library.set_offset(source["name"], rms, n, atct.version)
+        library.set_offset(source["name"], rms, n, ", ".join(sorted(versions)))
         result[source["name"]] = (rms, n, diffs)
     return result

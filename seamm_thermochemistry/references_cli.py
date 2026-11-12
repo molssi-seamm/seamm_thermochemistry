@@ -15,6 +15,7 @@ from the command line::
     seamm-thermochemistry-references webbook fetch SPECIES.csv --cache DIR
     seamm-thermochemistry-references webbook import --cache DIR --library FILE
     seamm-thermochemistry-references offsets --library FILE [--atct-version V]
+                                      [--calibration FILE]
 
 ``add-curated`` (maintainers) reads hand-curated CSVs (printed JANAF, CODATA,
 D0, W4-17, derived values) into a library file being built for publication;
@@ -173,9 +174,15 @@ def cmd_offsets(args):
     from .atct import ATcT
 
     library = R.ReferenceLibrary(args.library, create=True)
+    if args.calibration:
+        n = library.add_calibration(args.calibration)
+        print(f"Read {n} calibration values from {args.calibration}.")
     atct = ATcT(version=args.atct_version, base=args.atct_base)
     result = R.compute_offsets(library, atct)
-    print(f"Offsets against ATcT ver. {atct.version} (rms of source - ATcT):")
+    print(
+        f"Offsets against ATcT ver. {atct.version} (rms of source - ATcT); a lower "
+        "bound for the species the library serves:"
+    )
     for name, (rms, n, diffs) in result.items():
         used = (
             "used"
@@ -247,6 +254,7 @@ def main(argv=None):
     p.add_argument("--library", required=True)
     p.add_argument("--atct-version")
     p.add_argument("--atct-base")
+    p.add_argument("--calibration", help="CSV of calibration values")
     p.add_argument("-v", "--verbose", action="store_true")
     p.set_defaults(func=cmd_offsets)
 

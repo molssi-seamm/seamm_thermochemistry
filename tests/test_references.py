@@ -613,3 +613,25 @@ def test_hold_by_decision(lib, tmp_path):
     assert "arbitration" in held["decision_reason"]
     with pytest.raises(R.ReferenceError, match="not one"):
         lib.hold("C", 0, "WebBook-SRD69", by="x", reason="y")
+
+
+def test_calibration_offsets(lib, tmp_path):
+    calibration = tmp_path / "calibration.csv"
+    lines = [
+        "smiles,source,dfH298_kJmol,ATcT_version,ATcT_id,ATcT_dfH298_kJmol,citation"
+    ]
+    for i, smiles in enumerate(["C", "CC", "CCC", "CCCC", "CCCCC"]):
+        d = 1.0 if i % 2 else -1.0
+        lines.append(
+            f"{smiles},Pedley-TRC (NIST WebBook),{-10 * i + d},1.228,x,{-10 * i},c"
+        )
+    lines.append("O,JANAF-1998,-241.826,1.228,y,-241.798,c")
+    calibration.write_text("\n".join(lines) + "\n")
+    assert lib.add_calibration(calibration) == 6
+    result = R.compute_offsets(lib)
+    assert result["WebBook-SRD69"][:2] == (pytest.approx(1.0), 5)
+    assert lib.source("WebBook-SRD69")["offset_kj"] == pytest.approx(1.0)
+    assert lib.source("WebBook-SRD69")["offset_atct"] == "1.228"
+    assert lib.source("JANAF-1998")["offset_kj"] is None  # n = 1
+    # calibration species are never references
+    assert lib.species("CC") == []

@@ -147,28 +147,74 @@ the conversion of JANAF's thermal-electron value to ATcT's convention, as intend
 The tests contain no WebBook data. They use a synthetic page with the WebBook's
 markup and made-up values.
 
-Offsets: a finding
+Offsets against ATcT
+--------------------
+
+The pilot's species are, by construction, ones ATcT lacks, so the library itself
+shares almost nothing with ATcT. Thermo therefore supplied a **calibration set**
+(``add_calibration``; ``offsets --calibration``). It holds the values each source
+gives for species ATcT 1.228 has, and these are used only to measure the source,
+never as references.
+
+Offsets with ATcT 1.228:
+
+- JANAF (printed): n = 10, rms 0.38 kJ/mol;
+- WebBook: n = 9, rms 1.16 kJ/mol. The largest difference is methyl acetate,
+  +2.98, from a value with no stated uncertainty;
+- CODATA: n = 10 atoms from the library itself, rms 2.39 kJ/mol, driven by B and
+  Si, whose atoms ATcT has revised;
+- D0, W4-17 and the derived values: under 5 shared species, so no offset.
+
+Each offset is added in quadrature to the source's 95 % uncertainties, and is kept
+in its own column so it can be shown and changed.
+
+**Caveat (science):** the calibration species are well studied, so an offset is a
+*lower bound* for the obscure species the library actually serves. It does not
+measure their reliability; the stated uncertainties and the spread rule do that.
+
+The resolver (R2a)
 ------------------
 
-The pilot's species are, by construction, the ones ATcT lacks, so the library shares
-almost nothing with ATcT:
+:class:`~seamm_thermochemistry.resolver.ReferenceResolver` resolves a target's
+reference species.
 
-- CODATA shares 10 atoms, with an rms of 2.39 kJ/mol, dominated by B (−5.4) and
-  Si (−5.0), whose atoms ATcT has revised;
-- every other source shares none.
+**The order.** ATcT comes first. Then the user's own references, if enabled.
+Then the library's sources by rank, and computed references, if enabled.
+"Supplementary references = none" reproduces today's ATcT-only behaviour and
+reads no library.
 
-Measuring the offsets as designed needs a **calibration set**: values from each
-source for species ATcT does have. These are not used as references, since ATcT
-wins for them, but they measure each source. That is data work for thermo, and the
-WebBook part needs more NIST requests, so it is science's call.
+**One source per element.** For each element ATcT lacks, i.e. whose gas-phase atom
+is not in ATcT:
+
+- the references containing it are taken from the first source, by rank, that
+  has all of them;
+- a replacement (override) inside that source still applies to a single
+  species. The element then has two sources: the result is labelled "mixed:
+  several sources" with the sources named, and a one-line note says so;
+- when no single source has them all, each reference takes its own best value,
+  under the same label.
+
+**The values** come back in the layout of an ATcT entry:
+
+- the uncertainty is the 95 % value with the offset added;
+- ``atct_coefficients`` is empty, since these values have no covariance with
+  ATcT, so they are combined in quadrature;
+- the entry carries its source, layer, citation, rule, flag, and any override or
+  decision.
+
+**0 K values.** A reference given only at 298.15 K is converted to 0 K with
+:func:`~seamm_thermochemistry.resolver.dfh_0k_from_298k`, using the species' own
+H298 − H0 (the step computes it) and CODATA's values for the elements.
+
+**The result labels:** ATcT-only, mixed, mixed: several sources, computed
+references, user references.
 
 Next
 ----
 
-- **R2:** the resolver in seamm_thermochemistry (resolution order, one source per
-  element, the uncertainties) and its use in thermochemistry_step, coordinated with
-  Design. Science's Q1: a species whose override gives an element a second source is
-  labelled "mixed: several sources", with the sources named, and the step prints one
-  line about it, never blocking.
+- **R2b:** the resolver's use in thermochemistry_step, coordinated with Design.
+  This covers the two parameters, the species table's source column, the result
+  label and ``references`` property, the non-ATcT uncertainty in quadrature, the
+  0 K conversion, and the missing-reference message.
 - **R3:** publishing ``references-official.db`` and installing it, after Paul's
   decision on the NIST terms.
