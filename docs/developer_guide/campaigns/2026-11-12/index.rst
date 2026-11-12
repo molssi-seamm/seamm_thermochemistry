@@ -134,6 +134,13 @@ Four species are held under the spread rule: imidazole, isoxazole, and 3- and
 uncertainties, and none has a review value. Accepting the pilot's choice for them
 gives exactly the pilot's **62 species and 70 targets**, with identical values.
 
+Science's decision (2026-11-12): the two methylisoxazoles are accepted (their
+conflict is only with Tappi 1940). Isoxazole stays held: Steele et al. 1996, 82.0 ±
+0.6, against McCormick & Hamilton 1978, 78.58 ± 0.54, both modern. Imidazole stays
+held and goes on the tier-A compute list. The accepts are kept in a CSV and
+reapplied with ``accept-file`` whenever the library is rebuilt. Result: **60 species
+and 65 targets**. Isoxazole blocks 4 targets and imidazole 1.
+
 The one other difference is HCO⁺: 826.80 kJ/mol against the pilot's 833.0. That is
 the conversion of JANAF's thermal-electron value to ATcT's convention, as intended.
 
