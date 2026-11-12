@@ -130,9 +130,9 @@ CREATE TABLE IF NOT EXISTS reference (
     flag TEXT,
     overrides INTEGER REFERENCES reference (id),
     override_reason TEXT,
-    accepted_by TEXT,
-    accepted_on TEXT,
-    accept_reason TEXT,
+    decided_by TEXT,
+    decided_on TEXT,
+    decision_reason TEXT,
     UNIQUE (species, source)
 );
 CREATE TABLE IF NOT EXISTS derivation (
@@ -729,8 +729,8 @@ class ReferenceLibrary:
             "spread, flag) VALUES (?, ?, ?, ?, ?, ?, ?) "
             "ON CONFLICT (species, source) DO UPDATE SET measurement = "
             "excluded.measurement, state = excluded.state, rule = excluded.rule, "
-            "spread = excluded.spread, flag = excluded.flag, accepted_by = NULL, "
-            "accepted_on = NULL, accept_reason = NULL",
+            "spread = excluded.spread, flag = excluded.flag, decided_by = NULL, "
+            "decided_on = NULL, decision_reason = NULL",
             (species_id, sid, measurement_id, state, rule, spread, flag),
         )
         db.commit()
@@ -753,8 +753,8 @@ class ReferenceLibrary:
         )
         db = self._writer()
         db.execute(
-            "UPDATE reference SET accepted_by = ?, accepted_on = ?, "
-            "accept_reason = ? WHERE id = ?",
+            "UPDATE reference SET decided_by = ?, decided_on = ?, "
+            "decision_reason = ? WHERE id = ?",
             (by, _now(), reason, ref_id),
         )
         db.commit()
@@ -776,14 +776,46 @@ class ReferenceLibrary:
             )
         return self.accept(matches[0]["id"], by=by, reason=reason)
 
+    def hold(self, smiles, charge, source, *, by, reason):
+        """A person holds a source's value for a species (not used), with
+        why: e.g. two modern measurements in conflict, awaiting a computed
+        arbitration. Recorded with who and when."""
+        if not by or not reason:
+            raise ReferenceError("A hold needs who decided it and why")
+        sid = self.source(source)["id"]
+        rows = self.species(smiles, charge)
+        db = self._writer()
+        n = 0
+        for row in rows:
+            n += db.execute(
+                "UPDATE reference SET state = 'held', decided_by = ?, "
+                "decided_on = ?, decision_reason = ? WHERE species = ? AND source = ?",
+                (by, _now(), reason, row["id"], sid),
+            ).rowcount
+        db.commit()
+        if n != 1:
+            raise ReferenceError(f"{smiles} ({source}): {n} values to hold, not one")
+        return n
+
     def accept_file(self, path):
-        """Apply the accepts in a CSV (smiles, charge, source, dfh_298k, by,
-        reason). Returns the reference ids."""
+        """Apply the decisions kept in a CSV: smiles, charge, source,
+        dfh_298k, by, reason, and optionally action ("accept", the default,
+        or "hold", which needs no value). Returns the reference ids of the
+        accepts."""
         import csv
 
         result = []
         with open(path, newline="", encoding="utf-8") as fd:
             for row in csv.DictReader(fd):
+                if (row.get("action") or "accept").strip() == "hold":
+                    self.hold(
+                        row["smiles"],
+                        int(row.get("charge") or 0),
+                        row["source"],
+                        by=row["by"],
+                        reason=row["reason"],
+                    )
+                    continue
                 result.append(
                     self.accept_value(
                         row["smiles"],
@@ -802,8 +834,8 @@ class ReferenceLibrary:
         db = self._connect()
         rows = db.execute(
             "SELECT r.id AS reference_id, r.state, r.rule, r.spread, r.flag, "
-            "r.overrides, r.override_reason, r.accepted_by, r.accepted_on, "
-            "r.accept_reason, m.*, s.name AS source_name, s.kind AS source_kind, "
+            "r.overrides, r.override_reason, r.decided_by, r.decided_on, "
+            "r.decision_reason, m.*, s.name AS source_name, s.kind AS source_kind, "
             "s.rank AS source_rank, s.offset_kj FROM reference r "
             "JOIN measurement m ON m.id = r.measurement "
             "JOIN source s ON s.id = r.source "
@@ -815,7 +847,7 @@ class ReferenceLibrary:
             row = dict(row)
             if row["state"] != "chosen" and not include_held:
                 continue
-            if row["status"] == "estimate" and row["accepted_by"] is None:
+            if row["status"] == "estimate" and row["decided_by"] is None:
                 continue
             row["expanded_uncertainty"] = expanded_uncertainty(
                 row["uncertainty"], row["unc_level"], row["status"]
@@ -1034,13 +1066,14 @@ class LayeredReferences:
         """{layer: (version, path)} of the libraries read."""
         return {name: (lib.version, str(lib.path)) for name, lib in self.layers}
 
-    def candidates(self, smiles, charge=0, multiplicity=None):
-        """Every usable value for a species, from both layers."""
+    def candidates(self, smiles, charge=0, multiplicity=None, *, include_held=False):
+        """Every usable value for a species, from both layers (and the held
+        ones too, if asked, never preferred)."""
         result = []
         for name, library in self.layers:
             for row in library.species(smiles, charge, multiplicity):
                 best = library.best(row["id"])
-                for ref in library.references(row["id"]):
+                for ref in library.references(row["id"], include_held=include_held):
                     ref["layer"] = name
                     ref["preferred"] = (
                         best is not None and ref["reference_id"] == best["reference_id"]

@@ -196,7 +196,7 @@ def test_large_spread_without_review_is_held_until_accepted(lib):
     assert held[0]["state"] == "held"
     lib.accept(m, by="science", reason="Jiménez is the more careful combustion")
     best = lib.best(sid)
-    assert best["dfh_298k"] == 132.9 and best["accepted_by"] == "science"
+    assert best["dfh_298k"] == 132.9 and best["decided_by"] == "science"
 
 
 def test_estimates_are_never_chosen_without_an_accept(lib):
@@ -578,7 +578,7 @@ def test_accept_file_and_0k_rule(lib, tmp_path):
     )
     lib.accept_file(accepts)
     assert lib.best(sid)["dfh_298k"] == 35.6
-    assert lib.best(sid)["accept_reason"] == "modern calorimetry preferred"
+    assert lib.best(sid)["decision_reason"] == "modern calorimetry preferred"
     bad = tmp_path / "bad.csv"
     bad.write_text(
         "smiles,charge,source,dfh_298k,by,reason\nCc1ccon1,0,WebBook-SRD69,1.0,x,y\n"
@@ -593,3 +593,23 @@ def test_accept_file_and_0k_rule(lib, tmp_path):
     )  # fmt: skip
     lib.choose(aid, "W4-17")
     assert "0 K only" in lib.best(aid)["rule"]
+
+
+def test_hold_by_decision(lib, tmp_path):
+    sid = lib.add_species("c1cnoc1", formula="C3H3NO")
+    _webbook(lib, sid, 82.0, 0.6, 1996, cite="Steele et al. 1996")
+    _webbook(lib, sid, 78.58, 0.54, 1978, cite="McCormick & Hamilton 1978")
+    lib.choose(sid, "WebBook-SRD69")
+    assert lib.best(sid) is None  # 4.2x: held by the rule already
+    decisions = tmp_path / "decisions.csv"
+    decisions.write_text(
+        "action,smiles,charge,source,dfh_298k,by,reason\n"
+        "hold,c1cnoc1,0,WebBook-SRD69,,science,"
+        '"4.2x combined; awaiting tier-A arbitration"\n'
+    )
+    lib.accept_file(decisions)
+    (held,) = lib.references(sid, include_held=True)
+    assert held["state"] == "held" and held["decided_by"] == "science"
+    assert "arbitration" in held["decision_reason"]
+    with pytest.raises(R.ReferenceError, match="not one"):
+        lib.hold("C", 0, "WebBook-SRD69", by="x", reason="y")

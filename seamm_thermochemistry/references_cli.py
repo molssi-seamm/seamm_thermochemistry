@@ -72,7 +72,9 @@ def cmd_list(args):
 
 def cmd_show(args):
     layers = R.LayeredReferences(args.local, args.official)
-    rows = layers.candidates(args.smiles, args.charge, args.multiplicity)
+    rows = layers.candidates(
+        args.smiles, args.charge, args.multiplicity, include_held=True
+    )
     if not rows:
         print(f"No reference values for {args.smiles} (charge {args.charge}).")
         return 1
@@ -84,8 +86,9 @@ def cmd_show(args):
             f"± {_fmt(r['uncertainty'])} ({r['unc_level']}) -> 95 % "
             f"{_fmt(r['expanded_uncertainty'])}, total {_fmt(r['total_uncertainty'])}"
         )
-        print(f"    {r['citation']}  [{r['status']}, {r['rule']}]")
-        for key in ("flag", "override_reason", "converted", "accept_reason"):
+        state = "" if r["state"] == "chosen" else f"{r['state'].upper()}, "
+        print(f"    {r['citation']}  [{state}{r['status']}, {r['rule']}]")
+        for key in ("flag", "override_reason", "converted", "decision_reason"):
             if r.get(key):
                 print(f"    {key.replace('_', ' ')}: {r[key]}")
     return 0
