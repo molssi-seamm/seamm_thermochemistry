@@ -385,6 +385,11 @@ class GeometryRecord(dict):
         )
 
 
+#: Parts are added to a stored row only when its energy agrees with the new one
+#: within 1e-10 E_h (in kJ/mol, the store's unit)
+PARTS_TOLERANCE_KJ = 1e-10 * 2625.4996394798254
+
+
 class EnergyRecord(dict):
     """A row of the ``energy`` table."""
 
@@ -718,7 +723,11 @@ class GeometryEnergyMixin:
         """Insert an energy row unless its key exists.
 
         The row is linked to the geometry row with the same hash when there is
-        one. Returns ("inserted" | "duplicate" | "logged", row id).
+        one. A duplicate (the same key and energy within the tolerance) that
+        brings the energy's parts (``byproducts``) when the stored row has none
+        adds them to it: a calculation recomputed because its row lacked the
+        parts a recipe needs then need not be recomputed again. Returns
+        ("inserted" | "duplicate" | "parts added" | "logged", row id).
         """
         record = EnergyRecord(record)
         if record.get("geometry") is None:
@@ -728,7 +737,52 @@ class GeometryEnergyMixin:
                 (record["geometry_hash"],),
             ).fetchone()
             record["geometry"] = row["id"] if row is not None else None
-        return self._put("energy", _ENERGY_COLUMNS, 2, _ENERGY_VALUES, record)
+        outcome, row_id = self._put(
+            "energy", _ENERGY_COLUMNS, 2, _ENERGY_VALUES, record
+        )
+        if outcome == "duplicate" and record.get("byproducts"):
+            db = self._writer()
+            existing = db.execute(
+                "SELECT byproducts, E FROM energy WHERE id = ?", (row_id,)
+            ).fetchone()
+            if existing["byproducts"] in (None, "", "null"):
+                # Only for the same calculation: the key (geometry, settings
+                # fingerprint) matched, and the energy must agree to round-off
+                difference = abs(float(existing["E"]) - float(record["E"]))
+                if difference > PARTS_TOLERANCE_KJ:
+                    self._history(
+                        db,
+                        "energy",
+                        row_id,
+                        "parts refused",
+                        {"E": existing["E"]},
+                        {"E": record["E"], "job": record.get("job")},
+                        difference=difference,
+                        reason="the energy differs by more than 1e-10 E_h",
+                    )
+                    db.commit()
+                    logger.warning(
+                        f"Energy parts not added to row {row_id}: its energy differs "
+                        f"from the new one by {difference:.2e} kJ/mol (more than "
+                        "1e-10 E_h); the row is left as it is."
+                    )
+                    return "duplicate", row_id
+                db.execute(
+                    "UPDATE energy SET byproducts = ? WHERE id = ?",
+                    (json.dumps(record["byproducts"]), row_id),
+                )
+                self._history(
+                    db,
+                    "energy",
+                    row_id,
+                    "parts added",
+                    {"byproducts": None},
+                    {"byproducts": record["byproducts"], "job": record.get("job")},
+                    difference=0.0,
+                )
+                db.commit()
+                return "parts added", row_id
+        return outcome, row_id
 
     def _supersede(self, table, columns, nkey, fields, record, reason, force, put):
         if not reason:
