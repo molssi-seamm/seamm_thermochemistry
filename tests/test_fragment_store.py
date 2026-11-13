@@ -372,3 +372,28 @@ def test_cli_supersede(job, tmp_path, capsys):
     assert "Nothing superseded." in capsys.readouterr().out
     assert main(["--store", path, "harvest", str(job), "--supersede", "why"]) == 0
     assert "0 superseded" in capsys.readouterr().out
+
+
+def test_harvest_keeps_corrected_frequencies_apart(job, store):
+    """A species whose ZPE and H come from corrected frequencies (PM7's
+    per-frequency correction) gets the correction's tag in its frequency
+    fingerprint, so it never shares a key with uncorrected data -- also when the
+    program recorded no frequency fingerprint."""
+    molsystem = pytest.importorskip("molsystem")
+    model = "MOPAC:SQM@PM7"
+    tag = "fc:PM7-Rozanska2014:v1:full"
+    db = molsystem.SystemDB(filename=f"file:{job / 'seamm.db'}")
+    for system in db.systems:
+        if system.name == "CBH:C":
+            p = system.configuration.properties
+            name = f"frequency correction#Thermochemistry#{model}"
+            p.add(name, "str", units=None, noerror=True)
+            p.put(name, tag)
+    db.close()
+    harvest_job(job, store)
+    c = {r["species"]: r for r in store.records()}["C"]
+    assert c["frequency_fingerprint"].endswith(f"+{tag}")
+    assert c["frequency_fingerprint"].startswith("unverified:")
+    # Species without thermal data are not tagged
+    ccf = {r["species"]: r for r in store.records()}["CCF"]
+    assert tag not in ccf["frequency_fingerprint"]

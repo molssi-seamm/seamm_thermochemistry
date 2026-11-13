@@ -1283,6 +1283,18 @@ def harvest_configuration(
         if isinstance(calculation, dict):
             program = calculation.get("program")
             version = calculation.get("version")
+        # A frequency correction (e.g. PM7's, seamm_thermochemistry
+        # .frequency_corrections) changes the ZPE and H: its tag is part of the
+        # frequency fingerprint, so corrected and uncorrected thermal data never
+        # share a key -- also when the program gave no fingerprint
+        correction = extra("frequency correction", kind="str")
+        if (
+            isinstance(correction, str)
+            and correction
+            and (ZPE or H)
+            and not (ffp or "").endswith(f"+{correction}")
+        ):
+            ffp = f"{ffp or _unverified(model, version, program)}+{correction}"
         record = FragmentRecord.make(
             species,
             charge=charge,

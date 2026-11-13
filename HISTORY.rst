@@ -1,6 +1,17 @@
 =======
 History
 =======
+2026.11.13 -- Per-frequency corrections, starting with PM7
+    * New: ``frequency_correction``, a table of corrections applied to each
+      harmonic frequency, keyed by model chemistry like the ZPE scale factors. The
+      first is PM7's (Rozanska et al., J. Chem. Eng. Data 59, 3136 (2014), eq 1),
+      with its citation, the elements of its fit (C, H, N, O), the raw frequencies
+      where the map is discontinuous (98-125 and 2400-2600 cm^-1) and the largest
+      raw frequency it covers (2900 cm^-1; higher ones are left uncorrected).
+    * The harvest adds a correction's tag to the frequency fingerprint of thermal
+      data computed with it, also when the program gave no fingerprint, so
+      corrected and uncorrected ZPEs and enthalpies never share a key.
+
 2026.11.12.2 -- The official reference library from Zenodo
     * The installer installs and updates the official reference library,
       ``references-official.db`` (Zenodo concept DOI 10.5281/zenodo.24175073),
