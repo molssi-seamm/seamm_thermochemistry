@@ -416,9 +416,13 @@ the ``--exclude`` file (columns species, charge, multiplicity, reason, and optio
 conformer, to leave out only that conformer). Rows quarantined by hand in a store
 (unverified, with the model chemistry ``UNUSABLE: <reason>``) are never found by a
 lookup; ``migrate`` leaves them as they are, ``export`` skips them, and ``official
-build`` drops them and lists them in its report. A valid new row with the same key
-replaces a quarantined one, which is kept as superseded, and quarantined rows are not
-counted as conformers. Ions and open-shell species are checked like the rest. The
+build`` drops them and lists them in its report. Nothing replaces a quarantined row
+automatically: a harvest, write-back or merge that brings a row with the same key keeps
+the quarantined one, logs the attempt in the history (kind ``quarantined``) and reports
+it. Releasing a quarantine is a person's decision, made with ``harvest --supersede
+<reason>`` (or the store's ``supersede`` methods), and the new values must still pass
+every check of the harvest; the old values are kept as superseded. Quarantined rows are
+not counted as conformers. Ions and open-shell species are checked like the rest. The
 build writes ``<file>.report.json`` beside the file: the sources, the levels, the rows
 kept and left out, each exclusion with its reason, and the SHA-256. Since an official
 store is published, the build keeps only each job's id in the provenance, not its
@@ -471,8 +475,8 @@ makes an energy row on the configuration's geometry. It guards the pairing:
   reported;
 * a geometry row has its geometry and frequencies at one level: a row whose
   optimization was at another model chemistry is refused;
-* a geometry with imaginary frequencies (more than 20i cm⁻¹) is stored, but not
-  offered for reuse.
+* a geometry with an imaginary mode beyond 20i cm⁻¹ (a saddle point) is refused,
+  with every energy on it, as in a write-back.
 
 Jobs whose systems are not named ``CBH:<SMILES>`` (for example by an ATcT id, with
 several conformers of a species) are harvested with a species map, a CSV file with the

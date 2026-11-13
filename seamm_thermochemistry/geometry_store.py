@@ -43,14 +43,17 @@ Guards, applied when rows are written:
   (The settings fingerprints of the two may differ legitimately, e.g. a
   Hessian by finite differences converges the SCF more tightly, so the model
   chemistry and program are compared, and both fingerprints are kept.)
-* A geometry with imaginary frequencies is stored, so that its provenance is
-  kept, but :meth:`geometries` does not return it for reuse unless asked:
-  modes up to ``IMAGINARY_TOLERANCE`` (cm⁻¹) are taken as numerical noise.
+* A harvest or write-back refuses a geometry with an imaginary mode beyond
+  ``IMAGINARY_TOLERANCE`` (cm⁻¹; smaller ones are taken as numerical noise).
+  Rows with imaginary modes stored earlier stay, and :meth:`geometries` does
+  not return them for reuse unless asked.
 
 Writes follow the ``fragment`` table's rules: insert-or-ignore, a differing
 duplicate (by more than 0.1 kJ/mol) logged in ``row_history`` and never
 overwritten, and an explicit ``supersede`` with a reason that keeps the old
-values in ``row_history``.
+values in ``row_history``. A row quarantined by hand (``UNUSABLE: <reason>``)
+is never replaced by a put: the attempt is logged in ``row_history`` (kind
+"quarantined"), and only an explicit ``supersede`` releases it.
 
 Model chemistries are stored as the bare model and the program, e.g.
 ``CMP@R2SCAN-3C`` and ``ORCA``, however they are given
@@ -82,6 +85,7 @@ __all__ = [
     "split_model_chemistry",
     "same_model_chemistry",
     "is_unusable",
+    "quarantine_reason",
 ]
 
 #: The store's schema version (``PRAGMA user_version``): 4 adds the
@@ -239,6 +243,11 @@ UNUSABLE = "UNUSABLE:"
 def is_unusable(model_chemistry):
     """Whether a row's model chemistry marks it quarantined ("UNUSABLE: ...")."""
     return str(model_chemistry or "").strip().upper().startswith(UNUSABLE)
+
+
+def quarantine_reason(model_chemistry):
+    """The reason of a quarantined row: its model chemistry after "UNUSABLE:"."""
+    return str(model_chemistry or "").split(":", 1)[-1].strip()
 
 
 def same_model_chemistry(a, b, program_a=None, program_b=None):
@@ -590,12 +599,8 @@ class GeometryEnergyMixin:
         existing = db.execute(
             f"SELECT * FROM {table} WHERE {where}", values[:nkey]
         ).fetchone()
-        if is_unusable(existing["model_chemistry"]) and not is_unusable(
-            record.get("model_chemistry")
-        ):
-            return self._replace_quarantined(
-                db, table, columns, nkey, record, values, existing
-            )
+        if is_unusable(existing["model_chemistry"]):
+            return self._keep_quarantined(db, table, fields, record, existing)
         difference = self._difference(existing, record, fields)
         if difference <= DUPLICATE_TOLERANCE:
             return "duplicate", existing["id"]
@@ -616,34 +621,33 @@ class GeometryEnergyMixin:
         )
         return "logged", existing["id"]
 
-    def _replace_quarantined(self, db, table, columns, nkey, record, values, existing):
+    def _keep_quarantined(self, db, table, fields, record, existing):
         """A row quarantined by hand ("UNUSABLE: <reason>") holds the key of a
-        valid new row: the new values replace it, and the old ones go to
-        ``row_history`` as superseded, with the quarantine's reason."""
-        reason = str(existing["model_chemistry"]).split(":", 1)[-1].strip()
+        new row. Nothing replaces a quarantine automatically: the attempt is
+        logged in ``row_history`` (kind "quarantined") and the quarantined row
+        stays. Releasing it is a person's decision, made explicitly with a
+        reason (:meth:`supersede_geometry`, :meth:`supersede_energy`,
+        :meth:`FragmentStore.supersede`, or a harvest with ``supersede``),
+        and the new values still pass every check of the harvest first."""
+        reason = quarantine_reason(existing["model_chemistry"])
         self._history(
             db,
             table,
             existing["id"],
-            "superseded",
+            "quarantined",
             dict(existing),
             dict(record),
-            reason=f"replaced a quarantined row: {reason}",
-        )
-        new = dict(zip(columns, values))
-        if table == "energy" and new.get("geometry") is None:
-            new["geometry"] = existing["geometry"]
-        value_columns = columns[nkey:]
-        db.execute(
-            f"UPDATE {table} SET {', '.join(f'{c} = ?' for c in value_columns)} "
-            "WHERE id = ?",
-            [new[c] for c in value_columns] + [existing["id"]],
+            difference=self._difference(existing, record, fields),
+            reason=f"kept the quarantine: {reason}",
         )
         db.commit()
-        logger.info(
-            f"Replaced the quarantined {table} row {existing['id']} ({reason})."
+        logger.warning(
+            f"The fragment store's {table} row {existing['id']} is quarantined "
+            f"({reason}); kept it, and logged the new values (job "
+            f"{record.get('job')}). Releasing it needs a person: supersede it "
+            "with a reason."
         )
-        return "superseded", existing["id"]
+        return "quarantined", existing["id"]
 
     def put_geometry(self, record):
         """Insert a geometry row unless its key exists.
@@ -795,6 +799,13 @@ class GeometryEnergyMixin:
         ).fetchone()
         if existing is None:
             return put(record)
+        if is_unusable(record.get("model_chemistry")):
+            raise ValueError("A quarantined row cannot supersede another row.")
+        if is_unusable(existing["model_chemistry"]):
+            reason = (
+                f"{reason} (released the quarantine: "
+                f"{quarantine_reason(existing['model_chemistry'])})"
+            )
         difference = 0.0
         for field in fields:
             a, b = existing[field], record.get(field)

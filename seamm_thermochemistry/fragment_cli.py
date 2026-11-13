@@ -250,6 +250,11 @@ def main(argv=None):
                         f"{counts['duplicate']} already there, "
                         f"{counts['logged']} differing (logged), "
                         f"{counts['superseded']} superseded"
+                        + (
+                            f", {counts['quarantined']} kept quarantined"
+                            if counts.get("quarantined")
+                            else ""
+                        )
                     )
                     for table in ("geometry", "energy"):
                         tally = counts.get(table) or {}
