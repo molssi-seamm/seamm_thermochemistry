@@ -291,7 +291,10 @@ In Python::
     record = store.get("CC", energy_fingerprint=fp, model_chemistry=mc)
     record["E"], record["ZPE"], record["H"], record["verified"]
 
-Reads are best effort: a missing, locked or corrupt store gives None.
+Reads are best effort: a missing, locked or corrupt store gives None. When a
+level has both a record with thermal data (ZPE, H) and one with the energy alone
+(stored by a run without thermal corrections, e.g. MOPAC's enthalpy of formation
+taken as the enthalpy), ``get`` returns the one with thermal data.
 
 Model chemistries are stored as the bare model and the program, e.g.
 ``CMP@R2SCAN-3C`` and ``ORCA``, however they were given: the ORCA sub-steps

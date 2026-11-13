@@ -7,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.11.13 documentation</title>
+    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.11.13.1 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="_static/documentation_options.js?v=1061b2d4"></script>
+    <script src="_static/documentation_options.js?v=e1d96fe1"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -55,7 +55,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.13" />
+  <meta name="docsearch:version" content="2026.11.13.1" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -713,7 +713,10 @@ Otherwise the row is left as it is and the attempt is logged.</p>
 <span class="n">record</span><span class="p">[</span><span class="s2">"E"</span><span class="p">],</span> <span class="n">record</span><span class="p">[</span><span class="s2">"ZPE"</span><span class="p">],</span> <span class="n">record</span><span class="p">[</span><span class="s2">"H"</span><span class="p">],</span> <span class="n">record</span><span class="p">[</span><span class="s2">"verified"</span><span class="p">]</span>
 </pre></div>
 </div>
-<p>Reads are best effort: a missing, locked or corrupt store gives None.</p>
+<p>Reads are best effort: a missing, locked or corrupt store gives None. When a
+level has both a record with thermal data (ZPE, H) and one with the energy alone
+(stored by a run without thermal corrections, e.g. MOPAC’s enthalpy of formation
+taken as the enthalpy), <code class="docutils literal notranslate"><span class="pre">get</span></code> returns the one with thermal data.</p>
 <p>Model chemistries are stored as the bare model and the program, e.g.
 <code class="docutils literal notranslate"><span class="pre">CMP&#64;R2SCAN-3C</span></code> and <code class="docutils literal notranslate"><span class="pre">ORCA</span></code>, however they were given: the ORCA sub-steps
 name a level <code class="docutils literal notranslate"><span class="pre">CMP&#64;R2SCAN-3C</span></code> and the Model Chemistry step
