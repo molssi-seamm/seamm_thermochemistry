@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>seamm_thermochemistry.frequency_corrections &#8212; SEAMM thermochemistry Plug-in 2026.11.13 documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=75c7c72ae941e8b558d8" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-design.min.css?v=6a604523" />
+    <link rel="stylesheet" type="text/css" href="../../_static/css/custom.css" />
+  
+  <!-- So that users can add custom icons -->
+  <script defer src="../../_static/scripts/fontawesome.js?digest=75c7c72ae941e8b558d8"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
+<link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
+
+    <script src="../../_static/documentation_options.js?v=1061b2d4"></script>
+    <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../_static/copybutton.js?v=f281be69"></script>
+    <script data-sd-tabs-storage-prefix="sphinx-design-tab-id-" src="../../_static/design-tabs.js?v=fcb327ea"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/seamm_thermochemistry/frequency_corrections';</script>
+    <script>DOCUMENTATION_OPTIONS.search_as_you_type = false;</script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="color-scheme" content="light dark"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="2026.11.13" />
+  
+    
+    <script src="../../_static/searchtools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script src="../../searchindex.js"></script>
+  
+  </head>
+  <body data-default-mode="">
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+  
+  
+  
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header id="pst-header" class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button type="button" class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation" aria-expanded="false" aria-controls="pst-primary-sidebar-modal">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../_static/SEAMM logo.png" class="logo__image only-light" alt=""/>
+    <img src="../../_static/SEAMM Inverted 288x181.png" class="logo__image only-dark pst-js-only" alt=""/>
+  
+  
+    <p class="title logo__title">SEAMM-THERMOCHEMISTRY</p>
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api.html">
+    API Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../developer_guide/index.html">
+    Developer Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-external" href="https://molssi-seamm.github.io">
+    SEAMM Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-external" href="https://molssi.org">
+    MolSSI
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+        </div>
+      
+      
+        <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/molssi-seamm/seamm_thermochemistry" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/MolSSI_NSF" title="Twitter" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-twitter fa-lg" aria-hidden="true"></i><span class="visually-hidden">Twitter</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+
+<button type="button" class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button>
+    </div>
+  
+
+  
+</div>
+
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+        
+      
+      <dialog id="pst-primary-sidebar-modal" tabindex="-1"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../getting_started.html">
+    Getting Started
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../api.html">
+    API Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../../developer_guide/index.html">
+    Developer Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-external" href="https://molssi-seamm.github.io">
+    SEAMM Documentation
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-external" href="https://molssi.org">
+    MolSSI
+  </a>
+</li>
+
+  </ul>
+</nav></div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+
+<div class="theme-switch-container dropdown pst-js-only" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Color mode">
+  <button type="button" class="btn btn-sm nav-link pst-navbar-icon theme-switch-button dropdown-toggle" aria-label="Color mode" data-bs-toggle="dropdown">
+    <i class="theme-switch fa-solid fa-sun fa-lg" data-mode="light" title="Light"></i>
+    <i class="theme-switch fa-solid fa-moon fa-lg" data-mode="dark" title="Dark"></i>
+    <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto" title="System Settings"></i>
+  </button>
+  <ul class="dropdown-menu dropdown-menu-end">
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="auto"><i class="fa-solid fa-circle-half-stroke fa-lg me-1"></i>System Settings</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="light"><i class="fa-solid fa-sun fa-lg me-1"></i>Light</button></li>
+    <li><button type="button" class="dropdown-item d-flex align-items-center theme-change-button" data-mode="dark"><i class="fa-solid fa-moon fa-lg me-1"></i>Dark</button></li>
+  </ul>
+</div></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/molssi-seamm/seamm_thermochemistry" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-github fa-lg" aria-hidden="true"></i><span class="visually-hidden">GitHub</span></a>
+        </li>
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://twitter.com/MolSSI_NSF" title="Twitter" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-square-twitter fa-lg" aria-hidden="true"></i><span class="visually-hidden">Twitter</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+<nav aria-label="Breadcrumb" class="d-print-none">
+  <ul class="bd-breadcrumbs">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-house"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">seamm_thermochemistry.frequency_corrections</span></li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <h1>Source code for seamm_thermochemistry.frequency_corrections</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="sd">"""Corrections of harmonic frequencies, one frequency at a time, with their sources.</span>
+
+<span class="sd">Some methods get their frequencies wrong in a way a single scale factor cannot fix.</span>
+<span class="sd">PM7, for one, puts the X-H stretches near a quarter of their real spread, so its</span>
+<span class="sd">frequencies above 2500 cm^-1 need a steep linear map (Rozanska et al. 2014, eq 1).</span>
+<span class="sd">Such a correction is a piecewise-linear function of the frequency, fitted for a</span>
+<span class="sd">method (and basis), and is applied to each real frequency before the zero-point</span>
+<span class="sd">energy and the thermal functions (H(T) - H(0), S, Cp) are computed.</span>
+
+<span class="sd">A correction replaces the ZPE scale factor for its method: the two are never</span>
+<span class="sd">applied together. Each entry carries its citation, the elements its fit set</span>
+<span class="sd">contained, and the frequency window where the map is discontinuous or was not</span>
+<span class="sd">validated, so the thermochemistry step can warn about frequencies there. Its</span>
+<span class="sd">``tag`` (id, version and the range used) goes into the frequency fingerprint of the</span>
+<span class="sd">corrected thermal data, so corrected and uncorrected data are never mixed.</span>
+
+<span class="sd">The functions are looked up like the ZPE scale factors, by the (method, basis) of</span>
+<span class="sd">the frequency level's model chemistry (:func:`seamm_thermochemistry.zpe.split_level`).</span>
+<span class="sd">"""</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span><span class="p">,</span> <span class="n">field</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.zpe</span><span class="w"> </span><span class="kn">import</span> <span class="n">split_level</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">"FrequencyCorrection"</span><span class="p">,</span>
+    <span class="s2">"FREQUENCY_CORRECTIONS"</span><span class="p">,</span>
+    <span class="s2">"RANGES"</span><span class="p">,</span>
+    <span class="s2">"frequency_correction"</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="c1">#: How much of a correction to apply: all of it, or only the branches that are</span>
+<span class="c1">#: needed (a branch marked ``optional`` is then left out)</span>
+<span class="n">RANGES</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"full"</span><span class="p">,</span> <span class="s2">"high-frequency only"</span><span class="p">)</span>
+
+
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Branch</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""``nu' = slope * nu + intercept`` for ``low &lt;= nu &lt; high`` (cm^-1).</span>
+<span class="sd">    ``optional``: the source says the branch may be left out."""</span>
+
+    <span class="n">low</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">high</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="n">slope</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="n">intercept</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">optional</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nu</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">slope</span> <span class="o">*</span> <span class="n">nu</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">intercept</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">identity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">slope</span> <span class="o">==</span> <span class="mf">1.0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">intercept</span> <span class="o">==</span> <span class="mf">0.0</span>
+
+
+<div class="viewcode-block" id="FrequencyCorrection">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.frequency_corrections.FrequencyCorrection">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">FrequencyCorrection</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""A piecewise-linear correction of the harmonic frequencies of one method.</span>
+
+<span class="sd">    Its fields:</span>
+
+<span class="sd">    id, version : str, int</span>
+<span class="sd">        Its name and version; both go into :attr:`tag`.</span>
+<span class="sd">    method, basis : str</span>
+<span class="sd">        The level it is for, upper case, as :func:`split_level` gives it.</span>
+<span class="sd">    branches : tuple of Branch</span>
+<span class="sd">        Covering 0 to infinity in order; frequencies on a boundary use the</span>
+<span class="sd">        higher branch.</span>
+<span class="sd">    citation : str</span>
+<span class="sd">        The source, for printing.</span>
+<span class="sd">    bibtex : str</span>
+<span class="sd">        The source as a BibTeX entry, for the references.</span>
+<span class="sd">    fitted_elements : tuple of str</span>
+<span class="sd">        The elements of the fit set. Stretches of hydrogen bonded to other</span>
+<span class="sd">        elements were not validated.</span>
+<span class="sd">    unvalidated : tuple of (float, float)</span>
+<span class="sd">        The windows (cm^-1) where the map is discontinuous or was not</span>
+<span class="sd">        validated, as raw frequencies.</span>
+<span class="sd">    valid_max : float or None</span>
+<span class="sd">        The largest raw frequency (cm^-1) the fit covers. Higher frequencies are</span>
+<span class="sd">        left as they are (a steep branch would blow them up), and the step warns.</span>
+<span class="sd">    note : str</span>
+<span class="sd">        Anything else to say when it is used.</span>
+<span class="sd">    """</span>
+
+    <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">version</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">method</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">basis</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">branches</span><span class="p">:</span> <span class="nb">tuple</span>
+    <span class="n">citation</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">bibtex</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>
+    <span class="n">fitted_elements</span><span class="p">:</span> <span class="nb">tuple</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">unvalidated</span><span class="p">:</span> <span class="nb">tuple</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="n">valid_max</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">note</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">""</span>
+    <span class="n">aliases</span><span class="p">:</span> <span class="nb">tuple</span> <span class="o">=</span> <span class="n">field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="p">())</span>
+
+<div class="viewcode-block" id="FrequencyCorrection.tag">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.frequency_corrections.FrequencyCorrection.tag">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">tag</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">range_</span><span class="o">=</span><span class="s2">"full"</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""The text that identifies the corrected data, for the fingerprints."""</span>
+        <span class="n">_check_range</span><span class="p">(</span><span class="n">range_</span><span class="p">)</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"fc:</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">:v</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">range_</span><span class="si">}</span><span class="s2">"</span></div>
+
+
+<div class="viewcode-block" id="FrequencyCorrection.branch">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.frequency_corrections.FrequencyCorrection.branch">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">branch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nu</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""The branch for a frequency (cm^-1)."""</span>
+        <span class="k">for</span> <span class="n">branch</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">branches</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">branch</span><span class="o">.</span><span class="n">low</span> <span class="o">&lt;=</span> <span class="n">nu</span> <span class="o">&lt;</span> <span class="n">branch</span><span class="o">.</span><span class="n">high</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">branch</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">branches</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frequencies</span><span class="p">,</span> <span class="n">range_</span><span class="o">=</span><span class="s2">"full"</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""The corrected frequencies (cm^-1), in the same order.</span>
+
+<span class="sd">        ``range_`` "high-frequency only" leaves the optional branches out.</span>
+<span class="sd">        Frequencies that are not positive (imaginary modes given as negative</span>
+<span class="sd">        numbers, zero modes), and those above :attr:`valid_max`, are returned</span>
+<span class="sd">        unchanged.</span>
+<span class="sd">        """</span>
+        <span class="n">_check_range</span><span class="p">(</span><span class="n">range_</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">nu</span> <span class="ow">in</span> <span class="n">frequencies</span><span class="p">:</span>
+            <span class="n">nu</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">nu</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">nu</span> <span class="o">&lt;=</span> <span class="mf">0.0</span> <span class="ow">or</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">valid_max</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">nu</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">valid_max</span><span class="p">):</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nu</span><span class="p">)</span>
+                <span class="k">continue</span>
+            <span class="n">branch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">branch</span><span class="p">(</span><span class="n">nu</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">branch</span><span class="o">.</span><span class="n">optional</span> <span class="ow">and</span> <span class="n">range_</span> <span class="o">!=</span> <span class="s2">"full"</span><span class="p">:</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nu</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">branch</span><span class="p">(</span><span class="n">nu</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">out</span>
+
+<div class="viewcode-block" id="FrequencyCorrection.not_applicable">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.frequency_corrections.FrequencyCorrection.not_applicable">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">not_applicable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frequencies</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""The raw frequencies (cm^-1) above the fit's range, left uncorrected."""</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">valid_max</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="k">return</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">nu</span><span class="p">)</span> <span class="k">for</span> <span class="n">nu</span> <span class="ow">in</span> <span class="n">frequencies</span> <span class="k">if</span> <span class="nb">float</span><span class="p">(</span><span class="n">nu</span><span class="p">)</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">valid_max</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="FrequencyCorrection.in_unvalidated_windows">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.frequency_corrections.FrequencyCorrection.in_unvalidated_windows">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">in_unvalidated_windows</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frequencies</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""The positive frequencies (cm^-1) in an unvalidated window."""</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="nb">float</span><span class="p">(</span><span class="n">nu</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">nu</span> <span class="ow">in</span> <span class="n">frequencies</span>
+            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">low</span> <span class="o">&lt;=</span> <span class="nb">float</span><span class="p">(</span><span class="n">nu</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">high</span> <span class="k">for</span> <span class="n">low</span><span class="p">,</span> <span class="n">high</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">unvalidated</span><span class="p">)</span>
+        <span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="FrequencyCorrection.describe">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.frequency_corrections.FrequencyCorrection.describe">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">describe</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">range_</span><span class="o">=</span><span class="s2">"full"</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""The function, as text."""</span>
+        <span class="n">_check_range</span><span class="p">(</span><span class="n">range_</span><span class="p">)</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">branches</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">b</span><span class="o">.</span><span class="n">high</span> <span class="o">==</span> <span class="nb">float</span><span class="p">(</span><span class="s2">"inf"</span><span class="p">):</span>
+                <span class="n">where</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">b</span><span class="o">.</span><span class="n">low</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> cm^-1 and above"</span>
+            <span class="k">elif</span> <span class="n">b</span><span class="o">.</span><span class="n">low</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
+                <span class="n">where</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"below </span><span class="si">{</span><span class="n">b</span><span class="o">.</span><span class="n">high</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> cm^-1"</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">where</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">b</span><span class="o">.</span><span class="n">low</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> to </span><span class="si">{</span><span class="n">b</span><span class="o">.</span><span class="n">high</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> cm^-1"</span>
+            <span class="k">if</span> <span class="n">b</span><span class="o">.</span><span class="n">identity</span> <span class="ow">or</span> <span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">optional</span> <span class="ow">and</span> <span class="n">range_</span> <span class="o">!=</span> <span class="s2">"full"</span><span class="p">):</span>
+                <span class="n">what</span> <span class="o">=</span> <span class="s2">"unchanged"</span>
+                <span class="k">if</span> <span class="n">b</span><span class="o">.</span><span class="n">optional</span> <span class="ow">and</span> <span class="n">range_</span> <span class="o">!=</span> <span class="s2">"full"</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">b</span><span class="o">.</span><span class="n">identity</span><span class="p">:</span>
+                    <span class="n">what</span> <span class="o">+=</span> <span class="s2">" (the optional branch is not applied)"</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">sign</span> <span class="o">=</span> <span class="s2">"-"</span> <span class="k">if</span> <span class="n">b</span><span class="o">.</span><span class="n">intercept</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="s2">"+"</span>
+                <span class="n">what</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">b</span><span class="o">.</span><span class="n">slope</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> nu </span><span class="si">{</span><span class="n">sign</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="nb">abs</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">intercept</span><span class="p">)</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2">"</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">what</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">valid_max</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"above </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">valid_max</span><span class="si">:</span><span class="s2">g</span><span class="si">}</span><span class="s2"> cm^-1 (outside the fit): unchanged, with a "</span>
+                <span class="s2">"warning"</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">lines</span></div>
+</div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_check_range</span><span class="p">(</span><span class="n">range_</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">range_</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">RANGES</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"The range of a frequency correction must be one of </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">RANGES</span><span class="p">)</span><span class="si">}</span><span class="s2">, "</span>
+            <span class="sa">f</span><span class="s2">"not </span><span class="si">{</span><span class="n">range_</span><span class="si">!r}</span><span class="s2">"</span>
+        <span class="p">)</span>
+
+
+<span class="n">_ROZANSKA_2014</span> <span class="o">=</span> <span class="s2">"""@article{Rozanska2014,</span>
+<span class="s2">    author = {Rozanska, Xavier and Stewart, James J. P. and Ungerer, Philippe and</span>
+<span class="s2">              Leblanc, Benoit and Freeman, Chris and Saxe, Paul and Wimmer, Erich},</span>
+<span class="s2">    title = {High-Throughput Calculations of Molecular Properties in the MedeA</span>
+<span class="s2">             Environment: Accuracy of PM7 in Predicting Vibrational Frequencies,</span>
+<span class="s2">             Ideal Gas Entropies, Heat Capacities, and Gibbs Free Energies of</span>
+<span class="s2">             Organic Molecules},</span>
+<span class="s2">    journal = {Journal of Chemical </span><span class="se">\\</span><span class="s2">&amp; Engineering Data},</span>
+<span class="s2">    volume = </span><span class="si">{59}</span><span class="s2">,</span>
+<span class="s2">    number = </span><span class="si">{10}</span><span class="s2">,</span>
+<span class="s2">    pages = {3136--3143},</span>
+<span class="s2">    year = </span><span class="si">{2014}</span><span class="s2">,</span>
+<span class="s2">    doi = {10.1021/je500201y}</span>
+<span class="s2">}"""</span>
+
+<span class="c1">#: The corrections, by (method, basis), upper case</span>
+<span class="n">FREQUENCY_CORRECTIONS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="p">(</span><span class="s2">"PM7"</span><span class="p">,</span> <span class="s2">""</span><span class="p">):</span> <span class="n">FrequencyCorrection</span><span class="p">(</span>
+        <span class="nb">id</span><span class="o">=</span><span class="s2">"PM7-Rozanska2014"</span><span class="p">,</span>
+        <span class="n">version</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">method</span><span class="o">=</span><span class="s2">"PM7"</span><span class="p">,</span>
+        <span class="n">basis</span><span class="o">=</span><span class="s2">""</span><span class="p">,</span>
+        <span class="n">branches</span><span class="o">=</span><span class="p">(</span>
+            <span class="n">Branch</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">125.0</span><span class="p">),</span>
+            <span class="n">Branch</span><span class="p">(</span><span class="mf">125.0</span><span class="p">,</span> <span class="mf">2500.0</span><span class="p">,</span> <span class="mf">1.006</span><span class="p">,</span> <span class="o">-</span><span class="mf">27.7</span><span class="p">,</span> <span class="n">optional</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+            <span class="n">Branch</span><span class="p">(</span><span class="mf">2500.0</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="s2">"inf"</span><span class="p">),</span> <span class="mf">3.99</span><span class="p">,</span> <span class="o">-</span><span class="mf">7849.2</span><span class="p">),</span>
+        <span class="p">),</span>
+        <span class="n">citation</span><span class="o">=</span><span class="p">(</span>
+            <span class="s2">"Rozanska, Stewart, Ungerer, Leblanc, Freeman, Saxe and Wimmer, "</span>
+            <span class="s2">"J. Chem. Eng. Data 59, 3136 (2014), eq 1"</span>
+        <span class="p">),</span>
+        <span class="n">bibtex</span><span class="o">=</span><span class="n">_ROZANSKA_2014</span><span class="p">,</span>
+        <span class="n">fitted_elements</span><span class="o">=</span><span class="p">(</span><span class="s2">"C"</span><span class="p">,</span> <span class="s2">"H"</span><span class="p">,</span> <span class="s2">"N"</span><span class="p">,</span> <span class="s2">"O"</span><span class="p">),</span>
+        <span class="c1"># Raw frequencies around both switches, where a small change moves a</span>
+        <span class="c1"># mode to the other branch: 124 -&gt; 124 but 126 -&gt; 99.1, and 2499 -&gt;</span>
+        <span class="c1"># 2486.3 but 2501 -&gt; 2129.8. (PM7's C-H/N-H stretches lie at 2620-2850,</span>
+        <span class="c1"># above this window.)</span>
+        <span class="n">unvalidated</span><span class="o">=</span><span class="p">((</span><span class="mf">98.0</span><span class="p">,</span> <span class="mf">125.0</span><span class="p">),</span> <span class="p">(</span><span class="mf">2400.0</span><span class="p">,</span> <span class="mf">2600.0</span><span class="p">)),</span>
+        <span class="c1"># The fit's experimental frequencies end at about 3700 cm^-1 (the paper's</span>
+        <span class="c1"># Figure 2; raw PM7 there about 2850), i.e. a raw (3700 + 7849.2) / 3.99 =</span>
+        <span class="c1"># 2894.5. The slope-3.99 branch must not be extrapolated beyond it: PM7's</span>
+        <span class="c1"># H2 stretch at 5577 cm^-1 would become 14402 (experiment ~4401).</span>
+        <span class="n">valid_max</span><span class="o">=</span><span class="mf">2900.0</span><span class="p">,</span>
+        <span class="n">note</span><span class="o">=</span><span class="p">(</span>
+            <span class="s2">"Fitted to the experimental frequencies of 52 organic molecules (C, H, "</span>
+            <span class="s2">"N, O; experimental frequencies up to about 3700 cm^-1, raw PM7 up to "</span>
+            <span class="s2">"about 2850). The map is discontinuous at 125 cm^-1 (124 -&gt; 124, "</span>
+            <span class="s2">"126 -&gt; 99.1) and at 2500 cm^-1 (2499 -&gt; 2486.3, 2501 -&gt; 2129.8). The "</span>
+            <span class="s2">"source calls the 125-2500 cm^-1 branch optional (0.6 %). For PM7 only: "</span>
+            <span class="s2">"other MOPAC "</span>
+            <span class="s2">"methods (PM6, PM6-ORG, ...) need their own fit."</span>
+        <span class="p">),</span>
+    <span class="p">),</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="frequency_correction">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.frequency_corrections.frequency_correction">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">frequency_correction</span><span class="p">(</span><span class="n">model_chemistry</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The frequency correction for a frequency level, or None if there is none.</span>
+
+<span class="sd">    Only the exact (method, basis) of an entry matches: a correction fitted for</span>
+<span class="sd">    PM7 is not used for PM6, PM6-ORG or any other method.</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="n">FREQUENCY_CORRECTIONS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">split_level</span><span class="p">(</span><span class="n">model_chemistry</span><span class="p">))</span></div>
+
+</pre></div>
+
+                </article>
+              
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8"></script>
+<script defer src="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<p class="theme-version">
+  <!-- # L10n: Setting the PST URL as an argument as this does not need to be localized -->
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.24.0.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

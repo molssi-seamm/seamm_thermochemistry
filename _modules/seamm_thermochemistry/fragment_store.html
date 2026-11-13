@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.fragment_store &#8212; SEAMM thermochemistry Plug-in 2026.11.12.2 documentation</title>
+    <title>seamm_thermochemistry.fragment_store &#8212; SEAMM thermochemistry Plug-in 2026.11.13 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=a7f4afd2"></script>
+    <script src="../../_static/documentation_options.js?v=1061b2d4"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.12.2" />
+  <meta name="docsearch:version" content="2026.11.13" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -1763,6 +1763,18 @@
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">calculation</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
             <span class="n">program</span> <span class="o">=</span> <span class="n">calculation</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"program"</span><span class="p">)</span>
             <span class="n">version</span> <span class="o">=</span> <span class="n">calculation</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"version"</span><span class="p">)</span>
+        <span class="c1"># A frequency correction (e.g. PM7's, seamm_thermochemistry</span>
+        <span class="c1"># .frequency_corrections) changes the ZPE and H: its tag is part of the</span>
+        <span class="c1"># frequency fingerprint, so corrected and uncorrected thermal data never</span>
+        <span class="c1"># share a key -- also when the program gave no fingerprint</span>
+        <span class="n">correction</span> <span class="o">=</span> <span class="n">extra</span><span class="p">(</span><span class="s2">"frequency correction"</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">"str"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="nb">isinstance</span><span class="p">(</span><span class="n">correction</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="n">correction</span>
+            <span class="ow">and</span> <span class="p">(</span><span class="n">ZPE</span> <span class="ow">or</span> <span class="n">H</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="n">ffp</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="sa">f</span><span class="s2">"+</span><span class="si">{</span><span class="n">correction</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="p">):</span>
+            <span class="n">ffp</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ffp</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="n">_unverified</span><span class="p">(</span><span class="n">model</span><span class="p">,</span><span class="w"> </span><span class="n">version</span><span class="p">,</span><span class="w"> </span><span class="n">program</span><span class="p">)</span><span class="si">}</span><span class="s2">+</span><span class="si">{</span><span class="n">correction</span><span class="si">}</span><span class="s2">"</span>
         <span class="n">record</span> <span class="o">=</span> <span class="n">FragmentRecord</span><span class="o">.</span><span class="n">make</span><span class="p">(</span>
             <span class="n">species</span><span class="p">,</span>
             <span class="n">charge</span><span class="o">=</span><span class="n">charge</span><span class="p">,</span>

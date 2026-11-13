@@ -76,6 +76,14 @@ seamm\_thermochemistry.fragment\_store module
    :show-inheritance:
    :undoc-members:
 
+seamm\_thermochemistry.frequency\_corrections module
+----------------------------------------------------
+
+.. automodule:: seamm_thermochemistry.frequency_corrections
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 seamm\_thermochemistry.geometry\_store module
 ---------------------------------------------
 

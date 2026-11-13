@@ -7,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>seamm_thermochemistry package &#8212; SEAMM thermochemistry Plug-in 2026.11.12.2 documentation</title>
+    <title>seamm_thermochemistry package &#8212; SEAMM thermochemistry Plug-in 2026.11.13 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../_static/documentation_options.js?v=a7f4afd2"></script>
+    <script src="../_static/documentation_options.js?v=1061b2d4"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -55,7 +55,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.12.2" />
+  <meta name="docsearch:version" content="2026.11.13" />
   
     
     <script src="../_static/searchtools.js"></script>
@@ -536,7 +536,7 @@ stereo-free index), so that the caller can see them.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="seamm_thermochemistry.atct.ATcT.covariance">
-<span class="sig-name descname"><span class="pre">covariance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ids</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">fetch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_agent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'SEAMM-thermochemistry/2026.11.12.2</span> <span class="pre">(+https://molssi-seamm.github.io;</span> <span class="pre">contact</span> <span class="pre">seamm&#64;molssi.org)'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/atct.html#ATcT.covariance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.atct.ATcT.covariance" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">covariance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ids</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">fetch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_agent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'SEAMM-thermochemistry/2026.11.13</span> <span class="pre">(+https://molssi-seamm.github.io;</span> <span class="pre">contact</span> <span class="pre">seamm&#64;molssi.org)'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/atct.html#ATcT.covariance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.atct.ATcT.covariance" title="Link to this definition">#</a></dt>
 <dd><p>The covariance matrix (kJ²/mol², 95 % scale, 298.15 K) for the
 given ATcT IDs, in the order given.</p>
 <p>A cached block that contains every ID is used; otherwise the block is
@@ -553,7 +553,7 @@ request fails; callers then fall back to independent uncertainties.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="seamm_thermochemistry.atct.ATcT.fetch_covariance">
-<span class="sig-name descname"><span class="pre">fetch_covariance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ids</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_agent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'SEAMM-thermochemistry/2026.11.12.2</span> <span class="pre">(+https://molssi-seamm.github.io;</span> <span class="pre">contact</span> <span class="pre">seamm&#64;molssi.org)'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/atct.html#ATcT.fetch_covariance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.atct.ATcT.fetch_covariance" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">fetch_covariance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ids</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_agent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'SEAMM-thermochemistry/2026.11.13</span> <span class="pre">(+https://molssi-seamm.github.io;</span> <span class="pre">contact</span> <span class="pre">seamm&#64;molssi.org)'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/atct.html#ATcT.fetch_covariance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.atct.ATcT.fetch_covariance" title="Link to this definition">#</a></dt>
 <dd><p>Fetch and cache the covariance block for <cite>ids</cite>.</p>
 </dd></dl>
 
@@ -732,7 +732,7 @@ configuration is kept. Returns None if RDKit cannot parse the SMILES.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="seamm_thermochemistry.atct.download_all">
-<span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.atct.</span></span><span class="sig-name descname"><span class="pre">download_all</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_agent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'SEAMM-thermochemistry/2026.11.12.2</span> <span class="pre">(+https://molssi-seamm.github.io;</span> <span class="pre">contact</span> <span class="pre">seamm&#64;molssi.org)'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exist_ok</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/atct.html#download_all"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.atct.download_all" title="Link to this definition">#</a></dt>
+<span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.atct.</span></span><span class="sig-name descname"><span class="pre">download_all</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_agent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'SEAMM-thermochemistry/2026.11.13</span> <span class="pre">(+https://molssi-seamm.github.io;</span> <span class="pre">contact</span> <span class="pre">seamm&#64;molssi.org)'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exist_ok</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/atct.html#download_all"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.atct.download_all" title="Link to this definition">#</a></dt>
 <dd><p>Download <code class="docutils literal notranslate"><span class="pre">/all/</span></code> into <code class="docutils literal notranslate"><span class="pre">&lt;base&gt;/&lt;version&gt;/atct_all.json</span></code> and write its
 metadata. An existing version is never overwritten: with <cite>exist_ok</cite> that is
 not an error (e.g. an installer’s update, or two jobs fetching the same
@@ -1971,6 +1971,172 @@ explicitly wins over a different prefix, which is logged.</p>
 <p>Only on a local filesystem: SQLite’s locking is unreliable on network and
 parallel filesystems (NFS, GPFS, Lustre). seamm.ini’s <code class="docutils literal notranslate"><span class="pre">[thermochemistry]</span></code>
 <code class="docutils literal notranslate"><span class="pre">fragment-store-writable</span> <span class="pre">=</span> <span class="pre">auto</span> <span class="pre">|</span> <span class="pre">yes</span> <span class="pre">|</span> <span class="pre">no</span></code> overrides the check.</p>
+</dd></dl>
+
+</section>
+<section id="module-seamm_thermochemistry.frequency_corrections">
+<span id="seamm-thermochemistry-frequency-corrections-module"></span><h2>seamm_thermochemistry.frequency_corrections module<a class="headerlink" href="#module-seamm_thermochemistry.frequency_corrections" title="Link to this heading">#</a></h2>
+<p>Corrections of harmonic frequencies, one frequency at a time, with their sources.</p>
+<p>Some methods get their frequencies wrong in a way a single scale factor cannot fix.
+PM7, for one, puts the X-H stretches near a quarter of their real spread, so its
+frequencies above 2500 cm^-1 need a steep linear map (Rozanska et al. 2014, eq 1).
+Such a correction is a piecewise-linear function of the frequency, fitted for a
+method (and basis), and is applied to each real frequency before the zero-point
+energy and the thermal functions (H(T) - H(0), S, Cp) are computed.</p>
+<p>A correction replaces the ZPE scale factor for its method: the two are never
+applied together. Each entry carries its citation, the elements its fit set
+contained, and the frequency window where the map is discontinuous or was not
+validated, so the thermochemistry step can warn about frequencies there. Its
+<code class="docutils literal notranslate"><span class="pre">tag</span></code> (id, version and the range used) goes into the frequency fingerprint of the
+corrected thermal data, so corrected and uncorrected data are never mixed.</p>
+<p>The functions are looked up like the ZPE scale factors, by the (method, basis) of
+the frequency level’s model chemistry (<a class="reference internal" href="#seamm_thermochemistry.zpe.split_level" title="seamm_thermochemistry.zpe.split_level"><code class="xref py py-func docutils literal notranslate"><span class="pre">seamm_thermochemistry.zpe.split_level()</span></code></a>).</p>
+<dl class="py data">
+<dt class="sig sig-object py" id="seamm_thermochemistry.frequency_corrections.FREQUENCY_CORRECTIONS">
+<span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.frequency_corrections.</span></span><span class="sig-name descname"><span class="pre">FREQUENCY_CORRECTIONS</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{('PM7',</span> <span class="pre">''):</span> <span class="pre">FrequencyCorrection(id='PM7-Rozanska2014',</span> <span class="pre">version=1,</span> <span class="pre">method='PM7',</span> <span class="pre">basis='',</span> <span class="pre">branches=(Branch(low=0.0,</span> <span class="pre">high=125.0,</span> <span class="pre">slope=1.0,</span> <span class="pre">intercept=0.0,</span> <span class="pre">optional=False),</span> <span class="pre">Branch(low=125.0,</span> <span class="pre">high=2500.0,</span> <span class="pre">slope=1.006,</span> <span class="pre">intercept=-27.7,</span> <span class="pre">optional=True),</span> <span class="pre">Branch(low=2500.0,</span> <span class="pre">high=inf,</span> <span class="pre">slope=3.99,</span> <span class="pre">intercept=-7849.2,</span> <span class="pre">optional=False)),</span> <span class="pre">citation='Rozanska,</span> <span class="pre">Stewart,</span> <span class="pre">Ungerer,</span> <span class="pre">Leblanc,</span> <span class="pre">Freeman,</span> <span class="pre">Saxe</span> <span class="pre">and</span> <span class="pre">Wimmer,</span> <span class="pre">J.</span> <span class="pre">Chem.</span> <span class="pre">Eng.</span> <span class="pre">Data</span> <span class="pre">59,</span> <span class="pre">3136</span> <span class="pre">(2014),</span> <span class="pre">eq</span> <span class="pre">1',</span> <span class="pre">bibtex='&#64;article{Rozanska2014,\n</span>&#160;&#160;&#160; <span class="pre">author</span> <span class="pre">=</span> <span class="pre">{Rozanska,</span> <span class="pre">Xavier</span> <span class="pre">and</span> <span class="pre">Stewart,</span> <span class="pre">James</span> <span class="pre">J.</span> <span class="pre">P.</span> <span class="pre">and</span> <span class="pre">Ungerer,</span> <span class="pre">Philippe</span> <span class="pre">and\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">Leblanc,</span> <span class="pre">Benoit</span> <span class="pre">and</span> <span class="pre">Freeman,</span> <span class="pre">Chris</span> <span class="pre">and</span> <span class="pre">Saxe,</span> <span class="pre">Paul</span> <span class="pre">and</span> <span class="pre">Wimmer,</span> <span class="pre">Erich},\n</span>&#160;&#160;&#160; <span class="pre">title</span> <span class="pre">=</span> <span class="pre">{High-Throughput</span> <span class="pre">Calculations</span> <span class="pre">of</span> <span class="pre">Molecular</span> <span class="pre">Properties</span> <span class="pre">in</span> <span class="pre">the</span> <span class="pre">MedeA\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">Environment:</span> <span class="pre">Accuracy</span> <span class="pre">of</span> <span class="pre">PM7</span> <span class="pre">in</span> <span class="pre">Predicting</span> <span class="pre">Vibrational</span> <span class="pre">Frequencies,\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">Ideal</span> <span class="pre">Gas</span> <span class="pre">Entropies,</span> <span class="pre">Heat</span> <span class="pre">Capacities,</span> <span class="pre">and</span> <span class="pre">Gibbs</span> <span class="pre">Free</span> <span class="pre">Energies</span> <span class="pre">of\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">Organic</span> <span class="pre">Molecules},\n</span>&#160;&#160;&#160; <span class="pre">journal</span> <span class="pre">=</span> <span class="pre">{Journal</span> <span class="pre">of</span> <span class="pre">Chemical</span> <span class="pre">\\&amp;</span> <span class="pre">Engineering</span> <span class="pre">Data},\n</span>&#160;&#160;&#160; <span class="pre">volume</span> <span class="pre">=</span> <span class="pre">{59},\n</span>&#160;&#160;&#160; <span class="pre">number</span> <span class="pre">=</span> <span class="pre">{10},\n</span>&#160;&#160;&#160; <span class="pre">pages</span> <span class="pre">=</span> <span class="pre">{3136--3143},\n</span>&#160;&#160;&#160; <span class="pre">year</span> <span class="pre">=</span> <span class="pre">{2014},\n</span>&#160;&#160;&#160; <span class="pre">doi</span> <span class="pre">=</span> <span class="pre">{10.1021/je500201y}\n}',</span> <span class="pre">fitted_elements=('C',</span> <span class="pre">'H',</span> <span class="pre">'N',</span> <span class="pre">'O'),</span> <span class="pre">unvalidated=((98.0,</span> <span class="pre">125.0),</span> <span class="pre">(2400.0,</span> <span class="pre">2600.0)),</span> <span class="pre">valid_max=2900.0,</span> <span class="pre">note='Fitted</span> <span class="pre">to</span> <span class="pre">the</span> <span class="pre">experimental</span> <span class="pre">frequencies</span> <span class="pre">of</span> <span class="pre">52</span> <span class="pre">organic</span> <span class="pre">molecules</span> <span class="pre">(C,</span> <span class="pre">H,</span> <span class="pre">N,</span> <span class="pre">O;</span> <span class="pre">experimental</span> <span class="pre">frequencies</span> <span class="pre">up</span> <span class="pre">to</span> <span class="pre">about</span> <span class="pre">3700</span> <span class="pre">cm^-1,</span> <span class="pre">raw</span> <span class="pre">PM7</span> <span class="pre">up</span> <span class="pre">to</span> <span class="pre">about</span> <span class="pre">2850).</span> <span class="pre">The</span> <span class="pre">map</span> <span class="pre">is</span> <span class="pre">discontinuous</span> <span class="pre">at</span> <span class="pre">125</span> <span class="pre">cm^-1</span> <span class="pre">(124</span> <span class="pre">-&gt;</span> <span class="pre">124,</span> <span class="pre">126</span> <span class="pre">-&gt;</span> <span class="pre">99.1)</span> <span class="pre">and</span> <span class="pre">at</span> <span class="pre">2500</span> <span class="pre">cm^-1</span> <span class="pre">(2499</span> <span class="pre">-&gt;</span> <span class="pre">2486.3,</span> <span class="pre">2501</span> <span class="pre">-&gt;</span> <span class="pre">2129.8).</span> <span class="pre">The</span> <span class="pre">source</span> <span class="pre">calls</span> <span class="pre">the</span> <span class="pre">125-2500</span> <span class="pre">cm^-1</span> <span class="pre">branch</span> <span class="pre">optional</span> <span class="pre">(0.6</span> <span class="pre">%).</span> <span class="pre">For</span> <span class="pre">PM7</span> <span class="pre">only:</span> <span class="pre">other</span> <span class="pre">MOPAC</span> <span class="pre">methods</span> <span class="pre">(PM6,</span> <span class="pre">PM6-ORG,</span> <span class="pre">...)</span> <span class="pre">need</span> <span class="pre">their</span> <span class="pre">own</span> <span class="pre">fit.',</span> <span class="pre">aliases=())}</span></span><a class="headerlink" href="#seamm_thermochemistry.frequency_corrections.FREQUENCY_CORRECTIONS" title="Link to this definition">#</a></dt>
+<dd><p>The corrections, by (method, basis), upper case</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="seamm_thermochemistry.frequency_corrections.FrequencyCorrection">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.frequency_corrections.</span></span><span class="sig-name descname"><span class="pre">FrequencyCorrection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">basis</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">branches</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">citation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bibtex</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fitted_elements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unvalidated</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">valid_max</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">note</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aliases</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/frequency_corrections.html#FrequencyCorrection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.frequency_corrections.FrequencyCorrection" title="Link to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A piecewise-linear correction of the harmonic frequencies of one method.</p>
+<p>Its fields:</p>
+<dl class="simple">
+<dt>id, version<span class="classifier">str, int</span></dt><dd><p>Its name and version; both go into <a class="reference internal" href="#seamm_thermochemistry.frequency_corrections.FrequencyCorrection.tag" title="seamm_thermochemistry.frequency_corrections.FrequencyCorrection.tag"><code class="xref py py-attr docutils literal notranslate"><span class="pre">tag</span></code></a>.</p>
+</dd>
+<dt>method, basis<span class="classifier">str</span></dt><dd><p>The level it is for, upper case, as <code class="xref py py-func docutils literal notranslate"><span class="pre">split_level()</span></code> gives it.</p>
+</dd>
+<dt>branches<span class="classifier">tuple of Branch</span></dt><dd><p>Covering 0 to infinity in order; frequencies on a boundary use the
+higher branch.</p>
+</dd>
+<dt>citation<span class="classifier">str</span></dt><dd><p>The source, for printing.</p>
+</dd>
+<dt>bibtex<span class="classifier">str</span></dt><dd><p>The source as a BibTeX entry, for the references.</p>
+</dd>
+<dt>fitted_elements<span class="classifier">tuple of str</span></dt><dd><p>The elements of the fit set. Stretches of hydrogen bonded to other
+elements were not validated.</p>
+</dd>
+<dt>unvalidated<span class="classifier">tuple of (float, float)</span></dt><dd><p>The windows (cm^-1) where the map is discontinuous or was not
+validated, as raw frequencies.</p>
+</dd>
+<dt>valid_max<span class="classifier">float or None</span></dt><dd><p>The largest raw frequency (cm^-1) the fit covers. Higher frequencies are
+left as they are (a steep branch would blow them up), and the step warns.</p>
+</dd>
+<dt>note<span class="classifier">str</span></dt><dd><p>Anything else to say when it is used.</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="seamm_thermochemistry.frequency_corrections.FrequencyCorrection.aliases">
+<span class="sig-name descname"><span class="pre">aliases</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span><a class="headerlink" href="#seamm_thermochemistry.frequency_corrections.FrequencyCorrection.aliases" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="seamm_thermochemistry.frequency_corrections.FrequencyCorrection.basis">
+<span class="sig-name descname"><span class="pre">basis</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#seamm_thermochemistry.frequency_corrections.FrequencyCorrection.basis" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="seamm_thermochemistry.frequency_corrections.FrequencyCorrection.bibtex">
+<span class="sig-name descname"><span class="pre">bibtex</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">''</span></span><a class="headerlink" href="#seamm_thermochemistry.frequency_corrections.FrequencyCorrection.bibtex" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.frequency_corrections.FrequencyCorrection.branch">
+<span class="sig-name descname"><span class="pre">branch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nu</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/frequency_corrections.html#FrequencyCorrection.branch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.frequency_corrections.FrequencyCorrection.branch" title="Link to this definition">#</a></dt>
+<dd><p>The branch for a frequency (cm^-1).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="seamm_thermochemistry.frequency_corrections.FrequencyCorrection.branches">
+<span class="sig-name descname"><span class="pre">branches</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span></span><a class="headerlink" href="#seamm_thermochemistry.frequency_corrections.FrequencyCorrection.branches" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="seamm_thermochemistry.frequency_corrections.FrequencyCorrection.citation">
+<span class="sig-name descname"><span class="pre">citation</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#seamm_thermochemistry.frequency_corrections.FrequencyCorrection.citation" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.frequency_corrections.FrequencyCorrection.describe">
+<span class="sig-name descname"><span class="pre">describe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">range_</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'full'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/frequency_corrections.html#FrequencyCorrection.describe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.frequency_corrections.FrequencyCorrection.describe" title="Link to this definition">#</a></dt>
+<dd><p>The function, as text.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="seamm_thermochemistry.frequency_corrections.FrequencyCorrection.fitted_elements">
+<span class="sig-name descname"><span class="pre">fitted_elements</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span><a class="headerlink" href="#seamm_thermochemistry.frequency_corrections.FrequencyCorrection.fitted_elements" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="seamm_thermochemistry.frequency_corrections.FrequencyCorrection.id">
+<span class="sig-name descname"><span class="pre">id</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#seamm_thermochemistry.frequency_corrections.FrequencyCorrection.id" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.frequency_corrections.FrequencyCorrection.in_unvalidated_windows">
+<span class="sig-name descname"><span class="pre">in_unvalidated_windows</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequencies</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/frequency_corrections.html#FrequencyCorrection.in_unvalidated_windows"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.frequency_corrections.FrequencyCorrection.in_unvalidated_windows" title="Link to this definition">#</a></dt>
+<dd><p>The positive frequencies (cm^-1) in an unvalidated window.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="seamm_thermochemistry.frequency_corrections.FrequencyCorrection.method">
+<span class="sig-name descname"><span class="pre">method</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#seamm_thermochemistry.frequency_corrections.FrequencyCorrection.method" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.frequency_corrections.FrequencyCorrection.not_applicable">
+<span class="sig-name descname"><span class="pre">not_applicable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frequencies</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/frequency_corrections.html#FrequencyCorrection.not_applicable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.frequency_corrections.FrequencyCorrection.not_applicable" title="Link to this definition">#</a></dt>
+<dd><p>The raw frequencies (cm^-1) above the fit’s range, left uncorrected.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="seamm_thermochemistry.frequency_corrections.FrequencyCorrection.note">
+<span class="sig-name descname"><span class="pre">note</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">''</span></span><a class="headerlink" href="#seamm_thermochemistry.frequency_corrections.FrequencyCorrection.note" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="seamm_thermochemistry.frequency_corrections.FrequencyCorrection.tag">
+<span class="sig-name descname"><span class="pre">tag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">range_</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'full'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/frequency_corrections.html#FrequencyCorrection.tag"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.frequency_corrections.FrequencyCorrection.tag" title="Link to this definition">#</a></dt>
+<dd><p>The text that identifies the corrected data, for the fingerprints.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="seamm_thermochemistry.frequency_corrections.FrequencyCorrection.unvalidated">
+<span class="sig-name descname"><span class="pre">unvalidated</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></span><a class="headerlink" href="#seamm_thermochemistry.frequency_corrections.FrequencyCorrection.unvalidated" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="seamm_thermochemistry.frequency_corrections.FrequencyCorrection.valid_max">
+<span class="sig-name descname"><span class="pre">valid_max</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#seamm_thermochemistry.frequency_corrections.FrequencyCorrection.valid_max" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="seamm_thermochemistry.frequency_corrections.FrequencyCorrection.version">
+<span class="sig-name descname"><span class="pre">version</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#seamm_thermochemistry.frequency_corrections.FrequencyCorrection.version" title="Link to this definition">#</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="seamm_thermochemistry.frequency_corrections.RANGES">
+<span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.frequency_corrections.</span></span><span class="sig-name descname"><span class="pre">RANGES</span></span><span class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">('full',</span> <span class="pre">'high-frequency</span> <span class="pre">only')</span></span><a class="headerlink" href="#seamm_thermochemistry.frequency_corrections.RANGES" title="Link to this definition">#</a></dt>
+<dd><p>all of it, or only the branches that are
+needed (a branch marked <code class="docutils literal notranslate"><span class="pre">optional</span></code> is then left out)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>How much of a correction to apply</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="seamm_thermochemistry.frequency_corrections.frequency_correction">
+<span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.frequency_corrections.</span></span><span class="sig-name descname"><span class="pre">frequency_correction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_chemistry</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/frequency_corrections.html#frequency_correction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.frequency_corrections.frequency_correction" title="Link to this definition">#</a></dt>
+<dd><p>The frequency correction for a frequency level, or None if there is none.</p>
+<p>Only the exact (method, basis) of an entry matches: a correction fitted for
+PM7 is not used for PM6, PM6-ORG or any other method.</p>
 </dd></dl>
 
 </section>
@@ -3878,7 +4044,7 @@ stereo-free index), so that the caller can see them.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="seamm_thermochemistry.ATcT.covariance">
-<span class="sig-name descname"><span class="pre">covariance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ids</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">fetch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_agent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'SEAMM-thermochemistry/2026.11.12.2</span> <span class="pre">(+https://molssi-seamm.github.io;</span> <span class="pre">contact</span> <span class="pre">seamm&#64;molssi.org)'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/atct.html#ATcT.covariance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.ATcT.covariance" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">covariance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ids</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">fetch</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_agent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'SEAMM-thermochemistry/2026.11.13</span> <span class="pre">(+https://molssi-seamm.github.io;</span> <span class="pre">contact</span> <span class="pre">seamm&#64;molssi.org)'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/atct.html#ATcT.covariance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.ATcT.covariance" title="Link to this definition">#</a></dt>
 <dd><p>The covariance matrix (kJ²/mol², 95 % scale, 298.15 K) for the
 given ATcT IDs, in the order given.</p>
 <p>A cached block that contains every ID is used; otherwise the block is
@@ -3895,7 +4061,7 @@ request fails; callers then fall back to independent uncertainties.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="seamm_thermochemistry.ATcT.fetch_covariance">
-<span class="sig-name descname"><span class="pre">fetch_covariance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ids</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_agent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'SEAMM-thermochemistry/2026.11.12.2</span> <span class="pre">(+https://molssi-seamm.github.io;</span> <span class="pre">contact</span> <span class="pre">seamm&#64;molssi.org)'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/atct.html#ATcT.fetch_covariance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.ATcT.fetch_covariance" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">fetch_covariance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ids</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">user_agent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'SEAMM-thermochemistry/2026.11.13</span> <span class="pre">(+https://molssi-seamm.github.io;</span> <span class="pre">contact</span> <span class="pre">seamm&#64;molssi.org)'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/atct.html#ATcT.fetch_covariance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.ATcT.fetch_covariance" title="Link to this definition">#</a></dt>
 <dd><p>Fetch and cache the covariance block for <cite>ids</cite>.</p>
 </dd></dl>
 
@@ -4928,6 +5094,14 @@ scale as the electronic energy, in <cite>units</cite>.</p></li>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="seamm_thermochemistry.frequency_correction">
+<span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.</span></span><span class="sig-name descname"><span class="pre">frequency_correction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_chemistry</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/frequency_corrections.html#frequency_correction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.frequency_correction" title="Link to this definition">#</a></dt>
+<dd><p>The frequency correction for a frequency level, or None if there is none.</p>
+<p>Only the exact (method, basis) of an entry matches: a correction fitted for
+PM7 is not used for PM6, PM6-ORG or any other method.</p>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="seamm_thermochemistry.harvest_configuration">
 <span class="sig-prename descclassname"><span class="pre">seamm_thermochemistry.</span></span><span class="sig-name descname"><span class="pre">harvest_configuration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">store</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">configuration</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">species</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">charge</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">multiplicity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conformer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">''</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">job</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mapped</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">energy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'total</span> <span class="pre">energy#*#*'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zpe</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ZPE#*#*'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enthalpy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'H(298.15</span> <span class="pre">K)#*#*'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fingerprint</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'settings</span> <span class="pre">fingerprint#*#*'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequency_fingerprint</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'frequency</span> <span class="pre">fingerprint#*#*'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">supersede</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tables</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'all'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">structure_check</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_back</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">counts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/seamm_thermochemistry/fragment_store.html#harvest_configuration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#seamm_thermochemistry.harvest_configuration" title="Link to this definition">#</a></dt>
 <dd><p>Put one configuration’s species into the store: what <a class="reference internal" href="#seamm_thermochemistry.harvest_job" title="seamm_thermochemistry.harvest_job"><code class="xref py py-func docutils literal notranslate"><span class="pre">harvest_job()</span></code></a>
@@ -5320,6 +5494,32 @@ table has none for it.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.fragment_store.store_is_writable"><code class="docutils literal notranslate"><span class="pre">store_is_writable()</span></code></a></li>
 </ul>
 </li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-seamm_thermochemistry.frequency_corrections">seamm_thermochemistry.frequency_corrections module</a><ul class="pst-show_toc_level nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.frequency_corrections.FREQUENCY_CORRECTIONS"><code class="docutils literal notranslate"><span class="pre">FREQUENCY_CORRECTIONS</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.frequency_corrections.FrequencyCorrection"><code class="docutils literal notranslate"><span class="pre">FrequencyCorrection</span></code></a><ul class="nav section-nav flex-column">
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.frequency_corrections.FrequencyCorrection.aliases"><code class="docutils literal notranslate"><span class="pre">FrequencyCorrection.aliases</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.frequency_corrections.FrequencyCorrection.basis"><code class="docutils literal notranslate"><span class="pre">FrequencyCorrection.basis</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.frequency_corrections.FrequencyCorrection.bibtex"><code class="docutils literal notranslate"><span class="pre">FrequencyCorrection.bibtex</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.frequency_corrections.FrequencyCorrection.branch"><code class="docutils literal notranslate"><span class="pre">FrequencyCorrection.branch()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.frequency_corrections.FrequencyCorrection.branches"><code class="docutils literal notranslate"><span class="pre">FrequencyCorrection.branches</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.frequency_corrections.FrequencyCorrection.citation"><code class="docutils literal notranslate"><span class="pre">FrequencyCorrection.citation</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.frequency_corrections.FrequencyCorrection.describe"><code class="docutils literal notranslate"><span class="pre">FrequencyCorrection.describe()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.frequency_corrections.FrequencyCorrection.fitted_elements"><code class="docutils literal notranslate"><span class="pre">FrequencyCorrection.fitted_elements</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.frequency_corrections.FrequencyCorrection.id"><code class="docutils literal notranslate"><span class="pre">FrequencyCorrection.id</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.frequency_corrections.FrequencyCorrection.in_unvalidated_windows"><code class="docutils literal notranslate"><span class="pre">FrequencyCorrection.in_unvalidated_windows()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.frequency_corrections.FrequencyCorrection.method"><code class="docutils literal notranslate"><span class="pre">FrequencyCorrection.method</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.frequency_corrections.FrequencyCorrection.not_applicable"><code class="docutils literal notranslate"><span class="pre">FrequencyCorrection.not_applicable()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.frequency_corrections.FrequencyCorrection.note"><code class="docutils literal notranslate"><span class="pre">FrequencyCorrection.note</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.frequency_corrections.FrequencyCorrection.tag"><code class="docutils literal notranslate"><span class="pre">FrequencyCorrection.tag()</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.frequency_corrections.FrequencyCorrection.unvalidated"><code class="docutils literal notranslate"><span class="pre">FrequencyCorrection.unvalidated</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.frequency_corrections.FrequencyCorrection.valid_max"><code class="docutils literal notranslate"><span class="pre">FrequencyCorrection.valid_max</span></code></a></li>
+<li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.frequency_corrections.FrequencyCorrection.version"><code class="docutils literal notranslate"><span class="pre">FrequencyCorrection.version</span></code></a></li>
+</ul>
+</li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.frequency_corrections.RANGES"><code class="docutils literal notranslate"><span class="pre">RANGES</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.frequency_corrections.frequency_correction"><code class="docutils literal notranslate"><span class="pre">frequency_correction()</span></code></a></li>
+</ul>
+</li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#module-seamm_thermochemistry.geometry_store">seamm_thermochemistry.geometry_store module</a><ul class="pst-show_toc_level nav section-nav flex-column">
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.geometry_store.EnergyRecord"><code class="docutils literal notranslate"><span class="pre">EnergyRecord</span></code></a><ul class="nav section-nav flex-column">
 <li class="toc-h4 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.geometry_store.EnergyRecord.key"><code class="docutils literal notranslate"><span class="pre">EnergyRecord.key</span></code></a></li>
@@ -5678,6 +5878,7 @@ table has none for it.</p>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.formation_energy"><code class="docutils literal notranslate"><span class="pre">formation_energy()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.formation_enthalpy"><code class="docutils literal notranslate"><span class="pre">formation_enthalpy()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.formation_gibbs_energy"><code class="docutils literal notranslate"><span class="pre">formation_gibbs_energy()</span></code></a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.frequency_correction"><code class="docutils literal notranslate"><span class="pre">frequency_correction()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.harvest_configuration"><code class="docutils literal notranslate"><span class="pre">harvest_configuration()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.harvest_job"><code class="docutils literal notranslate"><span class="pre">harvest_job()</span></code></a></li>
 <li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#seamm_thermochemistry.layer_conflicts"><code class="docutils literal notranslate"><span class="pre">layer_conflicts()</span></code></a></li>
