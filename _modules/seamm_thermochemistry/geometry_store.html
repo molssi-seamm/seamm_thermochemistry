@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.geometry_store &#8212; SEAMM thermochemistry Plug-in 2026.11.13.1 documentation</title>
+    <title>seamm_thermochemistry.geometry_store &#8212; SEAMM thermochemistry Plug-in 2026.11.13.2 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=e1d96fe1"></script>
+    <script src="../../_static/documentation_options.js?v=d621e58b"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.13.1" />
+  <meta name="docsearch:version" content="2026.11.13.2" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -470,14 +470,17 @@
 <span class="sd">  (The settings fingerprints of the two may differ legitimately, e.g. a</span>
 <span class="sd">  Hessian by finite differences converges the SCF more tightly, so the model</span>
 <span class="sd">  chemistry and program are compared, and both fingerprints are kept.)</span>
-<span class="sd">* A geometry with imaginary frequencies is stored, so that its provenance is</span>
-<span class="sd">  kept, but :meth:`geometries` does not return it for reuse unless asked:</span>
-<span class="sd">  modes up to ``IMAGINARY_TOLERANCE`` (cm⁻¹) are taken as numerical noise.</span>
+<span class="sd">* A harvest or write-back refuses a geometry with an imaginary mode beyond</span>
+<span class="sd">  ``IMAGINARY_TOLERANCE`` (cm⁻¹; smaller ones are taken as numerical noise).</span>
+<span class="sd">  Rows with imaginary modes stored earlier stay, and :meth:`geometries` does</span>
+<span class="sd">  not return them for reuse unless asked.</span>
 
 <span class="sd">Writes follow the ``fragment`` table's rules: insert-or-ignore, a differing</span>
 <span class="sd">duplicate (by more than 0.1 kJ/mol) logged in ``row_history`` and never</span>
 <span class="sd">overwritten, and an explicit ``supersede`` with a reason that keeps the old</span>
-<span class="sd">values in ``row_history``.</span>
+<span class="sd">values in ``row_history``. A row quarantined by hand (``UNUSABLE: &lt;reason&gt;``)</span>
+<span class="sd">is never replaced by a put: the attempt is logged in ``row_history`` (kind</span>
+<span class="sd">"quarantined"), and only an explicit ``supersede`` releases it.</span>
 
 <span class="sd">Model chemistries are stored as the bare model and the program, e.g.</span>
 <span class="sd">``CMP@R2SCAN-3C`` and ``ORCA``, however they are given</span>
@@ -509,6 +512,7 @@
     <span class="s2">"split_model_chemistry"</span><span class="p">,</span>
     <span class="s2">"same_model_chemistry"</span><span class="p">,</span>
     <span class="s2">"is_unusable"</span><span class="p">,</span>
+    <span class="s2">"quarantine_reason"</span><span class="p">,</span>
 <span class="p">]</span>
 
 <span class="c1">#: The store's schema version (``PRAGMA user_version``): 4 adds the</span>
@@ -674,6 +678,18 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">is_unusable</span><span class="p">(</span><span class="n">model_chemistry</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Whether a row's model chemistry marks it quarantined ("UNUSABLE: ...")."""</span>
     <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">model_chemistry</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">UNUSABLE</span><span class="p">)</span></div>
+
+
+
+<span class="c1">#: Quarantined rows already warned about in this process: (store, table, row)</span>
+<span class="n">_WARNED</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="quarantine_reason">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.fragment_store.quarantine_reason">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">quarantine_reason</span><span class="p">(</span><span class="n">model_chemistry</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The reason of a quarantined row: its model chemistry after "UNUSABLE:"."""</span>
+    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">model_chemistry</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">":"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span></div>
 
 
 
@@ -1043,12 +1059,8 @@
         <span class="n">existing</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">"SELECT * FROM </span><span class="si">{</span><span class="n">table</span><span class="si">}</span><span class="s2"> WHERE </span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">values</span><span class="p">[:</span><span class="n">nkey</span><span class="p">]</span>
         <span class="p">)</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">is_unusable</span><span class="p">(</span><span class="n">existing</span><span class="p">[</span><span class="s2">"model_chemistry"</span><span class="p">])</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_unusable</span><span class="p">(</span>
-            <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"model_chemistry"</span><span class="p">)</span>
-        <span class="p">):</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_replace_quarantined</span><span class="p">(</span>
-                <span class="n">db</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">columns</span><span class="p">,</span> <span class="n">nkey</span><span class="p">,</span> <span class="n">record</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">existing</span>
-            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">is_unusable</span><span class="p">(</span><span class="n">existing</span><span class="p">[</span><span class="s2">"model_chemistry"</span><span class="p">]):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_keep_quarantined</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">fields</span><span class="p">,</span> <span class="n">record</span><span class="p">,</span> <span class="n">existing</span><span class="p">)</span>
         <span class="n">difference</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_difference</span><span class="p">(</span><span class="n">existing</span><span class="p">,</span> <span class="n">record</span><span class="p">,</span> <span class="n">fields</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">difference</span> <span class="o">&lt;=</span> <span class="n">DUPLICATE_TOLERANCE</span><span class="p">:</span>
             <span class="k">return</span> <span class="s2">"duplicate"</span><span class="p">,</span> <span class="n">existing</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]</span>
@@ -1069,34 +1081,36 @@
         <span class="p">)</span>
         <span class="k">return</span> <span class="s2">"logged"</span><span class="p">,</span> <span class="n">existing</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_replace_quarantined</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">columns</span><span class="p">,</span> <span class="n">nkey</span><span class="p">,</span> <span class="n">record</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">existing</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_keep_quarantined</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">fields</span><span class="p">,</span> <span class="n">record</span><span class="p">,</span> <span class="n">existing</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">"""A row quarantined by hand ("UNUSABLE: &lt;reason&gt;") holds the key of a</span>
-<span class="sd">        valid new row: the new values replace it, and the old ones go to</span>
-<span class="sd">        ``row_history`` as superseded, with the quarantine's reason."""</span>
-        <span class="n">reason</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">existing</span><span class="p">[</span><span class="s2">"model_chemistry"</span><span class="p">])</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">":"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+<span class="sd">        new row. Nothing replaces a quarantine automatically: the attempt is</span>
+<span class="sd">        logged in ``row_history`` (kind "quarantined") and the quarantined row</span>
+<span class="sd">        stays. Releasing it is a person's decision, made explicitly with a</span>
+<span class="sd">        reason (:meth:`supersede_geometry`, :meth:`supersede_energy`,</span>
+<span class="sd">        :meth:`FragmentStore.supersede`, or a harvest with ``supersede``),</span>
+<span class="sd">        and the new values still pass every check of the harvest first."""</span>
+        <span class="n">reason</span> <span class="o">=</span> <span class="n">quarantine_reason</span><span class="p">(</span><span class="n">existing</span><span class="p">[</span><span class="s2">"model_chemistry"</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_history</span><span class="p">(</span>
             <span class="n">db</span><span class="p">,</span>
             <span class="n">table</span><span class="p">,</span>
             <span class="n">existing</span><span class="p">[</span><span class="s2">"id"</span><span class="p">],</span>
-            <span class="s2">"superseded"</span><span class="p">,</span>
+            <span class="s2">"quarantined"</span><span class="p">,</span>
             <span class="nb">dict</span><span class="p">(</span><span class="n">existing</span><span class="p">),</span>
             <span class="nb">dict</span><span class="p">(</span><span class="n">record</span><span class="p">),</span>
-            <span class="n">reason</span><span class="o">=</span><span class="sa">f</span><span class="s2">"replaced a quarantined row: </span><span class="si">{</span><span class="n">reason</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-        <span class="p">)</span>
-        <span class="n">new</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">columns</span><span class="p">,</span> <span class="n">values</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">table</span> <span class="o">==</span> <span class="s2">"energy"</span> <span class="ow">and</span> <span class="n">new</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"geometry"</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">new</span><span class="p">[</span><span class="s2">"geometry"</span><span class="p">]</span> <span class="o">=</span> <span class="n">existing</span><span class="p">[</span><span class="s2">"geometry"</span><span class="p">]</span>
-        <span class="n">value_columns</span> <span class="o">=</span> <span class="n">columns</span><span class="p">[</span><span class="n">nkey</span><span class="p">:]</span>
-        <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">"UPDATE </span><span class="si">{</span><span class="n">table</span><span class="si">}</span><span class="s2"> SET </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">c</span><span class="si">}</span><span class="s1"> = ?'</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">value_columns</span><span class="p">)</span><span class="si">}</span><span class="s2"> "</span>
-            <span class="s2">"WHERE id = ?"</span><span class="p">,</span>
-            <span class="p">[</span><span class="n">new</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">value_columns</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">existing</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]],</span>
+            <span class="n">difference</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_difference</span><span class="p">(</span><span class="n">existing</span><span class="p">,</span> <span class="n">record</span><span class="p">,</span> <span class="n">fields</span><span class="p">),</span>
+            <span class="n">reason</span><span class="o">=</span><span class="sa">f</span><span class="s2">"kept the quarantine: </span><span class="si">{</span><span class="n">reason</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">"Replaced the quarantined </span><span class="si">{</span><span class="n">table</span><span class="si">}</span><span class="s2"> row </span><span class="si">{</span><span class="n">existing</span><span class="p">[</span><span class="s1">'id'</span><span class="p">]</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">reason</span><span class="si">}</span><span class="s2">)."</span>
+        <span class="c1"># Every run recomputes a quarantined species, so say it once per row</span>
+        <span class="n">first</span> <span class="o">=</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">),</span> <span class="n">table</span><span class="p">,</span> <span class="n">existing</span><span class="p">[</span><span class="s2">"id"</span><span class="p">])</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_WARNED</span>
+        <span class="n">_WARNED</span><span class="o">.</span><span class="n">add</span><span class="p">((</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">),</span> <span class="n">table</span><span class="p">,</span> <span class="n">existing</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]))</span>
+        <span class="p">(</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span> <span class="k">if</span> <span class="n">first</span> <span class="k">else</span> <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">)(</span>
+            <span class="sa">f</span><span class="s2">"The fragment store's </span><span class="si">{</span><span class="n">table</span><span class="si">}</span><span class="s2"> row </span><span class="si">{</span><span class="n">existing</span><span class="p">[</span><span class="s1">'id'</span><span class="p">]</span><span class="si">}</span><span class="s2"> is quarantined "</span>
+            <span class="sa">f</span><span class="s2">"(</span><span class="si">{</span><span class="n">reason</span><span class="si">}</span><span class="s2">); kept it, and logged the new values (job "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'job'</span><span class="p">)</span><span class="si">}</span><span class="s2">). Releasing it needs a person: supersede it "</span>
+            <span class="s2">"with a reason."</span>
         <span class="p">)</span>
-        <span class="k">return</span> <span class="s2">"superseded"</span><span class="p">,</span> <span class="n">existing</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]</span>
+        <span class="k">return</span> <span class="s2">"quarantined"</span><span class="p">,</span> <span class="n">existing</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]</span>
 
 <div class="viewcode-block" id="GeometryEnergyMixin.put_geometry">
 <a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.fragment_store.GeometryEnergyMixin.put_geometry">[docs]</a>
@@ -1257,6 +1271,13 @@
         <span class="p">)</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">existing</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">put</span><span class="p">(</span><span class="n">record</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">is_unusable</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"model_chemistry"</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"A quarantined row cannot supersede another row."</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">is_unusable</span><span class="p">(</span><span class="n">existing</span><span class="p">[</span><span class="s2">"model_chemistry"</span><span class="p">]):</span>
+            <span class="n">reason</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">reason</span><span class="si">}</span><span class="s2"> (released the quarantine: "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">quarantine_reason</span><span class="p">(</span><span class="n">existing</span><span class="p">[</span><span class="s1">'model_chemistry'</span><span class="p">])</span><span class="si">}</span><span class="s2">)"</span>
+            <span class="p">)</span>
         <span class="n">difference</span> <span class="o">=</span> <span class="mf">0.0</span>
         <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
             <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">existing</span><span class="p">[</span><span class="n">field</span><span class="p">],</span> <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
@@ -1266,7 +1287,9 @@
                 <span class="n">difference</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s2">"inf"</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">difference</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">difference</span><span class="p">,</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">b</span><span class="p">)))</span>
-        <span class="k">if</span> <span class="n">difference</span> <span class="o">==</span> <span class="mf">0.0</span> <span class="ow">or</span> <span class="p">(</span><span class="n">difference</span> <span class="o">&lt;=</span> <span class="n">DUPLICATE_TOLERANCE</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">force</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_unusable</span><span class="p">(</span><span class="n">existing</span><span class="p">[</span><span class="s2">"model_chemistry"</span><span class="p">])</span> <span class="ow">and</span> <span class="p">(</span>
+            <span class="n">difference</span> <span class="o">==</span> <span class="mf">0.0</span> <span class="ow">or</span> <span class="p">(</span><span class="n">difference</span> <span class="o">&lt;=</span> <span class="n">DUPLICATE_TOLERANCE</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">force</span><span class="p">)</span>
+        <span class="p">):</span>
             <span class="k">return</span> <span class="s2">"unchanged"</span><span class="p">,</span> <span class="n">existing</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_history</span><span class="p">(</span>
             <span class="n">db</span><span class="p">,</span>

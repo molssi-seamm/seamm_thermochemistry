@@ -7,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.11.13.1 documentation</title>
+    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.11.13.2 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="_static/documentation_options.js?v=e1d96fe1"></script>
+    <script src="_static/documentation_options.js?v=d621e58b"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -55,7 +55,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.13.1" />
+  <meta name="docsearch:version" content="2026.11.13.2" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -831,9 +831,16 @@ the <code class="docutils literal notranslate"><span class="pre">--exclude</span
 conformer, to leave out only that conformer). Rows quarantined by hand in a store
 (unverified, with the model chemistry <code class="docutils literal notranslate"><span class="pre">UNUSABLE:</span> <span class="pre">&lt;reason&gt;</span></code>) are never found by a
 lookup; <code class="docutils literal notranslate"><span class="pre">migrate</span></code> leaves them as they are, <code class="docutils literal notranslate"><span class="pre">export</span></code> skips them, and <code class="docutils literal notranslate"><span class="pre">official</span>
-<span class="pre">build</span></code> drops them and lists them in its report. A valid new row with the same key
-replaces a quarantined one, which is kept as superseded, and quarantined rows are not
-counted as conformers. Ions and open-shell species are checked like the rest. The
+<span class="pre">build</span></code> drops them and lists them in its report. Nothing replaces a quarantined row
+automatically: a harvest, write-back or merge that brings a row with the same key keeps
+the quarantined one, logs the attempt in the history (kind <code class="docutils literal notranslate"><span class="pre">quarantined</span></code>) and reports
+it. Releasing a quarantine is a person’s decision. <code class="docutils literal notranslate"><span class="pre">release-candidates</span> <span class="pre">[SMILES]</span></code>
+lists the values kept out that passed every check of the harvest (the species, the
+quarantined and new values, the job), and <code class="docutils literal notranslate"><span class="pre">release</span> <span class="pre">ID</span> <span class="pre">...</span> <span class="pre">--reason</span> <span class="pre">TEXT</span></code> replaces the
+quarantined rows with them; <code class="docutils literal notranslate"><span class="pre">harvest</span> <span class="pre">--supersede</span> <span class="pre">&lt;reason&gt;</span></code> (or the store’s
+<code class="docutils literal notranslate"><span class="pre">supersede</span></code> methods) also releases. The quarantined values are kept as superseded,
+with the reason. Quarantined rows are
+not counted as conformers. Ions and open-shell species are checked like the rest. The
 build writes <code class="docutils literal notranslate"><span class="pre">&lt;file&gt;.report.json</span></code> beside the file: the sources, the levels, the rows
 kept and left out, each exclusion with its reason, and the SHA-256. Since an official
 store is published, the build keeps only each job’s id in the provenance, not its
@@ -882,8 +889,8 @@ makes an energy row on the configuration’s geometry. It guards the pairing:</p
 reported;</p></li>
 <li><p>a geometry row has its geometry and frequencies at one level: a row whose
 optimization was at another model chemistry is refused;</p></li>
-<li><p>a geometry with imaginary frequencies (more than 20i cm⁻¹) is stored, but not
-offered for reuse.</p></li>
+<li><p>a geometry with an imaginary mode beyond 20i cm⁻¹ (a saddle point) is refused,
+with every energy on it, as in a write-back.</p></li>
 </ul>
 <p>Jobs whose systems are not named <code class="docutils literal notranslate"><span class="pre">CBH:&lt;SMILES&gt;</span></code> (for example by an ATcT id, with
 several conformers of a species) are harvested with a species map, a CSV file with the

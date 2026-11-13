@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.fragment_store &#8212; SEAMM thermochemistry Plug-in 2026.11.13.1 documentation</title>
+    <title>seamm_thermochemistry.fragment_store &#8212; SEAMM thermochemistry Plug-in 2026.11.13.2 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=e1d96fe1"></script>
+    <script src="../../_static/documentation_options.js?v=d621e58b"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.13.1" />
+  <meta name="docsearch:version" content="2026.11.13.2" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -481,6 +481,7 @@
     <span class="n">_unverified</span><span class="p">,</span>
     <span class="n">hash_geometry</span><span class="p">,</span>
     <span class="n">is_unusable</span><span class="p">,</span>
+    <span class="n">quarantine_reason</span><span class="p">,</span>
     <span class="n">same_model_chemistry</span><span class="p">,</span>
     <span class="n">split_model_chemistry</span><span class="p">,</span>
 <span class="p">)</span>
@@ -941,9 +942,10 @@
 
 <span class="sd">        Returns "inserted", "duplicate" (same key, same values), "logged"</span>
 <span class="sd">        (same key, values differing by more than 0.1 kJ/mol: the attempt went</span>
-<span class="sd">        to ``duplicate_log``, the stored values stay) or "superseded" (the key</span>
-<span class="sd">        was held by a record quarantined by hand, ``UNUSABLE: &lt;reason&gt;``,</span>
-<span class="sd">        which the new one replaces, its values kept in ``superseded``).</span>
+<span class="sd">        to ``duplicate_log``, the stored values stay) or "quarantined" (the</span>
+<span class="sd">        key is held by a record quarantined by hand, ``UNUSABLE: &lt;reason&gt;``:</span>
+<span class="sd">        it stays, and the attempt goes to ``row_history``; only</span>
+<span class="sd">        :meth:`supersede`, a person's decision with a reason, replaces it).</span>
 <span class="sd">        """</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_readonly</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">PermissionError</span><span class="p">(</span><span class="s2">"The fragment store was opened read-only."</span><span class="p">)</span>
@@ -984,35 +986,14 @@
             <span class="s2">"multiplicity = ? AND energy_fingerprint = ? AND frequency_fingerprint = ?"</span><span class="p">,</span>
             <span class="n">record</span><span class="o">.</span><span class="n">key</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="n">FragmentRecord</span><span class="p">)</span> <span class="k">else</span> <span class="n">values</span><span class="p">[:</span><span class="mi">5</span><span class="p">],</span>
         <span class="p">)</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">is_unusable</span><span class="p">(</span><span class="n">existing</span><span class="p">[</span><span class="s2">"model_chemistry"</span><span class="p">])</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_unusable</span><span class="p">(</span>
-            <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"model_chemistry"</span><span class="p">)</span>
-        <span class="p">):</span>
-            <span class="c1"># A record quarantined by hand holds the key: replace it, keeping its</span>
-            <span class="c1"># values in ``superseded`` with the quarantine's reason</span>
-            <span class="n">reason</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">existing</span><span class="p">[</span><span class="s2">"model_chemistry"</span><span class="p">])</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">":"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-            <span class="n">value_columns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_VALUE_COLUMNS</span>
-            <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">"INSERT INTO superseded (fragment, </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">value_columns</span><span class="p">)</span><span class="si">}</span><span class="s2">, "</span>
-                <span class="sa">f</span><span class="s2">"superseded_on, reason) VALUES "</span>
-                <span class="sa">f</span><span class="s2">"(</span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">'?'</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">value_columns</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">3</span><span class="p">))</span><span class="si">}</span><span class="s2">)"</span><span class="p">,</span>
-                <span class="p">[</span><span class="n">existing</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]]</span>
-                <span class="o">+</span> <span class="p">[</span><span class="n">existing</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">value_columns</span><span class="p">]</span>
-                <span class="o">+</span> <span class="p">[</span>
-                    <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(</span><span class="n">timespec</span><span class="o">=</span><span class="s2">"seconds"</span><span class="p">),</span>
-                    <span class="sa">f</span><span class="s2">"replaced a quarantined record: </span><span class="si">{</span><span class="n">reason</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-                <span class="p">],</span>
+        <span class="k">if</span> <span class="n">is_unusable</span><span class="p">(</span><span class="n">existing</span><span class="p">[</span><span class="s2">"model_chemistry"</span><span class="p">]):</span>
+            <span class="c1"># A record quarantined by hand holds the key: it stays, and the</span>
+            <span class="c1"># attempt is logged. Only a person releases a quarantine, with a</span>
+            <span class="c1"># reason (supersede).</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_keep_quarantined</span><span class="p">(</span>
+                <span class="n">db</span><span class="p">,</span> <span class="s2">"fragment"</span><span class="p">,</span> <span class="p">(</span><span class="s2">"E"</span><span class="p">,</span> <span class="s2">"ZPE"</span><span class="p">,</span> <span class="s2">"H"</span><span class="p">),</span> <span class="nb">dict</span><span class="p">(</span><span class="n">record</span><span class="p">),</span> <span class="n">existing</span>
             <span class="p">)</span>
-            <span class="n">new</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">columns</span><span class="p">,</span> <span class="n">values</span><span class="p">))</span>
-            <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">"UPDATE fragment SET </span><span class="si">{</span><span class="s1">', '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">c</span><span class="si">}</span><span class="s1"> = ?'</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">value_columns</span><span class="p">)</span><span class="si">}</span><span class="s2"> "</span>
-                <span class="s2">"WHERE id = ?"</span><span class="p">,</span>
-                <span class="p">[</span><span class="n">new</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">value_columns</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">existing</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]],</span>
-            <span class="p">)</span>
-            <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">"Replaced the quarantined record of </span><span class="si">{</span><span class="n">record</span><span class="p">[</span><span class="s1">'species'</span><span class="p">]</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">reason</span><span class="si">}</span><span class="s2">)."</span>
-            <span class="p">)</span>
-            <span class="k">return</span> <span class="s2">"superseded"</span>
+            <span class="k">return</span> <span class="s2">"quarantined"</span>
         <span class="n">difference</span> <span class="o">=</span> <span class="mf">0.0</span>
         <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"E"</span><span class="p">,</span> <span class="s2">"ZPE"</span><span class="p">,</span> <span class="s2">"H"</span><span class="p">):</span>
             <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">existing</span><span class="p">[</span><span class="n">field</span><span class="p">],</span> <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
@@ -1106,6 +1087,13 @@
         <span class="p">)</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">existing</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">record</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">is_unusable</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"model_chemistry"</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"A quarantined record cannot supersede another one."</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">is_unusable</span><span class="p">(</span><span class="n">existing</span><span class="p">[</span><span class="s2">"model_chemistry"</span><span class="p">]):</span>
+            <span class="n">reason</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">reason</span><span class="si">}</span><span class="s2"> (released the quarantine: "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">quarantine_reason</span><span class="p">(</span><span class="n">existing</span><span class="p">[</span><span class="s1">'model_chemistry'</span><span class="p">])</span><span class="si">}</span><span class="s2">)"</span>
+            <span class="p">)</span>
         <span class="n">difference</span> <span class="o">=</span> <span class="mf">0.0</span>
         <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"E"</span><span class="p">,</span> <span class="s2">"ZPE"</span><span class="p">,</span> <span class="s2">"H"</span><span class="p">):</span>
             <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">existing</span><span class="p">[</span><span class="n">field</span><span class="p">],</span> <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
@@ -1115,7 +1103,9 @@
                 <span class="n">difference</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s2">"inf"</span><span class="p">)</span>  <span class="c1"># the new record adds a value</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">difference</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">difference</span><span class="p">,</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">b</span><span class="p">)))</span>
-        <span class="k">if</span> <span class="n">difference</span> <span class="o">==</span> <span class="mf">0.0</span> <span class="ow">or</span> <span class="p">(</span><span class="n">difference</span> <span class="o">&lt;=</span> <span class="n">DUPLICATE_TOLERANCE</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">force</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_unusable</span><span class="p">(</span><span class="n">existing</span><span class="p">[</span><span class="s2">"model_chemistry"</span><span class="p">])</span> <span class="ow">and</span> <span class="p">(</span>
+            <span class="n">difference</span> <span class="o">==</span> <span class="mf">0.0</span> <span class="ow">or</span> <span class="p">(</span><span class="n">difference</span> <span class="o">&lt;=</span> <span class="n">DUPLICATE_TOLERANCE</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">force</span><span class="p">)</span>
+        <span class="p">):</span>
             <span class="k">return</span> <span class="s2">"unchanged"</span>
         <span class="n">columns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_VALUE_COLUMNS</span>
         <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(</span><span class="n">timespec</span><span class="o">=</span><span class="s2">"seconds"</span><span class="p">)</span>
@@ -1139,6 +1129,100 @@
             <span class="sa">f</span><span class="s2">"Superseded </span><span class="si">{</span><span class="n">record</span><span class="p">[</span><span class="s1">'species'</span><span class="p">]</span><span class="si">}</span><span class="s2"> (record </span><span class="si">{</span><span class="n">existing</span><span class="p">[</span><span class="s1">'id'</span><span class="p">]</span><span class="si">}</span><span class="s2">): </span><span class="si">{</span><span class="n">reason</span><span class="si">}</span><span class="s2">"</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="s2">"superseded"</span></div>
+
+
+<div class="viewcode-block" id="FragmentStore.release_candidates">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.fragment_store.FragmentStore.release_candidates">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">release_candidates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""New values that met a row quarantined by hand and were kept out.</span>
+
+<span class="sd">        A harvest or write-back that brings a row for a key held by a</span>
+<span class="sd">        quarantined row logs it in ``row_history`` (kind "quarantined") after</span>
+<span class="sd">        it passed every check of the harvest. Each such attempt whose row is</span>
+<span class="sd">        still quarantined is a candidate for :meth:`release`. Returns, oldest</span>
+<span class="sd">        first, [{id, table, row, species, charge, multiplicity, conformer,</span>
+<span class="sd">        date, job, quarantine, old, new}], old and new each with E (and ZPE, H)</span>
+<span class="sd">        and the model chemistry; `species` keeps only its rows.</span>
+<span class="sd">        """</span>
+        <span class="n">db</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reader</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">db</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">history</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                <span class="s2">"SELECT * FROM row_history WHERE kind = 'quarantined' ORDER BY id"</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+        <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">OperationalError</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+        <span class="n">species_of</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">"SELECT geometry_hash, species FROM geometry"</span><span class="p">):</span>
+            <span class="n">species_of</span><span class="p">[</span><span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">keep</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"E"</span><span class="p">,</span> <span class="s2">"ZPE"</span><span class="p">,</span> <span class="s2">"H"</span><span class="p">,</span> <span class="s2">"model_chemistry"</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">history</span><span class="p">:</span>
+            <span class="n">current</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"SELECT model_chemistry FROM </span><span class="si">{</span><span class="n">h</span><span class="p">[</span><span class="s1">'table_name'</span><span class="p">]</span><span class="si">}</span><span class="s2"> WHERE id = ?"</span><span class="p">,</span>
+                <span class="p">(</span><span class="n">h</span><span class="p">[</span><span class="s2">"row"</span><span class="p">],),</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">current</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">is_unusable</span><span class="p">(</span><span class="n">current</span><span class="p">[</span><span class="s2">"model_chemistry"</span><span class="p">]):</span>
+                <span class="k">continue</span>  <span class="c1"># released or gone since</span>
+            <span class="n">old</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">h</span><span class="p">[</span><span class="s2">"old"</span><span class="p">])</span> <span class="k">if</span> <span class="n">h</span><span class="p">[</span><span class="s2">"old"</span><span class="p">]</span> <span class="k">else</span> <span class="p">{}</span>
+            <span class="n">new</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">h</span><span class="p">[</span><span class="s2">"new"</span><span class="p">])</span> <span class="k">if</span> <span class="n">h</span><span class="p">[</span><span class="s2">"new"</span><span class="p">]</span> <span class="k">else</span> <span class="p">{}</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">old</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"species"</span><span class="p">)</span> <span class="ow">or</span> <span class="n">species_of</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">old</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"geometry_hash"</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">species</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">name</span> <span class="o">!=</span> <span class="n">species</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s2">"id"</span><span class="p">:</span> <span class="n">h</span><span class="p">[</span><span class="s2">"id"</span><span class="p">],</span>
+                    <span class="s2">"table"</span><span class="p">:</span> <span class="n">h</span><span class="p">[</span><span class="s2">"table_name"</span><span class="p">],</span>
+                    <span class="s2">"row"</span><span class="p">:</span> <span class="n">h</span><span class="p">[</span><span class="s2">"row"</span><span class="p">],</span>
+                    <span class="s2">"species"</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
+                    <span class="s2">"charge"</span><span class="p">:</span> <span class="n">old</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"charge"</span><span class="p">),</span>
+                    <span class="s2">"multiplicity"</span><span class="p">:</span> <span class="n">old</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"multiplicity"</span><span class="p">),</span>
+                    <span class="s2">"conformer"</span><span class="p">:</span> <span class="n">old</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"conformer"</span><span class="p">),</span>
+                    <span class="s2">"date"</span><span class="p">:</span> <span class="n">h</span><span class="p">[</span><span class="s2">"date"</span><span class="p">],</span>
+                    <span class="s2">"job"</span><span class="p">:</span> <span class="n">new</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"job"</span><span class="p">),</span>
+                    <span class="s2">"quarantine"</span><span class="p">:</span> <span class="n">quarantine_reason</span><span class="p">(</span><span class="n">current</span><span class="p">[</span><span class="s2">"model_chemistry"</span><span class="p">]),</span>
+                    <span class="s2">"old"</span><span class="p">:</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">old</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keep</span><span class="p">},</span>
+                    <span class="s2">"new"</span><span class="p">:</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">new</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">keep</span><span class="p">},</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="n">out</span></div>
+
+
+<div class="viewcode-block" id="FragmentStore.release">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.fragment_store.FragmentStore.release">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">release</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">candidate</span><span class="p">,</span> <span class="n">reason</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Release a quarantined row: replace it with the values of a release</span>
+<span class="sd">        candidate (an id from :meth:`release_candidates`), keeping the</span>
+<span class="sd">        quarantined values as superseded, with `reason` (a person's).</span>
+
+<span class="sd">        Returns "superseded"; raises ValueError if `candidate` is not a</span>
+<span class="sd">        candidate (not logged as one, or its row no longer quarantined).</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">reason</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Releasing a quarantined row needs a reason."</span><span class="p">)</span>
+        <span class="n">found</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">release_candidates</span><span class="p">()</span> <span class="k">if</span> <span class="n">c</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]</span> <span class="o">==</span> <span class="nb">int</span><span class="p">(</span><span class="n">candidate</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">found</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">candidate</span><span class="si">}</span><span class="s2"> is not a release candidate: see release_candidates()."</span>
+            <span class="p">)</span>
+        <span class="n">db</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_connect</span><span class="p">(</span><span class="n">create</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+            <span class="s2">"SELECT * FROM row_history WHERE id = ?"</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">candidate</span><span class="p">),)</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+        <span class="n">record</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">h</span><span class="p">[</span><span class="s2">"new"</span><span class="p">])</span>
+        <span class="n">record</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"id"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="n">h</span><span class="p">[</span><span class="s2">"table_name"</span><span class="p">]</span>
+        <span class="n">reason</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">reason</span><span class="si">}</span><span class="s2"> (release candidate </span><span class="si">{</span><span class="n">candidate</span><span class="si">}</span><span class="s2">)"</span>
+        <span class="k">if</span> <span class="n">table</span> <span class="o">==</span> <span class="s2">"fragment"</span><span class="p">:</span>
+            <span class="n">outcome</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">supersede</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="n">reason</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">table</span> <span class="o">==</span> <span class="s2">"geometry"</span><span class="p">:</span>
+            <span class="n">outcome</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">supersede_geometry</span><span class="p">(</span><span class="n">GeometryRecord</span><span class="p">(</span><span class="n">record</span><span class="p">),</span> <span class="n">reason</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">outcome</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">supersede_energy</span><span class="p">(</span><span class="n">EnergyRecord</span><span class="p">(</span><span class="n">record</span><span class="p">),</span> <span class="n">reason</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">outcome</span> <span class="o">!=</span> <span class="s2">"superseded"</span><span class="p">:</span>  <span class="c1"># pragma: no cover - quarantined rows differ</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Release candidate </span><span class="si">{</span><span class="n">candidate</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">outcome</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">outcome</span></div>
 
 
 <div class="viewcode-block" id="FragmentStore.superseded">
@@ -1536,6 +1620,7 @@
         <span class="s2">"duplicate"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
         <span class="s2">"logged"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
         <span class="s2">"superseded"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s2">"quarantined"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
         <span class="s2">"skipped"</span><span class="p">:</span> <span class="p">[],</span>
         <span class="s2">"geometry"</span><span class="p">:</span> <span class="p">{},</span>
         <span class="s2">"energy"</span><span class="p">:</span> <span class="p">{},</span>
@@ -1622,11 +1707,14 @@
 <span class="sd">    and, with the ZPE or enthalpy of the same level, a geometry row. See</span>
 <span class="sd">    :func:`harvest_job` for the properties read and the guards.</span>
 
-<span class="sd">    `write_back` adds the rules for results written by a running job:</span>
+<span class="sd">    A geometry with an imaginary mode beyond ``IMAGINARY_TOLERANCE`` is</span>
+<span class="sd">    refused, with every energy on it, in a harvest as in a write-back. A key</span>
+<span class="sd">    held by a row quarantined by hand (``UNUSABLE: &lt;reason&gt;``) keeps it: the</span>
+<span class="sd">    attempt is logged and reported, "quarantined" in the tallies, and only an</span>
+<span class="sd">    explicit `supersede` (a person's decision, with a reason) replaces it.</span>
 
-<span class="sd">    * a geometry with an imaginary mode beyond ``IMAGINARY_TOLERANCE`` is</span>
-<span class="sd">      refused, with every energy on it (a harvest stores it, for provenance,</span>
-<span class="sd">      without returning it for reuse);</span>
+<span class="sd">    `write_back` adds the rule for results written by a running job:</span>
+
 <span class="sd">    * a geometry lower in E + ZPE by more than 0.1 kJ/mol than every stored</span>
 <span class="sd">      conformer of the species at its level, and structurally distinct from</span>
 <span class="sd">      each (RMSD above ``CONFORMER_RMSD`` Å), is added as a new conformer</span>
@@ -1697,13 +1785,12 @@
             <span class="n">counts</span><span class="p">[</span><span class="s2">"skipped"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name_for</span><span class="si">}</span><span class="s2">: refused, </span><span class="si">{</span><span class="n">problem</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
             <span class="n">note</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">"refused"</span><span class="p">,</span> <span class="n">reason</span><span class="o">=</span><span class="n">problem</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">finish</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">write_back</span><span class="p">:</span>
-        <span class="n">worst</span> <span class="o">=</span> <span class="n">_imaginary_modes</span><span class="p">(</span><span class="n">properties</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">worst</span> <span class="o">&gt;</span> <span class="n">IMAGINARY_TOLERANCE</span><span class="p">:</span>
-            <span class="n">reason</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"an imaginary mode of </span><span class="si">{</span><span class="n">worst</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">i cm^-1"</span>
-            <span class="n">counts</span><span class="p">[</span><span class="s2">"skipped"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name_for</span><span class="si">}</span><span class="s2">: refused, </span><span class="si">{</span><span class="n">reason</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-            <span class="n">note</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">"refused"</span><span class="p">,</span> <span class="n">reason</span><span class="o">=</span><span class="n">reason</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">finish</span><span class="p">()</span>
+    <span class="n">worst</span> <span class="o">=</span> <span class="n">_imaginary_modes</span><span class="p">(</span><span class="n">properties</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">worst</span> <span class="o">&gt;</span> <span class="n">IMAGINARY_TOLERANCE</span><span class="p">:</span>
+        <span class="n">reason</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"an imaginary mode of </span><span class="si">{</span><span class="n">worst</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">i cm^-1"</span>
+        <span class="n">counts</span><span class="p">[</span><span class="s2">"skipped"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name_for</span><span class="si">}</span><span class="s2">: refused, </span><span class="si">{</span><span class="n">reason</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="n">note</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">"refused"</span><span class="p">,</span> <span class="n">reason</span><span class="o">=</span><span class="n">reason</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">finish</span><span class="p">()</span>
 
     <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">energies</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
@@ -1812,6 +1899,11 @@
             <span class="n">outcome</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">record</span><span class="p">)</span>
             <span class="n">counts</span><span class="p">[</span><span class="n">outcome</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="n">note</span><span class="p">(</span><span class="s2">"fragment"</span><span class="p">,</span> <span class="n">outcome</span><span class="p">,</span> <span class="n">reason</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">outcome</span> <span class="o">==</span> <span class="s2">"quarantined"</span><span class="p">:</span>
+                <span class="n">counts</span><span class="p">[</span><span class="s2">"skipped"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name_for</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">): the stored record is quarantined; kept "</span>
+                    <span class="s2">"it (releasing it needs a person: supersede with a reason)"</span>
+                <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">ZPE</span> <span class="ow">or</span> <span class="n">H</span><span class="p">:</span>
             <span class="n">symmetry</span> <span class="o">=</span> <span class="n">extra</span><span class="p">(</span><span class="s2">"symmetry number"</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">"int"</span><span class="p">)</span>

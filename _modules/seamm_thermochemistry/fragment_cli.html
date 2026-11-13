@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.fragment_cli &#8212; SEAMM thermochemistry Plug-in 2026.11.13.1 documentation</title>
+    <title>seamm_thermochemistry.fragment_cli &#8212; SEAMM thermochemistry Plug-in 2026.11.13.2 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=e1d96fe1"></script>
+    <script src="../../_static/documentation_options.js?v=d621e58b"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.13.1" />
+  <meta name="docsearch:version" content="2026.11.13.2" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -647,6 +647,21 @@
     <span class="n">sup</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="s2">"superseded"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Show the superseded values."</span><span class="p">)</span>
     <span class="n">sup</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"species"</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s2">"?"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Canonical SMILES."</span><span class="p">)</span>
 
+    <span class="n">cand</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s2">"release-candidates"</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">"New values kept out by a row quarantined by hand, which passed the "</span>
+        <span class="s2">"harvest's checks: candidates for 'release'."</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">cand</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"species"</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s2">"?"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Canonical SMILES."</span><span class="p">)</span>
+
+    <span class="n">rel</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s2">"release"</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">"Release quarantined rows: replace each with a release candidate's "</span>
+        <span class="s2">"values, keeping the quarantined ones as superseded."</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">rel</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"ids"</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s2">"+"</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Release candidate ids."</span><span class="p">)</span>
+    <span class="n">rel</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--reason"</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Why (recorded with each)."</span><span class="p">)</span>
+
     <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">(</span><span class="n">argv</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="s2">"force"</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">args</span><span class="o">.</span><span class="n">supersede</span><span class="p">:</span>
         <span class="n">parser</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"--force needs --supersede REASON"</span><span class="p">)</span>
@@ -679,6 +694,11 @@
                         <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">counts</span><span class="p">[</span><span class="s1">'duplicate'</span><span class="p">]</span><span class="si">}</span><span class="s2"> already there, "</span>
                         <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">counts</span><span class="p">[</span><span class="s1">'logged'</span><span class="p">]</span><span class="si">}</span><span class="s2"> differing (logged), "</span>
                         <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">counts</span><span class="p">[</span><span class="s1">'superseded'</span><span class="p">]</span><span class="si">}</span><span class="s2"> superseded"</span>
+                        <span class="o">+</span> <span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">", </span><span class="si">{</span><span class="n">counts</span><span class="p">[</span><span class="s1">'quarantined'</span><span class="p">]</span><span class="si">}</span><span class="s2"> kept quarantined"</span>
+                            <span class="k">if</span> <span class="n">counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"quarantined"</span><span class="p">)</span>
+                            <span class="k">else</span> <span class="s2">""</span>
+                        <span class="p">)</span>
                     <span class="p">)</span>
                     <span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"geometry"</span><span class="p">,</span> <span class="s2">"energy"</span><span class="p">):</span>
                         <span class="n">tally</span> <span class="o">=</span> <span class="n">counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">table</span><span class="p">)</span> <span class="ow">or</span> <span class="p">{}</span>
@@ -762,6 +782,31 @@
                     <span class="sa">f</span><span class="s2">"(q=</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'charge'</span><span class="p">]</span><span class="si">}</span><span class="s2">, 2S+1=</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'multiplicity'</span><span class="p">]</span><span class="si">}</span><span class="s2">)</span><span class="si">{</span><span class="n">conformer</span><span class="si">}</span><span class="s2"> "</span>
                     <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">what</span><span class="si">}{</span><span class="n">row</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'outcome'</span><span class="p">]</span><span class="si">}{</span><span class="n">reason</span><span class="si">}</span><span class="s2">"</span>
                 <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">command</span> <span class="o">==</span> <span class="s2">"release-candidates"</span><span class="p">:</span>
+            <span class="n">store</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">FragmentStore</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">store</span><span class="p">)</span>
+            <span class="n">rows</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">release_candidates</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">species</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">rows</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">"No release candidates."</span><span class="p">)</span>
+
+            <span class="k">def</span><span class="w"> </span><span class="nf">values</span><span class="p">(</span><span class="n">d</span><span class="p">):</span>
+                <span class="k">return</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"E"</span><span class="p">,</span> <span class="s2">"ZPE"</span><span class="p">,</span> <span class="s2">"H"</span><span class="p">)</span> <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+                <span class="n">label</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">" conformer '</span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">'conformer'</span><span class="p">]</span><span class="si">}</span><span class="s2">'"</span> <span class="k">if</span> <span class="n">d</span><span class="p">[</span><span class="s2">"conformer"</span><span class="p">]</span> <span class="k">else</span> <span class="s2">""</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">'id'</span><span class="p">]</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">'species'</span><span class="p">]</span><span class="si">}</span><span class="s2"> (q=</span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">'charge'</span><span class="p">]</span><span class="si">}</span><span class="s2">, "</span>
+                    <span class="sa">f</span><span class="s2">"2S+1=</span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">'multiplicity'</span><span class="p">]</span><span class="si">}</span><span class="s2">)</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">'table'</span><span class="p">]</span><span class="si">}</span><span class="s2"> row </span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">'row'</span><span class="p">]</span><span class="si">}</span><span class="s2">, "</span>
+                    <span class="sa">f</span><span class="s2">"quarantined (</span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">'quarantine'</span><span class="p">]</span><span class="si">}</span><span class="s2">): </span><span class="si">{</span><span class="n">values</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">'old'</span><span class="p">])</span><span class="si">}</span><span class="s2">; new "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">values</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="s1">'new'</span><span class="p">])</span><span class="si">}</span><span class="s2"> [</span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">'new'</span><span class="p">][</span><span class="s1">'model_chemistry'</span><span class="p">]</span><span class="si">}</span><span class="s2">] from "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">'job'</span><span class="p">]</span><span class="si">}</span><span class="s2"> on </span><span class="si">{</span><span class="n">d</span><span class="p">[</span><span class="s1">'date'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+                <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">command</span> <span class="o">==</span> <span class="s2">"release"</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">F</span><span class="o">.</span><span class="n">FragmentStore</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">store</span><span class="p">,</span> <span class="n">create</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">store</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">args</span><span class="o">.</span><span class="n">ids</span><span class="p">:</span>
+                    <span class="n">store</span><span class="o">.</span><span class="n">release</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">reason</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Released with candidate </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">."</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">command</span> <span class="o">==</span> <span class="s2">"superseded"</span><span class="p">:</span>
             <span class="n">store</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">FragmentStore</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">store</span><span class="p">)</span>
             <span class="n">rows</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">superseded</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">species</span><span class="p">)</span>
