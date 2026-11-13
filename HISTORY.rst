@@ -1,6 +1,13 @@
 =======
 History
 =======
+2026.11.13.1 -- Bugfix: lookups prefer records with thermal data
+    * When a level has both a record with the energy alone (stored by a run
+      without thermal corrections, e.g. MOPAC's enthalpy of formation taken as the
+      enthalpy) and one with the ZPE and enthalpy, the fragment store's lookups
+      return the one with thermal data, so a run with harmonic thermal
+      corrections is not left without them.
+
 2026.11.13 -- Per-frequency corrections, starting with PM7
     * New: ``frequency_correction``, a table of corrections applied to each
       harmonic frequency, keyed by model chemistry like the ZPE scale factors. The

@@ -182,6 +182,11 @@ def geometry_hash(symbols, coordinates, digits=4):
     return hashlib.sha256(text.encode()).hexdigest()[:16]
 
 
+#: The order of the records :meth:`FragmentStore.get` chooses from: those with
+#: thermal data (H) first, then the oldest
+_PREFER_THERMAL = "ORDER BY (H IS NULL), id"
+
+
 class FragmentRecord(dict):
     """One record of the store, a dict with the columns of ``fragment`` and
     ``verified`` as a bool."""
@@ -721,6 +726,11 @@ class FragmentStore(GeometryEnergyMixin):
         (either spelling, see :func:`split_model_chemistry`; and code version if
         given); the caller sees ``record["verified"]`` and reports it.
 
+        A record with thermal data (H) comes before one with the energy alone
+        (stored by a run without thermal corrections, e.g. MOPAC's enthalpy of
+        formation taken as the enthalpy), so either kind of run finds what it
+        needs when both are stored for a level.
+
         Any error reading the store gives None and a log message.
         """
         try:
@@ -742,7 +752,8 @@ class FragmentStore(GeometryEnergyMixin):
                     sql += f" AND frequency_fingerprint IN ({marks})"
                     args_v.extend(frequencies)
                 row = db.execute(
-                    f"SELECT * FROM fragment WHERE {sql} ORDER BY id LIMIT 1", args_v
+                    f"SELECT * FROM fragment WHERE {sql} {_PREFER_THERMAL} LIMIT 1",
+                    args_v,
                 ).fetchone()
                 if row is not None:
                     return self._record(row)
@@ -754,7 +765,7 @@ class FragmentStore(GeometryEnergyMixin):
                     args_u.append(version)
                 rows = [
                     r
-                    for r in db.execute(sql + " ORDER BY id", args_u).fetchall()
+                    for r in db.execute(f"{sql} {_PREFER_THERMAL}", args_u).fetchall()
                     if same_model_chemistry(
                         model_chemistry, r["model_chemistry"], None, r["program"]
                     )
