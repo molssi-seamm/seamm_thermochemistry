@@ -245,6 +245,10 @@ def is_unusable(model_chemistry):
     return str(model_chemistry or "").strip().upper().startswith(UNUSABLE)
 
 
+#: Quarantined rows already warned about in this process: (store, table, row)
+_WARNED = set()
+
+
 def quarantine_reason(model_chemistry):
     """The reason of a quarantined row: its model chemistry after "UNUSABLE:"."""
     return str(model_chemistry or "").split(":", 1)[-1].strip()
@@ -641,7 +645,10 @@ class GeometryEnergyMixin:
             reason=f"kept the quarantine: {reason}",
         )
         db.commit()
-        logger.warning(
+        # Every run recomputes a quarantined species, so say it once per row
+        first = (str(self.path), table, existing["id"]) not in _WARNED
+        _WARNED.add((str(self.path), table, existing["id"]))
+        (logger.warning if first else logger.debug)(
             f"The fragment store's {table} row {existing['id']} is quarantined "
             f"({reason}); kept it, and logged the new values (job "
             f"{record.get('job')}). Releasing it needs a person: supersede it "
@@ -815,7 +822,9 @@ class GeometryEnergyMixin:
                 difference = float("inf")
             else:
                 difference = max(difference, abs(float(a) - float(b)))
-        if difference == 0.0 or (difference <= DUPLICATE_TOLERANCE and not force):
+        if not is_unusable(existing["model_chemistry"]) and (
+            difference == 0.0 or (difference <= DUPLICATE_TOLERANCE and not force)
+        ):
             return "unchanged", existing["id"]
         self._history(
             db,

@@ -227,3 +227,58 @@ def test_cli_superseded_shows_geometry_rows(store, capsys):
     out = capsys.readouterr().out
     assert "C geometry row 1" in out and "UNUSABLE: saddle" in out
     assert "released the quarantine" in out
+
+
+def test_release_candidates_and_release(store, tmp_path, capsys):
+    """A recomputed value for a quarantined species that passed the harvest's
+    checks is listed as a release candidate; one reasoned command releases it."""
+    db = molsystem.SystemDB(filename=f"file:{tmp_path / 'seamm.db'}")
+    xyz = _embedded("[CH3-]")[1]
+
+    def harvest(E):
+        return harvest_configuration(
+            store,
+            _species(db, "[CH3-]", xyz, E),
+            "[CH3-]",
+            energy="total energy#Thermochemistry#*",
+            job="5684:/jobs/5684",
+            write_back=True,
+        )
+
+    harvest(-104000.0)
+    for table in ("fragment", "geometry", "energy"):
+        _quarantine(store, table)
+    assert store.release_candidates() == []
+    harvest(-104010.0)
+    candidates = store.release_candidates("[CH3-]")
+    assert {c["table"] for c in candidates} == {"fragment", "geometry", "energy"}
+    for c in candidates:
+        assert c["old"]["E"] == pytest.approx(-104000.0)
+        assert c["new"]["E"] == pytest.approx(-104010.0)
+        assert c["quarantine"].startswith("saddle") and c["job"] == "5684:/jobs/5684"
+    assert store.release_candidates("C") == []
+
+    path = str(store.path)
+    store.close()
+    assert fragment_cli.main(["--store", path, "release-candidates"]) == 0
+    out = capsys.readouterr().out
+    assert out.count("quarantined (saddle point (687i), job 5684)") == 3
+    with pytest.raises(SystemExit):  # a reason is required
+        fragment_cli.main(["--store", path, "release", str(candidates[0]["id"])])
+    ids = [str(c["id"]) for c in candidates]
+    code = fragment_cli.main(
+        ["--store", path, "release", *ids, "--reason", "recomputed, checked"]
+    )
+    assert code == 0
+    with FragmentStore(path) as s:
+        assert s.release_candidates() == []
+        got = s.get("[CH3-]", charge=-1, energy_fingerprint=FP)
+        assert got["E"] == pytest.approx(-104010.0) and got["verified"]
+        (g,) = s.geometries("[CH3-]", charge=-1, frequency_fingerprint=FP)
+        assert g["E"] == pytest.approx(-104010.0)
+        (old,) = s.superseded("[CH3-]")
+        assert "recomputed, checked (release candidate" in old["reason"]
+        assert "released the quarantine: saddle" in old["reason"]
+        with pytest.raises(ValueError):
+            s.release(candidates[0]["id"], "again")
+    db.close()

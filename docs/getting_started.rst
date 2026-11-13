@@ -419,9 +419,12 @@ lookup; ``migrate`` leaves them as they are, ``export`` skips them, and ``offici
 build`` drops them and lists them in its report. Nothing replaces a quarantined row
 automatically: a harvest, write-back or merge that brings a row with the same key keeps
 the quarantined one, logs the attempt in the history (kind ``quarantined``) and reports
-it. Releasing a quarantine is a person's decision, made with ``harvest --supersede
-<reason>`` (or the store's ``supersede`` methods), and the new values must still pass
-every check of the harvest; the old values are kept as superseded. Quarantined rows are
+it. Releasing a quarantine is a person's decision. ``release-candidates [SMILES]``
+lists the values kept out that passed every check of the harvest (the species, the
+quarantined and new values, the job), and ``release ID ... --reason TEXT`` replaces the
+quarantined rows with them; ``harvest --supersede <reason>`` (or the store's
+``supersede`` methods) also releases. The quarantined values are kept as superseded,
+with the reason. Quarantined rows are
 not counted as conformers. Ions and open-shell species are checked like the rest. The
 build writes ``<file>.report.json`` beside the file: the sources, the levels, the rows
 kept and left out, each exclusion with its reason, and the SHA-256. Since an official

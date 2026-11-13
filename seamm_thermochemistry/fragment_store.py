@@ -645,7 +645,9 @@ class FragmentStore(GeometryEnergyMixin):
                 difference = float("inf")  # the new record adds a value
             else:
                 difference = max(difference, abs(float(a) - float(b)))
-        if difference == 0.0 or (difference <= DUPLICATE_TOLERANCE and not force):
+        if not is_unusable(existing["model_chemistry"]) and (
+            difference == 0.0 or (difference <= DUPLICATE_TOLERANCE and not force)
+        ):
             return "unchanged"
         columns = self._VALUE_COLUMNS
         now = datetime.datetime.now().isoformat(timespec="seconds")
@@ -669,6 +671,94 @@ class FragmentStore(GeometryEnergyMixin):
             f"Superseded {record['species']} (record {existing['id']}): {reason}"
         )
         return "superseded"
+
+    def release_candidates(self, species=None):
+        """New values that met a row quarantined by hand and were kept out.
+
+        A harvest or write-back that brings a row for a key held by a
+        quarantined row logs it in ``row_history`` (kind "quarantined") after
+        it passed every check of the harvest. Each such attempt whose row is
+        still quarantined is a candidate for :meth:`release`. Returns, oldest
+        first, [{id, table, row, species, charge, multiplicity, conformer,
+        date, job, quarantine, old, new}], old and new each with E (and ZPE, H)
+        and the model chemistry; `species` keeps only its rows.
+        """
+        db = self._reader()
+        if db is None:
+            return []
+        try:
+            history = db.execute(
+                "SELECT * FROM row_history WHERE kind = 'quarantined' ORDER BY id"
+            ).fetchall()
+        except sqlite3.OperationalError:
+            return []
+        species_of = {}
+        for r in db.execute("SELECT geometry_hash, species FROM geometry"):
+            species_of[r[0]] = r[1]
+        keep = ("E", "ZPE", "H", "model_chemistry")
+        out = []
+        for h in history:
+            current = db.execute(
+                f"SELECT model_chemistry FROM {h['table_name']} WHERE id = ?",
+                (h["row"],),
+            ).fetchone()
+            if current is None or not is_unusable(current["model_chemistry"]):
+                continue  # released or gone since
+            old = json.loads(h["old"]) if h["old"] else {}
+            new = json.loads(h["new"]) if h["new"] else {}
+            name = old.get("species") or species_of.get(old.get("geometry_hash"))
+            if species is not None and name != species:
+                continue
+            out.append(
+                {
+                    "id": h["id"],
+                    "table": h["table_name"],
+                    "row": h["row"],
+                    "species": name,
+                    "charge": old.get("charge"),
+                    "multiplicity": old.get("multiplicity"),
+                    "conformer": old.get("conformer"),
+                    "date": h["date"],
+                    "job": new.get("job"),
+                    "quarantine": quarantine_reason(current["model_chemistry"]),
+                    "old": {k: old.get(k) for k in keep},
+                    "new": {k: new.get(k) for k in keep},
+                }
+            )
+        return out
+
+    def release(self, candidate, reason):
+        """Release a quarantined row: replace it with the values of a release
+        candidate (an id from :meth:`release_candidates`), keeping the
+        quarantined values as superseded, with `reason` (a person's).
+
+        Returns "superseded"; raises ValueError if `candidate` is not a
+        candidate (not logged as one, or its row no longer quarantined).
+        """
+        if not reason:
+            raise ValueError("Releasing a quarantined row needs a reason.")
+        found = [c for c in self.release_candidates() if c["id"] == int(candidate)]
+        if not found:
+            raise ValueError(
+                f"{candidate} is not a release candidate: see release_candidates()."
+            )
+        db = self._connect(create=True)
+        h = db.execute(
+            "SELECT * FROM row_history WHERE id = ?", (int(candidate),)
+        ).fetchone()
+        record = json.loads(h["new"])
+        record.pop("id", None)
+        table = h["table_name"]
+        reason = f"{reason} (release candidate {candidate})"
+        if table == "fragment":
+            outcome = self.supersede(record, reason)
+        elif table == "geometry":
+            outcome, _ = self.supersede_geometry(GeometryRecord(record), reason)
+        else:
+            outcome, _ = self.supersede_energy(EnergyRecord(record), reason)
+        if outcome != "superseded":  # pragma: no cover - quarantined rows differ
+            raise ValueError(f"Release candidate {candidate}: {outcome}")
+        return outcome
 
     def superseded(self, species=None):
         """The superseded values, newest first, each with the species and the
