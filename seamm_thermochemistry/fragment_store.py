@@ -54,6 +54,7 @@ from .geometry_store import (
     _unverified,
     hash_geometry,
     is_unusable,
+    quarantine_reason,
     same_model_chemistry,
     split_model_chemistry,
 )
@@ -486,9 +487,10 @@ class FragmentStore(GeometryEnergyMixin):
 
         Returns "inserted", "duplicate" (same key, same values), "logged"
         (same key, values differing by more than 0.1 kJ/mol: the attempt went
-        to ``duplicate_log``, the stored values stay) or "superseded" (the key
-        was held by a record quarantined by hand, ``UNUSABLE: <reason>``,
-        which the new one replaces, its values kept in ``superseded``).
+        to ``duplicate_log``, the stored values stay) or "quarantined" (the
+        key is held by a record quarantined by hand, ``UNUSABLE: <reason>``:
+        it stays, and the attempt goes to ``row_history``; only
+        :meth:`supersede`, a person's decision with a reason, replaces it).
         """
         if self._readonly:
             raise PermissionError("The fragment store was opened read-only.")
@@ -529,35 +531,14 @@ class FragmentStore(GeometryEnergyMixin):
             "multiplicity = ? AND energy_fingerprint = ? AND frequency_fingerprint = ?",
             record.key if isinstance(record, FragmentRecord) else values[:5],
         ).fetchone()
-        if is_unusable(existing["model_chemistry"]) and not is_unusable(
-            record.get("model_chemistry")
-        ):
-            # A record quarantined by hand holds the key: replace it, keeping its
-            # values in ``superseded`` with the quarantine's reason
-            reason = str(existing["model_chemistry"]).split(":", 1)[-1].strip()
-            value_columns = self._VALUE_COLUMNS
-            db.execute(
-                f"INSERT INTO superseded (fragment, {', '.join(value_columns)}, "
-                f"superseded_on, reason) VALUES "
-                f"({', '.join('?' * (len(value_columns) + 3))})",
-                [existing["id"]]
-                + [existing[c] for c in value_columns]
-                + [
-                    datetime.datetime.now().isoformat(timespec="seconds"),
-                    f"replaced a quarantined record: {reason}",
-                ],
+        if is_unusable(existing["model_chemistry"]):
+            # A record quarantined by hand holds the key: it stays, and the
+            # attempt is logged. Only a person releases a quarantine, with a
+            # reason (supersede).
+            self._keep_quarantined(
+                db, "fragment", ("E", "ZPE", "H"), dict(record), existing
             )
-            new = dict(zip(columns, values))
-            db.execute(
-                f"UPDATE fragment SET {', '.join(f'{c} = ?' for c in value_columns)} "
-                "WHERE id = ?",
-                [new[c] for c in value_columns] + [existing["id"]],
-            )
-            db.commit()
-            logger.info(
-                f"Replaced the quarantined record of {record['species']} ({reason})."
-            )
-            return "superseded"
+            return "quarantined"
         difference = 0.0
         for field in ("E", "ZPE", "H"):
             a, b = existing[field], record.get(field)
@@ -648,6 +629,13 @@ class FragmentStore(GeometryEnergyMixin):
         ).fetchone()
         if existing is None:
             return self.put(record)
+        if is_unusable(record.get("model_chemistry")):
+            raise ValueError("A quarantined record cannot supersede another one.")
+        if is_unusable(existing["model_chemistry"]):
+            reason = (
+                f"{reason} (released the quarantine: "
+                f"{quarantine_reason(existing['model_chemistry'])})"
+            )
         difference = 0.0
         for field in ("E", "ZPE", "H"):
             a, b = existing[field], record.get(field)
@@ -657,7 +645,9 @@ class FragmentStore(GeometryEnergyMixin):
                 difference = float("inf")  # the new record adds a value
             else:
                 difference = max(difference, abs(float(a) - float(b)))
-        if difference == 0.0 or (difference <= DUPLICATE_TOLERANCE and not force):
+        if not is_unusable(existing["model_chemistry"]) and (
+            difference == 0.0 or (difference <= DUPLICATE_TOLERANCE and not force)
+        ):
             return "unchanged"
         columns = self._VALUE_COLUMNS
         now = datetime.datetime.now().isoformat(timespec="seconds")
@@ -681,6 +671,94 @@ class FragmentStore(GeometryEnergyMixin):
             f"Superseded {record['species']} (record {existing['id']}): {reason}"
         )
         return "superseded"
+
+    def release_candidates(self, species=None):
+        """New values that met a row quarantined by hand and were kept out.
+
+        A harvest or write-back that brings a row for a key held by a
+        quarantined row logs it in ``row_history`` (kind "quarantined") after
+        it passed every check of the harvest. Each such attempt whose row is
+        still quarantined is a candidate for :meth:`release`. Returns, oldest
+        first, [{id, table, row, species, charge, multiplicity, conformer,
+        date, job, quarantine, old, new}], old and new each with E (and ZPE, H)
+        and the model chemistry; `species` keeps only its rows.
+        """
+        db = self._reader()
+        if db is None:
+            return []
+        try:
+            history = db.execute(
+                "SELECT * FROM row_history WHERE kind = 'quarantined' ORDER BY id"
+            ).fetchall()
+        except sqlite3.OperationalError:
+            return []
+        species_of = {}
+        for r in db.execute("SELECT geometry_hash, species FROM geometry"):
+            species_of[r[0]] = r[1]
+        keep = ("E", "ZPE", "H", "model_chemistry")
+        out = []
+        for h in history:
+            current = db.execute(
+                f"SELECT model_chemistry FROM {h['table_name']} WHERE id = ?",
+                (h["row"],),
+            ).fetchone()
+            if current is None or not is_unusable(current["model_chemistry"]):
+                continue  # released or gone since
+            old = json.loads(h["old"]) if h["old"] else {}
+            new = json.loads(h["new"]) if h["new"] else {}
+            name = old.get("species") or species_of.get(old.get("geometry_hash"))
+            if species is not None and name != species:
+                continue
+            out.append(
+                {
+                    "id": h["id"],
+                    "table": h["table_name"],
+                    "row": h["row"],
+                    "species": name,
+                    "charge": old.get("charge"),
+                    "multiplicity": old.get("multiplicity"),
+                    "conformer": old.get("conformer"),
+                    "date": h["date"],
+                    "job": new.get("job"),
+                    "quarantine": quarantine_reason(current["model_chemistry"]),
+                    "old": {k: old.get(k) for k in keep},
+                    "new": {k: new.get(k) for k in keep},
+                }
+            )
+        return out
+
+    def release(self, candidate, reason):
+        """Release a quarantined row: replace it with the values of a release
+        candidate (an id from :meth:`release_candidates`), keeping the
+        quarantined values as superseded, with `reason` (a person's).
+
+        Returns "superseded"; raises ValueError if `candidate` is not a
+        candidate (not logged as one, or its row no longer quarantined).
+        """
+        if not reason:
+            raise ValueError("Releasing a quarantined row needs a reason.")
+        found = [c for c in self.release_candidates() if c["id"] == int(candidate)]
+        if not found:
+            raise ValueError(
+                f"{candidate} is not a release candidate: see release_candidates()."
+            )
+        db = self._connect(create=True)
+        h = db.execute(
+            "SELECT * FROM row_history WHERE id = ?", (int(candidate),)
+        ).fetchone()
+        record = json.loads(h["new"])
+        record.pop("id", None)
+        table = h["table_name"]
+        reason = f"{reason} (release candidate {candidate})"
+        if table == "fragment":
+            outcome = self.supersede(record, reason)
+        elif table == "geometry":
+            outcome, _ = self.supersede_geometry(GeometryRecord(record), reason)
+        else:
+            outcome, _ = self.supersede_energy(EnergyRecord(record), reason)
+        if outcome != "superseded":  # pragma: no cover - quarantined rows differ
+            raise ValueError(f"Release candidate {candidate}: {outcome}")
+        return outcome
 
     def superseded(self, species=None):
         """The superseded values, newest first, each with the species and the
@@ -1058,6 +1136,7 @@ def new_counts():
         "duplicate": 0,
         "logged": 0,
         "superseded": 0,
+        "quarantined": 0,
         "skipped": [],
         "geometry": {},
         "energy": {},
@@ -1142,11 +1221,14 @@ def harvest_configuration(
     and, with the ZPE or enthalpy of the same level, a geometry row. See
     :func:`harvest_job` for the properties read and the guards.
 
-    `write_back` adds the rules for results written by a running job:
+    A geometry with an imaginary mode beyond ``IMAGINARY_TOLERANCE`` is
+    refused, with every energy on it, in a harvest as in a write-back. A key
+    held by a row quarantined by hand (``UNUSABLE: <reason>``) keeps it: the
+    attempt is logged and reported, "quarantined" in the tallies, and only an
+    explicit `supersede` (a person's decision, with a reason) replaces it.
 
-    * a geometry with an imaginary mode beyond ``IMAGINARY_TOLERANCE`` is
-      refused, with every energy on it (a harvest stores it, for provenance,
-      without returning it for reuse);
+    `write_back` adds the rule for results written by a running job:
+
     * a geometry lower in E + ZPE by more than 0.1 kJ/mol than every stored
       conformer of the species at its level, and structurally distinct from
       each (RMSD above ``CONFORMER_RMSD`` Å), is added as a new conformer
@@ -1217,13 +1299,12 @@ def harvest_configuration(
             counts["skipped"].append(f"{name_for}: refused, {problem}")
             note(None, "refused", reason=problem)
             return finish()
-    if write_back:
-        worst = _imaginary_modes(properties)
-        if worst > IMAGINARY_TOLERANCE:
-            reason = f"an imaginary mode of {worst:.0f}i cm^-1"
-            counts["skipped"].append(f"{name_for}: refused, {reason}")
-            note(None, "refused", reason=reason)
-            return finish()
+    worst = _imaginary_modes(properties)
+    if worst > IMAGINARY_TOLERANCE:
+        reason = f"an imaginary mode of {worst:.0f}i cm^-1"
+        counts["skipped"].append(f"{name_for}: refused, {reason}")
+        note(None, "refused", reason=reason)
+        return finish()
 
     for name, value in energies.items():
         if isinstance(value, dict):
@@ -1332,6 +1413,11 @@ def harvest_configuration(
             outcome = store.put(record)
             counts[outcome] += 1
             note("fragment", outcome, reason=name)
+            if outcome == "quarantined":
+                counts["skipped"].append(
+                    f"{name_for} ({name}): the stored record is quarantined; kept "
+                    "it (releasing it needs a person: supersede with a reason)"
+                )
 
         if ZPE or H:
             symmetry = extra("symmetry number", kind="int")

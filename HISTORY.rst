@@ -1,6 +1,27 @@
 =======
 History
 =======
+2026.11.13.2 -- Bugfix: nothing replaces a quarantined row automatically
+    * A harvest refused nothing with imaginary modes, unlike a write-back: a trial
+      harvest of a job that had [CH3-] as its D3h saddle (687i) put it back and
+      replaced the row quarantined for exactly that. Every harvest now refuses a
+      geometry with an imaginary mode beyond 20i cm^-1, with every energy on it.
+      Earlier harvests stored such rows (not offered for reuse); those stay, but
+      harvesting the same jobs again no longer adds them.
+    * A harvest, write-back or merge that brings a row whose key is held by a row
+      quarantined by hand (``UNUSABLE: <reason>``) keeps the quarantined row, logs
+      the attempt in the history (kind ``quarantined``) and reports it: a
+      "quarantined" tally and a line in the harvest's skipped list. Before, any
+      valid row replaced it silently.
+    * Releasing a quarantine is a person's decision. The values kept out are
+      listed as release candidates (``seamm-thermochemistry-fragments
+      release-candidates``: species, quarantined and new values, job), and
+      ``release ID ... --reason TEXT`` releases them in one command; ``harvest
+      --supersede <reason>`` and the store's ``supersede`` methods also release.
+      The reason records the quarantine released. The new values must pass
+      every check of the harvest first, and a quarantined row can never
+      supersede another.
+
 2026.11.13.1 -- Bugfix: lookups prefer records with thermal data
     * When a level has both a record with the energy alone (stored by a run
       without thermal corrections, e.g. MOPAC's enthalpy of formation taken as the

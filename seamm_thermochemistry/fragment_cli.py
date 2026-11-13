@@ -218,6 +218,21 @@ def main(argv=None):
     sup = sub.add_parser("superseded", help="Show the superseded values.")
     sup.add_argument("species", nargs="?", help="Canonical SMILES.")
 
+    cand = sub.add_parser(
+        "release-candidates",
+        help="New values kept out by a row quarantined by hand, which passed the "
+        "harvest's checks: candidates for 'release'.",
+    )
+    cand.add_argument("species", nargs="?", help="Canonical SMILES.")
+
+    rel = sub.add_parser(
+        "release",
+        help="Release quarantined rows: replace each with a release candidate's "
+        "values, keeping the quarantined ones as superseded.",
+    )
+    rel.add_argument("ids", nargs="+", type=int, help="Release candidate ids.")
+    rel.add_argument("--reason", required=True, help="Why (recorded with each).")
+
     args = parser.parse_args(argv)
     if getattr(args, "force", False) and not args.supersede:
         parser.error("--force needs --supersede REASON")
@@ -250,6 +265,11 @@ def main(argv=None):
                         f"{counts['duplicate']} already there, "
                         f"{counts['logged']} differing (logged), "
                         f"{counts['superseded']} superseded"
+                        + (
+                            f", {counts['quarantined']} kept quarantined"
+                            if counts.get("quarantined")
+                            else ""
+                        )
                     )
                     for table in ("geometry", "energy"):
                         tally = counts.get(table) or {}
@@ -333,6 +353,31 @@ def main(argv=None):
                     f"(q={r['charge']}, 2S+1={r['multiplicity']}){conformer} "
                     f"{what}{row} {r['outcome']}{reason}"
                 )
+        elif args.command == "release-candidates":
+            store = F.FragmentStore(args.store)
+            rows = store.release_candidates(args.species)
+            if not rows:
+                print("No release candidates.")
+
+            def values(d):
+                return ", ".join(
+                    f"{k} {d[k]:.3f}" for k in ("E", "ZPE", "H") if d.get(k) is not None
+                )
+
+            for d in rows:
+                label = f" conformer '{d['conformer']}'" if d["conformer"] else ""
+                print(
+                    f"{d['id']}: {d['species']} (q={d['charge']}, "
+                    f"2S+1={d['multiplicity']}){label} {d['table']} row {d['row']}, "
+                    f"quarantined ({d['quarantine']}): {values(d['old'])}; new "
+                    f"{values(d['new'])} [{d['new']['model_chemistry']}] from "
+                    f"{d['job']} on {d['date']}"
+                )
+        elif args.command == "release":
+            with F.FragmentStore(args.store, create=True) as store:
+                for i in args.ids:
+                    store.release(i, args.reason)
+                    print(f"Released with candidate {i}.")
         elif args.command == "superseded":
             store = F.FragmentStore(args.store)
             rows = store.superseded(args.species)

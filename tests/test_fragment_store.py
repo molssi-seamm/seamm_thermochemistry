@@ -219,6 +219,7 @@ def test_harvest(job, store):
         "duplicate": 4,
         "logged": 0,
         "superseded": 0,
+        "quarantined": 0,
         "skipped": [],
         "geometry": {"duplicate": 1},
         "energy": {"duplicate": 4},
