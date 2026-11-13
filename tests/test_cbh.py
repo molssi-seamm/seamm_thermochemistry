@@ -418,3 +418,43 @@ def test_charge_separated_perchloryl_is_whole():
 )
 def test_more_ground_states(smiles, multiplicity):
     assert cbh.ground_state_multiplicity(smiles) == multiplicity
+
+
+@pytest.mark.parametrize(
+    "parent",
+    [
+        "C1[C@H]2[C@@H]3[C@H]2[C@@H]2[C@H]1[C@H]32",
+        "C1[C@@H]2[C@H]1[C@H]1[C@H]3[C@@H]2[C@@H]13",
+        "C1C[C@@]23CC[C@]2(C1)O3",
+    ],
+)
+def test_fragments_can_be_built(parent):
+    """A small fused ring cut out of a polycycle kept the parent's stereo labels,
+    which for tiny rings describe an impossible trans fusion
+    (C1[C@H]2C[C@@H]12, CC[C@]12CC[C@@H]1O2: PPE1694, 2026-11-13). Every
+    fragment must be a structure that can be built."""
+    species = set()
+    for rung in (0, 1, 2):
+        try:
+            reactions = cbh.cbh_reactions(parent, rungs=[rung], protect="default")
+        except cbh.RungUnavailable:
+            continue
+        for reaction in reactions.values():
+            species |= set(reaction.coefficients)
+    # The target is built from its own structure, the fragments from SMILES
+    species.discard(canonical_smiles(parent))
+    species.discard(parent)
+    assert species
+    for s in species:
+        assert cbh._embeddable(s), s
+
+
+def test_real_ring_fusion_stereo_is_kept():
+    """cis- and trans-bicyclo[4.2.0]octane are both real: their labels stay."""
+    from rdkit import Chem
+
+    for smiles in ("C1CC[C@H]2CC[C@@H]2C1", "C1CC[C@H]2CC[C@H]2C1"):
+        mol = Chem.MolFromSmiles(smiles)
+        assert cbh._feasible_stereo(mol) == Chem.MolToSmiles(mol)
+    tiny = Chem.MolFromSmiles("C1[C@H]2C[C@@H]12")
+    assert cbh._feasible_stereo(tiny) == "C1C2CC12"

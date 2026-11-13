@@ -1,6 +1,15 @@
 =======
 History
 =======
+2026.11.13.3 -- Bugfix: CBH fragments that could not be built
+    * A small fused or bridged ring cut out of a polycyclic target kept the
+      target's stereo labels, which for tiny rings describe a trans fusion no
+      structure has (e.g. C1[C@H]2C[C@@H]12, bicyclo[1.1.0]butane, which can only be
+      cis), so the fragment could not be built and the CBH rung failed (four
+      fragments of PPE1694). When such a fragment cannot be built in 3D with its
+      labels, the labels on its small-ring fusion atoms are now dropped. Labels that
+      describe a real choice, such as cis- and trans-bicyclo[4.2.0]octane, are kept.
+
 2026.11.13.2 -- Bugfix: nothing replaces a quarantined row automatically
     * A harvest refused nothing with imaginary modes, unlike a write-back: a trial
       harvest of a job that had [CH3-] as its D3h saddle (687i) put it back and

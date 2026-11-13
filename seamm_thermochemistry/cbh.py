@@ -30,7 +30,9 @@ Every fragment is the induced subgraph: it keeps the bonds, bond orders,
 formal charges and unpaired electrons its atoms have in the parent, and every
 cut bond is replaced by hydrogens that restore the atom's valence in the
 parent. Double-bond stereochemistry and the relative configuration of
-stereocentres are kept, so cis and trans fragments are different species.
+stereocentres are kept, so cis and trans fragments are different species --
+except labels on the fusion atoms of tiny rings that leave a fragment that
+cannot be built in 3D (see :func:`_feasible_stereo`).
 
 Groups that should not be broken (aromatic ring systems, three- and
 four-membered rings, charge-separated or hypervalent groups such as nitro and
@@ -484,7 +486,68 @@ def _fragment_smiles(mol_h, keep):
     # the cis/trans set for ring double bonds)
     Chem.AssignStereochemistry(frag, cleanIt=False, force=True)
     frag.SetProp("_StereochemDone", "1")
-    return Chem.MolToSmiles(frag)
+    return _feasible_stereo(frag)
+
+
+def _feasible_stereo(frag):
+    """The fragment's SMILES, without the stereo labels a cut has made
+    impossible.
+
+    Cut out of a larger ring system, a small fused or bridged ring keeps the
+    parent's labels on its ring-fusion atoms, and for tiny rings they can describe
+    a trans fusion no structure has (C1[C@H]2C[C@@H]12: bicyclo[1.1.0]butane is
+    only cis). Such a fragment cannot be built in 3D, so neither its calculation
+    nor the CBH reaction can run. When a fragment has labels on atoms shared by
+    two or more rings, one of them of at most four atoms, and RDKit cannot embed
+    it with them, those labels are dropped, and the fragment is built in the
+    arrangement RDKit embeds (for these tiny rings the only one). A fragment is
+    built from its SMILES, so one RDKit cannot embed could not be computed
+    either. Labels that describe a real choice, such as cis and trans
+    bicyclo[4.2.0]octane, embed and are kept."""
+    Chem = _rdkit()
+    smiles = Chem.MolToSmiles(frag)
+    Chem.FastFindRings(frag)
+    ring_info = frag.GetRingInfo()
+    fusion = [
+        atom.GetIdx()
+        for atom in frag.GetAtoms()
+        if atom.GetChiralTag() != Chem.ChiralType.CHI_UNSPECIFIED
+        and ring_info.NumAtomRings(atom.GetIdx()) >= 2
+        and ring_info.MinAtomRingSize(atom.GetIdx()) <= 4
+    ]
+    if not fusion or _embeddable(smiles):
+        return smiles
+    rw = Chem.RWMol(frag)
+    for idx in fusion:
+        rw.GetAtomWithIdx(idx).SetChiralTag(Chem.ChiralType.CHI_UNSPECIFIED)
+    new = rw.GetMol()
+    Chem.AssignStereochemistry(new, cleanIt=True, force=True)
+    dropped = Chem.MolToSmiles(new)
+    logger.info(
+        f"The CBH fragment {smiles} cannot be built with its stereo labels; "
+        f"using {dropped}."
+    )
+    return dropped
+
+
+def _embeddable(smiles):
+    """Whether RDKit can build a 3D structure with the SMILES' stereochemistry
+    (ETKDG, a fixed seed and few iterations: a few ms for a small fragment). A
+    SMILES RDKit cannot read is taken as embeddable, so nothing is changed."""
+    Chem = _rdkit()
+    from rdkit.Chem import AllChem
+
+    try:
+        mol = Chem.MolFromSmiles(smiles)
+        if mol is None:
+            return True
+        mol = Chem.AddHs(mol)
+        params = AllChem.ETKDGv3()
+        params.randomSeed = 0xF00D
+        params.maxIterations = 50
+        return AllChem.EmbedMolecule(mol, params) >= 0
+    except Exception:
+        return True
 
 
 def _composition(smiles):
