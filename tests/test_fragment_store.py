@@ -90,6 +90,36 @@ def test_unverified_fallback(store):
         FragmentRecord.make("C", E=1.0)
 
 
+def test_thermal_records_come_first(store):
+    """A run without thermal corrections stores the energy alone (frequency
+    fingerprint ""); a harmonic run's record of the same level, stored later,
+    must still be the one found -- and the energy-only one when it is all
+    there is."""
+    mc = "MOPAC:SQM@PM7"
+    store.put(_record("C", E=-50.0, fp="mopac:pm7", model_chemistry=mc))
+    r = store.get("C", energy_fingerprint="mopac:pm7")
+    assert r["E"] == -50.0 and r["H"] is None and r["frequency_fingerprint"] == ""
+    store.put(
+        _record(
+            "C",
+            E=-50.0,
+            ZPE=110.0,
+            H=70.0,
+            fp="mopac:pm7",
+            frequency_fingerprint="mopac:pm7",
+            model_chemistry=mc,
+        )
+    )
+    assert len(store) == 2
+    r = store.get("C", energy_fingerprint="mopac:pm7")
+    assert r["H"] == 70.0 and r["ZPE"] == 110.0
+    # The same without fingerprints (unverified records, by model chemistry)
+    store.put(FragmentRecord.make("N", E=-10.0, model_chemistry=mc))
+    store.put(FragmentRecord.make("N", E=-10.0, ZPE=90.0, H=5.0, model_chemistry=mc))
+    r = store.get("N", model_chemistry=mc)
+    assert r["H"] == 5.0 and not r["verified"]
+
+
 def test_best_effort_reads(tmp_path, caplog):
     # No file: an empty store, no error
     s = FragmentStore(tmp_path / "none.db")
