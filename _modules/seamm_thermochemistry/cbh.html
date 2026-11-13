@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.cbh &#8212; SEAMM thermochemistry Plug-in 2026.11.13.2 documentation</title>
+    <title>seamm_thermochemistry.cbh &#8212; SEAMM thermochemistry Plug-in 2026.11.13.3 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=d621e58b"></script>
+    <script src="../../_static/documentation_options.js?v=72596192"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.13.2" />
+  <meta name="docsearch:version" content="2026.11.13.3" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -457,7 +457,9 @@
 <span class="sd">formal charges and unpaired electrons its atoms have in the parent, and every</span>
 <span class="sd">cut bond is replaced by hydrogens that restore the atom's valence in the</span>
 <span class="sd">parent. Double-bond stereochemistry and the relative configuration of</span>
-<span class="sd">stereocentres are kept, so cis and trans fragments are different species.</span>
+<span class="sd">stereocentres are kept, so cis and trans fragments are different species --</span>
+<span class="sd">except labels on the fusion atoms of tiny rings that leave a fragment that</span>
+<span class="sd">cannot be built in 3D (see :func:`_feasible_stereo`).</span>
 
 <span class="sd">Groups that should not be broken (aromatic ring systems, three- and</span>
 <span class="sd">four-membered rings, charge-separated or hypervalent groups such as nitro and</span>
@@ -923,7 +925,68 @@
     <span class="c1"># the cis/trans set for ring double bonds)</span>
     <span class="n">Chem</span><span class="o">.</span><span class="n">AssignStereochemistry</span><span class="p">(</span><span class="n">frag</span><span class="p">,</span> <span class="n">cleanIt</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">frag</span><span class="o">.</span><span class="n">SetProp</span><span class="p">(</span><span class="s2">"_StereochemDone"</span><span class="p">,</span> <span class="s2">"1"</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolToSmiles</span><span class="p">(</span><span class="n">frag</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_feasible_stereo</span><span class="p">(</span><span class="n">frag</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_feasible_stereo</span><span class="p">(</span><span class="n">frag</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The fragment's SMILES, without the stereo labels a cut has made</span>
+<span class="sd">    impossible.</span>
+
+<span class="sd">    Cut out of a larger ring system, a small fused or bridged ring keeps the</span>
+<span class="sd">    parent's labels on its ring-fusion atoms, and for tiny rings they can describe</span>
+<span class="sd">    a trans fusion no structure has (C1[C@H]2C[C@@H]12: bicyclo[1.1.0]butane is</span>
+<span class="sd">    only cis). Such a fragment cannot be built in 3D, so neither its calculation</span>
+<span class="sd">    nor the CBH reaction can run. When a fragment has labels on atoms shared by</span>
+<span class="sd">    two or more rings, one of them of at most four atoms, and RDKit cannot embed</span>
+<span class="sd">    it with them, those labels are dropped, and the fragment is built in the</span>
+<span class="sd">    arrangement RDKit embeds (for these tiny rings the only one). A fragment is</span>
+<span class="sd">    built from its SMILES, so one RDKit cannot embed could not be computed</span>
+<span class="sd">    either. Labels that describe a real choice, such as cis and trans</span>
+<span class="sd">    bicyclo[4.2.0]octane, embed and are kept."""</span>
+    <span class="n">Chem</span> <span class="o">=</span> <span class="n">_rdkit</span><span class="p">()</span>
+    <span class="n">smiles</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolToSmiles</span><span class="p">(</span><span class="n">frag</span><span class="p">)</span>
+    <span class="n">Chem</span><span class="o">.</span><span class="n">FastFindRings</span><span class="p">(</span><span class="n">frag</span><span class="p">)</span>
+    <span class="n">ring_info</span> <span class="o">=</span> <span class="n">frag</span><span class="o">.</span><span class="n">GetRingInfo</span><span class="p">()</span>
+    <span class="n">fusion</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">atom</span><span class="o">.</span><span class="n">GetIdx</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">frag</span><span class="o">.</span><span class="n">GetAtoms</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">atom</span><span class="o">.</span><span class="n">GetChiralTag</span><span class="p">()</span> <span class="o">!=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">ChiralType</span><span class="o">.</span><span class="n">CHI_UNSPECIFIED</span>
+        <span class="ow">and</span> <span class="n">ring_info</span><span class="o">.</span><span class="n">NumAtomRings</span><span class="p">(</span><span class="n">atom</span><span class="o">.</span><span class="n">GetIdx</span><span class="p">())</span> <span class="o">&gt;=</span> <span class="mi">2</span>
+        <span class="ow">and</span> <span class="n">ring_info</span><span class="o">.</span><span class="n">MinAtomRingSize</span><span class="p">(</span><span class="n">atom</span><span class="o">.</span><span class="n">GetIdx</span><span class="p">())</span> <span class="o">&lt;=</span> <span class="mi">4</span>
+    <span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">fusion</span> <span class="ow">or</span> <span class="n">_embeddable</span><span class="p">(</span><span class="n">smiles</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">smiles</span>
+    <span class="n">rw</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">RWMol</span><span class="p">(</span><span class="n">frag</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">fusion</span><span class="p">:</span>
+        <span class="n">rw</span><span class="o">.</span><span class="n">GetAtomWithIdx</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span><span class="o">.</span><span class="n">SetChiralTag</span><span class="p">(</span><span class="n">Chem</span><span class="o">.</span><span class="n">ChiralType</span><span class="o">.</span><span class="n">CHI_UNSPECIFIED</span><span class="p">)</span>
+    <span class="n">new</span> <span class="o">=</span> <span class="n">rw</span><span class="o">.</span><span class="n">GetMol</span><span class="p">()</span>
+    <span class="n">Chem</span><span class="o">.</span><span class="n">AssignStereochemistry</span><span class="p">(</span><span class="n">new</span><span class="p">,</span> <span class="n">cleanIt</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">dropped</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolToSmiles</span><span class="p">(</span><span class="n">new</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"The CBH fragment </span><span class="si">{</span><span class="n">smiles</span><span class="si">}</span><span class="s2"> cannot be built with its stereo labels; "</span>
+        <span class="sa">f</span><span class="s2">"using </span><span class="si">{</span><span class="n">dropped</span><span class="si">}</span><span class="s2">."</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">dropped</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_embeddable</span><span class="p">(</span><span class="n">smiles</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Whether RDKit can build a 3D structure with the SMILES' stereochemistry</span>
+<span class="sd">    (ETKDG, a fixed seed and few iterations: a few ms for a small fragment). A</span>
+<span class="sd">    SMILES RDKit cannot read is taken as embeddable, so nothing is changed."""</span>
+    <span class="n">Chem</span> <span class="o">=</span> <span class="n">_rdkit</span><span class="p">()</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">rdkit.Chem</span><span class="w"> </span><span class="kn">import</span> <span class="n">AllChem</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">mol</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">mol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="n">mol</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">AddHs</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="n">AllChem</span><span class="o">.</span><span class="n">ETKDGv3</span><span class="p">()</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">randomSeed</span> <span class="o">=</span> <span class="mh">0xF00D</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">maxIterations</span> <span class="o">=</span> <span class="mi">50</span>
+        <span class="k">return</span> <span class="n">AllChem</span><span class="o">.</span><span class="n">EmbedMolecule</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">0</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_composition</span><span class="p">(</span><span class="n">smiles</span><span class="p">):</span>
