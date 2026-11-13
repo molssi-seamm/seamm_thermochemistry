@@ -265,6 +265,17 @@ scale factor is applied when the values are used (for example
 ``seamm-thermochemistry-ladder build ... --zpe-scale 0.9863``), so changing a
 factor never needs a new harvest.
 
+A per-frequency correction is different (``frequency_correction``: PM7's, from
+Rozanska et al., J. Chem. Eng. Data 59, 3136 (2014), eq 1, is the only one so far).
+It changes each frequency, so the ZPE, H, S and Cp, and the Thermochemistry step
+applies it before they are computed. The ZPE and H it stores are the corrected ones,
+and the correction's tag (``fc:<id>:v<version>:<range>``) is added to the
+frequency fingerprint, also by the harvest when the program gave no fingerprint, so
+corrected and uncorrected thermal data never share a key. A level with a correction
+gets no ZPE scale factor. Each correction says which elements it was fitted for,
+where it is discontinuous (warnings) and the largest raw frequency it covers:
+PM7's slope-3.99 branch is not extrapolated above 2900 cm\ :sup:`-1`.
+
 An energy row also keeps the *parts* of its energy (the HF energy, the correlation
 energies, the triples, and so on) when the calculation reported them, in its
 ``byproducts``. They come from an ``energy parts#...`` property of the same level,
