@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.cbh &#8212; SEAMM thermochemistry Plug-in 2026.11.13.3 documentation</title>
+    <title>seamm_thermochemistry.cbh &#8212; SEAMM thermochemistry Plug-in 2026.11.13.4 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=72596192"></script>
+    <script src="../../_static/documentation_options.js?v=b9d0f15f"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.13.3" />
+  <meta name="docsearch:version" content="2026.11.13.4" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -483,6 +483,7 @@
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">"CBHError"</span><span class="p">,</span>
+    <span class="s2">"ConformerError"</span><span class="p">,</span>
     <span class="s2">"RungUnavailable"</span><span class="p">,</span>
     <span class="s2">"Reaction"</span><span class="p">,</span>
     <span class="s2">"cbh_reactions"</span><span class="p">,</span>
@@ -1322,12 +1323,111 @@
 
 
 
+<span class="c1"># A structure with two atoms closer than CONTACT_FACTOR times the sum of their</span>
+<span class="c1"># covalent radii, or a bond longer than BOND_STRETCH_FACTOR times it, is broken.</span>
+<span class="n">CONTACT_FACTOR</span> <span class="o">=</span> <span class="mf">0.6</span>
+<span class="n">BOND_STRETCH_FACTOR</span> <span class="o">=</span> <span class="mf">1.5</span>
+
+<span class="c1"># The elements the force fields used for conformers (MMFF94, UFF) build reliably;</span>
+<span class="c1"># a species with any other element has a metal centre.</span>
+<span class="n">FORCE_FIELD_ELEMENTS</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(</span>
+    <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">14</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">17</span><span class="p">,</span> <span class="mi">18</span><span class="p">,</span> <span class="mi">33</span><span class="p">,</span> <span class="mi">34</span><span class="p">,</span> <span class="mi">35</span><span class="p">,</span> <span class="mi">36</span><span class="p">,</span> <span class="mi">52</span><span class="p">,</span> <span class="mi">53</span><span class="p">,</span> <span class="mi">54</span><span class="p">)</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="ConformerError">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.cbh.ConformerError">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ConformerError</span><span class="p">(</span><span class="n">CBHError</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The force fields cannot give a usable starting structure for a species</span>
+<span class="sd">    (a metal or hypervalent centre, or every conformer broken): start from</span>
+<span class="sd">    another structure, such as molsystem's from the SMILES."""</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">force_field_unsuitable</span><span class="p">(</span><span class="n">mol</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Why the force fields cannot build the RDKit molecule `mol` (with or</span>
+<span class="sd">    without explicit hydrogens), or None if they can. MMFF94 and UFF know</span>
+<span class="sd">    neither metal centres nor atoms with more than four electron domains (SF4,</span>
+<span class="sd">    SF6, ClF3, PF6-): they fold such centres into tetrahedra or pull ligands</span>
+<span class="sd">    off. Sulfonyl, phosphoryl and the like, with four domains, are fine."""</span>
+    <span class="n">Chem</span> <span class="o">=</span> <span class="n">_rdkit</span><span class="p">()</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">GetPeriodicTable</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">mol</span><span class="o">.</span><span class="n">GetAtoms</span><span class="p">():</span>
+        <span class="n">Z</span> <span class="o">=</span> <span class="n">atom</span><span class="o">.</span><span class="n">GetAtomicNum</span><span class="p">()</span>
+        <span class="n">symbol</span> <span class="o">=</span> <span class="n">atom</span><span class="o">.</span><span class="n">GetSymbol</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">Z</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">FORCE_FIELD_ELEMENTS</span><span class="p">:</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">"it has a metal centre (</span><span class="si">{</span><span class="n">symbol</span><span class="si">}</span><span class="s2">)"</span>
+        <span class="k">if</span> <span class="n">Z</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">domains</span> <span class="o">=</span> <span class="n">atom</span><span class="o">.</span><span class="n">GetDegree</span><span class="p">()</span> <span class="o">+</span> <span class="n">atom</span><span class="o">.</span><span class="n">GetTotalNumHs</span><span class="p">()</span>
+        <span class="n">electrons</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">table</span><span class="o">.</span><span class="n">GetNOuterElecs</span><span class="p">(</span><span class="n">Z</span><span class="p">)</span>
+            <span class="o">-</span> <span class="n">atom</span><span class="o">.</span><span class="n">GetFormalCharge</span><span class="p">()</span>
+            <span class="o">-</span> <span class="n">atom</span><span class="o">.</span><span class="n">GetTotalValence</span><span class="p">()</span>
+            <span class="o">-</span> <span class="n">atom</span><span class="o">.</span><span class="n">GetNumRadicalElectrons</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="n">domains</span> <span class="o">+=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">electrons</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">atom</span><span class="o">.</span><span class="n">GetNumRadicalElectrons</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">domains</span> <span class="o">&gt;</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">symbol</span><span class="si">}</span><span class="s2"> has </span><span class="si">{</span><span class="n">domains</span><span class="si">}</span><span class="s2"> electron domains"</span>
+    <span class="k">return</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">geometry_problem</span><span class="p">(</span><span class="n">symbols</span><span class="p">,</span> <span class="n">xyz</span><span class="p">,</span> <span class="n">bonds</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""What is wrong with a structure, or None if nothing: two atoms closer than</span>
+<span class="sd">    CONTACT_FACTOR times the sum of their covalent radii, or, given the `bonds`</span>
+<span class="sd">    (pairs of atom indices), a bond longer than BOND_STRETCH_FACTOR times it.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    symbols : [str]</span>
+<span class="sd">        The element symbols.</span>
+<span class="sd">    xyz : array-like, (n, 3)</span>
+<span class="sd">        The coordinates in Å.</span>
+<span class="sd">    bonds : iterable of (int, int), optional</span>
+<span class="sd">        The bonded pairs. Without them only the contacts are checked.</span>
+<span class="sd">    """</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+    <span class="n">Chem</span> <span class="o">=</span> <span class="n">_rdkit</span><span class="p">()</span>
+    <span class="n">table</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">GetPeriodicTable</span><span class="p">()</span>
+    <span class="n">xyz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">xyz</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="n">radii</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">table</span><span class="o">.</span><span class="n">GetRcovalent</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">symbols</span><span class="p">])</span>
+    <span class="n">distances</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">xyz</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">:]</span> <span class="o">-</span> <span class="n">xyz</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">limits</span> <span class="o">=</span> <span class="n">radii</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">+</span> <span class="n">radii</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">symbols</span><span class="p">)</span>
+    <span class="n">worst</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+            <span class="n">ratio</span> <span class="o">=</span> <span class="n">distances</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">/</span> <span class="n">limits</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">ratio</span> <span class="o">&lt;</span> <span class="n">CONTACT_FACTOR</span> <span class="ow">and</span> <span class="p">(</span><span class="n">worst</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">ratio</span> <span class="o">&lt;</span> <span class="n">worst</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+                <span class="n">worst</span> <span class="o">=</span> <span class="p">(</span><span class="n">ratio</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">worst</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="o">=</span> <span class="n">worst</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"atoms </span><span class="si">{</span><span class="n">symbols</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="si">}{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="n">symbols</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="si">}{</span><span class="n">j</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2"> are "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">distances</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">j</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> Å apart"</span>
+        <span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">bonds</span> <span class="ow">or</span> <span class="p">():</span>
+        <span class="k">if</span> <span class="n">distances</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">BOND_STRETCH_FACTOR</span> <span class="o">*</span> <span class="n">limits</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"the bond </span><span class="si">{</span><span class="n">symbols</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="si">}{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">symbols</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="si">}{</span><span class="n">j</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2"> is "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">distances</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">j</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> Å long"</span>
+            <span class="p">)</span>
+    <span class="k">return</span> <span class="kc">None</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">lowest_conformer</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mh">0xF00D</span><span class="p">,</span> <span class="n">return_mol</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""The lowest-energy conformer of `n` ETKDG embeddings optimized with</span>
 <span class="sd">    MMFF94: the starting structure for a species whose lowest rotamer is</span>
 <span class="sd">    wanted (all-anti n-alkanes, anti ethanol, cis-cis dimethyl carbonate), as</span>
 <span class="sd">    CBH-ANL starts every species from its lowest rotamer. A single embedding</span>
 <span class="sd">    of a long chain is often gauche.</span>
+
+<span class="sd">    Conformers whose atoms come too close or whose bonds are pulled apart</span>
+<span class="sd">    (geometry_problem) are skipped. A species the force fields cannot build</span>
+<span class="sd">    (force_field_unsuitable: metal or hypervalent centres, such as bridged</span>
+<span class="sd">    Al2Cl2 or SF6), or one with no usable conformer, raises ConformerError,</span>
+<span class="sd">    so that the caller starts from another structure.</span>
 
 <span class="sd">    Returns (symbols, coordinates in Å, mmff energies of all embeddings in</span>
 <span class="sd">    kcal/mol, lowest index), or with `return_mol` the RDKit molecule (with</span>
@@ -1340,6 +1440,9 @@
     <span class="n">mol</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">AddHs</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span> <span class="k">if</span> <span class="n">mol</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="n">mol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">CBHError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"RDKit cannot parse '</span><span class="si">{</span><span class="n">smiles</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
+    <span class="n">why</span> <span class="o">=</span> <span class="n">force_field_unsuitable</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">why</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ConformerError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"The force fields cannot build </span><span class="si">{</span><span class="n">smiles</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">why</span><span class="si">}</span><span class="s2">."</span><span class="p">)</span>
     <span class="n">params</span> <span class="o">=</span> <span class="n">AllChem</span><span class="o">.</span><span class="n">ETKDGv3</span><span class="p">()</span>
     <span class="n">params</span><span class="o">.</span><span class="n">randomSeed</span> <span class="o">=</span> <span class="n">seed</span>
     <span class="n">params</span><span class="o">.</span><span class="n">pruneRmsThresh</span> <span class="o">=</span> <span class="mf">0.1</span>
@@ -1350,7 +1453,7 @@
             <span class="n">AllChem</span><span class="o">.</span><span class="n">EmbedMultipleConfs</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">numConfs</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">n</span><span class="p">)),</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">)</span>
         <span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">ids</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">CBHError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"RDKit could not embed '</span><span class="si">{</span><span class="n">smiles</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">ConformerError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"RDKit could not embed '</span><span class="si">{</span><span class="n">smiles</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
     <span class="n">energies</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">if</span> <span class="n">AllChem</span><span class="o">.</span><span class="n">MMFFHasAllMoleculeParams</span><span class="p">(</span><span class="n">mol</span><span class="p">):</span>
         <span class="n">props</span> <span class="o">=</span> <span class="n">AllChem</span><span class="o">.</span><span class="n">MMFFGetMoleculeProperties</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
@@ -1363,9 +1466,26 @@
             <span class="n">ff</span> <span class="o">=</span> <span class="n">AllChem</span><span class="o">.</span><span class="n">UFFGetMoleculeForceField</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">confId</span><span class="o">=</span><span class="n">cid</span><span class="p">)</span>
             <span class="n">ff</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">maxIts</span><span class="o">=</span><span class="mi">2000</span><span class="p">)</span>
             <span class="n">energies</span><span class="p">[</span><span class="n">cid</span><span class="p">]</span> <span class="o">=</span> <span class="n">ff</span><span class="o">.</span><span class="n">CalcEnergy</span><span class="p">()</span>
-    <span class="n">best</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">energies</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">energies</span><span class="o">.</span><span class="n">get</span><span class="p">)</span>
-    <span class="n">conf</span> <span class="o">=</span> <span class="n">mol</span><span class="o">.</span><span class="n">GetConformer</span><span class="p">(</span><span class="n">best</span><span class="p">)</span>
     <span class="n">symbols</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">GetSymbol</span><span class="p">()</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">mol</span><span class="o">.</span><span class="n">GetAtoms</span><span class="p">()]</span>
+    <span class="n">bonds</span> <span class="o">=</span> <span class="p">[(</span><span class="n">b</span><span class="o">.</span><span class="n">GetBeginAtomIdx</span><span class="p">(),</span> <span class="n">b</span><span class="o">.</span><span class="n">GetEndAtomIdx</span><span class="p">())</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">mol</span><span class="o">.</span><span class="n">GetBonds</span><span class="p">()]</span>
+    <span class="n">problems</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">cid</span><span class="p">:</span> <span class="n">geometry_problem</span><span class="p">(</span><span class="n">symbols</span><span class="p">,</span> <span class="n">mol</span><span class="o">.</span><span class="n">GetConformer</span><span class="p">(</span><span class="n">cid</span><span class="p">)</span><span class="o">.</span><span class="n">GetPositions</span><span class="p">(),</span> <span class="n">bonds</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">cid</span> <span class="ow">in</span> <span class="n">ids</span>
+    <span class="p">}</span>
+    <span class="n">usable</span> <span class="o">=</span> <span class="p">[</span><span class="n">cid</span> <span class="k">for</span> <span class="n">cid</span> <span class="ow">in</span> <span class="n">ids</span> <span class="k">if</span> <span class="n">problems</span><span class="p">[</span><span class="n">cid</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">usable</span><span class="p">:</span>
+        <span class="n">lowest</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">energies</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">energies</span><span class="o">.</span><span class="n">get</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">ConformerError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"None of the </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">ids</span><span class="p">)</span><span class="si">}</span><span class="s2"> force-field conformers of </span><span class="si">{</span><span class="n">smiles</span><span class="si">}</span><span class="s2"> is "</span>
+            <span class="sa">f</span><span class="s2">"usable: in the lowest, </span><span class="si">{</span><span class="n">problems</span><span class="p">[</span><span class="n">lowest</span><span class="p">]</span><span class="si">}</span><span class="s2">."</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">usable</span><span class="p">)</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">ids</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">ids</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="nb">len</span><span class="p">(</span><span class="n">usable</span><span class="p">)</span><span class="si">}</span><span class="s2"> of the </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">ids</span><span class="p">)</span><span class="si">}</span><span class="s2"> force-field conformers of "</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">smiles</span><span class="si">}</span><span class="s2"> are broken and not used."</span>
+        <span class="p">)</span>
+    <span class="n">best</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">usable</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">energies</span><span class="o">.</span><span class="n">get</span><span class="p">)</span>
+    <span class="n">conf</span> <span class="o">=</span> <span class="n">mol</span><span class="o">.</span><span class="n">GetConformer</span><span class="p">(</span><span class="n">best</span><span class="p">)</span>
     <span class="n">coordinates</span> <span class="o">=</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">conf</span><span class="o">.</span><span class="n">GetAtomPosition</span><span class="p">(</span><span class="n">i</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">mol</span><span class="o">.</span><span class="n">GetNumAtoms</span><span class="p">())]</span>
     <span class="k">if</span> <span class="n">return_mol</span><span class="p">:</span>
         <span class="n">keep</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">Mol</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
