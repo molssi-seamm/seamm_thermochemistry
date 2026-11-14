@@ -1,6 +1,17 @@
 =======
 History
 =======
+2026.11.13.4 -- Bugfix: CBH species that the force fields build wrongly
+    * The CBH species started from the lowest of several force-field (MMFF94 or
+      UFF) conformers even when the force field had broken the structure: bridged
+      Al2Cl2 fragments came out with both chlorines on one spot, and the
+      calculation then crashed (PPE1694). Species with a metal centre or an atom
+      with more than four electron domains (SF4, SF6, ClF3, PF6-) are no longer
+      built by the force fields (lowest_conformer raises ConformerError, so the
+      caller keeps molsystem's structure from the SMILES), and conformers with
+      atoms too close together or bonds pulled apart are skipped. The new
+      geometry_problem() makes the same check on any structure.
+
 2026.11.13.3 -- Bugfix: CBH fragments that could not be built
     * A small fused or bridged ring cut out of a polycyclic target kept the
       target's stereo labels, which for tiny rings describe a trans fusion no

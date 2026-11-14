@@ -264,6 +264,82 @@ def test_lowest_conformer_is_all_anti():
     assert len(symbols) == 10
 
 
+@pytest.mark.parametrize(
+    "smiles, why",
+    [
+        ("[AlH2-]1[Cl+][AlH2-][Cl+]1", "metal centre (Al)"),
+        ("Cl[Al](Cl)Cl", "metal centre (Al)"),
+        ("FS(F)(F)(F)(F)F", "S has 6 electron domains"),
+        ("FS(F)(F)F", "S has 5 electron domains"),
+        ("FCl(F)F", "Cl has 5 electron domains"),
+        ("F[P-](F)(F)(F)(F)F", "P has 6 electron domains"),
+        ("CS(C)(=O)=O", None),
+        ("CS(C)=O", None),
+        ("COP(=O)(OC)OC", None),
+        ("C[N+](=O)[O-]", None),
+        ("[O-][Cl+3]([O-])([O-])[O-]", None),
+        ("F[B-](F)(F)F", None),
+        ("[CH2]CC", None),
+        ("[O][O]", None),
+        ("[CH3-]", None),
+    ],
+)
+def test_force_field_unsuitable(smiles, why):
+    """Metal centres and atoms with more than four electron domains are not
+    for MMFF94/UFF; sulfonyl, sulfoxide, phosphoryl, nitro, radicals are."""
+    from rdkit import Chem
+
+    from seamm_thermochemistry.smiles import mol_from_smiles
+
+    mol = Chem.AddHs(mol_from_smiles(smiles))
+    result = cbh.force_field_unsuitable(mol)
+    if why is None:
+        assert result is None
+    else:
+        assert why in result
+
+
+def test_geometry_problem():
+    symbols = ["Cl", "Cl", "Al"]
+    fine = [[0.0, 0.0, 0.0], [3.4, 0.0, 0.0], [1.7, 1.5, 0.0]]
+    assert cbh.geometry_problem(symbols, fine, bonds=[(0, 2), (1, 2)]) is None
+    together = [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [1.7, 1.5, 0.0]]
+    assert "Cl1 and Cl2 are 0.00 Å apart" in cbh.geometry_problem(symbols, together)
+    pulled = [[0.0, 0.0, 0.0], [3.4, 0.0, 0.0], [1.7, 4.5, 0.0]]
+    assert cbh.geometry_problem(symbols, pulled) is None  # no bonds given
+    assert "bond Cl1-Al3" in cbh.geometry_problem(
+        symbols, pulled, bonds=[(0, 2), (1, 2)]
+    )
+
+
+def test_lowest_conformer_refuses_what_force_fields_break():
+    """Bridged Al2Cl2 came out of UFF with both Cl on one spot (PPE1694, the
+    ORCA engine died three times); SF6 loses two F to an F2. Both are refused,
+    so the caller keeps molsystem's structure."""
+    for smiles in ("[AlH2-]1[Cl+][AlH2-][Cl+]1", "FS(F)(F)(F)(F)F"):
+        with pytest.raises(cbh.ConformerError, match="cannot build"):
+            cbh.lowest_conformer(smiles, n=5)
+    assert issubclass(cbh.ConformerError, cbh.CBHError)
+
+
+def test_broken_conformers_are_skipped(monkeypatch):
+    """A broken conformer is never chosen; with none usable, ConformerError."""
+    real = cbh.geometry_problem
+    calls = []
+
+    def first_is_broken(symbols, xyz, bonds=None):
+        calls.append(1)
+        return "made up" if len(calls) == 1 else real(symbols, xyz, bonds)
+
+    monkeypatch.setattr(cbh, "geometry_problem", first_is_broken)
+    symbols, xyz, energies, best = cbh.lowest_conformer("CCCC", n=10)
+    assert best != 0 and len(energies) > 1
+
+    monkeypatch.setattr(cbh, "geometry_problem", lambda *a, **k: "atoms too close")
+    with pytest.raises(cbh.ConformerError, match="None of the .* usable"):
+        cbh.lowest_conformer("CCCC", n=5)
+
+
 def test_ring_closure_cut_twice_is_capped_twice():
     """A cut atom bonded to two kept atoms (a ring closure) must cap both of
     them. It used to cap only the first; the second lost a hydrogen, which

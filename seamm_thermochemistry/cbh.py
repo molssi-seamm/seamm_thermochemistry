@@ -56,6 +56,7 @@ from .smiles import is_hypervalent, mol_from_smiles
 
 __all__ = [
     "CBHError",
+    "ConformerError",
     "RungUnavailable",
     "Reaction",
     "cbh_reactions",
@@ -874,12 +875,108 @@ def unique_fragments(reactions):
     return result
 
 
+# A structure with two atoms closer than CONTACT_FACTOR times the sum of their
+# covalent radii, or a bond longer than BOND_STRETCH_FACTOR times it, is broken.
+CONTACT_FACTOR = 0.6
+BOND_STRETCH_FACTOR = 1.5
+
+# The elements the force fields used for conformers (MMFF94, UFF) build reliably;
+# a species with any other element has a metal centre.
+FORCE_FIELD_ELEMENTS = frozenset(
+    (1, 2, 5, 6, 7, 8, 9, 10, 14, 15, 16, 17, 18, 33, 34, 35, 36, 52, 53, 54)
+)
+
+
+class ConformerError(CBHError):
+    """The force fields cannot give a usable starting structure for a species
+    (a metal or hypervalent centre, or every conformer broken): start from
+    another structure, such as molsystem's from the SMILES."""
+
+
+def force_field_unsuitable(mol):
+    """Why the force fields cannot build the RDKit molecule `mol` (with or
+    without explicit hydrogens), or None if they can. MMFF94 and UFF know
+    neither metal centres nor atoms with more than four electron domains (SF4,
+    SF6, ClF3, PF6-): they fold such centres into tetrahedra or pull ligands
+    off. Sulfonyl, phosphoryl and the like, with four domains, are fine."""
+    Chem = _rdkit()
+    table = Chem.GetPeriodicTable()
+    for atom in mol.GetAtoms():
+        Z = atom.GetAtomicNum()
+        symbol = atom.GetSymbol()
+        if Z not in FORCE_FIELD_ELEMENTS:
+            return f"it has a metal centre ({symbol})"
+        if Z == 1:
+            continue
+        domains = atom.GetDegree() + atom.GetTotalNumHs()
+        electrons = (
+            table.GetNOuterElecs(Z)
+            - atom.GetFormalCharge()
+            - atom.GetTotalValence()
+            - atom.GetNumRadicalElectrons()
+        )
+        domains += max(0, electrons) // 2 + atom.GetNumRadicalElectrons()
+        if domains > 4:
+            return f"{symbol} has {domains} electron domains"
+    return None
+
+
+def geometry_problem(symbols, xyz, bonds=None):
+    """What is wrong with a structure, or None if nothing: two atoms closer than
+    CONTACT_FACTOR times the sum of their covalent radii, or, given the `bonds`
+    (pairs of atom indices), a bond longer than BOND_STRETCH_FACTOR times it.
+
+    Parameters
+    ----------
+    symbols : [str]
+        The element symbols.
+    xyz : array-like, (n, 3)
+        The coordinates in Å.
+    bonds : iterable of (int, int), optional
+        The bonded pairs. Without them only the contacts are checked.
+    """
+    import numpy as np
+
+    Chem = _rdkit()
+    table = Chem.GetPeriodicTable()
+    xyz = np.asarray(xyz, dtype=float).reshape(-1, 3)
+    radii = np.array([table.GetRcovalent(s) for s in symbols])
+    distances = np.linalg.norm(xyz[:, None, :] - xyz[None, :, :], axis=-1)
+    limits = radii[:, None] + radii[None, :]
+    n = len(symbols)
+    worst = None
+    for i in range(n):
+        for j in range(i + 1, n):
+            ratio = distances[i, j] / limits[i, j]
+            if ratio < CONTACT_FACTOR and (worst is None or ratio < worst[0]):
+                worst = (ratio, i, j)
+    if worst is not None:
+        _, i, j = worst
+        return (
+            f"atoms {symbols[i]}{i + 1} and {symbols[j]}{j + 1} are "
+            f"{distances[i, j]:.2f} Å apart"
+        )
+    for i, j in bonds or ():
+        if distances[i, j] > BOND_STRETCH_FACTOR * limits[i, j]:
+            return (
+                f"the bond {symbols[i]}{i + 1}-{symbols[j]}{j + 1} is "
+                f"{distances[i, j]:.2f} Å long"
+            )
+    return None
+
+
 def lowest_conformer(smiles, n=20, seed=0xF00D, return_mol=False):
     """The lowest-energy conformer of `n` ETKDG embeddings optimized with
     MMFF94: the starting structure for a species whose lowest rotamer is
     wanted (all-anti n-alkanes, anti ethanol, cis-cis dimethyl carbonate), as
     CBH-ANL starts every species from its lowest rotamer. A single embedding
     of a long chain is often gauche.
+
+    Conformers whose atoms come too close or whose bonds are pulled apart
+    (geometry_problem) are skipped. A species the force fields cannot build
+    (force_field_unsuitable: metal or hypervalent centres, such as bridged
+    Al2Cl2 or SF6), or one with no usable conformer, raises ConformerError,
+    so that the caller starts from another structure.
 
     Returns (symbols, coordinates in Å, mmff energies of all embeddings in
     kcal/mol, lowest index), or with `return_mol` the RDKit molecule (with
@@ -892,6 +989,9 @@ def lowest_conformer(smiles, n=20, seed=0xF00D, return_mol=False):
     mol = Chem.AddHs(mol) if mol is not None else None
     if mol is None:
         raise CBHError(f"RDKit cannot parse '{smiles}'")
+    why = force_field_unsuitable(mol)
+    if why is not None:
+        raise ConformerError(f"The force fields cannot build {smiles}: {why}.")
     params = AllChem.ETKDGv3()
     params.randomSeed = seed
     params.pruneRmsThresh = 0.1
@@ -902,7 +1002,7 @@ def lowest_conformer(smiles, n=20, seed=0xF00D, return_mol=False):
             AllChem.EmbedMultipleConfs(mol, numConfs=max(1, int(n)), params=params)
         )
     if not ids:
-        raise CBHError(f"RDKit could not embed '{smiles}'")
+        raise ConformerError(f"RDKit could not embed '{smiles}'")
     energies = {}
     if AllChem.MMFFHasAllMoleculeParams(mol):
         props = AllChem.MMFFGetMoleculeProperties(mol)
@@ -915,9 +1015,26 @@ def lowest_conformer(smiles, n=20, seed=0xF00D, return_mol=False):
             ff = AllChem.UFFGetMoleculeForceField(mol, confId=cid)
             ff.Minimize(maxIts=2000)
             energies[cid] = ff.CalcEnergy()
-    best = min(energies, key=energies.get)
-    conf = mol.GetConformer(best)
     symbols = [a.GetSymbol() for a in mol.GetAtoms()]
+    bonds = [(b.GetBeginAtomIdx(), b.GetEndAtomIdx()) for b in mol.GetBonds()]
+    problems = {
+        cid: geometry_problem(symbols, mol.GetConformer(cid).GetPositions(), bonds)
+        for cid in ids
+    }
+    usable = [cid for cid in ids if problems[cid] is None]
+    if not usable:
+        lowest = min(energies, key=energies.get)
+        raise ConformerError(
+            f"None of the {len(ids)} force-field conformers of {smiles} is "
+            f"usable: in the lowest, {problems[lowest]}."
+        )
+    if len(usable) < len(ids):
+        logger.info(
+            f"{len(ids) - len(usable)} of the {len(ids)} force-field conformers of "
+            f"{smiles} are broken and not used."
+        )
+    best = min(usable, key=energies.get)
+    conf = mol.GetConformer(best)
     coordinates = [list(conf.GetAtomPosition(i)) for i in range(mol.GetNumAtoms())]
     if return_mol:
         keep = Chem.Mol(mol)
