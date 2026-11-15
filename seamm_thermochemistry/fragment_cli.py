@@ -22,6 +22,13 @@ command line::
 writes; ``--official`` is the official store (``fragments-official.db``, read
 only), which ``lookup`` and ``geometries`` read after the local one. Run
 ``harvest`` on the host after a job has finished, never on a compute node.
+
+``lookup`` and ``geometries`` with ``--fingerprint`` answer as a calculation
+would: a verified row only by its fingerprint. Without it they browse: the rows
+at ``--model-chemistry``, verified ones too (listed first), or the levels the
+species is stored at, with their fingerprints; when nothing matches they say
+why (another charge or multiplicity, another level, quarantined rows). ``list``
+and ``lookup`` print each record's fingerprints.
 """
 
 import argparse
@@ -120,21 +127,37 @@ def main(argv=None):
     lst = sub.add_parser("list", help="List the records, or those of one species.")
     lst.add_argument("species", nargs="?", help="Canonical SMILES.")
 
-    lookup = sub.add_parser("lookup", help="The best record for a species.")
+    lookup = sub.add_parser(
+        "lookup",
+        help="The records of a species at a level, or the levels it is stored at.",
+        description="With --fingerprint, the record a calculation with that "
+        "energy fingerprint would use. Without, the species' records at "
+        "--model-chemistry (verified ones first), or the levels to choose from "
+        "when it is stored at several. 'list SMILES' shows every record.",
+    )
     lookup.add_argument("species", help="Canonical SMILES.")
     lookup.add_argument("--charge", type=int, default=0)
     lookup.add_argument("--multiplicity", type=int, default=1)
-    lookup.add_argument("--model-chemistry")
+    lookup.add_argument(
+        "--model-chemistry",
+        help="The level, e.g. 'ORCA:DFT@REVDSD-PBEP86-D4_2021/def2-TZVPP'.",
+    )
     lookup.add_argument("--fingerprint", help="The energy fingerprint.")
 
     geo = sub.add_parser(
         "geometries",
         help="The geometries of a species and the energies on each.",
+        description="With --fingerprint, the geometries a calculation with that "
+        "frequency fingerprint would use. Without, the species' geometries at "
+        "--model-chemistry (verified ones first), or the levels to choose from "
+        "when it is stored at several.",
     )
     geo.add_argument("species", help="Canonical SMILES.")
     geo.add_argument("--charge", type=int, default=0)
     geo.add_argument("--multiplicity", type=int, default=1)
-    geo.add_argument("--model-chemistry", help="The frequency level.")
+    geo.add_argument(
+        "--model-chemistry", help="The frequency level, e.g. 'ORCA:CMP@R2SCAN-3C'."
+    )
     geo.add_argument("--fingerprint", help="The frequency fingerprint.")
     geo.add_argument(
         "--include-imaginary",
@@ -304,6 +327,8 @@ def main(argv=None):
                 _print(r)
         elif args.command == "lookup":
             store = LayeredStore(args.store, args.official)
+            if args.fingerprint is None:
+                return _browse(store, args, "fragment")
             r = store.get(
                 args.species,
                 charge=args.charge,
@@ -312,13 +337,19 @@ def main(argv=None):
                 model_chemistry=args.model_chemistry,
             )
             if r is None:
-                print("No record.")
+                print(
+                    f"No record of {_state(args)} with the energy fingerprint "
+                    f"{args.fingerprint}."
+                )
+                _browse(store, args, "fragment", levels_only=True)
                 return 1
-            _print(r)
+            _print(r, store)
             for note in store.notes:
                 print(f"    note: {note}")
         elif args.command == "geometries":
             store = LayeredStore(args.store, args.official)
+            if args.fingerprint is None:
+                return _browse(store, args, "geometry")
             rows = store.geometries(
                 args.species,
                 charge=args.charge,
@@ -328,26 +359,14 @@ def main(argv=None):
                 include_imaginary=args.include_imaginary,
             )
             if not rows:
-                print("No geometry.")
+                print(
+                    f"No geometry of {_state(args)} with the frequency fingerprint "
+                    f"{args.fingerprint}."
+                )
+                _browse(store, args, "geometry", levels_only=True)
                 return 1
             for g in rows:
-                flag = "" if g["verified"] else " [unverified]"
-                imaginary = (
-                    f", {g['n_imaginary']} imaginary" if g.get("n_imaginary") else ""
-                )
-                label = f" conformer '{g['conformer']}'" if g["conformer"] else ""
-                print(
-                    f"{g['species']}{label} at {_level(g)}{flag}: "
-                    f"E = {g['E']:.3f}, ZPE = {g['ZPE']}, H = {g['H']} kJ/mol"
-                    f"{imaginary}; {g['geometry_hash']} from {g['job']} "
-                    f"[{store.layer_name(g['layer'])}]"
-                )
-                for e in store.energies(g["geometry_hash"]):
-                    eflag = "" if e["verified"] else " [unverified]"
-                    print(
-                        f"    {_level(e)}{eflag}: E = {e['E']:.3f} kJ/mol "
-                        f"from {e['job']} [{store.layer_name(e['layer'])}]"
-                    )
+                _print_geometry(g, store)
             for note in store.notes:
                 print(f"    note: {note}")
         elif args.command == "writeback-log":
@@ -517,7 +536,14 @@ def _level(row):
     return f"{program}:{model}" if program else f"{model}"
 
 
-def _print(r):
+def _layer(row, store):
+    """' [local]' or ' [official <version>]' for a row read through layers."""
+    if store is None or "layer" not in row:
+        return ""
+    return f" [{store.layer_name(row['layer'])}]"
+
+
+def _print(r, store=None):
     flag = "" if r["verified"] else " [unverified]"
     values = ", ".join(
         f"{k} = {r[k]:.3f}" for k in ("E", "ZPE", "H") if r.get(k) is not None
@@ -525,8 +551,193 @@ def _print(r):
     print(
         f"{r['species']} (q={r['charge']}, 2S+1={r['multiplicity']}) "
         f"{_level(r)}{flag}: {values} kJ/mol; from {r['job']} "
-        f"on {r['date']}"
+        f"on {r['date']}{_layer(r, store)}"
     )
+    fingerprints = [
+        f"{what} {r[key]}"
+        for what, key in (
+            ("energy", "energy_fingerprint"),
+            ("frequency", "frequency_fingerprint"),
+        )
+        if r.get(key)
+    ]
+    if fingerprints:
+        print(f"    fingerprints: {'; '.join(fingerprints)}")
+
+
+def _print_geometry(g, store):
+    flag = "" if g["verified"] else " [unverified]"
+    imaginary = f", {g['n_imaginary']} imaginary" if g.get("n_imaginary") else ""
+    label = f" conformer '{g['conformer']}'" if g["conformer"] else ""
+    print(
+        f"{g['species']}{label} (q={g['charge']}, 2S+1={g['multiplicity']}) at "
+        f"{_level(g)}{flag}: E = {_kj(g['E'])}, ZPE = {_kj(g['ZPE'])}, "
+        f"H = {_kj(g['H'])} kJ/mol{imaginary}; {g['geometry_hash']} from {g['job']}"
+        f"{_layer(g, store)}"
+    )
+    if g.get("frequency_fingerprint"):
+        print(f"    frequency fingerprint: {g['frequency_fingerprint']}")
+    for e in store.energies(g["geometry_hash"]):
+        eflag = "" if e["verified"] else " [unverified]"
+        if F.is_unusable(e["model_chemistry"]):
+            continue
+        print(
+            f"    {_level(e)}{eflag}: E = {e['E']:.3f} kJ/mol from {e['job']}"
+            f"{_layer(e, store)}; energy fingerprint {e['energy_fingerprint']}"
+        )
+
+
+def _state(args):
+    return f"{args.species} (q={args.charge}, 2S+1={args.multiplicity})"
+
+
+def _level_key(row, table):
+    """What tells one level from another: the model chemistry, whether the row
+    is verified, and its fingerprints (energy and frequency for records,
+    frequency for geometries)."""
+    if table == "fragment":
+        fingerprints = (
+            ("energy", row.get("energy_fingerprint") or ""),
+            ("frequency", row.get("frequency_fingerprint") or ""),
+        )
+    else:
+        fingerprints = (("frequency", row.get("frequency_fingerprint") or ""),)
+    return (_level(row), bool(row["verified"]), fingerprints)
+
+
+def _kj(value):
+    return "None" if value is None else f"{value:.3f}"
+
+
+def _browse(store, args, table, levels_only=False):
+    """``lookup`` or ``geometries`` without a fingerprint: every usable row of
+    the species at the charge and multiplicity, at the level asked for, or the
+    levels to choose from; and, when nothing matches, why.
+
+    A calculation matches a verified row only by its fingerprint and an
+    unverified one by its model chemistry (:meth:`FragmentStore.get`,
+    :meth:`FragmentStore.geometries`); people browsing the store usually know
+    the model chemistry alone, so here it matches verified rows too, listed
+    first. With `levels_only`, only the levels are listed (after a fingerprint
+    matched nothing). Returns the exit code.
+    """
+    what = "record" if table == "fragment" else "geometry"
+    species = args.species
+    if table == "fragment":
+        rows = store.all_records(species)
+    else:
+        rows = store.all_geometries(species)
+    if not rows:
+        if not levels_only:
+            print(f"No {what} of {species} in {_stores(store)}.")
+        return 1
+    state = [
+        r
+        for r in rows
+        if r["charge"] == args.charge and r["multiplicity"] == args.multiplicity
+    ]
+    if not state:
+        others = sorted({(r["charge"], r["multiplicity"]) for r in rows})
+        print(
+            f"No {what} of {_state(args)}; it is stored with "
+            + ", ".join(f"--charge {q} --multiplicity {m}" for q, m in others)
+            + "."
+        )
+        return 1
+    usable = [r for r in state if not F.is_unusable(r["model_chemistry"])]
+    quarantined = [r for r in state if F.is_unusable(r["model_chemistry"])]
+    hidden = []
+    if table == "geometry" and not args.include_imaginary:
+        hidden = [r for r in usable if r.get("n_imaginary")]
+        usable = [r for r in usable if not r.get("n_imaginary")]
+
+    def notes():
+        for r in quarantined:
+            print(
+                f"    note: {what} {r['id']}{_layer(r, store)} is quarantined: "
+                f"{F.quarantine_reason(r['model_chemistry'])}"
+            )
+        if hidden:
+            print(
+                f"    note: {len(hidden)} geometr{'y' if len(hidden) == 1 else 'ies'}"
+                " with imaginary modes not shown (--include-imaginary shows them)"
+            )
+
+    levels = {}
+    for r in usable:
+        levels.setdefault(_level_key(r, table), []).append(r)
+
+    def list_levels(heading):
+        print(heading)
+        for (level, verified, fingerprints), group in levels.items():
+            flag = "" if verified else " [unverified]"
+            layers = []
+            for r in group:
+                name = _layer(r, store).strip()
+                if name not in layers:
+                    layers.append(name)
+            n = len({(r["layer"], r.get("conformer", "")) for r in group})
+            if table == "geometry" and n > len(layers):
+                count = f", {n} conformers"
+            elif n > len(layers):
+                count = f", {n} records"
+            else:
+                count = ""
+            print(f"    {level}{flag} {' '.join(layers)}{count}")
+            for what, fingerprint in fingerprints:
+                if fingerprint:
+                    print(f"        {what} fingerprint {fingerprint}")
+
+    if levels_only:
+        if levels:
+            list_levels(f"{_state(args)} is stored at:")
+        notes()
+        return 1
+
+    if args.model_chemistry:
+        matching = [
+            r
+            for r in usable
+            if F.same_model_chemistry(
+                args.model_chemistry, r["model_chemistry"], None, r.get("program")
+            )
+        ]
+        if not matching:
+            print(f"No {what} of {_state(args)} at {args.model_chemistry}.")
+            if levels:
+                list_levels("It is stored at:")
+            notes()
+            return 1
+        matching.sort(key=lambda r: not r["verified"])  # verified first
+    elif len(levels) > 1:
+        list_levels(
+            f"{_state(args)} is stored at {len(levels)} levels; choose one with "
+            "--model-chemistry or --fingerprint:"
+        )
+        notes()
+        return 1
+    else:
+        matching = usable
+    if not matching:
+        print(f"No usable {what} of {_state(args)}.")
+        notes()
+        return 1
+    for r in matching:
+        if table == "fragment":
+            _print(r, store)
+        else:
+            _print_geometry(r, store)
+    notes()
+    for note in store.notes:
+        print(f"    note: {note}")
+    return 0
+
+
+def _stores(store):
+    paths = [str(store.local.path)]
+    if store.official is not None:
+        paths.append(str(store.official.path))
+    return " or ".join(paths)
 
 
 if __name__ == "__main__":

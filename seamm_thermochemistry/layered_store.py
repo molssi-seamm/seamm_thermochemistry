@@ -352,5 +352,28 @@ class LayeredStore:
     def records(self, species=None):
         return self.local.records(species)
 
+    # -- browsing: every row of a species, both layers ---------------------
+
+    def all_records(self, species):
+        """Every fragment record of a species in both layers, at any charge,
+        multiplicity or level, quarantined ones included, each with its
+        ``layer``: local first, newest first within a layer."""
+        out = []
+        for name, store in self._layers():
+            for record in store.records(species):
+                record["layer"] = name
+                out.append(record)
+        return out
+
+    def all_geometries(self, species):
+        """Every geometry row of a species in both layers (see
+        :meth:`FragmentStore.all_geometries`), each with its ``layer``."""
+        out = []
+        for name, store in self._layers():
+            for row in store.all_geometries(species):
+                row["layer"] = name
+                out.append(row)
+        return out
+
     def duplicates(self):
         return self.local.duplicates()

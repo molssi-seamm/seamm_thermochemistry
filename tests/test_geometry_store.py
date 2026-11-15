@@ -348,8 +348,14 @@ def test_cli_geometries(job, tmp_path, capsys):
         == 0
     )
     out = capsys.readouterr().out
-    assert f"O at {R2SCAN}" in out and REVDSD in out
-    assert fragment_cli.main(["--store", path, "geometries", "CC"]) == 1
+    assert f"O (q=0, 2S+1=1) at {R2SCAN}" in out and REVDSD in out
+    # Without a fingerprint: water is stored at one level, so it is shown; ethane
+    # is not stored. (No official store: the default is the installation's.)
+    base = ["--store", path, "--official", str(tmp_path / "none.db")]
+    assert fragment_cli.main(base + ["geometries", "O"]) == 0
+    assert f"O (q=0, 2S+1=1) at {R2SCAN}" in capsys.readouterr().out
+    assert fragment_cli.main(base + ["geometries", "CC"]) == 1
+    assert "No geometry of CC in" in capsys.readouterr().out
 
 
 def test_harvest_with_a_species_map(tmp_path, store):
