@@ -4,8 +4,10 @@
 lacks, from evaluations, measurements, literature and computed values.
 
 ``references-official.db`` is published on Zenodo, installed by the installer
-and only ever read. ``references.db`` is the local layer: user references and
-computed references not yet published. Both sit beside the ATcT cache in
+and only ever read. ``references.db`` is the local layer: the user's own
+references. ``references-computed.db`` is the computed layer: values computed
+with SEAMM's tier-A recipes, kept apart from the experimental ones (see
+:mod:`.computed`). All three sit beside the ATcT cache in
 ``<...>/Parameters/thermochemistry/``. The importers that build a library are
 maintainer tools; users only install the published file.
 
@@ -52,6 +54,14 @@ ELECTRON_H298 = 2.5 * 8.314462618e-3 * 298.15
 
 #: The floor (95 %) for a measured value given without any uncertainty, kJ/mol
 UNSTATED_FLOOR = 4.0
+
+#: The rank of sources of computed values (W4-17): behind every experimental
+#: source, which rank below it (WebBook 50, the primary literature 55), with
+#: room for more (Paul, 2026-11-15). Computed values come after experimental
+#: ones whatever the ranks (:func:`is_computed`); the rank says so in the
+#: file too. A computed value beats an experiment for a species only when
+#: the experimental value is held, with the reason and who decided.
+COMPUTED_RANK = 80
 
 #: The fewest species shared with ATcT for a source's offset to be used
 OFFSET_MIN_SHARED = 5
@@ -492,6 +502,19 @@ class ReferenceLibrary:
         db.commit()
         return cursor.lastrowid
 
+    def set_rank(self, name, rank):
+        """Change a source's rank (maintainers), e.g. W4-17's to
+        :data:`COMPUTED_RANK`. Recorded in the source's notes."""
+        src = self.source(name)
+        note = f"rank {src['rank']} -> {rank} on {_now()[:10]}"
+        notes = f"{src['notes']}; {note}" if src["notes"] else note
+        db = self._writer()
+        db.execute(
+            "UPDATE source SET rank = ?, notes = ? WHERE id = ?",
+            (int(rank), notes, src["id"]),
+        )
+        db.commit()
+
     def source(self, name_or_id):
         db = self._connect()
         column = "id" if isinstance(name_or_id, int) else "name"
@@ -817,19 +840,25 @@ class ReferenceLibrary:
         db.commit()
         return ref_id
 
-    def accept_value(self, smiles, charge, source, dfh_298k, *, by, reason):
+    def accept_value(self, smiles, charge, source, dfh_298k, *, by, reason, year=None):
         """Accept a source's value for a species, found by its value at
         298.15 K (within 0.01 kJ/mol), so that an accept can be kept in a
-        file and reapplied whenever the library is rebuilt."""
+        file and reapplied whenever the library is rebuilt. `year` picks one
+        of several measurements with the same value (e.g. 2-bromopropane:
+        Bjellerup 1961 and Rozhnov 1962 both give -98.5)."""
         matches = []
         for row in self.species(smiles, charge):
             for m in self.measurements(row["id"], source):
-                if m["dfh_298k"] is not None and abs(m["dfh_298k"] - dfh_298k) <= 0.01:
-                    matches.append(m)
+                if m["dfh_298k"] is None or abs(m["dfh_298k"] - dfh_298k) > 0.01:
+                    continue
+                if year is not None and m["year"] != year:
+                    continue
+                matches.append(m)
         if len(matches) != 1:
+            what = f"{dfh_298k} kJ/mol" + (f" from {year}" if year else "")
             raise ReferenceError(
-                f"{smiles} ({source}): {len(matches)} values of {dfh_298k} kJ/mol "
-                "to accept, not one"
+                f"{smiles} ({source}): {len(matches)} values of {what} to accept, "
+                "not one"
             )
         return self.accept(matches[0]["id"], by=by, reason=reason)
 
@@ -876,7 +905,8 @@ class ReferenceLibrary:
     def accept_file(self, path):
         """Apply the decisions kept in a CSV: smiles, charge, source,
         dfh_298k, by, reason, and optionally action ("accept", the default,
-        or "hold", which needs no value). Returns the reference ids of the
+        or "hold", which needs no value) and year (of the measurement, when
+        several have the same value). Returns the reference ids of the
         accepts."""
         import csv
 
@@ -900,6 +930,11 @@ class ReferenceLibrary:
                         float(row["dfh_298k"]),
                         by=row["by"],
                         reason=row["reason"],
+                        year=(
+                            int(row["year"])
+                            if (row.get("year") or "").strip()
+                            else None
+                        ),
                     )
                 )
         return result
@@ -991,6 +1026,8 @@ class ReferenceLibrary:
                 continue
             best = refs[0]
             for later in refs[1:]:
+                if is_computed(later) and not is_computed(best):
+                    continue  # a computed value never replaces an experiment
                 if later_source_wins(
                     (best["dfh_298k"], best["expanded_uncertainty"]),
                     (later["dfh_298k"], later["expanded_uncertainty"]),
@@ -1154,27 +1191,65 @@ class ReferenceLibrary:
         return problems
 
 
-class LayeredReferences:
-    """The local and official reference libraries, read as one.
+#: The layers, in the order they are read within a rank
+LAYERS = ("local", "official", "computed")
 
-    For each species the values of both layers are merged, best rank first;
-    within a rank the local layer comes first. Every value carries its
-    ``layer``.
+
+def is_computed(ref):
+    """Whether a value is computed rather than experimental: from a computed
+    source, or computed by its status (W4-17, a literature source of
+    computed values: "W4-17 are computed values ... we should handle them as
+    such", Paul, 2026-11-15)."""
+    return ref.get("source_kind") == "computed" or ref.get("status") == "computed"
+
+
+def _order(ref):
+    """Sort key of a value: experimental before computed (always, whatever
+    the ranks), then by rank, then local before official before computed."""
+    return (
+        is_computed(ref),
+        ref["source_rank"],
+        LAYERS.index(ref["layer"]),
+    )
+
+
+class LayeredReferences:
+    """The local, official and computed reference libraries, read as one.
+
+    For each species the values of the layers are merged: experimental values
+    first, whatever their ranks, then computed ones; best rank first; within
+    a rank the local layer comes first. Every value carries its ``layer``.
+
+    The computed layer, ``references-computed.db`` (see :mod:`.computed`), is
+    by default beside the official library. Only its computed values are read.
     """
 
-    def __init__(self, local_path=None, official_path=None):
+    def __init__(self, local_path=None, official_path=None, computed_path=None):
+        from .computed import LAYER, computed_references_path
+
         self.layers = []
         official = official_references_path(official_path)
         local = local_references_path(local_path)
+        computed = computed_references_path(computed_path, official=official)
         if local.exists():
             library = ReferenceLibrary(local)
-            if library.layer == "official":
+            if library.layer != "local":
                 raise ValueError(
-                    f"{local} is an official reference library, not a local one."
+                    f"{local} is the {library.layer} reference library, not a local "
+                    "one."
                 )
             self.layers.append(("local", library))
         if official.exists():
             self.layers.append(("official", ReferenceLibrary(official, immutable=True)))
+        if computed.exists():
+            library = ReferenceLibrary(computed, immutable=True)
+            if library.layer != LAYER:
+                library.close()
+                raise ValueError(
+                    f"{computed} is the {library.layer} reference library, not the "
+                    "computed one."
+                )
+            self.layers.append((LAYER, library))
 
     def set_in_atct(self, function):
         """Tell every layer how to know whether ATcT has a species."""
@@ -1187,13 +1262,16 @@ class LayeredReferences:
         return {name: (lib.version, str(lib.path)) for name, lib in self.layers}
 
     def candidates(self, smiles, charge=0, multiplicity=None, *, include_held=False):
-        """Every usable value for a species, from both layers (and the held
-        ones too, if asked, never preferred)."""
+        """Every usable value for a species, from every layer (and the held
+        ones too, if asked, never preferred), in the order of :func:`_order`.
+        The computed layer gives only its computed values."""
         result = []
         for name, library in self.layers:
             for row in library.species(smiles, charge, multiplicity):
                 best = library.best(row["id"])
                 for ref in library.references(row["id"], include_held=include_held):
+                    if name == "computed" and ref["source_kind"] != "computed":
+                        continue
                     ref["layer"] = name
                     ref["preferred"] = (
                         best is not None and ref["reference_id"] == best["reference_id"]
@@ -1201,14 +1279,14 @@ class LayeredReferences:
                     ref["smiles"] = row["smiles"]
                     ref["formula"] = row["formula"]
                     result.append(ref)
-        order = {"local": 0, "official": 1}
-        result.sort(key=lambda r: (r["source_rank"], order[r["layer"]]))
+        result.sort(key=_order)
         return result
 
     def lookup(self, smiles, charge=0, multiplicity=None):
         """The value to use: each layer's preferred value (overrides applied
-        within the layer), the best-ranked of them, the local layer winning a
-        tie. None if neither layer has the species."""
+        within the layer), the first of them in the order of :func:`_order`
+        (an experimental value before a computed one). None if no layer has
+        the species."""
         for ref in self.candidates(smiles, charge, multiplicity):
             if ref["preferred"]:
                 return ref

@@ -379,6 +379,11 @@ def test_curated_reader(tmp_path):
     assert best("FS(F)(F)(F)(F)F") is None  # held in every source
     assert best("[AlH3]")["dfh_298k"] is None  # W4-17, 0 K only
     assert best("[AlH3]")["unc_level"] == "mixed"
+    # computed values, ranked behind every experimental source
+    assert best("[AlH3]")["source_rank"] == R.COMPUTED_RANK
+    assert R.COMPUTED_RANK > max(
+        s["rank"] for s in library.sources() if s["name"] != "W4-17"
+    )
     p = library.species("[P]")[0]
     assert p["multiplicity"] == 4  # blank in CODATA: the ground state
     library.close()
@@ -763,3 +768,147 @@ def test_offset_exclusions_and_atct_partners(lib):
     lib.in_atct = lambda smiles, charge=0, multiplicity=None: smiles == "[H]"
     (ref,) = lib.references(nah)
     assert ref["offset_kj"] == pytest.approx(src["offset_kj"])
+
+
+def test_accept_picks_the_year_among_equal_values(lib, tmp_path):
+    """2-bromopropane (2026-11-15): two measurements give the same value, so
+    the accept names its year. Made-up values."""
+    sid = lib.add_species("CC(C)Br", formula="C3H7Br")
+    _webbook(lib, sid, -98.5, 1.9, 1961, cite="First 1961")
+    _webbook(lib, sid, -98.5, 1.9, 1962, cite="Second 1962")
+    _webbook(lib, sid, -95.6, 1.0, 1965, cite="Rule's pick 1965")
+    lib.choose(sid, "WebBook-SRD69")
+    assert lib.best(sid)["year"] == 1965
+    with pytest.raises(R.ReferenceError, match="2 values"):
+        lib.accept_value("CC(C)Br", 0, "WebBook-SRD69", -98.5, by="x", reason="y")
+    accepts = tmp_path / "accepts.csv"
+    accepts.write_text(
+        "smiles,charge,source,dfh_298k,year,by,reason\n"
+        "CC(C)Br,0,WebBook-SRD69,-98.5,1961,Paul,a recorded exception\n"
+    )
+    lib.accept_file(accepts)
+    best = lib.best(sid)
+    assert (best["year"], best["citation"]) == (1961, "First 1961")
+    assert best["decided_by"] == "Paul" and best["rule"] == "accepted"
+
+
+def test_curated_literature(tmp_path):
+    """Measurements from the primary literature, with their own year and DOI.
+    Made-up values."""
+    from seamm_thermochemistry import curated
+
+    d = tmp_path / "curated"
+    d.mkdir()
+    (d / "literature.csv").write_text(
+        "smiles,formula,charge,multiplicity,name,phase,dfH0_kJmol,dfH298_kJmol,"
+        "unc_kJmol,unc_level,status,citation,notes,protocol,year,source_ref\n"
+        "Cc1ccco1,C5H6O,0,1,2-Methylfuran,g,,-70.0,1.0,"
+        '2 x s.d. of the mean (~95 %),evaluated,"Author, J. Test 1 (2010)",'
+        "only measurement,Ccb,2010,doi:10.0/test\n"
+    )
+    library = R.ReferenceLibrary(tmp_path / "r.db", create=True)
+    report, problems = curated.import_curated(library, d)
+    assert report == [("literature.csv", "Cc1ccco1", "added", "measured")]
+    (row,) = library.species("Cc1ccco1")
+    best = library.best(row["id"])
+    assert best["source_name"] == "Literature" and best["source_kind"] == "measured"
+    assert (best["year"], best["source_ref"]) == (2010, "doi:10.0/test")
+    assert best["unc_level"] == "2 sigma" and best["expanded_uncertainty"] == 1.0
+    assert best["method"] == "Ccb"
+    library.close()
+
+
+def _avg_page():
+    """A page that gives only an average, linking its individual points."""
+    return f"""<html><head><title>Testpropane</title></head><body>
+<ul><li><strong>CAS Registry Number:</strong> 99999-99-8</li></ul>
+<p>InChI=1S/C3H7Cl/c1-3(2)4/h3H,1-2H3</p>
+<h2 id="Thermo-Gas">Gas phase thermochemistry data</h2>
+<table><tr class="cal"><td>{DFH}</td><td>-144. &plusmn; 5.</td><td>kJ/mol</td>
+<td>AVG</td><td>N/A</td><td>Average of 2 values; <a
+href="/cgi/cbook.cgi?ID=C99999&amp;Units=SI&amp;Type=HFG">Individual data
+points</a></td></tr></table>
+<hr><h2 id="Refs">References</h2></body></html>"""
+
+
+def _points_page():
+    rows = (
+        '<tr class="exp"><td>-145.0 &plusmn; 0.9</td><td>Ccb</td>'
+        '<td><a href="#ref-1">Newer, 1971</a></td><td>ALS</td></tr>'
+        '<tr class="exp"><td>-139.0 &plusmn; 0.6</td><td>Chyd</td>'
+        '<td><a href="#ref-2">Older, 1965</a></td><td>ALS</td></tr>'
+    )
+    return f"""<html><head><title>Testpropane</title></head><body>
+<table class="data" aria-label="Enthalpy of formation of gas at standard
+conditions">{rows}</table>
+<hr><h2 id="Refs">References</h2>
+<p><span id="ref-1">Newer, 1971 Newer, N., J. Test 1 (1971).</span><br>
+<span id="ref-2">Older, 1965 Older, O., J. Test 2 (1965).</span><br></p>
+</body></html>"""
+
+
+def _search_page():
+    return """<html><head><title>Search Results</title></head><body>
+<h1>Search Results</h1><ol>
+<li><a href="/cgi/cbook.cgi?ID=C11111&amp;Units=SI&amp;Mask=1">Testpropane</a>
+<li><a href="/cgi/cbook.cgi?ID=C22222&amp;Units=SI&amp;Mask=1">Testpropane</a>
+</ol></body></html>"""
+
+
+def test_webbook_individual_points_and_several_entries(tmp_path):
+    """2026-11-15: 2-chloropropane's page gives only an average; an InChI
+    matching two entries (methylenecyclobutane) gives a list. Made-up pages."""
+    import io
+
+    from seamm_thermochemistry import webbook
+
+    urls = []
+
+    class Response(io.BytesIO):
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+    def opener(request, timeout=None):
+        url = request.full_url
+        urls.append(url)
+        if "InChI=" in url:
+            return Response(_search_page().encode())
+        if "Type=HFG" in url:
+            return Response(_points_page().encode())
+        if "C11111" in url:  # the same species, no data
+            return Response(_avg_page().replace("<table>", "<p>").encode()[:400])
+        return Response(_avg_page().encode())
+
+    rows = webbook.fetch([("CC(C)Cl", 0, 1)], tmp_path, delay=0, opener=opener)
+    assert len(urls) == 4  # search, two entries, the individual points
+    assert rows[0]["file"] and (tmp_path / rows[0]["file"]).exists()
+    assert webbook.companion(tmp_path / rows[0]["file"]).exists()
+
+    library = R.ReferenceLibrary(tmp_path / "r.db", create=True)
+    report = webbook.import_webbook(library, tmp_path)
+    assert report == [("CC(C)Cl", "added", "3")]
+    (sp,) = library.species("CC(C)Cl")
+    values = {m["dfh_298k"]: m for m in library.measurements(sp["id"])}
+    assert values[-144.0]["status"] == "held"  # the average
+    assert values[-145.0]["citation"].startswith("Newer, 1971 Newer")
+    assert "Type=HFG" in values[-145.0]["retrieved"]
+    assert "ID=C22222" in values[-144.0]["retrieved"]  # the entry's own URL
+    best = library.best(sp["id"])
+    assert best is None  # 6 apart: held by the spread rule, for a person
+    library.close()
+
+
+def test_set_rank(lib, capsys):
+    lib.close()
+    path = str(lib.path)
+    assert (
+        references_cli.main(["sources", "--library", path, "--rank", "W4-17=80"]) == 0
+    )
+    assert "  80  W4-17" in capsys.readouterr().out
+    lib2 = R.ReferenceLibrary(path)
+    assert lib2.source("W4-17")["rank"] == 80 == R.COMPUTED_RANK
+    assert "rank 40 -> 80" in lib2.source("W4-17")["notes"]
+    lib2.close()

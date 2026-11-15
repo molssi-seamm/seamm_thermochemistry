@@ -3,15 +3,17 @@
 """``seamm-thermochemistry-references``: the supplementary reference library
 from the command line::
 
-    seamm-thermochemistry-references sources [--library FILE]
+    seamm-thermochemistry-references sources [--library FILE] [--rank NAME=RANK]
     seamm-thermochemistry-references list [--library FILE]
     seamm-thermochemistry-references show SMILES [--charge Q] [--multiplicity M]
                                       [--local FILE] [--official FILE]
+                                      [--computed FILE]
     seamm-thermochemistry-references check [--library FILE]
     seamm-thermochemistry-references accept MEASUREMENT --by WHO --reason TEXT
                                       [--library FILE]
     seamm-thermochemistry-references accept-file ACCEPTS.csv --library FILE
     seamm-thermochemistry-references add-curated DIR --library FILE
+    seamm-thermochemistry-references add-computed VALUES.csv [--library FILE]
     seamm-thermochemistry-references webbook fetch SPECIES.csv --cache DIR
     seamm-thermochemistry-references webbook import --cache DIR --library FILE
     seamm-thermochemistry-references offsets --library FILE [--atct-version V]
@@ -19,17 +21,20 @@ from the command line::
                                       [--exclude SOURCE:SMILES,...:REASON]
 
 ``add-curated`` (maintainers) reads hand-curated CSVs (printed JANAF, CODATA,
-NBS-82, D0, W4-17, derived values) into a library file being built for
-publication; it always names its file. ``webbook fetch`` saves NIST WebBook
+NBS-82, D0, W4-17, derived values, the primary literature) into a library file
+being built for publication; it always names its file. ``add-computed``
+(maintainers) reads values computed with SEAMM's tier-A recipes into the
+computed layer, ``references-computed.db`` (see
+:mod:`seamm_thermochemistry.computed`). ``webbook fetch`` saves NIST WebBook
 pages for the species in a CSV (smiles, charge, multiplicity) into a cache, a
 few seconds apart and logged; ``webbook import`` reads the cache into a
 library, offline. ``offsets`` measures each source against ATcT (rms over
 shared species).
 
 ``--library`` is one library file, by default the local layer
-(``references.db``); ``show`` reads both layers, local and official
-(``references-official.db``). ``accept`` releases an estimate or a held
-species, recording who and why.
+(``references.db``); ``show`` reads every layer: local, official
+(``references-official.db``) and computed (``references-computed.db``).
+``accept`` releases an estimate or a held species, recording who and why.
 """
 
 import argparse
@@ -50,6 +55,11 @@ def _library(path, write=False):
 
 
 def cmd_sources(args):
+    if args.rank:
+        library = R.ReferenceLibrary(R.local_references_path(args.library), create=True)
+        for item in args.rank:
+            name, _, rank = item.rpartition("=")
+            library.set_rank(name, int(rank))
     library = _library(args.library)
     print(f"{'rank':>4}  {'name':<16} {'kind':<11} {'offset':>7} {'n':>4}  citation")
     for s in library.sources():
@@ -74,7 +84,7 @@ def cmd_list(args):
 
 
 def cmd_show(args):
-    layers = R.LayeredReferences(args.local, args.official)
+    layers = R.LayeredReferences(args.local, args.official, args.computed)
     rows = layers.candidates(
         args.smiles, args.charge, args.multiplicity, include_held=True
     )
@@ -91,6 +101,8 @@ def cmd_show(args):
         )
         state = "" if r["state"] == "chosen" else f"{r['state'].upper()}, "
         print(f"    {r['citation']}  [{state}{r['status']}, {r['rule']}]")
+        if r["source_kind"] == "computed":
+            print(f"    computed: {r['source_ref'] or ''}; recipe {r['method'] or ''}")
         for key in ("flag", "override_reason", "converted", "decision_reason"):
             if r.get(key):
                 print(f"    {key.replace('_', ' ')}: {r[key]}")
@@ -137,6 +149,20 @@ def cmd_add_curated(args):
             f"PROBLEM  {p['smiles']} (measurement {p['measurement']}): {p['problem']}"
         )
     return 1 if problems else 0
+
+
+def cmd_add_computed(args):
+    from .computed import LAYER, computed_references_path, import_computed
+
+    path = computed_references_path(args.library)
+    library = R.ReferenceLibrary(path, create=True, layer=LAYER)
+    counts = {}
+    for smiles, outcome, detail in import_computed(library, args.file):
+        counts[outcome] = counts.get(outcome, 0) + 1
+        if outcome != "added":
+            print(f"{outcome:>8}  {smiles}  {detail}")
+    print(f"{path}: " + ", ".join(f"{n} {k}" for k, n in sorted(counts.items())))
+    return 1 if "refused" in counts else 0
 
 
 def cmd_webbook(args):
@@ -217,18 +243,25 @@ def main(argv=None):
 
     p = sub.add_parser("sources", help="List the sources, with their offsets.")
     p.add_argument("--library")
+    p.add_argument(
+        "--rank",
+        action="append",
+        metavar="NAME=RANK",
+        help="change a source's rank first (maintainers), e.g. W4-17=80",
+    )
     p.set_defaults(func=cmd_sources)
 
     p = sub.add_parser("list", help="List the species and their chosen values.")
     p.add_argument("--library")
     p.set_defaults(func=cmd_list)
 
-    p = sub.add_parser("show", help="Every value for one species, both layers.")
+    p = sub.add_parser("show", help="Every value for one species, every layer.")
     p.add_argument("smiles")
     p.add_argument("--charge", type=int, default=0)
     p.add_argument("--multiplicity", type=int)
     p.add_argument("--local")
     p.add_argument("--official")
+    p.add_argument("--computed", help="the computed layer (beside the official)")
     p.set_defaults(func=cmd_show)
 
     p = sub.add_parser("check", help="Check every derived value.")
@@ -252,6 +285,16 @@ def main(argv=None):
     p.add_argument("--library", required=True)
     p.add_argument("--layer", default="official", choices=("official", "local"))
     p.set_defaults(func=cmd_add_curated)
+
+    p = sub.add_parser(
+        "add-computed",
+        help="Read computed (tier-A) values into the computed layer (maintainers).",
+    )
+    p.add_argument("file", help="CSV of computed values")
+    p.add_argument(
+        "--library", help="the computed layer (default: references-computed.db)"
+    )
+    p.set_defaults(func=cmd_add_computed)
 
     p = sub.add_parser("webbook", help="NIST WebBook pages (maintainers).")
     p.add_argument("action", choices=("fetch", "import"))
