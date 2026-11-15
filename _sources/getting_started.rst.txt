@@ -189,37 +189,62 @@ Reference values ATcT lacks
 
 Some CBH reference species are not in ATcT, for elements such as Ge, As or Se, or
 for larger organic molecules. The **reference library** holds enthalpies of
-formation for them from evaluated compilations and measurements:
+formation for them, experimental ones from evaluated compilations and
+measurements:
 
 - printed JANAF (NIST SRD 13);
 - CODATA key values;
 - the NBS tables of 1982;
 - spectroscopic D0 values;
-- W4-17;
-- NIST WebBook measurements (SRD 69).
+- NIST WebBook measurements (SRD 69);
+- measurements from the primary literature that the compilations lack;
+
+and computed ones:
+
+- W4-17, high-level computed values from the literature (0 K only);
+- values computed with SEAMM's high-level ("tier-A") recipes.
 
 Each value keeps its original citation, the compilation it came from, its
-uncertainty as stated, and why it was chosen.
+uncertainty as stated, and why it was chosen. A computed value also keeps its
+recipe, the SEAMM job that computed it, its geometry and conformer, and how its
+H298 - H0 was obtained.
 
-There are two files beside the ATcT cache. ``references-official.db`` is the
-published library (Zenodo, concept DOI 10.5281/zenodo.24175073), installed by the
-installer; it is read, never written. ``references.db`` is your own,
-for references you add.
+There are three files beside the ATcT cache:
+
+- ``references-official.db``, the published library (Zenodo, concept DOI
+  10.5281/zenodo.24175073), installed by the installer. It is read, never
+  written.
+- ``references-computed.db``, the computed layer: the tier-A values, kept apart
+  from the experimental library. It is filled with
+  ``seamm-thermochemistry-references add-computed VALUES.csv`` (see
+  :mod:`seamm_thermochemistry.computed` for the columns) and read, never
+  written, by calculations.
+- ``references.db``, your own, for references you add.
 
 :class:`~seamm_thermochemistry.resolver.ReferenceResolver` takes each reference
 from ATcT first, then from your own references (if enabled), then from the
-library's sources in a fixed order of rank, and then from computed references.
-For an element ATcT lacks, it takes all the references containing that element
-from one source where it can, so that the source's errors cancel.
+library's experimental sources in a fixed order of rank, and only then from
+computed values. A species with an experimental value never takes a computed
+one, whatever the sources' ranks. For an element ATcT lacks, it takes all the
+references containing that element from one source where it can, so that the
+source's errors cancel.
+
+The Thermochemistry step's "Supplementary references" parameter chooses what is
+used:
+
+- "none": ATcT only;
+- "compilations": the experimental values only (W4-17 is computed, so it is not
+  used);
+- "compilations and computed", the default: the computed values too, after the
+  experimental ones.
 
 A library value's uncertainty is its 95 % uncertainty plus the source's rms
 offset from ATcT, and it is combined with ATcT's in quadrature. Results that
 use the library are labelled "mixed" (or "mixed: several sources") instead of
-"ATcT-only".
+"ATcT-only", and "computed references" when any reference is computed.
 
 ``seamm-thermochemistry-references list`` and ``show SMILES`` show what the
-library holds. The Thermochemistry step's "Supplementary references" parameter
-chooses whether it is used.
+library holds; ``show`` reads all three files.
 
 The fragment-energy store
 -------------------------

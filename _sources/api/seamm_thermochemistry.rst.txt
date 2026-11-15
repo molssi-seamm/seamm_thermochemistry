@@ -28,6 +28,14 @@ seamm\_thermochemistry.cbh module
    :show-inheritance:
    :undoc-members:
 
+seamm\_thermochemistry.computed module
+--------------------------------------
+
+.. automodule:: seamm_thermochemistry.computed
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 seamm\_thermochemistry.curated module
 -------------------------------------
 

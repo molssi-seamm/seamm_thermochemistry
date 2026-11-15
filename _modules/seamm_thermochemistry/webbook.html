@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.webbook &#8212; SEAMM thermochemistry Plug-in 2026.11.15.1 documentation</title>
+    <title>seamm_thermochemistry.webbook &#8212; SEAMM thermochemistry Plug-in 2026.11.15.2 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=1e57d476"></script>
+    <script src="../../_static/documentation_options.js?v=29af5e1c"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.15.1" />
+  <meta name="docsearch:version" content="2026.11.15.2" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -445,6 +445,20 @@
 
 <span class="sd">Rows the WebBook marks as evaluations (class "cal", e.g. JANAF reviews) are</span>
 <span class="sd">kept but held: the value is taken from the evaluation's own source.</span>
+
+<span class="sd">Two cases the plain InChI lookup does not settle are followed by ``fetch``:</span>
+
+<span class="sd">* An InChI that matches several WebBook entries gives a list of them. Each is</span>
+<span class="sd">  fetched, and the one whose own InChI is the one asked for and that has</span>
+<span class="sd">  gas-phase enthalpies of formation is used; if not exactly one does, the</span>
+<span class="sd">  species has no page.</span>
+<span class="sd">* A page that gives only an average of several values ("AVG", with a link to</span>
+<span class="sd">  the individual data points) has that second page fetched beside it</span>
+<span class="sd">  (``&lt;page&gt;.hfg.html``). ``import`` reads the individual values from it; the</span>
+<span class="sd">  average, an evaluation, is kept but held.</span>
+
+<span class="sd">Every page fetched is logged with its URL, which ``import`` records as where</span>
+<span class="sd">each value was retrieved from.</span>
 <span class="sd">"""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">csv</span>
@@ -518,9 +532,18 @@
         <span class="s2">"found"</span><span class="p">:</span> <span class="nb">bool</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
         <span class="ow">and</span> <span class="s2">"not found"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">title</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
         <span class="ow">and</span> <span class="s2">"not found"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">text</span><span class="p">[:</span><span class="mi">3000</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-        <span class="ow">and</span> <span class="s2">"Information from the InChI"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">title</span><span class="p">,</span>
+        <span class="ow">and</span> <span class="s2">"Information from the InChI"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">title</span>
+        <span class="ow">and</span> <span class="n">title</span> <span class="o">!=</span> <span class="s2">"Search Results"</span><span class="p">,</span>
         <span class="s2">"rows"</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">"hits"</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="s2">"individual"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">}</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">"(InChI=1S?/[^\s&lt;</span><span class="se">\"</span><span class="s2">]+)"</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
+    <span class="n">result</span><span class="p">[</span><span class="s2">"inchi"</span><span class="p">]</span> <span class="o">=</span> <span class="n">html</span><span class="o">.</span><span class="n">unescape</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span> <span class="k">if</span> <span class="n">m</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">title</span> <span class="o">==</span> <span class="s2">"Search Results"</span><span class="p">:</span>
+        <span class="c1"># Several entries match: their pages, in the WebBook's order</span>
+        <span class="k">for</span> <span class="n">href</span> <span class="ow">in</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s1">'&lt;li&gt;&lt;a href="(/cgi/cbook\.cgi\?ID=[^"]+)"'</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+            <span class="n">result</span><span class="p">[</span><span class="s2">"hits"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_absolute</span><span class="p">(</span><span class="n">href</span><span class="p">))</span>
     <span class="n">m</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">"CAS Registry Number:&lt;/strong&gt;\s*([0-9-]+)"</span><span class="p">,</span> <span class="n">text</span><span class="p">)</span>
     <span class="n">result</span><span class="p">[</span><span class="s2">"cas"</span><span class="p">]</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">m</span> <span class="k">else</span> <span class="kc">None</span>
     <span class="n">m</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">"Formula&lt;/a&gt;:&lt;/strong&gt;(.*?)&lt;/li&gt;"</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">S</span><span class="p">)</span>
@@ -552,6 +575,12 @@
             <span class="n">quantity</span> <span class="o">=</span> <span class="n">_clean</span><span class="p">(</span><span class="n">cells</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">" "</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">quantity</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"ΔfH°gas"</span><span class="p">):</span>
                 <span class="k">continue</span>
+            <span class="n">link</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span>
+                <span class="sa">r</span><span class="s1">'href="([^"]*Type=HFG[^"]*)"[^&gt;]*&gt;\s*Individual\s+data\s+points'</span><span class="p">,</span>
+                <span class="n">row</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">link</span><span class="p">:</span>
+                <span class="n">result</span><span class="p">[</span><span class="s2">"individual"</span><span class="p">]</span> <span class="o">=</span> <span class="n">_absolute</span><span class="p">(</span><span class="n">link</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
             <span class="n">value</span><span class="p">,</span> <span class="n">uncertainty</span> <span class="o">=</span> <span class="n">parse_value</span><span class="p">(</span><span class="n">_clean</span><span class="p">(</span><span class="n">cells</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
             <span class="n">link</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s1">'href="#(ref-\d+)"'</span><span class="p">,</span> <span class="n">cells</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span>
             <span class="n">short</span> <span class="o">=</span> <span class="n">_clean</span><span class="p">(</span><span class="n">cells</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span>
@@ -569,7 +598,77 @@
                     <span class="s2">"comment"</span><span class="p">:</span> <span class="n">_clean</span><span class="p">(</span><span class="n">cells</span><span class="p">[</span><span class="mi">5</span><span class="p">])</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cells</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">5</span> <span class="k">else</span> <span class="s2">""</span><span class="p">,</span>
                 <span class="p">}</span>
             <span class="p">)</span>
+    <span class="c1"># The individual data points (Type=HFG): value, method, reference, comment</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span>
+        <span class="sa">r</span><span class="s1">'&lt;table class="data" aria-label="Enthalpy of formation of gas[^"]*"&gt;'</span>
+        <span class="sa">r</span><span class="s2">"(.*?)&lt;/table&gt;"</span><span class="p">,</span>
+        <span class="n">text</span><span class="p">,</span>
+        <span class="n">re</span><span class="o">.</span><span class="n">S</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">m</span><span class="p">:</span>
+        <span class="k">for</span> <span class="bp">cls</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span>
+            <span class="sa">r</span><span class="s1">'&lt;tr class="(exp|cal)"&gt;(.*?)&lt;/tr&gt;'</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">re</span><span class="o">.</span><span class="n">S</span>
+        <span class="p">):</span>
+            <span class="n">cells</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">"&lt;td[^&gt;]*&gt;(.*?)&lt;/td&gt;"</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">S</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cells</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">value</span><span class="p">,</span> <span class="n">uncertainty</span> <span class="o">=</span> <span class="n">parse_value</span><span class="p">(</span><span class="n">_clean</span><span class="p">(</span><span class="n">cells</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+            <span class="n">link</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s1">'href="#(ref-\d+)"'</span><span class="p">,</span> <span class="n">cells</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+            <span class="n">short</span> <span class="o">=</span> <span class="n">_clean</span><span class="p">(</span><span class="n">cells</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+            <span class="n">full</span> <span class="o">=</span> <span class="n">refs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">link</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="s2">""</span><span class="p">)</span> <span class="k">if</span> <span class="n">link</span> <span class="k">else</span> <span class="s2">""</span>
+            <span class="n">result</span><span class="p">[</span><span class="s2">"rows"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s2">"class"</span><span class="p">:</span> <span class="bp">cls</span><span class="p">,</span>
+                    <span class="s2">"value"</span><span class="p">:</span> <span class="n">value</span><span class="p">,</span>
+                    <span class="s2">"uncertainty"</span><span class="p">:</span> <span class="n">uncertainty</span><span class="p">,</span>
+                    <span class="s2">"units"</span><span class="p">:</span> <span class="s2">"kJ/mol"</span><span class="p">,</span>
+                    <span class="s2">"method"</span><span class="p">:</span> <span class="n">_clean</span><span class="p">(</span><span class="n">cells</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+                    <span class="s2">"reference"</span><span class="p">:</span> <span class="n">short</span><span class="p">,</span>
+                    <span class="s2">"citation"</span><span class="p">:</span> <span class="n">full</span> <span class="ow">or</span> <span class="n">short</span><span class="p">,</span>
+                    <span class="s2">"year"</span><span class="p">:</span> <span class="n">year_of</span><span class="p">(</span><span class="n">short</span><span class="p">),</span>
+                    <span class="s2">"comment"</span><span class="p">:</span> <span class="n">_clean</span><span class="p">(</span><span class="n">cells</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cells</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span> <span class="k">else</span> <span class="s2">""</span><span class="p">,</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
     <span class="k">return</span> <span class="n">result</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_absolute</span><span class="p">(</span><span class="n">href</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""A WebBook link as an absolute URL."""</span>
+    <span class="n">href</span> <span class="o">=</span> <span class="n">html</span><span class="o">.</span><span class="n">unescape</span><span class="p">(</span><span class="n">href</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">href</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"/"</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">"https://webbook.nist.gov"</span> <span class="o">+</span> <span class="n">href</span>
+    <span class="k">return</span> <span class="n">href</span>
+
+
+<div class="viewcode-block" id="enthalpy_rows">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.webbook.enthalpy_rows">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">enthalpy_rows</span><span class="p">(</span><span class="n">page</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The rows of a parsed page with a gas-phase enthalpy of formation."""</span>
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">page</span><span class="p">[</span><span class="s2">"rows"</span><span class="p">]</span> <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s2">"value"</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">r</span><span class="p">[</span><span class="s2">"units"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"kJ/mol"</span>
+    <span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="companion">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.webbook.companion">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">companion</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The file of a page's individual data points, beside it."""</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">path</span><span class="o">.</span><span class="n">with_name</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">stem</span> <span class="o">+</span> <span class="s2">".hfg.html"</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="logged_urls">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.webbook.logged_urls">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">logged_urls</span><span class="p">(</span><span class="n">directory</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""{file: URL} from a cache's fetch log (the last fetch of each file)."""</span>
+    <span class="n">log</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span> <span class="o">/</span> <span class="s2">"fetch_log.csv"</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">log</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+        <span class="k">return</span> <span class="p">{}</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">log</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s2">""</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span> <span class="k">as</span> <span class="n">fd</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">r</span><span class="p">[</span><span class="s2">"file"</span><span class="p">]:</span> <span class="n">r</span><span class="p">[</span><span class="s2">"url"</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">csv</span><span class="o">.</span><span class="n">DictReader</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span> <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"file"</span><span class="p">)}</span></div>
 
 
 
@@ -636,6 +735,25 @@
             <span class="n">iw</span><span class="o">.</span><span class="n">writeheader</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">new_log</span><span class="p">:</span>
             <span class="n">lw</span><span class="o">.</span><span class="n">writerow</span><span class="p">((</span><span class="s2">"date"</span><span class="p">,</span> <span class="s2">"url"</span><span class="p">,</span> <span class="s2">"file"</span><span class="p">,</span> <span class="s2">"sha256"</span><span class="p">,</span> <span class="s2">"purpose"</span><span class="p">))</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">purpose</span><span class="p">):</span>
+<span class="w">            </span><span class="sd">"""Fetch a page into the cache, unless it is there, and log it."""</span>
+            <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+                <span class="k">return</span>
+            <span class="n">request</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">"User-Agent"</span><span class="p">:</span> <span class="n">user_agent</span><span class="p">})</span>
+            <span class="k">with</span> <span class="n">opener</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">60</span><span class="p">)</span> <span class="k">as</span> <span class="n">response</span><span class="p">:</span>
+                <span class="n">path</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+            <span class="n">lw</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span>
+                <span class="p">(</span>
+                    <span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(),</span>
+                    <span class="n">url</span><span class="p">,</span>
+                    <span class="n">path</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                    <span class="n">_sha256</span><span class="p">(</span><span class="n">path</span><span class="p">),</span>
+                    <span class="n">purpose</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">delay</span><span class="p">)</span>
+
         <span class="k">for</span> <span class="n">smiles</span><span class="p">,</span> <span class="n">charge</span><span class="p">,</span> <span class="n">multiplicity</span> <span class="ow">in</span> <span class="n">species</span><span class="p">:</span>
             <span class="k">if</span> <span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">charge</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">multiplicity</span><span class="p">))</span> <span class="ow">in</span> <span class="n">index</span><span class="p">:</span>
                 <span class="k">continue</span>
@@ -648,23 +766,36 @@
                 <span class="n">url</span> <span class="o">=</span> <span class="n">page_url</span><span class="p">(</span><span class="n">attempt</span><span class="p">)</span>
                 <span class="n">name</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha1</span><span class="p">(</span><span class="n">attempt</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()[:</span><span class="mi">12</span><span class="p">]</span> <span class="o">+</span> <span class="s2">".html"</span>
                 <span class="n">path</span> <span class="o">=</span> <span class="n">directory</span> <span class="o">/</span> <span class="n">name</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
-                    <span class="n">request</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span>
-                        <span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">"User-Agent"</span><span class="p">:</span> <span class="n">user_agent</span><span class="p">}</span>
-                    <span class="p">)</span>
-                    <span class="k">with</span> <span class="n">opener</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">60</span><span class="p">)</span> <span class="k">as</span> <span class="n">response</span><span class="p">:</span>
-                        <span class="n">path</span><span class="o">.</span><span class="n">write_bytes</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
-                    <span class="n">lw</span><span class="o">.</span><span class="n">writerow</span><span class="p">(</span>
-                        <span class="p">(</span>
-                            <span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="o">.</span><span class="n">today</span><span class="p">()</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(),</span>
-                            <span class="n">url</span><span class="p">,</span>
-                            <span class="n">name</span><span class="p">,</span>
-                            <span class="n">_sha256</span><span class="p">(</span><span class="n">path</span><span class="p">),</span>
-                            <span class="sa">f</span><span class="s2">"WebBook gas thermochemistry </span><span class="si">{</span><span class="n">smiles</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                <span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"WebBook gas thermochemistry </span><span class="si">{</span><span class="n">smiles</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+                <span class="n">page</span> <span class="o">=</span> <span class="n">parse_page</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">errors</span><span class="o">=</span><span class="s2">"ignore"</span><span class="p">))</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">page</span><span class="p">[</span><span class="s2">"found"</span><span class="p">]</span> <span class="ow">and</span> <span class="n">page</span><span class="p">[</span><span class="s2">"hits"</span><span class="p">]:</span>
+                    <span class="c1"># Several entries: the one that is this species, with data</span>
+                    <span class="n">hits</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">page</span> <span class="o">=</span> <span class="n">page</span><span class="p">[</span><span class="s2">"hits"</span><span class="p">],</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+                    <span class="k">for</span> <span class="n">hit</span> <span class="ow">in</span> <span class="n">hits</span><span class="p">:</span>
+                        <span class="n">hit_name</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha1</span><span class="p">(</span><span class="n">hit</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()[:</span><span class="mi">12</span><span class="p">]</span> <span class="o">+</span> <span class="s2">".html"</span>
+                        <span class="n">get</span><span class="p">(</span><span class="n">hit</span><span class="p">,</span> <span class="n">directory</span> <span class="o">/</span> <span class="n">hit_name</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"WebBook entry for </span><span class="si">{</span><span class="n">smiles</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+                        <span class="n">candidate</span> <span class="o">=</span> <span class="n">parse_page</span><span class="p">(</span>
+                            <span class="p">(</span><span class="n">directory</span> <span class="o">/</span> <span class="n">hit_name</span><span class="p">)</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">errors</span><span class="o">=</span><span class="s2">"ignore"</span><span class="p">)</span>
                         <span class="p">)</span>
-                    <span class="p">)</span>
-                    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">delay</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">parse_page</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">errors</span><span class="o">=</span><span class="s2">"ignore"</span><span class="p">))[</span><span class="s2">"found"</span><span class="p">]:</span>
+                        <span class="k">if</span> <span class="p">(</span>
+                            <span class="n">candidate</span><span class="p">[</span><span class="s2">"found"</span><span class="p">]</span>
+                            <span class="ow">and</span> <span class="n">candidate</span><span class="p">[</span><span class="s2">"inchi"</span><span class="p">]</span> <span class="o">==</span> <span class="n">attempt</span>
+                            <span class="ow">and</span> <span class="p">(</span><span class="n">enthalpy_rows</span><span class="p">(</span><span class="n">candidate</span><span class="p">)</span> <span class="ow">or</span> <span class="n">candidate</span><span class="p">[</span><span class="s2">"individual"</span><span class="p">])</span>
+                        <span class="p">):</span>
+                            <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                                <span class="n">name</span><span class="p">,</span> <span class="n">page</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>  <span class="c1"># ambiguous</span>
+                                <span class="k">break</span>
+                            <span class="n">name</span><span class="p">,</span> <span class="n">page</span> <span class="o">=</span> <span class="n">hit_name</span><span class="p">,</span> <span class="n">candidate</span>
+                    <span class="k">if</span> <span class="n">page</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                    <span class="n">path</span> <span class="o">=</span> <span class="n">directory</span> <span class="o">/</span> <span class="n">name</span>
+                <span class="k">if</span> <span class="n">page</span><span class="p">[</span><span class="s2">"found"</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="n">page</span><span class="p">[</span><span class="s2">"individual"</span><span class="p">]:</span>
+                        <span class="n">get</span><span class="p">(</span>
+                            <span class="n">page</span><span class="p">[</span><span class="s2">"individual"</span><span class="p">],</span>
+                            <span class="n">companion</span><span class="p">(</span><span class="n">path</span><span class="p">),</span>
+                            <span class="sa">f</span><span class="s2">"WebBook individual data points </span><span class="si">{</span><span class="n">smiles</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                        <span class="p">)</span>
                     <span class="n">row</span> <span class="o">=</span> <span class="p">{</span>
                         <span class="s2">"file"</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span>
                         <span class="s2">"smiles"</span><span class="p">:</span> <span class="n">smiles</span><span class="p">,</span>
@@ -700,6 +831,7 @@
     <span class="n">directory</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
     <span class="n">library</span><span class="o">.</span><span class="n">add_source</span><span class="p">(</span><span class="n">SOURCE</span><span class="p">,</span> <span class="s2">"measured"</span><span class="p">,</span> <span class="n">SOURCE_RANK</span><span class="p">,</span> <span class="n">citation</span><span class="o">=</span><span class="n">SOURCE_CITATION</span><span class="p">)</span>
     <span class="n">report</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">urls</span> <span class="o">=</span> <span class="n">logged_urls</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">read_index</span><span class="p">(</span><span class="n">directory</span><span class="p">):</span>
         <span class="n">smiles</span> <span class="o">=</span> <span class="n">entry</span><span class="p">[</span><span class="s2">"smiles"</span><span class="p">]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"file"</span><span class="p">):</span>
@@ -707,13 +839,20 @@
             <span class="k">continue</span>
         <span class="n">path</span> <span class="o">=</span> <span class="n">directory</span> <span class="o">/</span> <span class="n">entry</span><span class="p">[</span><span class="s2">"file"</span><span class="p">]</span>
         <span class="n">page</span> <span class="o">=</span> <span class="n">parse_page</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">errors</span><span class="o">=</span><span class="s2">"ignore"</span><span class="p">))</span>
-        <span class="n">rows</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">page</span><span class="p">[</span><span class="s2">"rows"</span><span class="p">]</span> <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s2">"value"</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">r</span><span class="p">[</span><span class="s2">"units"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"kJ/mol"</span>
-        <span class="p">]</span>
+        <span class="n">retry</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"inchi_retry"</span><span class="p">)</span> <span class="ow">or</span> <span class="kc">None</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="n">urls</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="ow">or</span> <span class="n">page_url</span><span class="p">(</span><span class="n">retry</span> <span class="ow">or</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"inchi"</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="p">[(</span><span class="n">r</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2"> sha256 </span><span class="si">{</span><span class="n">_sha256</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">enthalpy_rows</span><span class="p">(</span><span class="n">page</span><span class="p">)]</span>
+        <span class="n">individual</span> <span class="o">=</span> <span class="n">companion</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">individual</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="n">points</span> <span class="o">=</span> <span class="n">parse_page</span><span class="p">(</span><span class="n">individual</span><span class="o">.</span><span class="n">read_text</span><span class="p">(</span><span class="n">errors</span><span class="o">=</span><span class="s2">"ignore"</span><span class="p">))</span>
+            <span class="n">where</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">urls</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">individual</span><span class="o">.</span><span class="n">name</span><span class="p">)</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="n">page</span><span class="p">[</span><span class="s1">'individual'</span><span class="p">]</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">''</span><span class="si">}</span><span class="s2"> "</span>
+                <span class="sa">f</span><span class="s2">"sha256 </span><span class="si">{</span><span class="n">_sha256</span><span class="p">(</span><span class="n">individual</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="n">rows</span> <span class="o">+=</span> <span class="p">[(</span><span class="n">r</span><span class="p">,</span> <span class="n">where</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">enthalpy_rows</span><span class="p">(</span><span class="n">points</span><span class="p">)]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">page</span><span class="p">[</span><span class="s2">"found"</span><span class="p">]</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">rows</span><span class="p">:</span>
             <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">smiles</span><span class="p">,</span> <span class="s2">"no gas-phase value"</span><span class="p">,</span> <span class="n">page</span><span class="p">[</span><span class="s2">"title"</span><span class="p">]))</span>
             <span class="k">continue</span>
-        <span class="n">retry</span> <span class="o">=</span> <span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"inchi_retry"</span><span class="p">)</span> <span class="ow">or</span> <span class="kc">None</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">species</span> <span class="o">=</span> <span class="n">library</span><span class="o">.</span><span class="n">add_species</span><span class="p">(</span>
                 <span class="n">smiles</span><span class="p">,</span>
@@ -733,10 +872,7 @@
         <span class="k">except</span> <span class="ne">ReferenceError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="n">report</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">smiles</span><span class="p">,</span> <span class="s2">"refused"</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)))</span>
             <span class="k">continue</span>
-        <span class="n">retrieved</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">page_url</span><span class="p">(</span><span class="n">retry</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="n">entry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'inchi'</span><span class="p">)</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">''</span><span class="p">)</span><span class="si">}</span><span class="s2"> sha256 </span><span class="si">{</span><span class="n">_sha256</span><span class="p">(</span><span class="n">path</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
-        <span class="p">)</span>
-        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">r</span><span class="p">,</span> <span class="n">retrieved</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s2">"class"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"cal"</span><span class="p">:</span>
                 <span class="n">status</span> <span class="o">=</span> <span class="s2">"held"</span>
                 <span class="n">note</span> <span class="o">=</span> <span class="p">(</span>

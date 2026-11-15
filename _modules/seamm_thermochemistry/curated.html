@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.curated &#8212; SEAMM thermochemistry Plug-in 2026.11.15.1 documentation</title>
+    <title>seamm_thermochemistry.curated &#8212; SEAMM thermochemistry Plug-in 2026.11.15.2 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=1e57d476"></script>
+    <script src="../../_static/documentation_options.js?v=29af5e1c"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.15.1" />
+  <meta name="docsearch:version" content="2026.11.15.2" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -430,14 +430,16 @@
 <span class="sd">"""Reading hand-curated reference values into a reference library.</span>
 
 <span class="sd">The curated files (one CSV per source: printed JANAF, CODATA key values,</span>
-<span class="sd">the NBS tables of 1982, spectroscopic D0, W4-17, derived values) share</span>
-<span class="sd">common columns::</span>
+<span class="sd">the NBS tables of 1982, spectroscopic D0, W4-17, derived values, and</span>
+<span class="sd">measurements from the primary literature) share common columns::</span>
 
 <span class="sd">    smiles, formula, charge, multiplicity, name, phase, dfH0_kJmol,</span>
 <span class="sd">    dfH298_kJmol, unc_kJmol, unc_level, status, citation, notes</span>
 
-<span class="sd">plus columns of their own. This is a maintainer tool: it builds a library</span>
-<span class="sd">file, which is then published; users install the published file.</span>
+<span class="sd">plus columns of their own (``literature.csv`` adds ``year``, the year of</span>
+<span class="sd">each measurement, and ``source_ref``, e.g. its DOI). This is a maintainer</span>
+<span class="sd">tool: it builds a library file, which is then published; users install the</span>
+<span class="sd">published file.</span>
 
 <span class="sd">Each row is added as a measurement of its source, then the value of each</span>
 <span class="sd">species and source is chosen, the overrides applied and the derivations</span>
@@ -449,6 +451,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">references</span> <span class="k">as</span> <span class="n">R</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.references</span><span class="w"> </span><span class="kn">import</span> <span class="ne">ReferenceError</span>
 
 <span class="c1">#: The files, their source and the source's kind, rank and year</span>
@@ -482,10 +485,20 @@
     <span class="s2">"w4_17.csv"</span><span class="p">:</span> <span class="p">(</span>
         <span class="s2">"W4-17"</span><span class="p">,</span>
         <span class="s2">"literature"</span><span class="p">,</span>
-        <span class="mi">40</span><span class="p">,</span>
+        <span class="c1"># computed values: ranked behind every experimental source (Paul,</span>
+        <span class="c1"># 2026-11-15)</span>
+        <span class="n">R</span><span class="o">.</span><span class="n">COMPUTED_RANK</span><span class="p">,</span>
         <span class="mi">2017</span><span class="p">,</span>
         <span class="s2">"A. Karton, N. Sylvetsky and J. M. L. Martin, J. Comput. Chem. 38, 2063 "</span>
         <span class="s2">"(2017)"</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="s2">"literature.csv"</span><span class="p">:</span> <span class="p">(</span>
+        <span class="s2">"Literature"</span><span class="p">,</span>
+        <span class="s2">"measured"</span><span class="p">,</span>
+        <span class="mi">55</span><span class="p">,</span>
+        <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">"Measurements from the primary literature that the compilations lack, "</span>
+        <span class="s2">"each with its own citation"</span><span class="p">,</span>
     <span class="p">),</span>
 <span class="p">}</span>
 
@@ -500,6 +513,11 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">_float</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
     <span class="n">text</span> <span class="o">=</span> <span class="p">(</span><span class="n">text</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
     <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="k">if</span> <span class="n">text</span> <span class="k">else</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_int</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="p">(</span><span class="n">text</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="k">if</span> <span class="n">text</span> <span class="k">else</span> <span class="kc">None</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_status</span><span class="p">(</span><span class="n">row</span><span class="p">):</span>
@@ -621,13 +639,14 @@
                         <span class="n">uncertainty</span><span class="o">=</span><span class="n">uncertainty</span><span class="p">,</span>
                         <span class="n">unc_level</span><span class="o">=</span><span class="n">unc_level</span><span class="p">,</span>
                         <span class="n">status</span><span class="o">=</span><span class="n">status</span><span class="p">,</span>
-                        <span class="n">year</span><span class="o">=</span><span class="n">year</span><span class="p">,</span>
+                        <span class="n">year</span><span class="o">=</span><span class="n">year</span> <span class="k">if</span> <span class="n">year</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">_int</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"year"</span><span class="p">)),</span>
                         <span class="n">h298_h0</span><span class="o">=</span><span class="n">h298_h0</span><span class="p">,</span>
                         <span class="n">standard_state</span><span class="o">=</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"ref_state"</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">"0.1 MPa"</span><span class="p">,</span>
                         <span class="n">ion_convention</span><span class="o">=</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"ion_convention"</span><span class="p">)</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
                         <span class="n">comment</span><span class="o">=</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"unc_level"</span><span class="p">)</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
                         <span class="n">notes</span><span class="o">=</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"notes"</span><span class="p">)</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
                         <span class="n">retrieved</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+                        <span class="n">source_ref</span><span class="o">=</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source_ref"</span><span class="p">)</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
                         <span class="n">method</span><span class="o">=</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"protocol"</span><span class="p">)</span> <span class="ow">or</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"conversion"</span><span class="p">)</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">,</span>
                     <span class="p">)</span>
                 <span class="k">except</span> <span class="p">(</span><span class="ne">ReferenceError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">)</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>

@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.resolver &#8212; SEAMM thermochemistry Plug-in 2026.11.15.1 documentation</title>
+    <title>seamm_thermochemistry.resolver &#8212; SEAMM thermochemistry Plug-in 2026.11.15.2 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=1e57d476"></script>
+    <script src="../../_static/documentation_options.js?v=29af5e1c"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.15.1" />
+  <meta name="docsearch:version" content="2026.11.15.2" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -436,10 +436,14 @@
 <span class="sd">   is used and the result is "ATcT-only".</span>
 <span class="sd">2. The user's own references (the local layer's ``user`` source), when the</span>
 <span class="sd">   job enables them.</span>
-<span class="sd">3. The library's sources by rank: printed JANAF, derived values, CODATA, the</span>
-<span class="sd">   NBS tables of 1982, D0, W4-17 (0 K only, used only without a 298.15 K</span>
-<span class="sd">   value), the WebBook measurements.</span>
-<span class="sd">4. Computed references, when enabled.</span>
+<span class="sd">3. The library's experimental sources by rank: printed JANAF, derived</span>
+<span class="sd">   values, CODATA, the NBS tables of 1982, D0, the WebBook measurements,</span>
+<span class="sd">   measurements from the primary literature.</span>
+<span class="sd">4. Computed values, when enabled ("compilations and computed"): W4-17 (0 K</span>
+<span class="sd">   only, used only without a 298.15 K value) and the computed layer,</span>
+<span class="sd">   ``references-computed.db``. They always come after every experimental</span>
+<span class="sd">   value, so a species with one never takes a computed value. W4-17 is</span>
+<span class="sd">   computed (Paul, 2026-11-15), so "compilations" is strictly experimental.</span>
 
 <span class="sd">**One source per element.** For each element that ATcT does not have (its</span>
 <span class="sd">gas-phase atom is not in ATcT), the references containing it are taken from</span>
@@ -462,11 +466,13 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.atct</span><span class="w"> </span><span class="kn">import</span> <span class="n">AmbiguousEntry</span><span class="p">,</span> <span class="n">MissingEntry</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.cbh</span><span class="w"> </span><span class="kn">import</span> <span class="n">CBHError</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.references</span><span class="w"> </span><span class="kn">import</span> <span class="n">LayeredReferences</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.references</span><span class="w"> </span><span class="kn">import</span> <span class="n">LayeredReferences</span><span class="p">,</span> <span class="n">is_computed</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 <span class="c1">#: The settings of "Supplementary references"</span>
+<span class="c1">#: "compilations" is strictly experimental: no computed value (a computed</span>
+<span class="c1">#: source, or W4-17's computed values) is used with it</span>
 <span class="n">SUPPLEMENTARY</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"none"</span><span class="p">,</span> <span class="s2">"compilations"</span><span class="p">,</span> <span class="s2">"compilations and computed"</span><span class="p">)</span>
 
 <span class="c1">#: The result labels, in increasing order of importance</span>
@@ -631,7 +637,7 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_user</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">supplementary</span> <span class="o">==</span> <span class="s2">"none"</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
-        <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s2">"computed"</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">is_computed</span><span class="p">(</span><span class="n">ref</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">supplementary</span> <span class="o">==</span> <span class="s2">"compilations and computed"</span>
         <span class="k">return</span> <span class="kc">True</span>
 
@@ -688,6 +694,7 @@
             <span class="s2">"atct_coefficients"</span><span class="p">:</span> <span class="p">{},</span>
             <span class="s2">"source"</span><span class="p">:</span> <span class="n">ref</span><span class="p">[</span><span class="s2">"source_name"</span><span class="p">],</span>
             <span class="s2">"source_kind"</span><span class="p">:</span> <span class="n">ref</span><span class="p">[</span><span class="s2">"source_kind"</span><span class="p">],</span>
+            <span class="s2">"computed"</span><span class="p">:</span> <span class="n">is_computed</span><span class="p">(</span><span class="n">ref</span><span class="p">),</span>
             <span class="s2">"layer"</span><span class="p">:</span> <span class="n">ref</span><span class="p">[</span><span class="s2">"layer"</span><span class="p">],</span>
             <span class="s2">"citation"</span><span class="p">:</span> <span class="n">ref</span><span class="p">[</span><span class="s2">"citation"</span><span class="p">],</span>
             <span class="s2">"rule"</span><span class="p">:</span> <span class="n">ref</span><span class="p">[</span><span class="s2">"rule"</span><span class="p">],</span>
@@ -749,14 +756,14 @@
                 <span class="n">sources</span> <span class="o">=</span> <span class="n">names</span> <span class="k">if</span> <span class="n">sources</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">sources</span> <span class="o">&amp;</span> <span class="n">names</span>
             <span class="n">ranked</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
                 <span class="p">{</span>
-                    <span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s2">"source_rank"</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="s2">"source_name"</span><span class="p">])</span>
+                    <span class="p">(</span><span class="n">is_computed</span><span class="p">(</span><span class="n">r</span><span class="p">),</span> <span class="n">r</span><span class="p">[</span><span class="s2">"source_rank"</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="s2">"source_name"</span><span class="p">])</span>
                     <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">group</span>
                     <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">cands</span><span class="p">[</span><span class="n">s</span><span class="p">]</span>
                     <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s2">"source_name"</span><span class="p">]</span> <span class="ow">in</span> <span class="p">(</span><span class="n">sources</span> <span class="ow">or</span> <span class="p">())</span>
                 <span class="p">}</span>
             <span class="p">)</span>
             <span class="k">if</span> <span class="n">ranked</span><span class="p">:</span>
-                <span class="n">source</span> <span class="o">=</span> <span class="n">ranked</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">source</span> <span class="o">=</span> <span class="n">ranked</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
                 <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">group</span><span class="p">:</span>
                     <span class="n">own</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">cands</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s2">"source_name"</span><span class="p">]</span> <span class="o">==</span> <span class="n">source</span><span class="p">]</span>
                     <span class="c1"># local layer first within the source</span>
@@ -810,12 +817,11 @@
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">label</span><span class="p">(</span><span class="n">entries</span><span class="p">,</span> <span class="n">several</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">"""The result label for the references used."""</span>
-        <span class="n">kinds</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source_kind"</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">entries</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">e</span><span class="p">[</span><span class="s2">"source"</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">"ATcT"</span>
-        <span class="p">}</span>
+        <span class="n">library</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">entries</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">e</span><span class="p">[</span><span class="s2">"source"</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">"ATcT"</span><span class="p">]</span>
+        <span class="n">kinds</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source_kind"</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">library</span><span class="p">}</span>
         <span class="k">if</span> <span class="s2">"user"</span> <span class="ow">in</span> <span class="n">kinds</span><span class="p">:</span>
             <span class="k">return</span> <span class="s2">"user references"</span>
-        <span class="k">if</span> <span class="s2">"computed"</span> <span class="ow">in</span> <span class="n">kinds</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">"computed"</span> <span class="ow">in</span> <span class="n">kinds</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"computed"</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">library</span><span class="p">):</span>
             <span class="k">return</span> <span class="s2">"computed references"</span>
         <span class="k">if</span> <span class="n">several</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">(</span>

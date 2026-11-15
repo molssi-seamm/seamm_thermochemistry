@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.references &#8212; SEAMM thermochemistry Plug-in 2026.11.15.1 documentation</title>
+    <title>seamm_thermochemistry.references &#8212; SEAMM thermochemistry Plug-in 2026.11.15.2 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=1e57d476"></script>
+    <script src="../../_static/documentation_options.js?v=29af5e1c"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.15.1" />
+  <meta name="docsearch:version" content="2026.11.15.2" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -431,8 +431,10 @@
 <span class="sd">lacks, from evaluations, measurements, literature and computed values.</span>
 
 <span class="sd">``references-official.db`` is published on Zenodo, installed by the installer</span>
-<span class="sd">and only ever read. ``references.db`` is the local layer: user references and</span>
-<span class="sd">computed references not yet published. Both sit beside the ATcT cache in</span>
+<span class="sd">and only ever read. ``references.db`` is the local layer: the user's own</span>
+<span class="sd">references. ``references-computed.db`` is the computed layer: values computed</span>
+<span class="sd">with SEAMM's tier-A recipes, kept apart from the experimental ones (see</span>
+<span class="sd">:mod:`.computed`). All three sit beside the ATcT cache in</span>
 <span class="sd">``&lt;...&gt;/Parameters/thermochemistry/``. The importers that build a library are</span>
 <span class="sd">maintainer tools; users only install the published file.</span>
 
@@ -479,6 +481,14 @@
 
 <span class="c1">#: The floor (95 %) for a measured value given without any uncertainty, kJ/mol</span>
 <span class="n">UNSTATED_FLOOR</span> <span class="o">=</span> <span class="mf">4.0</span>
+
+<span class="c1">#: The rank of sources of computed values (W4-17): behind every experimental</span>
+<span class="c1">#: source, which rank below it (WebBook 50, the primary literature 55), with</span>
+<span class="c1">#: room for more (Paul, 2026-11-15). Computed values come after experimental</span>
+<span class="c1">#: ones whatever the ranks (:func:`is_computed`); the rank says so in the</span>
+<span class="c1">#: file too. A computed value beats an experiment for a species only when</span>
+<span class="c1">#: the experimental value is held, with the reason and who decided.</span>
+<span class="n">COMPUTED_RANK</span> <span class="o">=</span> <span class="mi">80</span>
 
 <span class="c1">#: The fewest species shared with ATcT for a source's offset to be used</span>
 <span class="n">OFFSET_MIN_SHARED</span> <span class="o">=</span> <span class="mi">5</span>
@@ -960,6 +970,22 @@
         <span class="k">return</span> <span class="n">cursor</span><span class="o">.</span><span class="n">lastrowid</span></div>
 
 
+<div class="viewcode-block" id="ReferenceLibrary.set_rank">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.references.ReferenceLibrary.set_rank">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_rank</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">rank</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Change a source's rank (maintainers), e.g. W4-17's to</span>
+<span class="sd">        :data:`COMPUTED_RANK`. Recorded in the source's notes."""</span>
+        <span class="n">src</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">note</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"rank </span><span class="si">{</span><span class="n">src</span><span class="p">[</span><span class="s1">'rank'</span><span class="p">]</span><span class="si">}</span><span class="s2"> -&gt; </span><span class="si">{</span><span class="n">rank</span><span class="si">}</span><span class="s2"> on </span><span class="si">{</span><span class="n">_now</span><span class="p">()[:</span><span class="mi">10</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+        <span class="n">notes</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">src</span><span class="p">[</span><span class="s1">'notes'</span><span class="p">]</span><span class="si">}</span><span class="s2">; </span><span class="si">{</span><span class="n">note</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">src</span><span class="p">[</span><span class="s2">"notes"</span><span class="p">]</span> <span class="k">else</span> <span class="n">note</span>
+        <span class="n">db</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_writer</span><span class="p">()</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+            <span class="s2">"UPDATE source SET rank = ?, notes = ? WHERE id = ?"</span><span class="p">,</span>
+            <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">rank</span><span class="p">),</span> <span class="n">notes</span><span class="p">,</span> <span class="n">src</span><span class="p">[</span><span class="s2">"id"</span><span class="p">]),</span>
+        <span class="p">)</span>
+        <span class="n">db</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
+
+
 <div class="viewcode-block" id="ReferenceLibrary.source">
 <a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.references.ReferenceLibrary.source">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">source</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name_or_id</span><span class="p">):</span>
@@ -1317,19 +1343,25 @@
 
 <div class="viewcode-block" id="ReferenceLibrary.accept_value">
 <a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.references.ReferenceLibrary.accept_value">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">accept_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smiles</span><span class="p">,</span> <span class="n">charge</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="n">dfh_298k</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">by</span><span class="p">,</span> <span class="n">reason</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">accept_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smiles</span><span class="p">,</span> <span class="n">charge</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="n">dfh_298k</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">by</span><span class="p">,</span> <span class="n">reason</span><span class="p">,</span> <span class="n">year</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">"""Accept a source's value for a species, found by its value at</span>
 <span class="sd">        298.15 K (within 0.01 kJ/mol), so that an accept can be kept in a</span>
-<span class="sd">        file and reapplied whenever the library is rebuilt."""</span>
+<span class="sd">        file and reapplied whenever the library is rebuilt. `year` picks one</span>
+<span class="sd">        of several measurements with the same value (e.g. 2-bromopropane:</span>
+<span class="sd">        Bjellerup 1961 and Rozhnov 1962 both give -98.5)."""</span>
         <span class="n">matches</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="n">charge</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">measurements</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">"id"</span><span class="p">],</span> <span class="n">source</span><span class="p">):</span>
-                <span class="k">if</span> <span class="n">m</span><span class="p">[</span><span class="s2">"dfh_298k"</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">m</span><span class="p">[</span><span class="s2">"dfh_298k"</span><span class="p">]</span> <span class="o">-</span> <span class="n">dfh_298k</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mf">0.01</span><span class="p">:</span>
-                    <span class="n">matches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">m</span><span class="p">[</span><span class="s2">"dfh_298k"</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">abs</span><span class="p">(</span><span class="n">m</span><span class="p">[</span><span class="s2">"dfh_298k"</span><span class="p">]</span> <span class="o">-</span> <span class="n">dfh_298k</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">0.01</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="k">if</span> <span class="n">year</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">m</span><span class="p">[</span><span class="s2">"year"</span><span class="p">]</span> <span class="o">!=</span> <span class="n">year</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">matches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">matches</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">what</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">dfh_298k</span><span class="si">}</span><span class="s2"> kJ/mol"</span> <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s2">" from </span><span class="si">{</span><span class="n">year</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">year</span> <span class="k">else</span> <span class="s2">""</span><span class="p">)</span>
             <span class="k">raise</span> <span class="ne">ReferenceError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">smiles</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">source</span><span class="si">}</span><span class="s2">): </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">matches</span><span class="p">)</span><span class="si">}</span><span class="s2"> values of </span><span class="si">{</span><span class="n">dfh_298k</span><span class="si">}</span><span class="s2"> kJ/mol "</span>
-                <span class="s2">"to accept, not one"</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">smiles</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">source</span><span class="si">}</span><span class="s2">): </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">matches</span><span class="p">)</span><span class="si">}</span><span class="s2"> values of </span><span class="si">{</span><span class="n">what</span><span class="si">}</span><span class="s2"> to accept, "</span>
+                <span class="s2">"not one"</span>
             <span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">accept</span><span class="p">(</span><span class="n">matches</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">"id"</span><span class="p">],</span> <span class="n">by</span><span class="o">=</span><span class="n">by</span><span class="p">,</span> <span class="n">reason</span><span class="o">=</span><span class="n">reason</span><span class="p">)</span></div>
 
@@ -1382,7 +1414,8 @@
     <span class="k">def</span><span class="w"> </span><span class="nf">accept_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">"""Apply the decisions kept in a CSV: smiles, charge, source,</span>
 <span class="sd">        dfh_298k, by, reason, and optionally action ("accept", the default,</span>
-<span class="sd">        or "hold", which needs no value). Returns the reference ids of the</span>
+<span class="sd">        or "hold", which needs no value) and year (of the measurement, when</span>
+<span class="sd">        several have the same value). Returns the reference ids of the</span>
 <span class="sd">        accepts."""</span>
         <span class="kn">import</span><span class="w"> </span><span class="nn">csv</span>
 
@@ -1406,6 +1439,11 @@
                         <span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">"dfh_298k"</span><span class="p">]),</span>
                         <span class="n">by</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="s2">"by"</span><span class="p">],</span>
                         <span class="n">reason</span><span class="o">=</span><span class="n">row</span><span class="p">[</span><span class="s2">"reason"</span><span class="p">],</span>
+                        <span class="n">year</span><span class="o">=</span><span class="p">(</span>
+                            <span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">"year"</span><span class="p">])</span>
+                            <span class="k">if</span> <span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"year"</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                            <span class="k">else</span> <span class="kc">None</span>
+                        <span class="p">),</span>
                     <span class="p">)</span>
                 <span class="p">)</span>
         <span class="k">return</span> <span class="n">result</span></div>
@@ -1506,6 +1544,8 @@
                 <span class="k">continue</span>
             <span class="n">best</span> <span class="o">=</span> <span class="n">refs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="k">for</span> <span class="n">later</span> <span class="ow">in</span> <span class="n">refs</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+                <span class="k">if</span> <span class="n">is_computed</span><span class="p">(</span><span class="n">later</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_computed</span><span class="p">(</span><span class="n">best</span><span class="p">):</span>
+                    <span class="k">continue</span>  <span class="c1"># a computed value never replaces an experiment</span>
                 <span class="k">if</span> <span class="n">later_source_wins</span><span class="p">(</span>
                     <span class="p">(</span><span class="n">best</span><span class="p">[</span><span class="s2">"dfh_298k"</span><span class="p">],</span> <span class="n">best</span><span class="p">[</span><span class="s2">"expanded_uncertainty"</span><span class="p">]),</span>
                     <span class="p">(</span><span class="n">later</span><span class="p">[</span><span class="s2">"dfh_298k"</span><span class="p">],</span> <span class="n">later</span><span class="p">[</span><span class="s2">"expanded_uncertainty"</span><span class="p">]),</span>
@@ -1680,29 +1720,70 @@
 
 
 
+<span class="c1">#: The layers, in the order they are read within a rank</span>
+<span class="n">LAYERS</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"local"</span><span class="p">,</span> <span class="s2">"official"</span><span class="p">,</span> <span class="s2">"computed"</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="is_computed">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.references.is_computed">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">is_computed</span><span class="p">(</span><span class="n">ref</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Whether a value is computed rather than experimental: from a computed</span>
+<span class="sd">    source, or computed by its status (W4-17, a literature source of</span>
+<span class="sd">    computed values: "W4-17 are computed values ... we should handle them as</span>
+<span class="sd">    such", Paul, 2026-11-15)."""</span>
+    <span class="k">return</span> <span class="n">ref</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"source_kind"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"computed"</span> <span class="ow">or</span> <span class="n">ref</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"status"</span><span class="p">)</span> <span class="o">==</span> <span class="s2">"computed"</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_order</span><span class="p">(</span><span class="n">ref</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Sort key of a value: experimental before computed (always, whatever</span>
+<span class="sd">    the ranks), then by rank, then local before official before computed."""</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">is_computed</span><span class="p">(</span><span class="n">ref</span><span class="p">),</span>
+        <span class="n">ref</span><span class="p">[</span><span class="s2">"source_rank"</span><span class="p">],</span>
+        <span class="n">LAYERS</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">ref</span><span class="p">[</span><span class="s2">"layer"</span><span class="p">]),</span>
+    <span class="p">)</span>
+
+
 <div class="viewcode-block" id="LayeredReferences">
 <a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.references.LayeredReferences">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">LayeredReferences</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""The local and official reference libraries, read as one.</span>
+<span class="w">    </span><span class="sd">"""The local, official and computed reference libraries, read as one.</span>
 
-<span class="sd">    For each species the values of both layers are merged, best rank first;</span>
-<span class="sd">    within a rank the local layer comes first. Every value carries its</span>
-<span class="sd">    ``layer``.</span>
+<span class="sd">    For each species the values of the layers are merged: experimental values</span>
+<span class="sd">    first, whatever their ranks, then computed ones; best rank first; within</span>
+<span class="sd">    a rank the local layer comes first. Every value carries its ``layer``.</span>
+
+<span class="sd">    The computed layer, ``references-computed.db`` (see :mod:`.computed`), is</span>
+<span class="sd">    by default beside the official library. Only its computed values are read.</span>
 <span class="sd">    """</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">local_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">official_path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">local_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">official_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">computed_path</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.computed</span><span class="w"> </span><span class="kn">import</span> <span class="n">LAYER</span><span class="p">,</span> <span class="n">computed_references_path</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">layers</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">official</span> <span class="o">=</span> <span class="n">official_references_path</span><span class="p">(</span><span class="n">official_path</span><span class="p">)</span>
         <span class="n">local</span> <span class="o">=</span> <span class="n">local_references_path</span><span class="p">(</span><span class="n">local_path</span><span class="p">)</span>
+        <span class="n">computed</span> <span class="o">=</span> <span class="n">computed_references_path</span><span class="p">(</span><span class="n">computed_path</span><span class="p">,</span> <span class="n">official</span><span class="o">=</span><span class="n">official</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">local</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
             <span class="n">library</span> <span class="o">=</span> <span class="n">ReferenceLibrary</span><span class="p">(</span><span class="n">local</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">library</span><span class="o">.</span><span class="n">layer</span> <span class="o">==</span> <span class="s2">"official"</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">library</span><span class="o">.</span><span class="n">layer</span> <span class="o">!=</span> <span class="s2">"local"</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">local</span><span class="si">}</span><span class="s2"> is an official reference library, not a local one."</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">local</span><span class="si">}</span><span class="s2"> is the </span><span class="si">{</span><span class="n">library</span><span class="o">.</span><span class="n">layer</span><span class="si">}</span><span class="s2"> reference library, not a local "</span>
+                    <span class="s2">"one."</span>
                 <span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">"local"</span><span class="p">,</span> <span class="n">library</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">official</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">"official"</span><span class="p">,</span> <span class="n">ReferenceLibrary</span><span class="p">(</span><span class="n">official</span><span class="p">,</span> <span class="n">immutable</span><span class="o">=</span><span class="kc">True</span><span class="p">)))</span>
+        <span class="k">if</span> <span class="n">computed</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="n">library</span> <span class="o">=</span> <span class="n">ReferenceLibrary</span><span class="p">(</span><span class="n">computed</span><span class="p">,</span> <span class="n">immutable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">library</span><span class="o">.</span><span class="n">layer</span> <span class="o">!=</span> <span class="n">LAYER</span><span class="p">:</span>
+                <span class="n">library</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">computed</span><span class="si">}</span><span class="s2"> is the </span><span class="si">{</span><span class="n">library</span><span class="o">.</span><span class="n">layer</span><span class="si">}</span><span class="s2"> reference library, not the "</span>
+                    <span class="s2">"computed one."</span>
+                <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">LAYER</span><span class="p">,</span> <span class="n">library</span><span class="p">))</span>
 
 <div class="viewcode-block" id="LayeredReferences.set_in_atct">
 <a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.references.LayeredReferences.set_in_atct">[docs]</a>
@@ -1720,13 +1801,16 @@
 <div class="viewcode-block" id="LayeredReferences.candidates">
 <a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.references.LayeredReferences.candidates">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">candidates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smiles</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">multiplicity</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">include_held</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">"""Every usable value for a species, from both layers (and the held</span>
-<span class="sd">        ones too, if asked, never preferred)."""</span>
+<span class="w">        </span><span class="sd">"""Every usable value for a species, from every layer (and the held</span>
+<span class="sd">        ones too, if asked, never preferred), in the order of :func:`_order`.</span>
+<span class="sd">        The computed layer gives only its computed values."""</span>
         <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">library</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">library</span><span class="o">.</span><span class="n">species</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="n">charge</span><span class="p">,</span> <span class="n">multiplicity</span><span class="p">):</span>
                 <span class="n">best</span> <span class="o">=</span> <span class="n">library</span><span class="o">.</span><span class="n">best</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">"id"</span><span class="p">])</span>
                 <span class="k">for</span> <span class="n">ref</span> <span class="ow">in</span> <span class="n">library</span><span class="o">.</span><span class="n">references</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">"id"</span><span class="p">],</span> <span class="n">include_held</span><span class="o">=</span><span class="n">include_held</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">"computed"</span> <span class="ow">and</span> <span class="n">ref</span><span class="p">[</span><span class="s2">"source_kind"</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">"computed"</span><span class="p">:</span>
+                        <span class="k">continue</span>
                     <span class="n">ref</span><span class="p">[</span><span class="s2">"layer"</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span>
                     <span class="n">ref</span><span class="p">[</span><span class="s2">"preferred"</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
                         <span class="n">best</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">ref</span><span class="p">[</span><span class="s2">"reference_id"</span><span class="p">]</span> <span class="o">==</span> <span class="n">best</span><span class="p">[</span><span class="s2">"reference_id"</span><span class="p">]</span>
@@ -1734,8 +1818,7 @@
                     <span class="n">ref</span><span class="p">[</span><span class="s2">"smiles"</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s2">"smiles"</span><span class="p">]</span>
                     <span class="n">ref</span><span class="p">[</span><span class="s2">"formula"</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s2">"formula"</span><span class="p">]</span>
                     <span class="n">result</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ref</span><span class="p">)</span>
-        <span class="n">order</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"local"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">"official"</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
-        <span class="n">result</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">r</span><span class="p">:</span> <span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s2">"source_rank"</span><span class="p">],</span> <span class="n">order</span><span class="p">[</span><span class="n">r</span><span class="p">[</span><span class="s2">"layer"</span><span class="p">]]))</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">_order</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">result</span></div>
 
 
@@ -1743,8 +1826,9 @@
 <a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.references.LayeredReferences.lookup">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">lookup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smiles</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">multiplicity</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">"""The value to use: each layer's preferred value (overrides applied</span>
-<span class="sd">        within the layer), the best-ranked of them, the local layer winning a</span>
-<span class="sd">        tie. None if neither layer has the species."""</span>
+<span class="sd">        within the layer), the first of them in the order of :func:`_order`</span>
+<span class="sd">        (an experimental value before a computed one). None if no layer has</span>
+<span class="sd">        the species."""</span>
         <span class="k">for</span> <span class="n">ref</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">candidates</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="n">charge</span><span class="p">,</span> <span class="n">multiplicity</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">ref</span><span class="p">[</span><span class="s2">"preferred"</span><span class="p">]:</span>
                 <span class="k">return</span> <span class="n">ref</span>

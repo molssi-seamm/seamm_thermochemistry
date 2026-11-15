@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.references_cli &#8212; SEAMM thermochemistry Plug-in 2026.11.15.1 documentation</title>
+    <title>seamm_thermochemistry.references_cli &#8212; SEAMM thermochemistry Plug-in 2026.11.15.2 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=1e57d476"></script>
+    <script src="../../_static/documentation_options.js?v=29af5e1c"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.15.1" />
+  <meta name="docsearch:version" content="2026.11.15.2" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -430,15 +430,17 @@
 <span class="sd">"""``seamm-thermochemistry-references``: the supplementary reference library</span>
 <span class="sd">from the command line::</span>
 
-<span class="sd">    seamm-thermochemistry-references sources [--library FILE]</span>
+<span class="sd">    seamm-thermochemistry-references sources [--library FILE] [--rank NAME=RANK]</span>
 <span class="sd">    seamm-thermochemistry-references list [--library FILE]</span>
 <span class="sd">    seamm-thermochemistry-references show SMILES [--charge Q] [--multiplicity M]</span>
 <span class="sd">                                      [--local FILE] [--official FILE]</span>
+<span class="sd">                                      [--computed FILE]</span>
 <span class="sd">    seamm-thermochemistry-references check [--library FILE]</span>
 <span class="sd">    seamm-thermochemistry-references accept MEASUREMENT --by WHO --reason TEXT</span>
 <span class="sd">                                      [--library FILE]</span>
 <span class="sd">    seamm-thermochemistry-references accept-file ACCEPTS.csv --library FILE</span>
 <span class="sd">    seamm-thermochemistry-references add-curated DIR --library FILE</span>
+<span class="sd">    seamm-thermochemistry-references add-computed VALUES.csv [--library FILE]</span>
 <span class="sd">    seamm-thermochemistry-references webbook fetch SPECIES.csv --cache DIR</span>
 <span class="sd">    seamm-thermochemistry-references webbook import --cache DIR --library FILE</span>
 <span class="sd">    seamm-thermochemistry-references offsets --library FILE [--atct-version V]</span>
@@ -446,17 +448,20 @@
 <span class="sd">                                      [--exclude SOURCE:SMILES,...:REASON]</span>
 
 <span class="sd">``add-curated`` (maintainers) reads hand-curated CSVs (printed JANAF, CODATA,</span>
-<span class="sd">NBS-82, D0, W4-17, derived values) into a library file being built for</span>
-<span class="sd">publication; it always names its file. ``webbook fetch`` saves NIST WebBook</span>
+<span class="sd">NBS-82, D0, W4-17, derived values, the primary literature) into a library file</span>
+<span class="sd">being built for publication; it always names its file. ``add-computed``</span>
+<span class="sd">(maintainers) reads values computed with SEAMM's tier-A recipes into the</span>
+<span class="sd">computed layer, ``references-computed.db`` (see</span>
+<span class="sd">:mod:`seamm_thermochemistry.computed`). ``webbook fetch`` saves NIST WebBook</span>
 <span class="sd">pages for the species in a CSV (smiles, charge, multiplicity) into a cache, a</span>
 <span class="sd">few seconds apart and logged; ``webbook import`` reads the cache into a</span>
 <span class="sd">library, offline. ``offsets`` measures each source against ATcT (rms over</span>
 <span class="sd">shared species).</span>
 
 <span class="sd">``--library`` is one library file, by default the local layer</span>
-<span class="sd">(``references.db``); ``show`` reads both layers, local and official</span>
-<span class="sd">(``references-official.db``). ``accept`` releases an estimate or a held</span>
-<span class="sd">species, recording who and why.</span>
+<span class="sd">(``references.db``); ``show`` reads every layer: local, official</span>
+<span class="sd">(``references-official.db``) and computed (``references-computed.db``).</span>
+<span class="sd">``accept`` releases an estimate or a held species, recording who and why.</span>
 <span class="sd">"""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
@@ -479,6 +484,11 @@
 <div class="viewcode-block" id="cmd_sources">
 <a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.references_cli.cmd_sources">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">cmd_sources</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">rank</span><span class="p">:</span>
+        <span class="n">library</span> <span class="o">=</span> <span class="n">R</span><span class="o">.</span><span class="n">ReferenceLibrary</span><span class="p">(</span><span class="n">R</span><span class="o">.</span><span class="n">local_references_path</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">library</span><span class="p">),</span> <span class="n">create</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">args</span><span class="o">.</span><span class="n">rank</span><span class="p">:</span>
+            <span class="n">name</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">rank</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">rpartition</span><span class="p">(</span><span class="s2">"="</span><span class="p">)</span>
+            <span class="n">library</span><span class="o">.</span><span class="n">set_rank</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">rank</span><span class="p">))</span>
     <span class="n">library</span> <span class="o">=</span> <span class="n">_library</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">library</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="s1">'rank'</span><span class="si">:</span><span class="s2">&gt;4</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="s1">'name'</span><span class="si">:</span><span class="s2">&lt;16</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'kind'</span><span class="si">:</span><span class="s2">&lt;11</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'offset'</span><span class="si">:</span><span class="s2">&gt;7</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">'n'</span><span class="si">:</span><span class="s2">&gt;4</span><span class="si">}</span><span class="s2">  citation"</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">library</span><span class="o">.</span><span class="n">sources</span><span class="p">():</span>
@@ -509,7 +519,7 @@
 <div class="viewcode-block" id="cmd_show">
 <a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.references_cli.cmd_show">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">cmd_show</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
-    <span class="n">layers</span> <span class="o">=</span> <span class="n">R</span><span class="o">.</span><span class="n">LayeredReferences</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">local</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">official</span><span class="p">)</span>
+    <span class="n">layers</span> <span class="o">=</span> <span class="n">R</span><span class="o">.</span><span class="n">LayeredReferences</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">local</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">official</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">computed</span><span class="p">)</span>
     <span class="n">rows</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">candidates</span><span class="p">(</span>
         <span class="n">args</span><span class="o">.</span><span class="n">smiles</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">charge</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">multiplicity</span><span class="p">,</span> <span class="n">include_held</span><span class="o">=</span><span class="kc">True</span>
     <span class="p">)</span>
@@ -526,6 +536,8 @@
         <span class="p">)</span>
         <span class="n">state</span> <span class="o">=</span> <span class="s2">""</span> <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s2">"state"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"chosen"</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'state'</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="si">}</span><span class="s2">, "</span>
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"    </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'citation'</span><span class="p">]</span><span class="si">}</span><span class="s2">  [</span><span class="si">{</span><span class="n">state</span><span class="si">}{</span><span class="n">r</span><span class="p">[</span><span class="s1">'status'</span><span class="p">]</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'rule'</span><span class="p">]</span><span class="si">}</span><span class="s2">]"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s2">"source_kind"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"computed"</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"    computed: </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'source_ref'</span><span class="p">]</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">''</span><span class="si">}</span><span class="s2">; recipe </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'method'</span><span class="p">]</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="s1">''</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"flag"</span><span class="p">,</span> <span class="s2">"override_reason"</span><span class="p">,</span> <span class="s2">"converted"</span><span class="p">,</span> <span class="s2">"decision_reason"</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
                 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"    </span><span class="si">{</span><span class="n">key</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">'_'</span><span class="p">,</span><span class="w"> </span><span class="s1">' '</span><span class="p">)</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
@@ -584,6 +596,23 @@
             <span class="sa">f</span><span class="s2">"PROBLEM  </span><span class="si">{</span><span class="n">p</span><span class="p">[</span><span class="s1">'smiles'</span><span class="p">]</span><span class="si">}</span><span class="s2"> (measurement </span><span class="si">{</span><span class="n">p</span><span class="p">[</span><span class="s1">'measurement'</span><span class="p">]</span><span class="si">}</span><span class="s2">): </span><span class="si">{</span><span class="n">p</span><span class="p">[</span><span class="s1">'problem'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
         <span class="p">)</span>
     <span class="k">return</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">problems</span> <span class="k">else</span> <span class="mi">0</span></div>
+
+
+
+<div class="viewcode-block" id="cmd_add_computed">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.references_cli.cmd_add_computed">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">cmd_add_computed</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.computed</span><span class="w"> </span><span class="kn">import</span> <span class="n">LAYER</span><span class="p">,</span> <span class="n">computed_references_path</span><span class="p">,</span> <span class="n">import_computed</span>
+
+    <span class="n">path</span> <span class="o">=</span> <span class="n">computed_references_path</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">library</span><span class="p">)</span>
+    <span class="n">library</span> <span class="o">=</span> <span class="n">R</span><span class="o">.</span><span class="n">ReferenceLibrary</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">create</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">layer</span><span class="o">=</span><span class="n">LAYER</span><span class="p">)</span>
+    <span class="n">counts</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">smiles</span><span class="p">,</span> <span class="n">outcome</span><span class="p">,</span> <span class="n">detail</span> <span class="ow">in</span> <span class="n">import_computed</span><span class="p">(</span><span class="n">library</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">file</span><span class="p">):</span>
+        <span class="n">counts</span><span class="p">[</span><span class="n">outcome</span><span class="p">]</span> <span class="o">=</span> <span class="n">counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">outcome</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">outcome</span> <span class="o">!=</span> <span class="s2">"added"</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">outcome</span><span class="si">:</span><span class="s2">&gt;8</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="n">smiles</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="n">detail</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">: "</span> <span class="o">+</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">counts</span><span class="o">.</span><span class="n">items</span><span class="p">())))</span>
+    <span class="k">return</span> <span class="mi">1</span> <span class="k">if</span> <span class="s2">"refused"</span> <span class="ow">in</span> <span class="n">counts</span> <span class="k">else</span> <span class="mi">0</span></div>
 
 
 
@@ -673,18 +702,25 @@
 
     <span class="n">p</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="s2">"sources"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"List the sources, with their offsets."</span><span class="p">)</span>
     <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--library"</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">"--rank"</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s2">"append"</span><span class="p">,</span>
+        <span class="n">metavar</span><span class="o">=</span><span class="s2">"NAME=RANK"</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">"change a source's rank first (maintainers), e.g. W4-17=80"</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">p</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">cmd_sources</span><span class="p">)</span>
 
     <span class="n">p</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="s2">"list"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"List the species and their chosen values."</span><span class="p">)</span>
     <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--library"</span><span class="p">)</span>
     <span class="n">p</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">cmd_list</span><span class="p">)</span>
 
-    <span class="n">p</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="s2">"show"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Every value for one species, both layers."</span><span class="p">)</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="s2">"show"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Every value for one species, every layer."</span><span class="p">)</span>
     <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"smiles"</span><span class="p">)</span>
     <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--charge"</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--multiplicity"</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
     <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--local"</span><span class="p">)</span>
     <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--official"</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--computed"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"the computed layer (beside the official)"</span><span class="p">)</span>
     <span class="n">p</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">cmd_show</span><span class="p">)</span>
 
     <span class="n">p</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="s2">"check"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Check every derived value."</span><span class="p">)</span>
@@ -708,6 +744,16 @@
     <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--library"</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--layer"</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">"official"</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">(</span><span class="s2">"official"</span><span class="p">,</span> <span class="s2">"local"</span><span class="p">))</span>
     <span class="n">p</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">cmd_add_curated</span><span class="p">)</span>
+
+    <span class="n">p</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s2">"add-computed"</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">"Read computed (tier-A) values into the computed layer (maintainers)."</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"file"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"CSV of computed values"</span><span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">"--library"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"the computed layer (default: references-computed.db)"</span>
+    <span class="p">)</span>
+    <span class="n">p</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">cmd_add_computed</span><span class="p">)</span>
 
     <span class="n">p</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="s2">"webbook"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"NIST WebBook pages (maintainers)."</span><span class="p">)</span>
     <span class="n">p</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"action"</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">(</span><span class="s2">"fetch"</span><span class="p">,</span> <span class="s2">"import"</span><span class="p">))</span>
