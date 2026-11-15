@@ -82,7 +82,10 @@ CREDITS = {
     "cited.",
     "D0": "Spectroscopic dissociation energies from the cited literature.",
     "W4-17": "W4-17 (Karton, Sylvetsky and Martin, J. Comput. Chem. 38, 2063, "
-    "2017); published data, cited.",
+    "2017); published data, cited. Computed values, ranked behind every "
+    "experimental source.",
+    "Literature": "Measurements from the primary literature that the compilations "
+    "lack; each value cites its paper and DOI.",
     "derived": "Derived from the cited values of the other sources; each "
     "derivation is in the file.",
 }
@@ -107,7 +110,14 @@ def description(report):
         "Environment for Atomistic and Molecular Simulations). SEAMM's "
         "Thermochemistry step takes each reference species from ATcT first and from "
         "this library only when ATcT lacks it; results that use it are labelled "
-        "as mixed.</p>"
+        "as mixed, or as using computed references when one of the values is "
+        "computed.</p>"
+        "<p>Almost all values are experimental. The W4-17 values are computed "
+        "(high-level composite calculations from the literature), so they rank "
+        "behind every experimental source, and SEAMM uses them only when computed "
+        "references are allowed and no experimental value exists. A computed value "
+        "is preferred to an experimental one only when the experimental value is "
+        "held, with the reason recorded.</p>"
         "<p>The library keeps every value each source gives, with its original "
         "citation and its uncertainty as stated; the value chosen per species and "
         "source and the rule that chose it; any decision by a person (who, when "
