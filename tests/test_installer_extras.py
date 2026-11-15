@@ -264,3 +264,44 @@ def test_covariance_cache_merges_on_save(tmp_path):
         ("a", "b"),
         ("c",),
     }
+
+
+def computed_values(path, version):
+    """A real (tiny) computed-values file, returned as bytes."""
+    pytest.importorskip("rdkit")
+    from seamm_thermochemistry.computed import LAYER
+    from seamm_thermochemistry.references import ReferenceLibrary
+
+    library = ReferenceLibrary(path, create=True, layer=LAYER)
+    library.set_meta("version", version)
+    library.close()
+    return Path(path).read_bytes()
+
+
+def test_computed_values_install_and_update(inst, tmp_path, monkeypatch):
+    """The computed reference values (their own Zenodo record) go beside the
+    official reference library, where the step reads them; nothing is done
+    until the record is published (no concept id)."""
+    installer, params = inst
+    assert installer.install_computed_values() == "not published"
+    v1 = computed_values(tmp_path / "c1.db", "2026.11.15")
+    v2 = computed_values(tmp_path / "c2.db", "2026.12.1")
+    monkeypatch.setattr(
+        installer, "_published_file_md5s", lambda r, f: {md5(v1), md5(v2)}
+    )
+    monkeypatch.setattr(installer, "computed_values_concept_id", 1)
+    name = "references-computed.db"
+    monkeypatch.setattr(installer, "_computed_record", lambda: Record(v1, name))
+    assert installer.install_computed_values() == "installed"
+    path = params / name
+    assert path.parent == installer._references_path().parent
+    assert installer._references_version(path) == "2026.11.15"
+    assert installer.configuration.get_values("thermochemistry")[
+        "computed-values-md5"
+    ] == md5(v1)
+    assert installer.install_computed_values() == "up to date"
+    monkeypatch.setattr(installer, "_computed_record", lambda: Record(v2, name))
+    assert installer.install_computed_values() == "updated"
+    assert installer._references_version(path) == "2026.12.1"
+    path.write_bytes(b"edited by hand")
+    assert installer.install_computed_values() == "kept"
