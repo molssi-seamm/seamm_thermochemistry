@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.hooks &#8212; SEAMM thermochemistry Plug-in 2026.11.13.4 documentation</title>
+    <title>seamm_thermochemistry.hooks &#8212; SEAMM thermochemistry Plug-in 2026.11.15 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=b9d0f15f"></script>
+    <script src="../../_static/documentation_options.js?v=7f90a600"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.13.4" />
+  <meta name="docsearch:version" content="2026.11.15" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -458,15 +458,19 @@
 
 <div class="viewcode-block" id="write_marker">
 <a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.hooks.write_marker">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">write_marker</span><span class="p">(</span><span class="n">job_directory</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">reason</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">write_marker</span><span class="p">(</span><span class="n">job_directory</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">reason</span><span class="p">,</span> <span class="n">convergence_recorded</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Add species to the job's marker (the step calls this when it cannot write</span>
-<span class="sd">    the store). Never raises."""</span>
+<span class="sd">    the store). Only these species are harvested. `convergence_recorded`: the</span>
+<span class="sd">    step records whether each species' optimization converged, so a species</span>
+<span class="sd">    with no record is refused. Never raises."""</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">job_directory</span><span class="p">)</span> <span class="o">/</span> <span class="n">MARKER</span>
         <span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"reason"</span><span class="p">:</span> <span class="n">reason</span><span class="p">,</span> <span class="s2">"species"</span><span class="p">:</span> <span class="p">[]}</span>
         <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
             <span class="n">data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">read_text</span><span class="p">())</span>
         <span class="n">data</span><span class="p">[</span><span class="s2">"reason"</span><span class="p">]</span> <span class="o">=</span> <span class="n">reason</span>
+        <span class="k">if</span> <span class="n">convergence_recorded</span><span class="p">:</span>
+            <span class="n">data</span><span class="p">[</span><span class="s2">"convergence recorded"</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">species</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">s</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s2">"species"</span><span class="p">]:</span>
                 <span class="n">data</span><span class="p">[</span><span class="s2">"species"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
@@ -516,8 +520,20 @@
                 <span class="n">source</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
             <span class="k">if</span> <span class="p">(</span><span class="n">wdir</span> <span class="o">/</span> <span class="s2">"job_data.json"</span><span class="p">)</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
                 <span class="n">shutil</span><span class="o">.</span><span class="n">copy2</span><span class="p">(</span><span class="n">wdir</span> <span class="o">/</span> <span class="s2">"job_data.json"</span><span class="p">,</span> <span class="n">tmp</span> <span class="o">/</span> <span class="s2">"job_data.json"</span><span class="p">)</span>
+            <span class="c1"># Only the species the job listed (it lists those it may store);</span>
+            <span class="c1"># a marker without a list, from an older step: all, with the checks</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">listed</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">marker</span><span class="o">.</span><span class="n">read_text</span><span class="p">())</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="n">listed</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">species</span> <span class="o">=</span> <span class="n">listed</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"species"</span><span class="p">)</span> <span class="ow">or</span> <span class="kc">None</span>
             <span class="k">with</span> <span class="n">FragmentStore</span><span class="p">(</span><span class="n">create</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">store</span><span class="p">:</span>
-                <span class="n">counts</span> <span class="o">=</span> <span class="n">harvest_job</span><span class="p">(</span><span class="n">tmp</span><span class="p">,</span> <span class="n">store</span><span class="p">)</span>
+                <span class="n">counts</span> <span class="o">=</span> <span class="n">harvest_job</span><span class="p">(</span>
+                    <span class="n">tmp</span><span class="p">,</span>
+                    <span class="n">store</span><span class="p">,</span>
+                    <span class="n">species</span><span class="o">=</span><span class="n">species</span><span class="p">,</span>
+                    <span class="n">require_converged</span><span class="o">=</span><span class="nb">bool</span><span class="p">(</span><span class="n">listed</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"convergence recorded"</span><span class="p">)),</span>
+                <span class="p">)</span>
         <span class="c1"># The job is identified by its own directory, not the copy</span>
         <span class="n">summary</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">"job"</span><span class="p">:</span> <span class="n">job_id</span><span class="p">,</span>
@@ -528,6 +544,7 @@
             <span class="s2">"logged"</span><span class="p">:</span> <span class="n">counts</span><span class="p">[</span><span class="s2">"logged"</span><span class="p">],</span>
             <span class="s2">"geometry"</span><span class="p">:</span> <span class="n">counts</span><span class="p">[</span><span class="s2">"geometry"</span><span class="p">],</span>
             <span class="s2">"energy"</span><span class="p">:</span> <span class="n">counts</span><span class="p">[</span><span class="s2">"energy"</span><span class="p">],</span>
+            <span class="s2">"no convergence record"</span><span class="p">:</span> <span class="n">counts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"no convergence record"</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
             <span class="s2">"skipped"</span><span class="p">:</span> <span class="n">counts</span><span class="p">[</span><span class="s2">"skipped"</span><span class="p">],</span>
         <span class="p">}</span>
         <span class="p">(</span><span class="n">wdir</span> <span class="o">/</span> <span class="n">DONE</span><span class="p">)</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">summary</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>

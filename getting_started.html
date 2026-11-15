@@ -7,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.11.13.4 documentation</title>
+    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.11.15 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="_static/documentation_options.js?v=b9d0f15f"></script>
+    <script src="_static/documentation_options.js?v=7f90a600"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -55,7 +55,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.13.4" />
+  <meta name="docsearch:version" content="2026.11.15" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -751,7 +751,10 @@ read, with a warning, as the older schema.</p>
 job’s directory. A JobServer runs the plug-ins’ <code class="docutils literal notranslate"><span class="pre">job_finished</span></code> hooks when a job
 ends and its files are back on the JobServer’s host; this package’s hook harvests
 a job carrying that marker into the store there, once (the marker becomes
-<code class="docutils literal notranslate"><span class="pre">harvest_fragments.done.json</span></code>, with the tallies). A job run without a JobServer
+<code class="docutils literal notranslate"><span class="pre">harvest_fragments.done.json</span></code>, with the tallies). The marker lists the species
+the job may store, and the hook harvests only those; a marker from an older step
+without a list has every <code class="docutils literal notranslate"><span class="pre">CBH:</span></code> species harvested, with the checks above. When
+the step says it records convergence, a species with no record is refused. A job run without a JobServer
 is harvested by hand, as before.</p>
 <p>Results are checked before they go in, by write-back and by the harvest:</p>
 <ul class="simple">
@@ -764,6 +767,12 @@ optimized is refused. <code class="docutils literal notranslate"><span class="pr
 <li><p><strong>Imaginary modes</strong> (write-back): a geometry with a mode beyond 20i is refused,
 with every energy on it. The harvest stores such a geometry, for its provenance,
 but lookups never return it.</p></li>
+<li><p><strong>Convergence.</strong> A species whose optimization did not converge (the property
+<code class="docutils literal notranslate"><span class="pre">optimization</span> <span class="pre">converged#Thermochemistry#&lt;level&gt;</span></code> that the Thermochemistry step
+records is <code class="docutils literal notranslate"><span class="pre">no</span></code>) is refused, by write-back and by the harvest. Results from
+before this was recorded have no such property; they are taken, and the harvest
+counts them (“no convergence record”). <code class="docutils literal notranslate"><span class="pre">harvest</span> <span class="pre">--require-converged</span></code> refuses
+them instead.</p></li>
 <li><p><strong>Conformers</strong> (write-back): a geometry lower in E + ZPE than every stored one of
 the species at its level, by more than 0.1 kJ/mol, and structurally distinct
 from each (RMSD above 0.05 Å after the best, symmetry-aware alignment), is added

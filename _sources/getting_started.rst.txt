@@ -334,7 +334,10 @@ When the step cannot write the store, it leaves ``harvest_fragments.json`` in th
 job's directory. A JobServer runs the plug-ins' ``job_finished`` hooks when a job
 ends and its files are back on the JobServer's host; this package's hook harvests
 a job carrying that marker into the store there, once (the marker becomes
-``harvest_fragments.done.json``, with the tallies). A job run without a JobServer
+``harvest_fragments.done.json``, with the tallies). The marker lists the species
+the job may store, and the hook harvests only those; a marker from an older step
+without a list has every ``CBH:`` species harvested, with the checks above. When
+the step says it records convergence, a species with no record is refused. A job run without a JobServer
 is harvested by hand, as before.
 
 Results are checked before they go in, by write-back and by the harvest:
@@ -348,6 +351,12 @@ Results are checked before they go in, by write-back and by the harvest:
 * **Imaginary modes** (write-back): a geometry with a mode beyond 20i is refused,
   with every energy on it. The harvest stores such a geometry, for its provenance,
   but lookups never return it.
+* **Convergence.** A species whose optimization did not converge (the property
+  ``optimization converged#Thermochemistry#<level>`` that the Thermochemistry step
+  records is ``no``) is refused, by write-back and by the harvest. Results from
+  before this was recorded have no such property; they are taken, and the harvest
+  counts them ("no convergence record"). ``harvest --require-converged`` refuses
+  them instead.
 * **Conformers** (write-back): a geometry lower in E + ZPE than every stored one of
   the species at its level, by more than 0.1 kJ/mol, and structurally distinct
   from each (RMSD above 0.05 Å after the best, symmetry-aware alignment), is added
