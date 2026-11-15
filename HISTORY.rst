@@ -1,6 +1,16 @@
 =======
 History
 =======
+2026.11.15 -- Bugfix: unconverged species could reach the fragment store
+    * A species whose optimization had not converged was kept out of the store by
+      a running job, but a job on a cluster, which cannot write the store itself,
+      was harvested when it returned to its JobServer with all its species,
+      including those. The harvest now refuses a species whose recorded
+      "optimization converged" is "no", and the JobServer hook harvests only the
+      species the job listed as storable.
+    * Results from before convergence was recorded are taken and counted ("no
+      convergence record"); "harvest --require-converged" refuses them instead.
+
 2026.11.13.4 -- Bugfix: CBH species that the force fields build wrongly
     * The CBH species started from the lowest of several force-field (MMFF94 or
       UFF) conformers even when the force field had broken the structure: bridged

@@ -977,6 +977,8 @@ def harvest_job(
     species_map=None,
     tables="all",
     structure_check=True,
+    species=None,
+    require_converged=False,
 ):
     """Promote the species energies of one job into the store.
 
@@ -1027,7 +1029,14 @@ def harvest_job(
 
     With `structure_check` (the default) a structure whose bonds, perceived
     again from its coordinates, are not those of its species, or that has atoms
-    too close together, is refused (see :func:`check_structure`).
+    too close together, is refused (see :func:`check_structure`). A species
+    whose optimization did not converge is refused, and one with no record of
+    it is refused only with `require_converged` (see
+    :func:`harvest_configuration`).
+
+    With `species` (SMILES, e.g. the job's own list of the species it could not
+    write itself) only those species are harvested; the others are reported in
+    "skipped".
 
     Returns {"inserted": n, "duplicate": n, "logged": n, "superseded": n,
     "skipped": [reasons], "geometry": {outcome: n}, "energy": {outcome: n}},
@@ -1055,6 +1064,16 @@ def harvest_job(
     job = f"{job_id}:{job_directory}" if job_id is not None else str(job_directory)
 
     counts = new_counts()
+    wanted = None
+    if species is not None:
+        wanted = set()
+        for smiles in species:
+            try:
+                from .atct import canonical_smiles
+
+                wanted.add(canonical_smiles(smiles))
+            except Exception:
+                wanted.add(smiles)
     if tables not in ("all", "geometry"):
         raise ValueError(f"tables must be 'all' or 'geometry', not '{tables}'")
 
@@ -1083,6 +1102,11 @@ def harvest_job(
                     species = canonical_smiles(species)
                 except Exception:
                     pass
+            if wanted is not None and species not in wanted:
+                counts["skipped"].append(
+                    f"{system.name}: not in the job's list of species to harvest"
+                )
+                continue
             configuration = system.configuration
             if mapped is not None and mapped.get("configuration name"):
                 try:
@@ -1122,6 +1146,7 @@ def harvest_job(
                 force=force,
                 tables=tables,
                 structure_check=structure_check,
+                require_converged=require_converged,
                 counts=counts,
             )
     finally:
@@ -1137,6 +1162,7 @@ def new_counts():
         "logged": 0,
         "superseded": 0,
         "quarantined": 0,
+        "no convergence record": 0,
         "skipped": [],
         "geometry": {},
         "energy": {},
@@ -1189,6 +1215,30 @@ def _imaginary_modes(properties, pattern="frequencies#*#*"):
     return worst
 
 
+#: The property in which the Thermochemistry step records whether a species'
+#: optimization converged: "yes", "no" or "not optimized"
+CONVERGED_PROPERTY = "optimization converged"
+
+
+def _converged(properties, pattern=CONVERGED_PROPERTY + "#*#*"):
+    """Whether the optimization of a configuration converged: False if any
+    record says "no", True if one says "yes" or "not optimized", None when there
+    is no record (results from before it was recorded)."""
+    try:
+        values = properties.get(pattern=pattern, match="glob")
+    except Exception:  # pragma: no cover
+        return None
+    if not values:
+        return None
+    result = True
+    for value in values.values():
+        if isinstance(value, dict):
+            value = value.get("value")
+        if str(value).strip().lower() == "no":
+            result = False
+    return result
+
+
 def harvest_configuration(
     store,
     configuration,
@@ -1210,6 +1260,7 @@ def harvest_configuration(
     tables="all",
     structure_check=True,
     write_back=False,
+    require_converged=False,
     counts=None,
 ):
     """Put one configuration's species into the store: what :func:`harvest_job`
@@ -1222,7 +1273,11 @@ def harvest_configuration(
     :func:`harvest_job` for the properties read and the guards.
 
     A geometry with an imaginary mode beyond ``IMAGINARY_TOLERANCE`` is
-    refused, with every energy on it, in a harvest as in a write-back. A key
+    refused, with every energy on it, in a harvest as in a write-back, as is
+    one whose optimization did not converge (the ``optimization converged``
+    property is "no"). A configuration with no such record (results from
+    before it was recorded) is taken and counted in "no convergence record",
+    unless `require_converged`, when it is refused. A key
     held by a row quarantined by hand (``UNUSABLE: <reason>``) keeps it: the
     attempt is logged and reported, "quarantined" in the tallies, and only an
     explicit `supersede` (a person's decision, with a reason) replaces it.
@@ -1305,6 +1360,18 @@ def harvest_configuration(
         counts["skipped"].append(f"{name_for}: refused, {reason}")
         note(None, "refused", reason=reason)
         return finish()
+    converged = _converged(properties)
+    if converged is False or (converged is None and require_converged):
+        reason = (
+            "its optimization did not converge"
+            if converged is False
+            else "no record of whether its optimization converged"
+        )
+        counts["skipped"].append(f"{name_for}: refused, {reason}")
+        note(None, "refused", reason=reason)
+        return finish()
+    if converged is None:
+        counts["no convergence record"] = counts.get("no convergence record", 0) + 1
 
     for name, value in energies.items():
         if isinstance(value, dict):

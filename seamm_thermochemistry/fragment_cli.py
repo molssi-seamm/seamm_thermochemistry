@@ -104,6 +104,12 @@ def main(argv=None):
         "together.",
     )
     harvest.add_argument(
+        "--require-converged",
+        action="store_true",
+        help="Refuse species with no record of whether their optimization "
+        "converged (results from before it was recorded are taken by default).",
+    )
+    harvest.add_argument(
         "--force",
         action="store_true",
         help="With --supersede, also replace values that differ by less than the "
@@ -259,6 +265,7 @@ def main(argv=None):
                         species_map=species_map,
                         tables=args.tables,
                         structure_check=not args.no_structure_check,
+                        require_converged=args.require_converged,
                     )
                     print(
                         f"{job}: {counts['inserted']} inserted, "
@@ -280,6 +287,11 @@ def main(argv=None):
                                     f"{n} {k}" for k, n in sorted(tally.items())
                                 )
                             )
+                    if counts.get("no convergence record"):
+                        print(
+                            f"    {counts['no convergence record']} species with no "
+                            "record of whether their optimization converged (taken)"
+                        )
                     for reason in counts["skipped"]:
                         print(f"    skipped {reason}")
             print(f"Store: {store.path}")

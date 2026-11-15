@@ -220,6 +220,7 @@ def test_harvest(job, store):
         "logged": 0,
         "superseded": 0,
         "quarantined": 0,
+        "no convergence record": 4,
         "skipped": [],
         "geometry": {"duplicate": 1},
         "energy": {"duplicate": 4},
