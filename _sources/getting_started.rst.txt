@@ -246,6 +246,16 @@ results; E, ZPE and H(298.15 K) are separate fields, since the levels can
 differ. A record with no fingerprint is keyed on the model chemistry and
 code version, flagged unverified, and used only when nothing verified exists.
 
+``lookup`` and ``geometries`` answer in two ways. With ``--fingerprint`` they answer as
+a calculation would: the verified row with that fingerprint, else an unverified row of
+``--model-chemistry``. Without it they browse the store: the rows at
+``--model-chemistry``, verified ones too (listed first), or, when no level is given and
+the species is stored at several, the levels with their fingerprints (exit status 1, so a
+script notices). When nothing matches they say why: the species is stored at another
+charge or multiplicity (a radical such as ``[CH]=O`` needs ``--multiplicity 2``), at
+other levels, or only in quarantined rows. ``list`` and ``lookup`` print each record's
+fingerprints, ready for ``--fingerprint``.
+
 The conformer is not part of the key, so a value found later to be wrong (a
 fragment harvested in a higher-energy conformer, say) is replaced only on
 purpose: harvest the corrected job with ``--supersede "REASON"``. The stored

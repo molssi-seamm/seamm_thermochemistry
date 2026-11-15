@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.fragment_cli &#8212; SEAMM thermochemistry Plug-in 2026.11.15 documentation</title>
+    <title>seamm_thermochemistry.fragment_cli &#8212; SEAMM thermochemistry Plug-in 2026.11.15.1 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=7f90a600"></script>
+    <script src="../../_static/documentation_options.js?v=1e57d476"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.15" />
+  <meta name="docsearch:version" content="2026.11.15.1" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -449,6 +449,13 @@
 <span class="sd">writes; ``--official`` is the official store (``fragments-official.db``, read</span>
 <span class="sd">only), which ``lookup`` and ``geometries`` read after the local one. Run</span>
 <span class="sd">``harvest`` on the host after a job has finished, never on a compute node.</span>
+
+<span class="sd">``lookup`` and ``geometries`` with ``--fingerprint`` answer as a calculation</span>
+<span class="sd">would: a verified row only by its fingerprint. Without it they browse: the rows</span>
+<span class="sd">at ``--model-chemistry``, verified ones too (listed first), or the levels the</span>
+<span class="sd">species is stored at, with their fingerprints; when nothing matches they say</span>
+<span class="sd">why (another charge or multiplicity, another level, quarantined rows). ``list``</span>
+<span class="sd">and ``lookup`` print each record's fingerprints.</span>
 <span class="sd">"""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
@@ -549,21 +556,37 @@
     <span class="n">lst</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="s2">"list"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"List the records, or those of one species."</span><span class="p">)</span>
     <span class="n">lst</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"species"</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s2">"?"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Canonical SMILES."</span><span class="p">)</span>
 
-    <span class="n">lookup</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span><span class="s2">"lookup"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"The best record for a species."</span><span class="p">)</span>
+    <span class="n">lookup</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
+        <span class="s2">"lookup"</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">"The records of a species at a level, or the levels it is stored at."</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">"With --fingerprint, the record a calculation with that "</span>
+        <span class="s2">"energy fingerprint would use. Without, the species' records at "</span>
+        <span class="s2">"--model-chemistry (verified ones first), or the levels to choose from "</span>
+        <span class="s2">"when it is stored at several. 'list SMILES' shows every record."</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">lookup</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"species"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Canonical SMILES."</span><span class="p">)</span>
     <span class="n">lookup</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--charge"</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     <span class="n">lookup</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--multiplicity"</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">lookup</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--model-chemistry"</span><span class="p">)</span>
+    <span class="n">lookup</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">"--model-chemistry"</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">"The level, e.g. 'ORCA:DFT@REVDSD-PBEP86-D4_2021/def2-TZVPP'."</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">lookup</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--fingerprint"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"The energy fingerprint."</span><span class="p">)</span>
 
     <span class="n">geo</span> <span class="o">=</span> <span class="n">sub</span><span class="o">.</span><span class="n">add_parser</span><span class="p">(</span>
         <span class="s2">"geometries"</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s2">"The geometries of a species and the energies on each."</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">"With --fingerprint, the geometries a calculation with that "</span>
+        <span class="s2">"frequency fingerprint would use. Without, the species' geometries at "</span>
+        <span class="s2">"--model-chemistry (verified ones first), or the levels to choose from "</span>
+        <span class="s2">"when it is stored at several."</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">geo</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"species"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"Canonical SMILES."</span><span class="p">)</span>
     <span class="n">geo</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--charge"</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     <span class="n">geo</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--multiplicity"</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">geo</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--model-chemistry"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"The frequency level."</span><span class="p">)</span>
+    <span class="n">geo</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">"--model-chemistry"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"The frequency level, e.g. 'ORCA:CMP@R2SCAN-3C'."</span>
+    <span class="p">)</span>
     <span class="n">geo</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">"--fingerprint"</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">"The frequency fingerprint."</span><span class="p">)</span>
     <span class="n">geo</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
         <span class="s2">"--include-imaginary"</span><span class="p">,</span>
@@ -733,6 +756,8 @@
                 <span class="n">_print</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">command</span> <span class="o">==</span> <span class="s2">"lookup"</span><span class="p">:</span>
             <span class="n">store</span> <span class="o">=</span> <span class="n">LayeredStore</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">store</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">official</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">fingerprint</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">_browse</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s2">"fragment"</span><span class="p">)</span>
             <span class="n">r</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
                 <span class="n">args</span><span class="o">.</span><span class="n">species</span><span class="p">,</span>
                 <span class="n">charge</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">charge</span><span class="p">,</span>
@@ -741,13 +766,19 @@
                 <span class="n">model_chemistry</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">model_chemistry</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="k">if</span> <span class="n">r</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s2">"No record."</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"No record of </span><span class="si">{</span><span class="n">_state</span><span class="p">(</span><span class="n">args</span><span class="p">)</span><span class="si">}</span><span class="s2"> with the energy fingerprint "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">fingerprint</span><span class="si">}</span><span class="s2">."</span>
+                <span class="p">)</span>
+                <span class="n">_browse</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s2">"fragment"</span><span class="p">,</span> <span class="n">levels_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                 <span class="k">return</span> <span class="mi">1</span>
-            <span class="n">_print</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+            <span class="n">_print</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">store</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">note</span> <span class="ow">in</span> <span class="n">store</span><span class="o">.</span><span class="n">notes</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"    note: </span><span class="si">{</span><span class="n">note</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">command</span> <span class="o">==</span> <span class="s2">"geometries"</span><span class="p">:</span>
             <span class="n">store</span> <span class="o">=</span> <span class="n">LayeredStore</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">store</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">official</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">fingerprint</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">_browse</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s2">"geometry"</span><span class="p">)</span>
             <span class="n">rows</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">geometries</span><span class="p">(</span>
                 <span class="n">args</span><span class="o">.</span><span class="n">species</span><span class="p">,</span>
                 <span class="n">charge</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">charge</span><span class="p">,</span>
@@ -757,26 +788,14 @@
                 <span class="n">include_imaginary</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">include_imaginary</span><span class="p">,</span>
             <span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">rows</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s2">"No geometry."</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"No geometry of </span><span class="si">{</span><span class="n">_state</span><span class="p">(</span><span class="n">args</span><span class="p">)</span><span class="si">}</span><span class="s2"> with the frequency fingerprint "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">fingerprint</span><span class="si">}</span><span class="s2">."</span>
+                <span class="p">)</span>
+                <span class="n">_browse</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="s2">"geometry"</span><span class="p">,</span> <span class="n">levels_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                 <span class="k">return</span> <span class="mi">1</span>
             <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
-                <span class="n">flag</span> <span class="o">=</span> <span class="s2">""</span> <span class="k">if</span> <span class="n">g</span><span class="p">[</span><span class="s2">"verified"</span><span class="p">]</span> <span class="k">else</span> <span class="s2">" [unverified]"</span>
-                <span class="n">imaginary</span> <span class="o">=</span> <span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">", </span><span class="si">{</span><span class="n">g</span><span class="p">[</span><span class="s1">'n_imaginary'</span><span class="p">]</span><span class="si">}</span><span class="s2"> imaginary"</span> <span class="k">if</span> <span class="n">g</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"n_imaginary"</span><span class="p">)</span> <span class="k">else</span> <span class="s2">""</span>
-                <span class="p">)</span>
-                <span class="n">label</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">" conformer '</span><span class="si">{</span><span class="n">g</span><span class="p">[</span><span class="s1">'conformer'</span><span class="p">]</span><span class="si">}</span><span class="s2">'"</span> <span class="k">if</span> <span class="n">g</span><span class="p">[</span><span class="s2">"conformer"</span><span class="p">]</span> <span class="k">else</span> <span class="s2">""</span>
-                <span class="nb">print</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">g</span><span class="p">[</span><span class="s1">'species'</span><span class="p">]</span><span class="si">}{</span><span class="n">label</span><span class="si">}</span><span class="s2"> at </span><span class="si">{</span><span class="n">_level</span><span class="p">(</span><span class="n">g</span><span class="p">)</span><span class="si">}{</span><span class="n">flag</span><span class="si">}</span><span class="s2">: "</span>
-                    <span class="sa">f</span><span class="s2">"E = </span><span class="si">{</span><span class="n">g</span><span class="p">[</span><span class="s1">'E'</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">, ZPE = </span><span class="si">{</span><span class="n">g</span><span class="p">[</span><span class="s1">'ZPE'</span><span class="p">]</span><span class="si">}</span><span class="s2">, H = </span><span class="si">{</span><span class="n">g</span><span class="p">[</span><span class="s1">'H'</span><span class="p">]</span><span class="si">}</span><span class="s2"> kJ/mol"</span>
-                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">imaginary</span><span class="si">}</span><span class="s2">; </span><span class="si">{</span><span class="n">g</span><span class="p">[</span><span class="s1">'geometry_hash'</span><span class="p">]</span><span class="si">}</span><span class="s2"> from </span><span class="si">{</span><span class="n">g</span><span class="p">[</span><span class="s1">'job'</span><span class="p">]</span><span class="si">}</span><span class="s2"> "</span>
-                    <span class="sa">f</span><span class="s2">"[</span><span class="si">{</span><span class="n">store</span><span class="o">.</span><span class="n">layer_name</span><span class="p">(</span><span class="n">g</span><span class="p">[</span><span class="s1">'layer'</span><span class="p">])</span><span class="si">}</span><span class="s2">]"</span>
-                <span class="p">)</span>
-                <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">store</span><span class="o">.</span><span class="n">energies</span><span class="p">(</span><span class="n">g</span><span class="p">[</span><span class="s2">"geometry_hash"</span><span class="p">]):</span>
-                    <span class="n">eflag</span> <span class="o">=</span> <span class="s2">""</span> <span class="k">if</span> <span class="n">e</span><span class="p">[</span><span class="s2">"verified"</span><span class="p">]</span> <span class="k">else</span> <span class="s2">" [unverified]"</span>
-                    <span class="nb">print</span><span class="p">(</span>
-                        <span class="sa">f</span><span class="s2">"    </span><span class="si">{</span><span class="n">_level</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}{</span><span class="n">eflag</span><span class="si">}</span><span class="s2">: E = </span><span class="si">{</span><span class="n">e</span><span class="p">[</span><span class="s1">'E'</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> kJ/mol "</span>
-                        <span class="sa">f</span><span class="s2">"from </span><span class="si">{</span><span class="n">e</span><span class="p">[</span><span class="s1">'job'</span><span class="p">]</span><span class="si">}</span><span class="s2"> [</span><span class="si">{</span><span class="n">store</span><span class="o">.</span><span class="n">layer_name</span><span class="p">(</span><span class="n">e</span><span class="p">[</span><span class="s1">'layer'</span><span class="p">])</span><span class="si">}</span><span class="s2">]"</span>
-                    <span class="p">)</span>
+                <span class="n">_print_geometry</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">store</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">note</span> <span class="ow">in</span> <span class="n">store</span><span class="o">.</span><span class="n">notes</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"    note: </span><span class="si">{</span><span class="n">note</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">command</span> <span class="o">==</span> <span class="s2">"writeback-log"</span><span class="p">:</span>
@@ -947,7 +966,14 @@
     <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">program</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">model</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">program</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">model</span><span class="si">}</span><span class="s2">"</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_print</span><span class="p">(</span><span class="n">r</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_layer</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">store</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""' [local]' or ' [official &lt;version&gt;]' for a row read through layers."""</span>
+    <span class="k">if</span> <span class="n">store</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="s2">"layer"</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">row</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">""</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">" [</span><span class="si">{</span><span class="n">store</span><span class="o">.</span><span class="n">layer_name</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s1">'layer'</span><span class="p">])</span><span class="si">}</span><span class="s2">]"</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_print</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">store</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="n">flag</span> <span class="o">=</span> <span class="s2">""</span> <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s2">"verified"</span><span class="p">]</span> <span class="k">else</span> <span class="s2">" [unverified]"</span>
     <span class="n">values</span> <span class="o">=</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
         <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"E"</span><span class="p">,</span> <span class="s2">"ZPE"</span><span class="p">,</span> <span class="s2">"H"</span><span class="p">)</span> <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
@@ -955,8 +981,193 @@
     <span class="nb">print</span><span class="p">(</span>
         <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'species'</span><span class="p">]</span><span class="si">}</span><span class="s2"> (q=</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'charge'</span><span class="p">]</span><span class="si">}</span><span class="s2">, 2S+1=</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'multiplicity'</span><span class="p">]</span><span class="si">}</span><span class="s2">) "</span>
         <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">_level</span><span class="p">(</span><span class="n">r</span><span class="p">)</span><span class="si">}{</span><span class="n">flag</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">values</span><span class="si">}</span><span class="s2"> kJ/mol; from </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'job'</span><span class="p">]</span><span class="si">}</span><span class="s2"> "</span>
-        <span class="sa">f</span><span class="s2">"on </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'date'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+        <span class="sa">f</span><span class="s2">"on </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'date'</span><span class="p">]</span><span class="si">}{</span><span class="n">_layer</span><span class="p">(</span><span class="n">r</span><span class="p">,</span><span class="w"> </span><span class="n">store</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
     <span class="p">)</span>
+    <span class="n">fingerprints</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">what</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+        <span class="k">for</span> <span class="n">what</span><span class="p">,</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span>
+            <span class="p">(</span><span class="s2">"energy"</span><span class="p">,</span> <span class="s2">"energy_fingerprint"</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">"frequency"</span><span class="p">,</span> <span class="s2">"frequency_fingerprint"</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+    <span class="p">]</span>
+    <span class="k">if</span> <span class="n">fingerprints</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"    fingerprints: </span><span class="si">{</span><span class="s1">'; '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">fingerprints</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_print_geometry</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">store</span><span class="p">):</span>
+    <span class="n">flag</span> <span class="o">=</span> <span class="s2">""</span> <span class="k">if</span> <span class="n">g</span><span class="p">[</span><span class="s2">"verified"</span><span class="p">]</span> <span class="k">else</span> <span class="s2">" [unverified]"</span>
+    <span class="n">imaginary</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">", </span><span class="si">{</span><span class="n">g</span><span class="p">[</span><span class="s1">'n_imaginary'</span><span class="p">]</span><span class="si">}</span><span class="s2"> imaginary"</span> <span class="k">if</span> <span class="n">g</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"n_imaginary"</span><span class="p">)</span> <span class="k">else</span> <span class="s2">""</span>
+    <span class="n">label</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">" conformer '</span><span class="si">{</span><span class="n">g</span><span class="p">[</span><span class="s1">'conformer'</span><span class="p">]</span><span class="si">}</span><span class="s2">'"</span> <span class="k">if</span> <span class="n">g</span><span class="p">[</span><span class="s2">"conformer"</span><span class="p">]</span> <span class="k">else</span> <span class="s2">""</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">g</span><span class="p">[</span><span class="s1">'species'</span><span class="p">]</span><span class="si">}{</span><span class="n">label</span><span class="si">}</span><span class="s2"> (q=</span><span class="si">{</span><span class="n">g</span><span class="p">[</span><span class="s1">'charge'</span><span class="p">]</span><span class="si">}</span><span class="s2">, 2S+1=</span><span class="si">{</span><span class="n">g</span><span class="p">[</span><span class="s1">'multiplicity'</span><span class="p">]</span><span class="si">}</span><span class="s2">) at "</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">_level</span><span class="p">(</span><span class="n">g</span><span class="p">)</span><span class="si">}{</span><span class="n">flag</span><span class="si">}</span><span class="s2">: E = </span><span class="si">{</span><span class="n">_kj</span><span class="p">(</span><span class="n">g</span><span class="p">[</span><span class="s1">'E'</span><span class="p">])</span><span class="si">}</span><span class="s2">, ZPE = </span><span class="si">{</span><span class="n">_kj</span><span class="p">(</span><span class="n">g</span><span class="p">[</span><span class="s1">'ZPE'</span><span class="p">])</span><span class="si">}</span><span class="s2">, "</span>
+        <span class="sa">f</span><span class="s2">"H = </span><span class="si">{</span><span class="n">_kj</span><span class="p">(</span><span class="n">g</span><span class="p">[</span><span class="s1">'H'</span><span class="p">])</span><span class="si">}</span><span class="s2"> kJ/mol</span><span class="si">{</span><span class="n">imaginary</span><span class="si">}</span><span class="s2">; </span><span class="si">{</span><span class="n">g</span><span class="p">[</span><span class="s1">'geometry_hash'</span><span class="p">]</span><span class="si">}</span><span class="s2"> from </span><span class="si">{</span><span class="n">g</span><span class="p">[</span><span class="s1">'job'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">_layer</span><span class="p">(</span><span class="n">g</span><span class="p">,</span><span class="w"> </span><span class="n">store</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">g</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"frequency_fingerprint"</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"    frequency fingerprint: </span><span class="si">{</span><span class="n">g</span><span class="p">[</span><span class="s1">'frequency_fingerprint'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">store</span><span class="o">.</span><span class="n">energies</span><span class="p">(</span><span class="n">g</span><span class="p">[</span><span class="s2">"geometry_hash"</span><span class="p">]):</span>
+        <span class="n">eflag</span> <span class="o">=</span> <span class="s2">""</span> <span class="k">if</span> <span class="n">e</span><span class="p">[</span><span class="s2">"verified"</span><span class="p">]</span> <span class="k">else</span> <span class="s2">" [unverified]"</span>
+        <span class="k">if</span> <span class="n">F</span><span class="o">.</span><span class="n">is_unusable</span><span class="p">(</span><span class="n">e</span><span class="p">[</span><span class="s2">"model_chemistry"</span><span class="p">]):</span>
+            <span class="k">continue</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"    </span><span class="si">{</span><span class="n">_level</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="si">}{</span><span class="n">eflag</span><span class="si">}</span><span class="s2">: E = </span><span class="si">{</span><span class="n">e</span><span class="p">[</span><span class="s1">'E'</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> kJ/mol from </span><span class="si">{</span><span class="n">e</span><span class="p">[</span><span class="s1">'job'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">_layer</span><span class="p">(</span><span class="n">e</span><span class="p">,</span><span class="w"> </span><span class="n">store</span><span class="p">)</span><span class="si">}</span><span class="s2">; energy fingerprint </span><span class="si">{</span><span class="n">e</span><span class="p">[</span><span class="s1">'energy_fingerprint'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_state</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">species</span><span class="si">}</span><span class="s2"> (q=</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">charge</span><span class="si">}</span><span class="s2">, 2S+1=</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">multiplicity</span><span class="si">}</span><span class="s2">)"</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_level_key</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">table</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""What tells one level from another: the model chemistry, whether the row</span>
+<span class="sd">    is verified, and its fingerprints (energy and frequency for records,</span>
+<span class="sd">    frequency for geometries)."""</span>
+    <span class="k">if</span> <span class="n">table</span> <span class="o">==</span> <span class="s2">"fragment"</span><span class="p">:</span>
+        <span class="n">fingerprints</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="s2">"energy"</span><span class="p">,</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"energy_fingerprint"</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">),</span>
+            <span class="p">(</span><span class="s2">"frequency"</span><span class="p">,</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"frequency_fingerprint"</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">),</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">fingerprints</span> <span class="o">=</span> <span class="p">((</span><span class="s2">"frequency"</span><span class="p">,</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"frequency_fingerprint"</span><span class="p">)</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">),)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">_level</span><span class="p">(</span><span class="n">row</span><span class="p">),</span> <span class="nb">bool</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">"verified"</span><span class="p">]),</span> <span class="n">fingerprints</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_kj</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s2">"None"</span> <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">value</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">"</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_browse</span><span class="p">(</span><span class="n">store</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">levels_only</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""``lookup`` or ``geometries`` without a fingerprint: every usable row of</span>
+<span class="sd">    the species at the charge and multiplicity, at the level asked for, or the</span>
+<span class="sd">    levels to choose from; and, when nothing matches, why.</span>
+
+<span class="sd">    A calculation matches a verified row only by its fingerprint and an</span>
+<span class="sd">    unverified one by its model chemistry (:meth:`FragmentStore.get`,</span>
+<span class="sd">    :meth:`FragmentStore.geometries`); people browsing the store usually know</span>
+<span class="sd">    the model chemistry alone, so here it matches verified rows too, listed</span>
+<span class="sd">    first. With `levels_only`, only the levels are listed (after a fingerprint</span>
+<span class="sd">    matched nothing). Returns the exit code.</span>
+<span class="sd">    """</span>
+    <span class="n">what</span> <span class="o">=</span> <span class="s2">"record"</span> <span class="k">if</span> <span class="n">table</span> <span class="o">==</span> <span class="s2">"fragment"</span> <span class="k">else</span> <span class="s2">"geometry"</span>
+    <span class="n">species</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">species</span>
+    <span class="k">if</span> <span class="n">table</span> <span class="o">==</span> <span class="s2">"fragment"</span><span class="p">:</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">all_records</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="n">store</span><span class="o">.</span><span class="n">all_geometries</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">rows</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">levels_only</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No </span><span class="si">{</span><span class="n">what</span><span class="si">}</span><span class="s2"> of </span><span class="si">{</span><span class="n">species</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">_stores</span><span class="p">(</span><span class="n">store</span><span class="p">)</span><span class="si">}</span><span class="s2">."</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mi">1</span>
+    <span class="n">state</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">r</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span>
+        <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s2">"charge"</span><span class="p">]</span> <span class="o">==</span> <span class="n">args</span><span class="o">.</span><span class="n">charge</span> <span class="ow">and</span> <span class="n">r</span><span class="p">[</span><span class="s2">"multiplicity"</span><span class="p">]</span> <span class="o">==</span> <span class="n">args</span><span class="o">.</span><span class="n">multiplicity</span>
+    <span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">state</span><span class="p">:</span>
+        <span class="n">others</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">({(</span><span class="n">r</span><span class="p">[</span><span class="s2">"charge"</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="s2">"multiplicity"</span><span class="p">])</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">})</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"No </span><span class="si">{</span><span class="n">what</span><span class="si">}</span><span class="s2"> of </span><span class="si">{</span><span class="n">_state</span><span class="p">(</span><span class="n">args</span><span class="p">)</span><span class="si">}</span><span class="s2">; it is stored with "</span>
+            <span class="o">+</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"--charge </span><span class="si">{</span><span class="n">q</span><span class="si">}</span><span class="s2"> --multiplicity </span><span class="si">{</span><span class="n">m</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">q</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">others</span><span class="p">)</span>
+            <span class="o">+</span> <span class="s2">"."</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="mi">1</span>
+    <span class="n">usable</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">state</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">F</span><span class="o">.</span><span class="n">is_unusable</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s2">"model_chemistry"</span><span class="p">])]</span>
+    <span class="n">quarantined</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">state</span> <span class="k">if</span> <span class="n">F</span><span class="o">.</span><span class="n">is_unusable</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s2">"model_chemistry"</span><span class="p">])]</span>
+    <span class="n">hidden</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">table</span> <span class="o">==</span> <span class="s2">"geometry"</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">args</span><span class="o">.</span><span class="n">include_imaginary</span><span class="p">:</span>
+        <span class="n">hidden</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">usable</span> <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"n_imaginary"</span><span class="p">)]</span>
+        <span class="n">usable</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">usable</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"n_imaginary"</span><span class="p">)]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">notes</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">quarantined</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"    note: </span><span class="si">{</span><span class="n">what</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'id'</span><span class="p">]</span><span class="si">}{</span><span class="n">_layer</span><span class="p">(</span><span class="n">r</span><span class="p">,</span><span class="w"> </span><span class="n">store</span><span class="p">)</span><span class="si">}</span><span class="s2"> is quarantined: "</span>
+                <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">F</span><span class="o">.</span><span class="n">quarantine_reason</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s1">'model_chemistry'</span><span class="p">])</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">hidden</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"    note: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">hidden</span><span class="p">)</span><span class="si">}</span><span class="s2"> geometr</span><span class="si">{</span><span class="s1">'y'</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="nb">len</span><span class="p">(</span><span class="n">hidden</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">'ies'</span><span class="si">}</span><span class="s2">"</span>
+                <span class="s2">" with imaginary modes not shown (--include-imaginary shows them)"</span>
+            <span class="p">)</span>
+
+    <span class="n">levels</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">usable</span><span class="p">:</span>
+        <span class="n">levels</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">_level_key</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">table</span><span class="p">),</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">list_levels</span><span class="p">(</span><span class="n">heading</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">heading</span><span class="p">)</span>
+        <span class="k">for</span> <span class="p">(</span><span class="n">level</span><span class="p">,</span> <span class="n">verified</span><span class="p">,</span> <span class="n">fingerprints</span><span class="p">),</span> <span class="n">group</span> <span class="ow">in</span> <span class="n">levels</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">flag</span> <span class="o">=</span> <span class="s2">""</span> <span class="k">if</span> <span class="n">verified</span> <span class="k">else</span> <span class="s2">" [unverified]"</span>
+            <span class="n">layers</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">group</span><span class="p">:</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="n">_layer</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">store</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">layers</span><span class="p">:</span>
+                    <span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">({(</span><span class="n">r</span><span class="p">[</span><span class="s2">"layer"</span><span class="p">],</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"conformer"</span><span class="p">,</span> <span class="s2">""</span><span class="p">))</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">group</span><span class="p">})</span>
+            <span class="k">if</span> <span class="n">table</span> <span class="o">==</span> <span class="s2">"geometry"</span> <span class="ow">and</span> <span class="n">n</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">layers</span><span class="p">):</span>
+                <span class="n">count</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">", </span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2"> conformers"</span>
+            <span class="k">elif</span> <span class="n">n</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">layers</span><span class="p">):</span>
+                <span class="n">count</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">", </span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2"> records"</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">count</span> <span class="o">=</span> <span class="s2">""</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"    </span><span class="si">{</span><span class="n">level</span><span class="si">}{</span><span class="n">flag</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">' '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">layers</span><span class="p">)</span><span class="si">}{</span><span class="n">count</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">what</span><span class="p">,</span> <span class="n">fingerprint</span> <span class="ow">in</span> <span class="n">fingerprints</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">fingerprint</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"        </span><span class="si">{</span><span class="n">what</span><span class="si">}</span><span class="s2"> fingerprint </span><span class="si">{</span><span class="n">fingerprint</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">levels_only</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">levels</span><span class="p">:</span>
+            <span class="n">list_levels</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">_state</span><span class="p">(</span><span class="n">args</span><span class="p">)</span><span class="si">}</span><span class="s2"> is stored at:"</span><span class="p">)</span>
+        <span class="n">notes</span><span class="p">()</span>
+        <span class="k">return</span> <span class="mi">1</span>
+
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">model_chemistry</span><span class="p">:</span>
+        <span class="n">matching</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">r</span>
+            <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">usable</span>
+            <span class="k">if</span> <span class="n">F</span><span class="o">.</span><span class="n">same_model_chemistry</span><span class="p">(</span>
+                <span class="n">args</span><span class="o">.</span><span class="n">model_chemistry</span><span class="p">,</span> <span class="n">r</span><span class="p">[</span><span class="s2">"model_chemistry"</span><span class="p">],</span> <span class="kc">None</span><span class="p">,</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"program"</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">matching</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No </span><span class="si">{</span><span class="n">what</span><span class="si">}</span><span class="s2"> of </span><span class="si">{</span><span class="n">_state</span><span class="p">(</span><span class="n">args</span><span class="p">)</span><span class="si">}</span><span class="s2"> at </span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">model_chemistry</span><span class="si">}</span><span class="s2">."</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">levels</span><span class="p">:</span>
+                <span class="n">list_levels</span><span class="p">(</span><span class="s2">"It is stored at:"</span><span class="p">)</span>
+            <span class="n">notes</span><span class="p">()</span>
+            <span class="k">return</span> <span class="mi">1</span>
+        <span class="n">matching</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">r</span><span class="p">:</span> <span class="ow">not</span> <span class="n">r</span><span class="p">[</span><span class="s2">"verified"</span><span class="p">])</span>  <span class="c1"># verified first</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">levels</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">list_levels</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">_state</span><span class="p">(</span><span class="n">args</span><span class="p">)</span><span class="si">}</span><span class="s2"> is stored at </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">levels</span><span class="p">)</span><span class="si">}</span><span class="s2"> levels; choose one with "</span>
+            <span class="s2">"--model-chemistry or --fingerprint:"</span>
+        <span class="p">)</span>
+        <span class="n">notes</span><span class="p">()</span>
+        <span class="k">return</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">matching</span> <span class="o">=</span> <span class="n">usable</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">matching</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"No usable </span><span class="si">{</span><span class="n">what</span><span class="si">}</span><span class="s2"> of </span><span class="si">{</span><span class="n">_state</span><span class="p">(</span><span class="n">args</span><span class="p">)</span><span class="si">}</span><span class="s2">."</span><span class="p">)</span>
+        <span class="n">notes</span><span class="p">()</span>
+        <span class="k">return</span> <span class="mi">1</span>
+    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">matching</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">table</span> <span class="o">==</span> <span class="s2">"fragment"</span><span class="p">:</span>
+            <span class="n">_print</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">store</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_print_geometry</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">store</span><span class="p">)</span>
+    <span class="n">notes</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">note</span> <span class="ow">in</span> <span class="n">store</span><span class="o">.</span><span class="n">notes</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"    note: </span><span class="si">{</span><span class="n">note</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="mi">0</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_stores</span><span class="p">(</span><span class="n">store</span><span class="p">):</span>
+    <span class="n">paths</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">store</span><span class="o">.</span><span class="n">local</span><span class="o">.</span><span class="n">path</span><span class="p">)]</span>
+    <span class="k">if</span> <span class="n">store</span><span class="o">.</span><span class="n">official</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">paths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">store</span><span class="o">.</span><span class="n">official</span><span class="o">.</span><span class="n">path</span><span class="p">))</span>
+    <span class="k">return</span> <span class="s2">" or "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">paths</span><span class="p">)</span>
 
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">"__main__"</span><span class="p">:</span>

@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.layered_store &#8212; SEAMM thermochemistry Plug-in 2026.11.15 documentation</title>
+    <title>seamm_thermochemistry.layered_store &#8212; SEAMM thermochemistry Plug-in 2026.11.15.1 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=7f90a600"></script>
+    <script src="../../_static/documentation_options.js?v=1e57d476"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.15" />
+  <meta name="docsearch:version" content="2026.11.15.1" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -830,6 +830,35 @@
 <a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.layered_store.LayeredStore.records">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">records</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">local</span><span class="o">.</span><span class="n">records</span><span class="p">(</span><span class="n">species</span><span class="p">)</span></div>
+
+
+    <span class="c1"># -- browsing: every row of a species, both layers ---------------------</span>
+
+<div class="viewcode-block" id="LayeredStore.all_records">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.layered_store.LayeredStore.all_records">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">all_records</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Every fragment record of a species in both layers, at any charge,</span>
+<span class="sd">        multiplicity or level, quarantined ones included, each with its</span>
+<span class="sd">        ``layer``: local first, newest first within a layer."""</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">store</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layers</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">record</span> <span class="ow">in</span> <span class="n">store</span><span class="o">.</span><span class="n">records</span><span class="p">(</span><span class="n">species</span><span class="p">):</span>
+                <span class="n">record</span><span class="p">[</span><span class="s2">"layer"</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">record</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">out</span></div>
+
+
+<div class="viewcode-block" id="LayeredStore.all_geometries">
+<a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.layered_store.LayeredStore.all_geometries">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">all_geometries</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Every geometry row of a species in both layers (see</span>
+<span class="sd">        :meth:`FragmentStore.all_geometries`), each with its ``layer``."""</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">store</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_layers</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">store</span><span class="o">.</span><span class="n">all_geometries</span><span class="p">(</span><span class="n">species</span><span class="p">):</span>
+                <span class="n">row</span><span class="p">[</span><span class="s2">"layer"</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">out</span></div>
 
 
 <div class="viewcode-block" id="LayeredStore.duplicates">

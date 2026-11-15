@@ -7,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.11.15 documentation</title>
+    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.11.15.1 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="_static/documentation_options.js?v=7f90a600"></script>
+    <script src="_static/documentation_options.js?v=1e57d476"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -55,7 +55,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.15" />
+  <meta name="docsearch:version" content="2026.11.15.1" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -673,6 +673,15 @@ and the frequencies, opaque strings that the QC step writes next to its
 results; E, ZPE and H(298.15 K) are separate fields, since the levels can
 differ. A record with no fingerprint is keyed on the model chemistry and
 code version, flagged unverified, and used only when nothing verified exists.</p>
+<p><code class="docutils literal notranslate"><span class="pre">lookup</span></code> and <code class="docutils literal notranslate"><span class="pre">geometries</span></code> answer in two ways. With <code class="docutils literal notranslate"><span class="pre">--fingerprint</span></code> they answer as
+a calculation would: the verified row with that fingerprint, else an unverified row of
+<code class="docutils literal notranslate"><span class="pre">--model-chemistry</span></code>. Without it they browse the store: the rows at
+<code class="docutils literal notranslate"><span class="pre">--model-chemistry</span></code>, verified ones too (listed first), or, when no level is given and
+the species is stored at several, the levels with their fingerprints (exit status 1, so a
+script notices). When nothing matches they say why: the species is stored at another
+charge or multiplicity (a radical such as <code class="docutils literal notranslate"><span class="pre">[CH]=O</span></code> needs <code class="docutils literal notranslate"><span class="pre">--multiplicity</span> <span class="pre">2</span></code>), at
+other levels, or only in quarantined rows. <code class="docutils literal notranslate"><span class="pre">list</span></code> and <code class="docutils literal notranslate"><span class="pre">lookup</span></code> print each record’s
+fingerprints, ready for <code class="docutils literal notranslate"><span class="pre">--fingerprint</span></code>.</p>
 <p>The conformer is not part of the key, so a value found later to be wrong (a
 fragment harvested in a higher-energy conformer, say) is replaced only on
 purpose: harvest the corrected job with <code class="docutils literal notranslate"><span class="pre">--supersede</span> <span class="pre">&quot;REASON&quot;</span></code>. The stored
