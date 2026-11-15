@@ -3,14 +3,16 @@
 """Reading hand-curated reference values into a reference library.
 
 The curated files (one CSV per source: printed JANAF, CODATA key values,
-the NBS tables of 1982, spectroscopic D0, W4-17, derived values) share
-common columns::
+the NBS tables of 1982, spectroscopic D0, W4-17, derived values, and
+measurements from the primary literature) share common columns::
 
     smiles, formula, charge, multiplicity, name, phase, dfH0_kJmol,
     dfH298_kJmol, unc_kJmol, unc_level, status, citation, notes
 
-plus columns of their own. This is a maintainer tool: it builds a library
-file, which is then published; users install the published file.
+plus columns of their own (``literature.csv`` adds ``year``, the year of
+each measurement, and ``source_ref``, e.g. its DOI). This is a maintainer
+tool: it builds a library file, which is then published; users install the
+published file.
 
 Each row is added as a measurement of its source, then the value of each
 species and source is chosen, the overrides applied and the derivations
@@ -22,6 +24,7 @@ import json
 import math
 from pathlib import Path
 
+from . import references as R
 from .references import ReferenceError
 
 #: The files, their source and the source's kind, rank and year
@@ -55,10 +58,20 @@ CURATED_SOURCES = {
     "w4_17.csv": (
         "W4-17",
         "literature",
-        40,
+        # computed values: ranked behind every experimental source (Paul,
+        # 2026-11-15)
+        R.COMPUTED_RANK,
         2017,
         "A. Karton, N. Sylvetsky and J. M. L. Martin, J. Comput. Chem. 38, 2063 "
         "(2017)",
+    ),
+    "literature.csv": (
+        "Literature",
+        "measured",
+        55,
+        None,
+        "Measurements from the primary literature that the compilations lack, "
+        "each with its own citation",
     ),
 }
 
@@ -73,6 +86,11 @@ ATOM_MULTIPLICITY = {
 def _float(text):
     text = (text or "").strip()
     return float(text) if text else None
+
+
+def _int(text):
+    text = (text or "").strip()
+    return int(text) if text else None
 
 
 def _status(row):
@@ -192,13 +210,14 @@ def import_curated(library, directory, *, files=None):
                         uncertainty=uncertainty,
                         unc_level=unc_level,
                         status=status,
-                        year=year,
+                        year=year if year is not None else _int(row.get("year")),
                         h298_h0=h298_h0,
                         standard_state=row.get("ref_state") or "0.1 MPa",
                         ion_convention=row.get("ion_convention") or None,
                         comment=row.get("unc_level") or None,
                         notes=row.get("notes") or None,
                         retrieved=f"{filename}",
+                        source_ref=row.get("source_ref") or None,
                         method=row.get("protocol") or row.get("conversion") or None,
                     )
                 except (ReferenceError, KeyError, ValueError) as e:

@@ -1,6 +1,31 @@
 =======
 History
 =======
+2026.11.15.2 -- Computed reference values in their own layer; W4-17 counts as computed
+    * Enthalpies of formation computed with SEAMM's high-level (tier-A) recipes now
+      have their own file, ``references-computed.db``, beside the published
+      library, kept apart from the experimental values.
+      ``seamm-thermochemistry-references add-computed VALUES.csv`` fills it. Each
+      value records its recipe, the SEAMM job, the geometry and conformer, and how
+      its H298 - H0 was obtained. Values that look like local paths are refused.
+    * A computed value is used only with "Supplementary references" set to
+      "compilations and computed" (the default), and always after every
+      experimental value: a species with an experimental value never takes a
+      computed one, whatever the sources' ranks. Results that use one are labelled
+      "computed references".
+    * W4-17's values are computed, and are now handled as such: "compilations" is
+      strictly experimental and no longer uses them. Under the default they are
+      still used, labelled "computed references" instead of "mixed". Computed
+      sources rank behind every experimental one (W4-17 80, tier-A 90); a computed
+      value is used instead of an experiment for a species only when the
+      experimental value is held, with the reason and who decided.
+    * For building the library: the WebBook importer now follows an InChI that
+      matches several WebBook entries to the one with data, and reads the
+      individual measurements behind a WebBook average. Measurements from the
+      primary literature have their own source. A recorded decision can name the
+      year of the measurement it accepts, when two give the same value, and
+      ``sources --rank NAME=RANK`` changes a source's rank, recorded in its notes.
+
 2026.11.15.1 -- Bugfix: "lookup" and "geometries" found nothing without a fingerprint
     * ``seamm-thermochemistry-fragments lookup`` and ``geometries`` answered "No
       record." or "No geometry." for species that were in the store, even ethane,

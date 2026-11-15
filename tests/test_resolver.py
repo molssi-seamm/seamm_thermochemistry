@@ -147,6 +147,45 @@ def test_0k_only_and_computed(layers):
     assert "[K]Cl" in missing and label == "ATcT-only"
 
 
+@pytest.mark.parametrize(
+    "supplementary, found, label",
+    [
+        ("none", False, "ATcT-only"),
+        ("compilations", False, "ATcT-only"),  # strictly experimental
+        ("compilations and computed", True, "computed references"),
+    ],
+)
+def test_w4_17_is_computed(layers, supplementary, found, label):
+    """Paul, 2026-11-15: "W4-17 are computed values ... we should handle them
+    as such" -- a literature source, but its values' status is computed."""
+    r = RS.ReferenceResolver(FakeATcT(), supplementary=supplementary, layers=layers)
+    entries, missing, got, _ = r.resolve(["C", "[AlH3]"])
+    assert ("[AlH3]" in entries) == found and ("[AlH3]" in missing) != found
+    assert got == label
+    if found:
+        assert entries["[AlH3]"]["source"] == "W4-17"
+        assert entries["[AlH3]"]["computed"]
+
+
+def test_an_experiment_beats_w4_17_whatever_the_rank(layers, tmp_path):
+    """W4-17 ranks ahead of the WebBook, but a computed value comes after
+    every experimental one."""
+    lib = R.ReferenceLibrary(tmp_path / "official.db", create=True)
+    sid = lib.add_species("[AlH3]")
+    lib.add_measurement(
+        sid, "WebBook-SRD69", dfh_298k=130.0, uncertainty=8.0, citation="exp"
+    )
+    lib.choose(sid, "WebBook-SRD69")
+    lib.close()
+    both = R.LayeredReferences(tmp_path / "local.db", tmp_path / "official.db")
+    rows = both.candidates("[AlH3]")
+    assert [r["source_name"] for r in rows] == ["WebBook-SRD69", "W4-17"]
+    entries, _, label, _ = RS.ReferenceResolver(FakeATcT(), layers=both).resolve(
+        ["[AlH3]"]
+    )
+    assert entries["[AlH3]"]["source"] == "WebBook-SRD69" and label == "mixed"
+
+
 def test_user_references(tmp_path, layers):
     local = R.ReferenceLibrary(tmp_path / "local.db", create=True)
     local.add_source("user", "user", 5)
@@ -176,3 +215,24 @@ def test_unreadable_smiles_is_missing(layers):
     r = RS.ReferenceResolver(FakeATcT(), layers=layers)
     entries, missing, label, _ = r.resolve(["C", "?"])
     assert "?" in missing and entries["C"]["source"] == "ATcT"
+
+
+def test_a_held_experiment_lets_the_computed_value_through(layers, tmp_path):
+    """Science, 2026-11-15: a computed value beats an experiment for one
+    species only when the experimental value is held, with the reason and
+    who decided -- never by changing ranks."""
+    lib = R.ReferenceLibrary(tmp_path / "official.db", create=True)
+    sid = lib.add_species("[AlH3]")
+    lib.add_measurement(
+        sid, "WebBook-SRD69", dfh_298k=130.0, uncertainty=8.0, citation="exp"
+    )
+    lib.choose(sid, "WebBook-SRD69")
+    lib.hold("[AlH3]", 0, "WebBook-SRD69", by="Paul", reason="W4-17 preferred")
+    lib.close()
+    both = R.LayeredReferences(tmp_path / "local.db", tmp_path / "official.db")
+    r = RS.ReferenceResolver(FakeATcT(), layers=both)
+    entries, _, label, _ = r.resolve(["[AlH3]"])
+    assert entries["[AlH3]"]["source"] == "W4-17"
+    assert label == "computed references"
+    r = RS.ReferenceResolver(FakeATcT(), supplementary="compilations", layers=both)
+    assert "[AlH3]" in r.resolve(["[AlH3]"])[1]  # held, and W4-17 is computed

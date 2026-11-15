@@ -18,6 +18,20 @@ can be repeated:
 
 Rows the WebBook marks as evaluations (class "cal", e.g. JANAF reviews) are
 kept but held: the value is taken from the evaluation's own source.
+
+Two cases the plain InChI lookup does not settle are followed by ``fetch``:
+
+* An InChI that matches several WebBook entries gives a list of them. Each is
+  fetched, and the one whose own InChI is the one asked for and that has
+  gas-phase enthalpies of formation is used; if not exactly one does, the
+  species has no page.
+* A page that gives only an average of several values ("AVG", with a link to
+  the individual data points) has that second page fetched beside it
+  (``<page>.hfg.html``). ``import`` reads the individual values from it; the
+  average, an evaluation, is kept but held.
+
+Every page fetched is logged with its URL, which ``import`` records as where
+each value was retrieved from.
 """
 
 import csv
@@ -83,9 +97,18 @@ def parse_page(text):
         "found": bool(title)
         and "not found" not in title.lower()
         and "not found" not in text[:3000].lower()
-        and "Information from the InChI" not in title,
+        and "Information from the InChI" not in title
+        and title != "Search Results",
         "rows": [],
+        "hits": [],
+        "individual": None,
     }
+    m = re.search(r"(InChI=1S?/[^\s<\"]+)", text)
+    result["inchi"] = html.unescape(m.group(1)) if m else None
+    if title == "Search Results":
+        # Several entries match: their pages, in the WebBook's order
+        for href in re.findall(r'<li><a href="(/cgi/cbook\.cgi\?ID=[^"]+)"', text):
+            result["hits"].append(_absolute(href))
     m = re.search(r"CAS Registry Number:</strong>\s*([0-9-]+)", text)
     result["cas"] = m.group(1) if m else None
     m = re.search(r"Formula</a>:</strong>(.*?)</li>", text, re.S)
@@ -117,6 +140,12 @@ def parse_page(text):
             quantity = _clean(cells[0]).replace(" ", "")
             if not quantity.startswith("ΔfH°gas"):
                 continue
+            link = re.search(
+                r'href="([^"]*Type=HFG[^"]*)"[^>]*>\s*Individual\s+data\s+points',
+                row,
+            )
+            if link:
+                result["individual"] = _absolute(link.group(1))
             value, uncertainty = parse_value(_clean(cells[1]))
             link = re.search(r'href="#(ref-\d+)"', cells[4])
             short = _clean(cells[4])
@@ -134,7 +163,68 @@ def parse_page(text):
                     "comment": _clean(cells[5]) if len(cells) > 5 else "",
                 }
             )
+    # The individual data points (Type=HFG): value, method, reference, comment
+    m = re.search(
+        r'<table class="data" aria-label="Enthalpy of formation of gas[^"]*">'
+        r"(.*?)</table>",
+        text,
+        re.S,
+    )
+    if m:
+        for cls, row in re.findall(
+            r'<tr class="(exp|cal)">(.*?)</tr>', m.group(1), re.S
+        ):
+            cells = re.findall(r"<td[^>]*>(.*?)</td>", row, re.S)
+            if len(cells) < 3:
+                continue
+            value, uncertainty = parse_value(_clean(cells[0]))
+            link = re.search(r'href="#(ref-\d+)"', cells[2])
+            short = _clean(cells[2])
+            full = refs.get(link.group(1), "") if link else ""
+            result["rows"].append(
+                {
+                    "class": cls,
+                    "value": value,
+                    "uncertainty": uncertainty,
+                    "units": "kJ/mol",
+                    "method": _clean(cells[1]),
+                    "reference": short,
+                    "citation": full or short,
+                    "year": year_of(short),
+                    "comment": _clean(cells[3]) if len(cells) > 3 else "",
+                }
+            )
     return result
+
+
+def _absolute(href):
+    """A WebBook link as an absolute URL."""
+    href = html.unescape(href)
+    if href.startswith("/"):
+        return "https://webbook.nist.gov" + href
+    return href
+
+
+def enthalpy_rows(page):
+    """The rows of a parsed page with a gas-phase enthalpy of formation."""
+    return [
+        r for r in page["rows"] if r["value"] is not None and r["units"] == "kJ/mol"
+    ]
+
+
+def companion(path):
+    """The file of a page's individual data points, beside it."""
+    path = Path(path)
+    return path.with_name(path.stem + ".hfg.html")
+
+
+def logged_urls(directory):
+    """{file: URL} from a cache's fetch log (the last fetch of each file)."""
+    log = Path(directory) / "fetch_log.csv"
+    if not log.exists():
+        return {}
+    with open(log, newline="", encoding="utf-8") as fd:
+        return {r["file"]: r["url"] for r in csv.DictReader(fd) if r.get("file")}
 
 
 def non_stereo_inchi(inchi):
@@ -189,6 +279,25 @@ def fetch(species, directory, *, delay=3.0, user_agent=USER_AGENT, opener=None):
             iw.writeheader()
         if new_log:
             lw.writerow(("date", "url", "file", "sha256", "purpose"))
+
+        def get(url, path, purpose):
+            """Fetch a page into the cache, unless it is there, and log it."""
+            if path.exists():
+                return
+            request = urllib.request.Request(url, headers={"User-Agent": user_agent})
+            with opener(request, timeout=60) as response:
+                path.write_bytes(response.read())
+            lw.writerow(
+                (
+                    datetime.date.today().isoformat(),
+                    url,
+                    path.name,
+                    _sha256(path),
+                    purpose,
+                )
+            )
+            time.sleep(delay)
+
         for smiles, charge, multiplicity in species:
             if (smiles, str(charge), str(multiplicity)) in index:
                 continue
@@ -201,23 +310,36 @@ def fetch(species, directory, *, delay=3.0, user_agent=USER_AGENT, opener=None):
                 url = page_url(attempt)
                 name = hashlib.sha1(attempt.encode()).hexdigest()[:12] + ".html"
                 path = directory / name
-                if not path.exists():
-                    request = urllib.request.Request(
-                        url, headers={"User-Agent": user_agent}
-                    )
-                    with opener(request, timeout=60) as response:
-                        path.write_bytes(response.read())
-                    lw.writerow(
-                        (
-                            datetime.date.today().isoformat(),
-                            url,
-                            name,
-                            _sha256(path),
-                            f"WebBook gas thermochemistry {smiles}",
+                get(url, path, f"WebBook gas thermochemistry {smiles}")
+                page = parse_page(path.read_text(errors="ignore"))
+                if not page["found"] and page["hits"]:
+                    # Several entries: the one that is this species, with data
+                    hits, name, page = page["hits"], None, None
+                    for hit in hits:
+                        hit_name = hashlib.sha1(hit.encode()).hexdigest()[:12] + ".html"
+                        get(hit, directory / hit_name, f"WebBook entry for {smiles}")
+                        candidate = parse_page(
+                            (directory / hit_name).read_text(errors="ignore")
                         )
-                    )
-                    time.sleep(delay)
-                if parse_page(path.read_text(errors="ignore"))["found"]:
+                        if (
+                            candidate["found"]
+                            and candidate["inchi"] == attempt
+                            and (enthalpy_rows(candidate) or candidate["individual"])
+                        ):
+                            if name is not None:
+                                name, page = None, None  # ambiguous
+                                break
+                            name, page = hit_name, candidate
+                    if page is None:
+                        continue
+                    path = directory / name
+                if page["found"]:
+                    if page["individual"]:
+                        get(
+                            page["individual"],
+                            companion(path),
+                            f"WebBook individual data points {smiles}",
+                        )
                     row = {
                         "file": name,
                         "smiles": smiles,
@@ -250,6 +372,7 @@ def import_webbook(library, directory):
     directory = Path(directory).expanduser()
     library.add_source(SOURCE, "measured", SOURCE_RANK, citation=SOURCE_CITATION)
     report = []
+    urls = logged_urls(directory)
     for entry in read_index(directory):
         smiles = entry["smiles"]
         if not entry.get("file"):
@@ -257,13 +380,20 @@ def import_webbook(library, directory):
             continue
         path = directory / entry["file"]
         page = parse_page(path.read_text(errors="ignore"))
-        rows = [
-            r for r in page["rows"] if r["value"] is not None and r["units"] == "kJ/mol"
-        ]
+        retry = entry.get("inchi_retry") or None
+        url = urls.get(path.name) or page_url(retry or entry.get("inchi") or "")
+        rows = [(r, f"{url} sha256 {_sha256(path)}") for r in enthalpy_rows(page)]
+        individual = companion(path)
+        if individual.exists():
+            points = parse_page(individual.read_text(errors="ignore"))
+            where = (
+                f"{urls.get(individual.name) or page['individual'] or ''} "
+                f"sha256 {_sha256(individual)}"
+            ).strip()
+            rows += [(r, where) for r in enthalpy_rows(points)]
         if not page["found"] or not rows:
             report.append((smiles, "no gas-phase value", page["title"]))
             continue
-        retry = entry.get("inchi_retry") or None
         try:
             species = library.add_species(
                 smiles,
@@ -283,10 +413,7 @@ def import_webbook(library, directory):
         except ReferenceError as e:
             report.append((smiles, "refused", str(e)))
             continue
-        retrieved = (
-            f"{page_url(retry or entry.get('inchi') or '')} sha256 {_sha256(path)}"
-        )
-        for r in rows:
+        for r, retrieved in rows:
             if r["class"] == "cal":
                 status = "held"
                 note = (

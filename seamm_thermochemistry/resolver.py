@@ -9,10 +9,14 @@ The order (the reference-library design, §2, and the 2026-11-12 decisions):
    is used and the result is "ATcT-only".
 2. The user's own references (the local layer's ``user`` source), when the
    job enables them.
-3. The library's sources by rank: printed JANAF, derived values, CODATA, the
-   NBS tables of 1982, D0, W4-17 (0 K only, used only without a 298.15 K
-   value), the WebBook measurements.
-4. Computed references, when enabled.
+3. The library's experimental sources by rank: printed JANAF, derived
+   values, CODATA, the NBS tables of 1982, D0, the WebBook measurements,
+   measurements from the primary literature.
+4. Computed values, when enabled ("compilations and computed"): W4-17 (0 K
+   only, used only without a 298.15 K value) and the computed layer,
+   ``references-computed.db``. They always come after every experimental
+   value, so a species with one never takes a computed value. W4-17 is
+   computed (Paul, 2026-11-15), so "compilations" is strictly experimental.
 
 **One source per element.** For each element that ATcT does not have (its
 gas-phase atom is not in ATcT), the references containing it are taken from
@@ -35,11 +39,13 @@ import re
 
 from .atct import AmbiguousEntry, MissingEntry
 from .cbh import CBHError
-from .references import LayeredReferences
+from .references import LayeredReferences, is_computed
 
 logger = logging.getLogger(__name__)
 
 #: The settings of "Supplementary references"
+#: "compilations" is strictly experimental: no computed value (a computed
+#: source, or W4-17's computed values) is used with it
 SUPPLEMENTARY = ("none", "compilations", "compilations and computed")
 
 #: The result labels, in increasing order of importance
@@ -187,7 +193,7 @@ class ReferenceResolver:
             return self.use_user
         if self.supplementary == "none":
             return False
-        if kind == "computed":
+        if is_computed(ref):
             return self.supplementary == "compilations and computed"
         return True
 
@@ -241,6 +247,7 @@ class ReferenceResolver:
             "atct_coefficients": {},
             "source": ref["source_name"],
             "source_kind": ref["source_kind"],
+            "computed": is_computed(ref),
             "layer": ref["layer"],
             "citation": ref["citation"],
             "rule": ref["rule"],
@@ -300,14 +307,14 @@ class ReferenceResolver:
                 sources = names if sources is None else sources & names
             ranked = sorted(
                 {
-                    (r["source_rank"], r["source_name"])
+                    (is_computed(r), r["source_rank"], r["source_name"])
                     for s in group
                     for r in cands[s]
                     if r["source_name"] in (sources or ())
                 }
             )
             if ranked:
-                source = ranked[0][1]
+                source = ranked[0][2]
                 for s in group:
                     own = [r for r in cands[s] if r["source_name"] == source]
                     # local layer first within the source
@@ -358,12 +365,11 @@ class ReferenceResolver:
     @staticmethod
     def label(entries, several=None):
         """The result label for the references used."""
-        kinds = {
-            e.get("source_kind") for e in entries.values() if e["source"] != "ATcT"
-        }
+        library = [e for e in entries.values() if e["source"] != "ATcT"]
+        kinds = {e.get("source_kind") for e in library}
         if "user" in kinds:
             return "user references"
-        if "computed" in kinds:
+        if "computed" in kinds or any(e.get("computed") for e in library):
             return "computed references"
         if several:
             return (
