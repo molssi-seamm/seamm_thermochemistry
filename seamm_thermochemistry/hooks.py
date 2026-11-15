@@ -29,15 +29,19 @@ MARKER = "harvest_fragments.json"
 DONE = "harvest_fragments.done.json"
 
 
-def write_marker(job_directory, species, reason):
+def write_marker(job_directory, species, reason, convergence_recorded=False):
     """Add species to the job's marker (the step calls this when it cannot write
-    the store). Never raises."""
+    the store). Only these species are harvested. `convergence_recorded`: the
+    step records whether each species' optimization converged, so a species
+    with no record is refused. Never raises."""
     try:
         path = Path(job_directory) / MARKER
         data = {"reason": reason, "species": []}
         if path.exists():
             data = json.loads(path.read_text())
         data["reason"] = reason
+        if convergence_recorded:
+            data["convergence recorded"] = True
         for s in species:
             if s not in data["species"]:
                 data["species"].append(s)
@@ -84,8 +88,20 @@ def harvest_finished_job(job_id=None, wdir=None, state=None, logger=logger, **kw
                 source.close()
             if (wdir / "job_data.json").exists():
                 shutil.copy2(wdir / "job_data.json", tmp / "job_data.json")
+            # Only the species the job listed (it lists those it may store);
+            # a marker without a list, from an older step: all, with the checks
+            try:
+                listed = json.loads(marker.read_text())
+            except ValueError:
+                listed = {}
+            species = listed.get("species") or None
             with FragmentStore(create=True) as store:
-                counts = harvest_job(tmp, store)
+                counts = harvest_job(
+                    tmp,
+                    store,
+                    species=species,
+                    require_converged=bool(listed.get("convergence recorded")),
+                )
         # The job is identified by its own directory, not the copy
         summary = {
             "job": job_id,
@@ -96,6 +112,7 @@ def harvest_finished_job(job_id=None, wdir=None, state=None, logger=logger, **kw
             "logged": counts["logged"],
             "geometry": counts["geometry"],
             "energy": counts["energy"],
+            "no convergence record": counts.get("no convergence record", 0),
             "skipped": counts["skipped"],
         }
         (wdir / DONE).write_text(json.dumps(summary, indent=1))
