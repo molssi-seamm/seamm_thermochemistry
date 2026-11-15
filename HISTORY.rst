@@ -1,6 +1,21 @@
 =======
 History
 =======
+2026.11.15.1 -- Bugfix: "lookup" and "geometries" found nothing without a fingerprint
+    * ``seamm-thermochemistry-fragments lookup`` and ``geometries`` answered "No
+      record." or "No geometry." for species that were in the store, even ethane,
+      unless given the fingerprint: ``--model-chemistry`` matched only unverified
+      rows, and with no level nothing matched. Without ``--fingerprint`` they now
+      browse the store: the rows at ``--model-chemistry``, verified ones too (listed
+      first), or, with no level, the levels the species is stored at. With
+      ``--fingerprint`` they answer as a calculation would, as before.
+    * When nothing matches they say why: the species is stored at another charge or
+      multiplicity (radicals need ``--multiplicity 2``), at other levels, which are
+      listed, or only in quarantined rows.
+    * ``list``, ``lookup`` and ``geometries`` print the fingerprints, so they can be
+      copied into ``--fingerprint``. How the Thermochemistry step finds stored values
+      is unchanged.
+
 2026.11.15 -- Bugfix: unconverged species could reach the fragment store
     * A species whose optimization had not converged was kept out of the store by
       a running job, but a job on a cluster, which cannot write the store itself,

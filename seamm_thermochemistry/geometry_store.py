@@ -1024,6 +1024,22 @@ class GeometryEnergyMixin:
             )
         ]
 
+    def all_geometries(self, species):
+        """Every geometry row of a species, at any charge, multiplicity or
+        level, quarantined rows included, by id: for people browsing the store
+        (``seamm-thermochemistry-fragments geometries``). Calculations use
+        :meth:`geometries`, which matches one level."""
+        db = self._reader()
+        if db is None:
+            return []
+        try:
+            rows = db.execute(
+                "SELECT * FROM geometry WHERE species = ? ORDER BY id", (species,)
+            ).fetchall()
+        except sqlite3.Error:
+            return []
+        return [_decode(r, GeometryRecord) for r in rows]
+
     def energies(self, geometry_hash):
         """Every energy row on a geometry."""
         db = self._reader()

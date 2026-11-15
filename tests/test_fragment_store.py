@@ -254,7 +254,9 @@ def test_cli_roundtrip(job, tmp_path, capsys):
         main(["--store", path, "lookup", "C", "--fingerprint", "mopac:deadbeef"]) == 0
     )
     assert "ZPE = 115.000" in capsys.readouterr().out
-    assert main(["--store", path, "lookup", "CCCC"]) == 1
+    none = str(tmp_path / "none.db")  # no official store, not the installation's
+    assert main(["--store", path, "--official", none, "lookup", "CCCC"]) == 1
+    assert "No record of CCCC in" in capsys.readouterr().out
     assert main(["--store", path, "list"]) == 0
     assert "[unverified]" in capsys.readouterr().out
     assert main(["--store", path, "duplicates"]) == 0
