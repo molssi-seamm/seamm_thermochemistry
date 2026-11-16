@@ -283,6 +283,7 @@ def test_computed_values_install_and_update(inst, tmp_path, monkeypatch):
     official reference library, where the step reads them; nothing is done
     until the record is published (no concept id)."""
     installer, params = inst
+    monkeypatch.setattr(installer, "computed_values_concept_id", None)
     assert installer.install_computed_values() == "not published"
     v1 = computed_values(tmp_path / "c1.db", "2026.11.15")
     v2 = computed_values(tmp_path / "c2.db", "2026.12.1")

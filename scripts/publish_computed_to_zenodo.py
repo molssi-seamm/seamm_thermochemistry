@@ -31,9 +31,10 @@ from seamm_thermochemistry.computed import LAYER, SOURCE
 from seamm_thermochemistry.references import SCHEMA_VERSION, ReferenceLibrary
 from seamm_util import Zenodo
 
-#: The published record's concept id, stable across versions; None until the
-#: first version is published
-CONCEPT_ID = None
+#: The published record's concept id, stable across versions: version
+#: 2026.11.16 is https://zenodo.org/records/24265268, concept DOI
+#: 10.5281/zenodo.24265267
+CONCEPT_ID = 24265267
 #: The experimental reference library's concept DOI
 LIBRARY_CONCEPT_DOI = "10.5281/zenodo.24175073"
 

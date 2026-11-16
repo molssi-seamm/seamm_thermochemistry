@@ -1,6 +1,25 @@
 =======
 History
 =======
+2026.11.16 -- The installer installs the computed reference values
+    * The computed reference values, enthalpies of formation computed with SEAMM's
+      tier-A recipes, are published on Zenodo as a record of their own (concept DOI
+      10.5281/zenodo.24265267), apart from the experimental reference library. The
+      installer now installs them as ``references-computed.db`` beside the library,
+      where the Thermochemistry step reads them, and ``update`` brings them to the
+      newest published version, keeping a copy that was edited by hand.
+    * Version 2026.11.16 has eight species: ethane-1,1-diol, 2,2-difluoropropane,
+      2-fluoro-2-methylpropane, 1-chloro-1,1-difluoroethane, methylcyclobutane,
+      1H-imidazole, isoxazole and naphthacene.
+    * For maintainers: ``scripts/publish_computed_to_zenodo.py`` publishes new
+      versions.
+
+2026.11.15.3 -- Internal: Zenodo script credits the primary-literature source and describes W4-17 as computed
+    * ``scripts/publish_references_to_zenodo.py`` credits the new "Literature"
+      source and says that W4-17's values are computed. It made reference library
+      v2 (Zenodo record 24264179). The installed package is unchanged from
+      2026.11.15.2.
+
 2026.11.15.2 -- Computed reference values in their own layer; W4-17 counts as computed
     * Enthalpies of formation computed with SEAMM's high-level (tier-A) recipes now
       have their own file, ``references-computed.db``, beside the published

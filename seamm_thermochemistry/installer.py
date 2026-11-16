@@ -57,9 +57,10 @@ class Installer(seamm_installer.InstallerBase):
 
     # The computed reference values (tier-A enthalpies of formation, the
     # reference library's computed layer), a Zenodo record of its own apart
-    # from the experimental library: concept CONCEPT, whose newest version is
+    # from the experimental library: record 24265268 (DOI
+    # 10.5281/zenodo.24265268), concept 24265267, whose newest version is
     # installed beside the library and replaced whole on update.
-    computed_values_concept_id = None
+    computed_values_concept_id = 24265267
     computed_values_filename = "references-computed.db"
 
     def __init__(self, logger=logger):
