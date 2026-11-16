@@ -215,10 +215,11 @@ There are three files beside the ATcT cache:
   10.5281/zenodo.24175073), installed by the installer. It is read, never
   written.
 - ``references-computed.db``, the computed layer: the tier-A values, kept apart
-  from the experimental library. It is filled with
-  ``seamm-thermochemistry-references add-computed VALUES.csv`` (see
-  :mod:`seamm_thermochemistry.computed` for the columns) and read, never
-  written, by calculations.
+  from the experimental library. It is published on Zenodo as a record of its
+  own (concept DOI 10.5281/zenodo.24265267) and installed by the installer
+  beside the library; it is read, never written, by calculations. Maintainers
+  build it with ``seamm-thermochemistry-references add-computed VALUES.csv``
+  (see :mod:`seamm_thermochemistry.computed` for the columns).
 - ``references.db``, your own, for references you add.
 
 :class:`~seamm_thermochemistry.resolver.ReferenceResolver` takes each reference

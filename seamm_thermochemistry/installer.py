@@ -55,6 +55,14 @@ class Installer(seamm_installer.InstallerBase):
     reference_library_concept_id = 24175073
     reference_library_filename = "references-official.db"
 
+    # The computed reference values (tier-A enthalpies of formation, the
+    # reference library's computed layer), a Zenodo record of its own apart
+    # from the experimental library: record 24265268 (DOI
+    # 10.5281/zenodo.24265268), concept 24265267, whose newest version is
+    # installed beside the library and replaced whole on update.
+    computed_values_concept_id = 24265267
+    computed_values_filename = "references-computed.db"
+
     def __init__(self, logger=logger):
         super().__init__(logger=logger)
         logger.debug("Initializing the seamm_thermochemistry installer.")
@@ -112,6 +120,7 @@ class Installer(seamm_installer.InstallerBase):
 
         official = self._official_path()
         library = self._references_path()
+        computed = self._computed_path()
         versions = ATcT.available(self._atct_base())
         if official.exists():
             print(
@@ -123,6 +132,11 @@ class Installer(seamm_installer.InstallerBase):
                 f"    The official reference library, version "
                 f"{self._references_version(library)}, is at {library}."
             )
+        if computed.exists():
+            print(
+                f"    The computed reference values, version "
+                f"{self._references_version(computed)}, are at {computed}."
+            )
         if versions:
             print(f"    ATcT versions cached: {', '.join(versions)}.")
         missing = [
@@ -130,6 +144,10 @@ class Installer(seamm_installer.InstallerBase):
             for what, ok in (
                 ("the official fragment store", official.exists()),
                 ("the official reference library", library.exists()),
+                (
+                    "the computed reference values",
+                    computed.exists() or self.computed_values_concept_id is None,
+                ),
                 ("the ATcT tables", bool(versions)),
             )
             if not ok
@@ -146,6 +164,8 @@ class Installer(seamm_installer.InstallerBase):
                 self.install_official_store()
             if not library.exists():
                 self.install_reference_library()
+            if not computed.exists():
+                self.install_computed_values()
             if not versions:
                 self.install_atct()
         return True
@@ -355,6 +375,30 @@ class Installer(seamm_installer.InstallerBase):
             force,
         )
 
+    def install_computed_values(self, force=False):
+        """Install or update the computed reference values from Zenodo, as the
+        official reference library. Returns as `install_official_store`, or
+        "not published" while the record has no concept id."""
+        if self.computed_values_concept_id is None:
+            return "not published"
+        return self._install_published(
+            "the computed reference values",
+            self._computed_record,
+            self._computed_path(),
+            self.computed_values_filename,
+            "computed-values-md5",
+            self._references_version,
+            force,
+        )
+
+    def _computed_path(self):
+        """The computed reference values: references-computed.db beside the
+        official reference library, where the Thermochemistry step reads it."""
+        return self._configured_database_path().parent / self.computed_values_filename
+
+    def _computed_record(self):
+        return Zenodo().get_latest_public_record(self.computed_values_concept_id)
+
     def _install_published(self, what, get_record, path, filename, key, version, force):
         """Install or update one published file: see `install_official_store`."""
         try:
@@ -482,10 +526,11 @@ class Installer(seamm_installer.InstallerBase):
         return version
 
     def _install_extras(self, force=False):
-        """The official fragment store, the official reference library and ATcT,
-        after the reference database."""
+        """The official fragment store, the official reference library, the
+        computed reference values and ATcT, after the reference database."""
         self.install_official_store(force=force)
         self.install_reference_library(force=force)
+        self.install_computed_values(force=force)
         self.install_atct()
 
     # ---- the installer's commands ----------------------------------------------
@@ -516,8 +561,9 @@ class Installer(seamm_installer.InstallerBase):
         has been edited, e.g. with curated reference energies, is kept as it is and
         reported; ``update --force`` replaces it, keeping a backup.
 
-        The official fragment store and the official reference library are
-        brought to their newest published versions the same way, and the newest
+        The official fragment store, the official reference library and the
+        computed reference values are brought to their newest published versions
+        the same way, and the newest
         ATcT version is downloaded if it is not cached yet (older versions are
         kept).
         """
@@ -610,10 +656,23 @@ class Installer(seamm_installer.InstallerBase):
                     "this installer installed, so it was left in place."
                 )
 
+        computed = self._computed_path()
+        if computed.exists():
+            recorded = data.get("computed-values-md5", "")
+            if force or self._md5(computed) == recorded:
+                print(f"Deleting the computed reference values at {computed}.")
+                computed.unlink()
+            else:
+                print(
+                    f"The computed reference values at {computed} are not the copy "
+                    "this installer installed, so they were left in place."
+                )
+
         self.configuration.set_value(self.section, "database-path", "")
         self.configuration.set_value(self.section, "database-md5", "")
         self.configuration.set_value(self.section, "fragment-store-md5", "")
         self.configuration.set_value(self.section, "reference-library-md5", "")
+        self.configuration.set_value(self.section, "computed-values-md5", "")
         self.configuration.save()
         print("Done!")
 
