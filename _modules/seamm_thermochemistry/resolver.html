@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.resolver &#8212; SEAMM thermochemistry Plug-in 2026.11.16 documentation</title>
+    <title>seamm_thermochemistry.resolver &#8212; SEAMM thermochemistry Plug-in 2026.11.16.1 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=48682c6a"></script>
+    <script src="../../_static/documentation_options.js?v=8c280a9d"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.16" />
+  <meta name="docsearch:version" content="2026.11.16.1" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -485,7 +485,8 @@
 <span class="p">)</span>
 
 <span class="c1">#: H298 - H0 of the elements' standard states, kJ/mol per formula unit of the</span>
-<span class="c1">#: standard state, from CODATA Key Values (Cox, Wagman &amp; Medvedev 1989)</span>
+<span class="c1">#: standard state, from CODATA Key Values (Cox, Wagman &amp; Medvedev 1989), and</span>
+<span class="c1">#: for Ga, As and Se, which CODATA lacks, from NIST-JANAF and NBS-82</span>
 <span class="n">CODATA_H298_H0</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">"H"</span><span class="p">:</span> <span class="p">(</span><span class="mf">8.468</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>  <span class="c1"># H2(g)</span>
     <span class="s2">"C"</span><span class="p">:</span> <span class="p">(</span><span class="mf">1.050</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>  <span class="c1"># graphite</span>
@@ -506,6 +507,10 @@
     <span class="s2">"Mg"</span><span class="p">:</span> <span class="p">(</span><span class="mf">4.998</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
     <span class="s2">"Ca"</span><span class="p">:</span> <span class="p">(</span><span class="mf">5.736</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
     <span class="s2">"Ge"</span><span class="p">:</span> <span class="p">(</span><span class="mf">4.636</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="c1"># Not in CODATA (2026-11-16, science/thermo; values as printed):</span>
+    <span class="s2">"Ga"</span><span class="p">:</span> <span class="p">(</span><span class="mf">5.561</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>  <span class="c1"># Ga(cr), NIST-JANAF table Ga-001</span>
+    <span class="s2">"As"</span><span class="p">:</span> <span class="p">(</span><span class="mf">5.130</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>  <span class="c1"># As(cr, alpha), NBS-82 Table 20: As, p 2-77</span>
+    <span class="s2">"Se"</span><span class="p">:</span> <span class="p">(</span><span class="mf">5.519</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>  <span class="c1"># Se(cr, hexagonal), NBS-82 Table 15: Se, p 2-61</span>
 <span class="p">}</span>
 
 
@@ -513,7 +518,7 @@
 <a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.resolver.element_h298_h0">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">element_h298_h0</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">"""{symbol: H298 - H0 of the element's standard state, per atom}, kJ/mol</span>
-<span class="sd">    (CODATA; CODATA has no Ga, As or Se)."""</span>
+<span class="sd">    (CODATA; Ga from NIST-JANAF, As and Se from NBS-82)."""</span>
     <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="o">/</span> <span class="n">n</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span> <span class="ow">in</span> <span class="n">CODATA_H298_H0</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span></div>
 
 
