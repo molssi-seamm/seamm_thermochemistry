@@ -7,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.11.15.3 documentation</title>
+    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.11.16 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="_static/documentation_options.js?v=8dd7da05"></script>
+    <script src="_static/documentation_options.js?v=48682c6a"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -55,7 +55,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.15.3" />
+  <meta name="docsearch:version" content="2026.11.16" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -647,10 +647,11 @@ H298 - H0 was obtained.</p>
 10.5281/zenodo.24175073), installed by the installer. It is read, never
 written.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">references-computed.db</span></code>, the computed layer: the tier-A values, kept apart
-from the experimental library. It is filled with
-<code class="docutils literal notranslate"><span class="pre">seamm-thermochemistry-references</span> <span class="pre">add-computed</span> <span class="pre">VALUES.csv</span></code> (see
-<a class="reference internal" href="api/seamm_thermochemistry.html#module-seamm_thermochemistry.computed" title="seamm_thermochemistry.computed"><code class="xref py py-mod docutils literal notranslate"><span class="pre">seamm_thermochemistry.computed</span></code></a> for the columns) and read, never
-written, by calculations.</p></li>
+from the experimental library. It is published on Zenodo as a record of its
+own (concept DOI 10.5281/zenodo.24265267) and installed by the installer
+beside the library; it is read, never written, by calculations. Maintainers
+build it with <code class="docutils literal notranslate"><span class="pre">seamm-thermochemistry-references</span> <span class="pre">add-computed</span> <span class="pre">VALUES.csv</span></code>
+(see <a class="reference internal" href="api/seamm_thermochemistry.html#module-seamm_thermochemistry.computed" title="seamm_thermochemistry.computed"><code class="xref py py-mod docutils literal notranslate"><span class="pre">seamm_thermochemistry.computed</span></code></a> for the columns).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">references.db</span></code>, your own, for references you add.</p></li>
 </ul>
 <p><a class="reference internal" href="api/seamm_thermochemistry.html#seamm_thermochemistry.resolver.ReferenceResolver" title="seamm_thermochemistry.resolver.ReferenceResolver"><code class="xref py py-class docutils literal notranslate"><span class="pre">ReferenceResolver</span></code></a> takes each reference
