@@ -58,7 +58,8 @@ LABELS = (
 )
 
 #: H298 - H0 of the elements' standard states, kJ/mol per formula unit of the
-#: standard state, from CODATA Key Values (Cox, Wagman & Medvedev 1989)
+#: standard state, from CODATA Key Values (Cox, Wagman & Medvedev 1989), and
+#: for Ga, As and Se, which CODATA lacks, from NIST-JANAF and NBS-82
 CODATA_H298_H0 = {
     "H": (8.468, 2),  # H2(g)
     "C": (1.050, 1),  # graphite
@@ -79,12 +80,16 @@ CODATA_H298_H0 = {
     "Mg": (4.998, 1),
     "Ca": (5.736, 1),
     "Ge": (4.636, 1),
+    # Not in CODATA (2026-11-16, science/thermo; values as printed):
+    "Ga": (5.561, 1),  # Ga(cr), NIST-JANAF table Ga-001
+    "As": (5.130, 1),  # As(cr, alpha), NBS-82 Table 20: As, p 2-77
+    "Se": (5.519, 1),  # Se(cr, hexagonal), NBS-82 Table 15: Se, p 2-61
 }
 
 
 def element_h298_h0():
     """{symbol: H298 - H0 of the element's standard state, per atom}, kJ/mol
-    (CODATA; CODATA has no Ga, As or Se)."""
+    (CODATA; Ga from NIST-JANAF, As and Se from NBS-82)."""
     return {k: v / n for k, (v, n) in CODATA_H298_H0.items()}
 
 

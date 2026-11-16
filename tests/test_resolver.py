@@ -236,3 +236,17 @@ def test_a_held_experiment_lets_the_computed_value_through(layers, tmp_path):
     assert label == "computed references"
     r = RS.ReferenceResolver(FakeATcT(), supplementary="compilations", layers=both)
     assert "[AlH3]" in r.resolve(["[AlH3]"])[1]  # held, and W4-17 is computed
+
+
+def test_dfh_0k_from_298k_ga_as_se():
+    """Ga, As and Se, which CODATA lacks (2026-11-16): AsH3 with NBS-82's own
+    numbers, 66.44 at 298 K and 74.06 at 0 K, H298 - H0 10.22 (made-up check
+    of the arithmetic: ΔfH0 = ΔfH298 - H(species) + Σ H(elements))."""
+    table = RS.element_h298_h0()
+    assert table["Ga"] == pytest.approx(5.561)
+    assert table["As"] == pytest.approx(5.130)
+    assert table["Se"] == pytest.approx(5.519)
+    value = RS.dfh_0k_from_298k(66.44, 10.0, "AsH3")
+    assert value == pytest.approx(66.44 - 10.0 + 5.130 + 3 * table["H"])
+    RS.dfh_0k_from_298k(1.0, 1.0, "ClGaH2")  # no KeyError
+    RS.dfh_0k_from_298k(1.0, 1.0, "H2Se")

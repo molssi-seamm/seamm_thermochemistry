@@ -1,6 +1,16 @@
 =======
 History
 =======
+2026.11.16.1 -- Bugfix: converting reference values with Ga, As or Se between 0 K and 298 K
+    * Converting a reference value between 0 K and 298.15 K needs the enthalpy
+      H298 - H0 of each element's standard state. Ga, As and Se, which CODATA
+      lacks, were missing, so a value given at one temperature only for a species
+      containing them could not be used at the other. They now come from
+      NIST-JANAF (Ga) and the NBS tables of 1982 (As, Se).
+    * For maintainers: the reference library's Zenodo description now describes
+      held values correctly (held, so not used; a computed value is used instead
+      where one exists).
+
 2026.11.16 -- The installer installs the computed reference values
     * The computed reference values, enthalpies of formation computed with SEAMM's
       tier-A recipes, are published on Zenodo as a record of their own (concept DOI
