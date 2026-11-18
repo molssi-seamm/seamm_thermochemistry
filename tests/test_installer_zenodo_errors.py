@@ -120,15 +120,17 @@ def test_update_exits_with_an_error_and_says_what_failed(inst, monkeypatch, caps
     with pytest.raises(SystemExit) as exit_:
         installer.update()
     assert exit_.value.code == 1
-    out = capsys.readouterr().out
+    captured = capsys.readouterr()
+    err = captured.err  # where seamm-manager looks first
     assert installer.failures == [
         "the thermochemistry database",
         "the official fragment store",
         "the official reference library",
         "the computed reference values",
     ]
-    assert "Could not install or update the thermochemistry database, the " in out
-    assert "seamm-thermochemistry-installer update' again later" in out
+    assert "Could not install or update the thermochemistry database, the " in err
+    assert "seamm-thermochemistry-installer update' again later" in err
+    assert "Could not install the computed reference values" in captured.out
 
 
 def test_update_without_errors_exits_normally(inst, monkeypatch):

@@ -26,6 +26,7 @@ import logging
 import os
 from pathlib import Path
 import re
+import sys
 import time
 
 import seamm_installer
@@ -291,7 +292,9 @@ class Installer(seamm_installer.InstallerBase):
 
     def _report_failures(self):
         """Say what failed and exit with an error, so that a failure is not
-        taken for success (by seamm-manager, scripts or the user)."""
+        taken for success (by seamm-manager, scripts or the user). The summary
+        goes to stderr: seamm-manager shows the end of stderr when there is any,
+        so it is always among what it shows."""
         if not self.failures:
             return
         print(
@@ -299,7 +302,8 @@ class Installer(seamm_installer.InstallerBase):
             + ", ".join(self.failures)
             + ". The rest is as reported above. Run "
             "'seamm-thermochemistry-installer update' again later; Zenodo's errors "
-            "are usually brief."
+            "are usually brief.",
+            file=sys.stderr,
         )
         raise SystemExit(1)
 
