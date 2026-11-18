@@ -1,6 +1,21 @@
 =======
 History
 =======
+2026.11.18.1 -- Bugfix: ATcT values for the wrong E/Z isomer
+    * ATcT records some cis/trans (E/Z) isomers under one SMILES without stereo,
+      naming the isomer only in its descriptor (e.g. ethanimine, difluorodiazene,
+      formamide enol), next to a generic entry. A lookup with a defined E/Z then
+      returned the generic entry for every isomer, e.g. 41.16 instead of 39.58
+      kJ/mol for (E)-ethanimine, and 73.4 instead of 78.9 for (E)-FNNF. It now
+      returns the entry labelled as that isomer ("trans" or "E", "cis" or "Z";
+      formamide enol's anti/syn), taking the lowest of its conformers, and
+      otherwise none, since the generic entry is another isomer's value or a
+      mixture's.
+    * The same rule holds for every source of reference values: ATcT, the
+      reference library and the computed values give a query with a defined E/Z
+      that isomer's value or none. Conformer labels and queries without E/Z are
+      unchanged.
+
 2026.11.18 -- The OECD-NEA thermochemical database as a source of reference values
     * The reference library can take values from the OECD-NEA thermochemical
       database (NEA-TDB), starting with its selenium volume (Olin et al., 2005). It
