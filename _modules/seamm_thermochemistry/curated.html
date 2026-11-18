@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.curated &#8212; SEAMM thermochemistry Plug-in 2026.11.16.1 documentation</title>
+    <title>seamm_thermochemistry.curated &#8212; SEAMM thermochemistry Plug-in 2026.11.18 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=8c280a9d"></script>
+    <script src="../../_static/documentation_options.js?v=040a0bb1"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.16.1" />
+  <meta name="docsearch:version" content="2026.11.18" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -430,8 +430,9 @@
 <span class="sd">"""Reading hand-curated reference values into a reference library.</span>
 
 <span class="sd">The curated files (one CSV per source: printed JANAF, CODATA key values,</span>
-<span class="sd">the NBS tables of 1982, spectroscopic D0, W4-17, derived values, and</span>
-<span class="sd">measurements from the primary literature) share common columns::</span>
+<span class="sd">the OECD-NEA thermochemical database (NEA-TDB), the NBS tables of 1982,</span>
+<span class="sd">spectroscopic D0, W4-17, derived values, and measurements from the primary</span>
+<span class="sd">literature) share common columns::</span>
 
 <span class="sd">    smiles, formula, charge, multiplicity, name, phase, dfH0_kJmol,</span>
 <span class="sd">    dfH298_kJmol, unc_kJmol, unc_level, status, citation, notes</span>
@@ -472,6 +473,15 @@
         <span class="mi">1989</span><span class="p">,</span>
         <span class="s2">"J. D. Cox, D. D. Wagman and V. A. Medvedev, CODATA Key Values for "</span>
         <span class="s2">"Thermodynamics (Hemisphere, 1989)"</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="s2">"nea.csv"</span><span class="p">:</span> <span class="p">(</span>
+        <span class="s2">"NEA-TDB-2005"</span><span class="p">,</span>
+        <span class="s2">"evaluated"</span><span class="p">,</span>
+        <span class="mi">21</span><span class="p">,</span>
+        <span class="mi">2005</span><span class="p">,</span>
+        <span class="s2">"Å. Olin, B. Noläng, E. G. Osadchii, L.-O. Öhman and E. Rosén, Chemical "</span>
+        <span class="s2">"Thermodynamics of Selenium, Chemical Thermodynamics vol. 7 (OECD Nuclear "</span>
+        <span class="s2">"Energy Agency, Elsevier, 2005)"</span><span class="p">,</span>
     <span class="p">),</span>
     <span class="s2">"nbs82.csv"</span><span class="p">:</span> <span class="p">(</span>
         <span class="s2">"NBS-82"</span><span class="p">,</span>
