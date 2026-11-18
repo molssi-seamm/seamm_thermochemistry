@@ -194,6 +194,8 @@ measurements:
 
 - printed JANAF (NIST SRD 13);
 - CODATA key values;
+- the OECD-NEA thermochemical database (NEA-TDB), e.g. its selenium volume
+  (2005);
 - the NBS tables of 1982;
 - spectroscopic D0 values;
 - NIST WebBook measurements (SRD 69);

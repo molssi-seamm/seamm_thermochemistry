@@ -1,6 +1,12 @@
 =======
 History
 =======
+2026.11.18 -- The OECD-NEA thermochemical database as a source of reference values
+    * The reference library can take values from the OECD-NEA thermochemical
+      database (NEA-TDB), starting with its selenium volume (Olin et al., 2005). It
+      ranks just behind CODATA, whose key values it adopts, and ahead of the NBS
+      tables of 1982, so where both give a species the NEA value is used.
+
 2026.11.16.1 -- Bugfix: converting reference values with Ga, As or Se between 0 K and 298 K
     * Converting a reference value between 0 K and 298.15 K needs the enthalpy
       H298 - H0 of each element's standard state. Ga, As and Se, which CODATA
