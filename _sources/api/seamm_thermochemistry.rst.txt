@@ -196,6 +196,14 @@ seamm\_thermochemistry.smiles module
    :show-inheritance:
    :undoc-members:
 
+seamm\_thermochemistry.stereo module
+------------------------------------
+
+.. automodule:: seamm_thermochemistry.stereo
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 seamm\_thermochemistry.store\_tools module
 ------------------------------------------
 

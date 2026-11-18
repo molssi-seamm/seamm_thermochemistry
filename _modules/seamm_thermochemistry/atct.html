@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.atct &#8212; SEAMM thermochemistry Plug-in 2026.11.18 documentation</title>
+    <title>seamm_thermochemistry.atct &#8212; SEAMM thermochemistry Plug-in 2026.11.18.1 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=040a0bb1"></script>
+    <script src="../../_static/documentation_options.js?v=4beeef40"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.18" />
+  <meta name="docsearch:version" content="2026.11.18.1" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -1093,6 +1093,56 @@
         <span class="k">return</span> <span class="n">result</span></div>
 
 
+    <span class="k">def</span><span class="w"> </span><span class="nf">_isomer_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smiles</span><span class="p">,</span> <span class="n">candidates</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""The entry for a query with a defined E/Z that ATcT does not write in</span>
+<span class="sd">        its SMILES, by the rule of :mod:`.stereo`; None if the query has no E/Z</span>
+<span class="sd">        or ATcT writes it (the candidates are then exact matches).</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        AmbiguousEntry</span>
+<span class="sd">            If ATcT has no entry labelled as the query's isomer: its plain</span>
+<span class="sd">            entry is another isomer's value or a mixture's, so none is used.</span>
+<span class="sd">        """</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.stereo</span><span class="w"> </span><span class="kn">import</span> <span class="n">descriptor_isomer</span><span class="p">,</span> <span class="n">double_bond_isomers</span>
+
+        <span class="n">isomers</span> <span class="o">=</span> <span class="n">double_bond_isomers</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">isomers</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">can</span> <span class="o">=</span> <span class="n">canonical_smiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">canonical_smiles</span><span class="p">(</span><span class="n">e</span><span class="p">[</span><span class="s2">"smiles"</span><span class="p">])</span> <span class="o">==</span> <span class="n">can</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">  "</span> <span class="o">+</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">  "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">label</span><span class="p">()</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">isomers</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">AmbiguousEntry</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"ATcT (ver. </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s2">) writes '</span><span class="si">{</span><span class="n">smiles</span><span class="si">}</span><span class="s2">' without the E/Z of "</span>
+                <span class="s2">"its double bonds, and with more than one the isomer cannot be read "</span>
+                <span class="s2">"from the descriptors; give an ATcT ID."</span> <span class="o">+</span> <span class="n">labels</span><span class="p">,</span>
+                <span class="n">candidates</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="n">isomer</span> <span class="o">=</span> <span class="n">isomers</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">labelled</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">e</span>
+            <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">candidates</span>
+            <span class="k">if</span> <span class="n">descriptor_isomer</span><span class="p">(</span><span class="n">e</span><span class="p">[</span><span class="s2">"descriptor"</span><span class="p">],</span> <span class="n">e</span><span class="p">[</span><span class="s2">"id"</span><span class="p">])</span> <span class="o">==</span> <span class="n">isomer</span>
+        <span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">labelled</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">AmbiguousEntry</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"ATcT (ver. </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s2">) writes '</span><span class="si">{</span><span class="n">smiles</span><span class="si">}</span><span class="s2">' without E/Z and has "</span>
+                <span class="sa">f</span><span class="s2">"no entry labelled as the </span><span class="si">{</span><span class="n">isomer</span><span class="si">}</span><span class="s2"> isomer; its other entries are "</span>
+                <span class="s2">"another isomer's or a mixture's, so none is used. Give an ATcT ID "</span>
+                <span class="s2">"to use one anyway."</span> <span class="o">+</span> <span class="n">labels</span><span class="p">,</span>
+                <span class="n">candidates</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Several conformers of the isomer: the lowest, since the reference</span>
+        <span class="c1"># value of conformers sharing one SMILES is the ground conformer's</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">enthalpy</span><span class="p">(</span><span class="n">e</span><span class="p">):</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">e</span><span class="p">[</span><span class="s2">"dfH0_298K"</span><span class="p">]</span> <span class="k">if</span> <span class="n">e</span><span class="p">[</span><span class="s2">"dfH0_298K"</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">e</span><span class="p">[</span><span class="s2">"dfH0_0K"</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">math</span><span class="o">.</span><span class="n">inf</span> <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">value</span>
+
+        <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="n">labelled</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">enthalpy</span><span class="p">)</span>
+
 <div class="viewcode-block" id="ATcT.lookup">
 <a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.atct.ATcT.lookup">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">lookup</span><span class="p">(</span>
@@ -1174,6 +1224,11 @@
                 <span class="o">+</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">  "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">label</span><span class="p">()</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">chosen</span><span class="p">),</span>
                 <span class="n">chosen</span><span class="p">,</span>
             <span class="p">)</span>
+
+        <span class="c1"># A defined E/Z that the tables write only in a descriptor (see .stereo)</span>
+        <span class="n">isomer_entry</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_isomer_entry</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="n">candidates</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">isomer_entry</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">isomer_entry</span>
 
         <span class="c1"># Spin state: a labelled entry that matches the multiplicity wins</span>
         <span class="k">if</span> <span class="n">multiplicity</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
