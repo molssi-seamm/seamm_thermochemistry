@@ -21,13 +21,39 @@ for a typical plug-in, which doesn't apply here. `check`/`install`/
 """
 
 import hashlib
+import json
 import logging
+import os
 from pathlib import Path
+import re
+import time
 
 import seamm_installer
 from seamm_util import Zenodo
 
 logger = logging.getLogger(__name__)
+
+#: How often a Zenodo request is tried, and the waits between tries (seconds).
+#: SEAMM_ZENODO_ATTEMPTS overrides the number of tries.
+ZENODO_ATTEMPTS = 4
+ZENODO_WAITS = (5, 15, 45)
+
+
+def is_transient(error):
+    """Whether an error talking to Zenodo is worth trying again: a server
+    error (5xx), rate limiting (429), an empty or garbled reply, or a dropped
+    connection or timeout."""
+    if isinstance(error, (json.JSONDecodeError, ConnectionError, TimeoutError)):
+        return True
+    try:
+        import requests
+
+        if isinstance(error, (requests.ConnectionError, requests.Timeout)):
+            return True
+    except ImportError:  # pragma: no cover
+        pass
+    m = re.search(r"code = (\d{3})", str(error))
+    return m is not None and (m.group(1) == "429" or m.group(1).startswith("5"))
 
 
 class Installer(seamm_installer.InstallerBase):
@@ -238,13 +264,56 @@ class Installer(seamm_installer.InstallerBase):
             return "published"
         return "changed"
 
+    def _zenodo(self, what, function, *args):
+        """Call `function` (a Zenodo request), trying again after transient
+        errors (:func:`is_transient`); any other error, or the last one, is
+        raised."""
+        attempts = int(os.environ.get("SEAMM_ZENODO_ATTEMPTS", ZENODO_ATTEMPTS))
+        for attempt in range(1, max(attempts, 1) + 1):
+            try:
+                return function(*args)
+            except Exception as e:
+                if attempt >= attempts or not is_transient(e):
+                    raise
+                wait = ZENODO_WAITS[min(attempt, len(ZENODO_WAITS)) - 1]
+                print(
+                    f"    Zenodo did not answer properly getting {what} ({e}); "
+                    f"trying again in {wait} s."
+                )
+                time.sleep(wait)
+
+    @property
+    def failures(self):
+        """What could not be installed or updated in this run."""
+        if not hasattr(self, "_failures"):
+            self._failures = []
+        return self._failures
+
+    def _report_failures(self):
+        """Say what failed and exit with an error, so that a failure is not
+        taken for success (by seamm-manager, scripts or the user)."""
+        if not self.failures:
+            return
+        print(
+            "Could not install or update "
+            + ", ".join(self.failures)
+            + ". The rest is as reported above. Run "
+            "'seamm-thermochemistry-installer update' again later; Zenodo's errors "
+            "are usually brief."
+        )
+        raise SystemExit(1)
+
     def _latest_record(self):
         if self.zenodo_concept_id is None:
             raise RuntimeError(
                 "seamm_thermochemistry has no Zenodo record configured yet "
                 "(Installer.zenodo_concept_id is None) -- nothing to download."
             )
-        return Zenodo().get_latest_public_record(self.zenodo_concept_id)
+        return self._zenodo(
+            "the thermochemistry database's record",
+            Zenodo().get_latest_public_record,
+            self.zenodo_concept_id,
+        )
 
     def _download(self, record, path):
         """Download the latest database to `path`, safely.
@@ -257,7 +326,12 @@ class Installer(seamm_installer.InstallerBase):
         partial = path.with_name(path.name + ".download")
         partial.unlink(missing_ok=True)
         print("Getting the thermochemistry reference database from Zenodo...")
-        record.download_file(self.database_filename, partial)
+        self._zenodo(
+            "the thermochemistry database",
+            record.download_file,
+            self.database_filename,
+            partial,
+        )
         self._verify_checksum(record, partial)
         if path.exists():
             from datetime import datetime
@@ -299,7 +373,11 @@ class Installer(seamm_installer.InstallerBase):
         return self._configured_database_path().parent / "ATcT"
 
     def _official_record(self):
-        return Zenodo().get_latest_public_record(self.fragment_store_concept_id)
+        return self._zenodo(
+            "the official fragment store's record",
+            Zenodo().get_latest_public_record,
+            self.fragment_store_concept_id,
+        )
 
     @staticmethod
     def _file_md5(record, filename):
@@ -397,7 +475,11 @@ class Installer(seamm_installer.InstallerBase):
         return self._configured_database_path().parent / self.computed_values_filename
 
     def _computed_record(self):
-        return Zenodo().get_latest_public_record(self.computed_values_concept_id)
+        return self._zenodo(
+            "the computed reference values' record",
+            Zenodo().get_latest_public_record,
+            self.computed_values_concept_id,
+        )
 
     def _install_published(self, what, get_record, path, filename, key, version, force):
         """Install or update one published file: see `install_official_store`."""
@@ -428,7 +510,7 @@ class Installer(seamm_installer.InstallerBase):
             partial = path.with_name(path.name + ".download")
             partial.unlink(missing_ok=True)
             print(f"Getting {what} from Zenodo...")
-            record.download_file(filename, partial)
+            self._zenodo(what, record.download_file, filename, partial)
             if latest is not None and self._md5(partial) != latest:
                 partial.unlink(missing_ok=True)
                 raise RuntimeError(
@@ -448,6 +530,7 @@ class Installer(seamm_installer.InstallerBase):
             return outcome
         except Exception as e:
             print(f"Could not install {what}: {e}")
+            self.failures.append(what)
             return "failed"
 
     def _record_official(self, path):
@@ -468,7 +551,11 @@ class Installer(seamm_installer.InstallerBase):
         return self._configured_database_path().parent / self.reference_library_filename
 
     def _references_record(self):
-        return Zenodo().get_latest_public_record(self.reference_library_concept_id)
+        return self._zenodo(
+            "the official reference library's record",
+            Zenodo().get_latest_public_record,
+            self.reference_library_concept_id,
+        )
 
     def _references_version(self, path):
         """The version recorded in a reference library, or None."""
@@ -549,8 +636,13 @@ class Installer(seamm_installer.InstallerBase):
             self._register_path(path)  # make sure it is used; its md5 is not recorded
             self.update()
             return
-        self._download(self._latest_record(), path)
+        try:
+            self._download(self._latest_record(), path)
+        except Exception as e:
+            print(f"Could not install the thermochemistry database: {e}")
+            self.failures.append("the thermochemistry database")
         self._install_extras()
+        self._report_failures()
 
     def update(self):
         """Bring the database up to the latest published version -- unless it has
@@ -569,9 +661,14 @@ class Installer(seamm_installer.InstallerBase):
         """
         if self._shared_report():
             return
-        self._update_database()
+        try:
+            self._update_database()
+        except Exception as e:
+            print(f"Could not update the thermochemistry database: {e}")
+            self.failures.append("the thermochemistry database")
         force = bool(getattr(self.options, "force", False)) if self.options else False
         self._install_extras(force=force)
+        self._report_failures()
 
     def _update_database(self):
         """The reference database's part of `update`."""

@@ -1,6 +1,17 @@
 =======
 History
 =======
+2026.11.18.2 -- Bugfix: the installer ignored Zenodo errors
+    * When Zenodo answered with an error, which it did often on 2026-11-18, the
+      installer printed "Could not install ..." for the fragment store, reference
+      library or computed values but still finished successfully, so installations
+      silently kept old data; an error for the thermochemistry database itself
+      stopped the update before the other files were tried. Brief errors (server
+      errors, rate limiting, empty replies, dropped connections) are now tried
+      again, up to four times over about a minute; every file is still attempted
+      if one fails; and anything that still failed is named at the end and the
+      installer exits with an error, which seamm-manager reports.
+
 2026.11.18.1 -- Bugfix: ATcT values for the wrong E/Z isomer
     * ATcT records some cis/trans (E/Z) isomers under one SMILES without stereo,
       naming the isomer only in its descriptor (e.g. ethanimine, difluorodiazene,
