@@ -51,6 +51,13 @@ download is checked before it replaces anything. ``install`` never overwrites an
 existing database, and ``uninstall`` leaves one with local changes in place unless
 given ``--force``.
 
+Zenodo's brief errors (server errors, rate limiting, an empty reply, a dropped
+connection) are tried again up to four times over about a minute
+(``SEAMM_ZENODO_ATTEMPTS`` changes the number of tries). Whatever still cannot be
+installed is named at the end and the command exits with an error, so that
+``seamm-manager`` and scripts see the failure; the files that could be installed are
+kept. Running ``update`` again later finishes the job.
+
 The same commands also set up what the isodesmic (CBH) thermochemistry needs, so a
 user has nothing more to do:
 
