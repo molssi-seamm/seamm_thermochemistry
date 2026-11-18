@@ -106,6 +106,10 @@ def description(report):
         + ")</li>"
         for s in report["sources"]
     )
+    # A species held in one source but with another source's value chosen is
+    # still used: list it apart from the species that are not used at all
+    held = [h for h in report["held"] if not h.get("used")]
+    replaced = [h for h in report["held"] if h.get("used")]
     return (
         "<p>Enthalpies of formation of gas-phase species that the Active "
         "Thermochemical Tables (ATcT) lack, for the reference species of the "
@@ -136,8 +140,18 @@ def description(report):
         f"these sources, in rank order:</p><ul>{sources}</ul>"
         "<p>Held, so not used (a computed value is used instead where one exists, "
         "with the reason recorded in the file): "
-        f"{', '.join(h['name'] or h['smiles'] for h in report['held'])}.</p>"
-        "<p>The values are reproduced from, and cite, their original sources: "
+        f"{', '.join(h['name'] or h['smiles'] for h in held)}.</p>"
+        + (
+            "<p>Held in favour of another source's value for the same species: "
+            + ", ".join(
+                f"{h['name'] or h['smiles']} ({h['source']}; {h['used']} used)"
+                for h in replaced
+            )
+            + ".</p>"
+            if replaced
+            else ""
+        )
+        + "<p>The values are reproduced from, and cite, their original sources: "
         "please cite those as well as this record. The NIST-JANAF tables (SRD 13), "
         "the NBS tables and the NIST Chemistry WebBook (SRD 69) are credited to "
         "the National Institute of Standards and Technology.</p>"
@@ -177,9 +191,13 @@ def build_report(path, version, doi):
             "name": r["name"],
             "source": r["source"],
             "reason": r["decision_reason"] or r["rule"],
+            "used": r["used"],
         }
         for r in db.execute(
-            "SELECT sp.smiles, sp.name, s.name AS source, r.decision_reason, r.rule "
+            "SELECT sp.smiles, sp.name, s.name AS source, r.decision_reason, r.rule, "
+            "(SELECT GROUP_CONCAT(s2.name, ', ') FROM reference r2 "
+            "JOIN source s2 ON s2.id = r2.source WHERE r2.species = r.species "
+            "AND r2.state = 'chosen') AS used "
             "FROM reference r JOIN species sp ON sp.id = r.species "
             "JOIN source s ON s.id = r.source WHERE r.state = 'held' "
             "ORDER BY sp.smiles"
