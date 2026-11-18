@@ -331,10 +331,13 @@ def test_lookup_mixture_entry_when_no_stereo_given(tables):
     assert tables.lookup("Cl/C=C/Cl")["id"] == "156-60-5*0"
 
 
-def test_lookup_stereo_query_falls_back_to_unspecified_entry(tables):
-    # A CBH fragment can carry stereo the tables never specify (the E/Z of an
-    # N-H imine): the entry written without stereo is used
-    assert tables.lookup("[H]/N=C\\O")["id"] == "75-12-7*9"
+def test_lookup_stereo_query_without_an_isomer_entry_is_refused(tables):
+    # A CBH fragment can carry E/Z that the tables write only without stereo (an
+    # N-H imine). With no entry labelled as that isomer, the entry written without
+    # stereo -- another isomer's value, or a mixture's -- is not used (see
+    # seamm_thermochemistry.stereo and tests/test_stereo_ez.py)
+    with pytest.raises(A.AmbiguousEntry, match="no entry labelled as the Z isomer"):
+        tables.lookup("[H]/N=C\\O")
     assert tables.lookup("N=CO")["id"] == "75-12-7*9"
     # but where the tables do have the stereo, it must match
     assert tables.lookup("Cl/C=C\\Cl")["id"] == "156-59-2*0"

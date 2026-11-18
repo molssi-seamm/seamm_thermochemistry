@@ -162,7 +162,12 @@ reproducible. In Python::
 
 The selection rules follow how ATcT labels its entries: gas phase with the right
 charge; double-bond stereochemistry must match (cis and trans are separate
-species), while a lone stereocentre is ignored (enantiomers share a value); the
+species): a SMILES with a defined E/Z gets that isomer's entry -- by ATcT's SMILES,
+or by its descriptor ("trans" or "E", "cis" or "Z") when ATcT writes the isomers
+without stereo -- and otherwise none, never the generic entry, which is another
+isomer's value or a mixture's (the same rule holds for the reference library and
+the computed values, which key the exact SMILES; see ``seamm_thermochemistry.stereo``);
+a lone stereocentre is ignored (enantiomers share a value); the
 plain ``*0`` entry is used over conformer entries unless ``conformer=`` names
 one; a labelled spin state is used when ``multiplicity=`` matches it; and the
 ortho/para nuclear-spin entries of small species (H2, H2O, H2O2, CH2O, ketene: at most

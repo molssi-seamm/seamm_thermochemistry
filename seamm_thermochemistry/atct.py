@@ -628,6 +628,56 @@ class ATcT:
             result = [e for e in result if e["charge"] == charge]
         return result
 
+    def _isomer_entry(self, smiles, candidates):
+        """The entry for a query with a defined E/Z that ATcT does not write in
+        its SMILES, by the rule of :mod:`.stereo`; None if the query has no E/Z
+        or ATcT writes it (the candidates are then exact matches).
+
+        Raises
+        ------
+        AmbiguousEntry
+            If ATcT has no entry labelled as the query's isomer: its plain
+            entry is another isomer's value or a mixture's, so none is used.
+        """
+        from .stereo import descriptor_isomer, double_bond_isomers
+
+        isomers = double_bond_isomers(smiles)
+        if not isomers:
+            return None
+        can = canonical_smiles(smiles)
+        if any(canonical_smiles(e["smiles"]) == can for e in candidates):
+            return None
+        labels = "\n  " + "\n  ".join(e.label() for e in candidates)
+        if len(isomers) > 1:
+            raise AmbiguousEntry(
+                f"ATcT (ver. {self.version}) writes '{smiles}' without the E/Z of "
+                "its double bonds, and with more than one the isomer cannot be read "
+                "from the descriptors; give an ATcT ID." + labels,
+                candidates,
+            )
+        isomer = isomers[0]
+        labelled = [
+            e
+            for e in candidates
+            if descriptor_isomer(e["descriptor"], e["id"]) == isomer
+        ]
+        if not labelled:
+            raise AmbiguousEntry(
+                f"ATcT (ver. {self.version}) writes '{smiles}' without E/Z and has "
+                f"no entry labelled as the {isomer} isomer; its other entries are "
+                "another isomer's or a mixture's, so none is used. Give an ATcT ID "
+                "to use one anyway." + labels,
+                candidates,
+            )
+
+        # Several conformers of the isomer: the lowest, since the reference
+        # value of conformers sharing one SMILES is the ground conformer's
+        def enthalpy(e):
+            value = e["dfH0_298K"] if e["dfH0_298K"] is not None else e["dfH0_0K"]
+            return math.inf if value is None else value
+
+        return min(labelled, key=enthalpy)
+
     def lookup(
         self,
         smiles=None,
@@ -707,6 +757,11 @@ class ATcT:
                 + "\n  ".join(e.label() for e in chosen),
                 chosen,
             )
+
+        # A defined E/Z that the tables write only in a descriptor (see .stereo)
+        isomer_entry = self._isomer_entry(smiles, candidates)
+        if isomer_entry is not None:
+            return isomer_entry
 
         # Spin state: a labelled entry that matches the multiplicity wins
         if multiplicity is not None:
