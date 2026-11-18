@@ -73,6 +73,9 @@ CREDITS = {
     "JANAF-1998": "NIST Standard Reference Database 13 (NIST-JANAF Thermochemical "
     "Tables); values from the printed 4th edition, cited by table, with credit to "
     "NIST.",
+    "NEA-TDB-2005": "OECD-NEA Chemical Thermodynamics vol. 7, Chemical "
+    "Thermodynamics of Selenium (Olin et al., 2005); published data, cited by "
+    "table and page.",
     "NBS-82": "The NBS Tables of Chemical Thermodynamic Properties (J. Phys. Chem. "
     "Ref. Data 11, Suppl. 2, 1982); values cited by table and page, with credit to "
     "NIST.",

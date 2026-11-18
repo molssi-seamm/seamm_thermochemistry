@@ -10,7 +10,8 @@ The order (the reference-library design, §2, and the 2026-11-12 decisions):
 2. The user's own references (the local layer's ``user`` source), when the
    job enables them.
 3. The library's experimental sources by rank: printed JANAF, derived
-   values, CODATA, the NBS tables of 1982, D0, the WebBook measurements,
+   values, CODATA, the OECD-NEA thermochemical database (NEA-TDB), the NBS
+   tables of 1982, D0, the WebBook measurements,
    measurements from the primary literature.
 4. Computed values, when enabled ("compilations and computed"): W4-17 (0 K
    only, used only without a 298.15 K value) and the computed layer,

@@ -3,8 +3,9 @@
 """Reading hand-curated reference values into a reference library.
 
 The curated files (one CSV per source: printed JANAF, CODATA key values,
-the NBS tables of 1982, spectroscopic D0, W4-17, derived values, and
-measurements from the primary literature) share common columns::
+the OECD-NEA thermochemical database (NEA-TDB), the NBS tables of 1982,
+spectroscopic D0, W4-17, derived values, and measurements from the primary
+literature) share common columns::
 
     smiles, formula, charge, multiplicity, name, phase, dfH0_kJmol,
     dfH298_kJmol, unc_kJmol, unc_level, status, citation, notes
@@ -45,6 +46,15 @@ CURATED_SOURCES = {
         1989,
         "J. D. Cox, D. D. Wagman and V. A. Medvedev, CODATA Key Values for "
         "Thermodynamics (Hemisphere, 1989)",
+    ),
+    "nea.csv": (
+        "NEA-TDB-2005",
+        "evaluated",
+        21,
+        2005,
+        "Å. Olin, B. Noläng, E. G. Osadchii, L.-O. Öhman and E. Rosén, Chemical "
+        "Thermodynamics of Selenium, Chemical Thermodynamics vol. 7 (OECD Nuclear "
+        "Energy Agency, Elsevier, 2005)",
     ),
     "nbs82.csv": (
         "NBS-82",

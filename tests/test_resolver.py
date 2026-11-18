@@ -250,3 +250,46 @@ def test_dfh_0k_from_298k_ga_as_se():
     assert value == pytest.approx(66.44 - 10.0 + 5.130 + 3 * table["H"])
     RS.dfh_0k_from_298k(1.0, 1.0, "ClGaH2")  # no KeyError
     RS.dfh_0k_from_298k(1.0, 1.0, "H2Se")
+
+
+@pytest.mark.parametrize("supplementary", ["compilations", "compilations and computed"])
+def test_nea_ranks_ahead_of_nbs82(tmp_path, supplementary):
+    """Paul, 2026-11-18: the OECD-NEA thermochemical database joins the
+    hierarchy just behind CODATA, so its H2Se and SeF6 replace NBS-82's by
+    rank, without holds, under both settings. Made-up values."""
+    from seamm_thermochemistry import curated
+
+    header = (
+        "smiles,formula,charge,multiplicity,name,phase,dfH0_kJmol,dfH298_kJmol,"
+        "unc_kJmol,unc_level,status,citation,notes\n"
+    )
+    (tmp_path / "nbs82.csv").write_text(
+        header
+        + '[SeH2],H2Se,0,1,H2Se,g,,30.0,,unstated,evaluated,"NBS-82 test",\n'
+        + "F[Se](F)(F)(F)(F)F,F6Se,0,1,SeF6,g,,-1117.0,,unstated,evaluated,"
+        + '"NBS-82 test",\n'
+    )
+    (tmp_path / "nea.csv").write_text(
+        header
+        + '[SeH2],H2Se,0,1,H2Se,g,,29.0,2.0,95 %,evaluated,"NEA test",\n'
+        + "F[Se](F)(F)(F)(F)F,F6Se,0,1,SeF6,g,,-1118.0,0.4,95 %,evaluated,"
+        + '"NEA test",\n'
+    )
+    library = R.ReferenceLibrary(
+        tmp_path / "official.db", create=True, layer="official"
+    )
+    report, problems = curated.import_curated(library, tmp_path)
+    assert problems == [] and all(r[2] == "added" for r in report)
+    assert library.source("NEA-TDB-2005")["rank"] == 21
+    assert curated.CURATED_SOURCES["codata.csv"][2] < 21
+    assert 21 < library.source("NBS-82")["rank"]
+    library.close()
+    layers = R.LayeredReferences(tmp_path / "local.db", tmp_path / "official.db")
+    r = RS.ReferenceResolver(FakeATcT(), supplementary=supplementary, layers=layers)
+    entries, missing, label, _ = r.resolve(["[SeH2]", "F[Se](F)(F)(F)(F)F"])
+    assert not missing and label == "mixed"
+    assert entries["[SeH2]"]["source"] == "NEA-TDB-2005"
+    assert entries["[SeH2]"]["dfH0_298K"] == 29.0
+    assert entries["F[Se](F)(F)(F)(F)F"]["source"] == "NEA-TDB-2005"
+    assert entries["F[Se](F)(F)(F)(F)F"]["uncertainty_298K"] == pytest.approx(0.4)
+    layers.close()
