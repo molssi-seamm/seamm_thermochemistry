@@ -8,7 +8,8 @@ History
       returned the generic entry for every isomer, e.g. 41.16 instead of 39.58
       kJ/mol for (E)-ethanimine, and 73.4 instead of 78.9 for (E)-FNNF. It now
       returns the entry labelled as that isomer ("trans" or "E", "cis" or "Z";
-      formamide enol's anti/syn), taking the lowest of its conformers, and
+      formamide enol's anti/syn), taking its lowest conformer as the
+      reference convention has it for conformers sharing one SMILES, and
       otherwise none, since the generic entry is another isomer's value or a
       mixture's.
     * The same rule holds for every source of reference values: ATcT, the

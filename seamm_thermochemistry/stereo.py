@@ -14,8 +14,9 @@ the computed values):
    the source labels it as that isomer -- ATcT's descriptors "trans" and "E",
    "cis" and "Z", and for formimidic acid "anti-..." and "syn-..." (see
    :data:`ISOMER_WORDS`). If the source has several labelled values for the
-   isomer (its conformers), the lowest is taken: the step builds the lowest
-   conformer.
+   isomer (its conformers), the lowest is taken: by the reference convention,
+   the reference value of conformers that share one SMILES (here one SMILES with
+   its E/Z) is that of the species' ground conformer.
 3. Otherwise a query with a defined E/Z gets no value from that source, and the
    next source is tried; the generic value is never used in its place.
 

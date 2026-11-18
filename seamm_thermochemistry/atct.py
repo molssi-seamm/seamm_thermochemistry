@@ -670,7 +670,8 @@ class ATcT:
                 candidates,
             )
 
-        # Several conformers of the isomer: the lowest, as the step builds
+        # Several conformers of the isomer: the lowest, since the reference
+        # value of conformers sharing one SMILES is the ground conformer's
         def enthalpy(e):
             value = e["dfH0_298K"] if e["dfH0_298K"] is not None else e["dfH0_0K"]
             return math.inf if value is None else value
