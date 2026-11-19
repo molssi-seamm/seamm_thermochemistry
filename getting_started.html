@@ -7,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.11.18.2 documentation</title>
+    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.11.19 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="_static/documentation_options.js?v=7c16652a"></script>
+    <script src="_static/documentation_options.js?v=a0728fa8"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -55,7 +55,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.18.2" />
+  <meta name="docsearch:version" content="2026.11.19" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -1063,10 +1063,27 @@ Ramabhadran and Raghavachari’s connectivity-based hierarchy from a SMILES:</p>
     <span class="n">reaction</span><span class="o">.</span><span class="n">balanced</span><span class="p">,</span> <span class="n">reaction</span><span class="o">.</span><span class="n">trivial</span>
 </pre></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">cbh.lowest_conformer(smiles,</span> <span class="pre">n=20)</span></code> gives the lowest MMFF94 conformer of
-<code class="docutils literal notranslate"><span class="pre">n</span></code> RDKit embeddings (symbols, coordinates, energies), the right start for a
-species whose lowest rotamer is wanted: a single embedding of a long chain is
-often gauche.</p>
+<p><code class="docutils literal notranslate"><span class="pre">cbh.conformer_candidates(smiles,</span> <span class="pre">n=50)</span></code> gives the distinct low conformers of
+<code class="docutils literal notranslate"><span class="pre">n</span></code> RDKit embeddings minimized with MMFF94 (UFF where MMFF94 has no
+parameters), lowest first, with their force-field energies in kJ/mol above the
+lowest: the candidates for a species’ lowest conformer, since a single embedding
+of a long chain is often gauche. Those within 10 kJ/mol (15 with UFF, which
+ranks conformers less well) are kept, or <code class="docutils literal notranslate"><span class="pre">window=</span></code> kJ/mol, and at most
+<code class="docutils literal notranslate"><span class="pre">max_candidates=</span></code>. Minima with the same energy and the same interatomic
+distances are one conformer, so mirror images count once, but rotamers that
+differ only in where hydrogens point (gauche and trans diarsine, the OH rotamers
+of ethanol) are distinct. The force fields do not always rank such conformers
+right (UFF puts gauche diarsine 0.2 kJ/mol below trans; CCSD(T) puts trans 1.4
+kJ/mol below gauche), so the Thermochemistry step optimizes the lowest few at
+its geometry level and keeps the lowest there. <code class="docutils literal notranslate"><span class="pre">cbh.lowest_conformer(smiles,</span>
+<span class="pre">n=20)</span></code> gives only the lowest by the force field (symbols, coordinates,
+energies).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conformers</span> <span class="o">=</span> <span class="n">cbh</span><span class="o">.</span><span class="n">conformer_candidates</span><span class="p">(</span><span class="s2">"[AsH2][AsH2]"</span><span class="p">)</span>
+<span class="n">conformers</span><span class="o">.</span><span class="n">energies</span>              <span class="c1"># [0.0, 0.21]  kJ/mol, UFF</span>
+<span class="n">conformers</span><span class="o">.</span><span class="n">coordinates</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>        <span class="c1"># in Å, atoms in conformers.symbols order</span>
+<span class="n">conformers</span><span class="o">.</span><span class="n">mol_of</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>             <span class="c1"># RDKit molecule with that conformer</span>
+</pre></div>
+</div>
 <p>Products have positive coefficients, reactants negative and the target -1.
 Every fragment keeps the bond orders, charges, unpaired electrons and
 stereochemistry it has in the parent, and every cut bond is replaced by

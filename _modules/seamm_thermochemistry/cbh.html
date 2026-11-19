@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.cbh &#8212; SEAMM thermochemistry Plug-in 2026.11.18.2 documentation</title>
+    <title>seamm_thermochemistry.cbh &#8212; SEAMM thermochemistry Plug-in 2026.11.19 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=7c16652a"></script>
+    <script src="../../_static/documentation_options.js?v=a0728fa8"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.18.2" />
+  <meta name="docsearch:version" content="2026.11.19" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -1416,12 +1416,125 @@
     <span class="k">return</span> <span class="kc">None</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">lowest_conformer</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mh">0xF00D</span><span class="p">,</span> <span class="n">return_mol</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""The lowest-energy conformer of `n` ETKDG embeddings optimized with</span>
-<span class="sd">    MMFF94: the starting structure for a species whose lowest rotamer is</span>
-<span class="sd">    wanted (all-anti n-alkanes, anti ethanol, cis-cis dimethyl carbonate), as</span>
-<span class="sd">    CBH-ANL starts every species from its lowest rotamer. A single embedding</span>
-<span class="sd">    of a long chain is often gauche.</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Conformers</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""The distinct force-field conformers of a species, lowest first: the</span>
+<span class="sd">    candidates for its lowest conformer at a quantum-chemical level.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    mol : rdkit.Chem.Mol</span>
+<span class="sd">        The molecule with explicit hydrogens and one conformer per candidate,</span>
+<span class="sd">        in the order of the candidates (conformer ids 0, 1, ...).</span>
+<span class="sd">    symbols : [str]</span>
+<span class="sd">        The elements, in the molecule's atom order.</span>
+<span class="sd">    coordinates : [[[float]]]</span>
+<span class="sd">        The coordinates (Å) of each candidate.</span>
+<span class="sd">    energies : [float]</span>
+<span class="sd">        The force-field energy of each candidate, kJ/mol above the lowest.</span>
+<span class="sd">    field : str</span>
+<span class="sd">        "MMFF94", or "UFF" for species MMFF94 has no parameters for.</span>
+<span class="sd">    n_embeddings : int</span>
+<span class="sd">        The number of embeddings minimized.</span>
+<span class="sd">    n_distinct : int</span>
+<span class="sd">        The number of distinct usable minima they gave (all of them, not only</span>
+<span class="sd">        the candidates).</span>
+<span class="sd">    all_energies : [float]</span>
+<span class="sd">        The force-field energy (kcal/mol) of every embedding, in embedding order.</span>
+<span class="sd">    indices : [int]</span>
+<span class="sd">        The embedding (index into all_energies) of each candidate.</span>
+<span class="sd">    """</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">mol</span><span class="p">,</span>
+        <span class="n">symbols</span><span class="p">,</span>
+        <span class="n">coordinates</span><span class="p">,</span>
+        <span class="n">energies</span><span class="p">,</span>
+        <span class="n">field</span><span class="p">,</span>
+        <span class="n">n_embeddings</span><span class="p">,</span>
+        <span class="n">n_distinct</span><span class="p">,</span>
+        <span class="n">all_energies</span><span class="p">,</span>
+        <span class="n">indices</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="n">mol</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">symbols</span> <span class="o">=</span> <span class="n">symbols</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">coordinates</span> <span class="o">=</span> <span class="n">coordinates</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">energies</span> <span class="o">=</span> <span class="n">energies</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">field</span> <span class="o">=</span> <span class="n">field</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_embeddings</span> <span class="o">=</span> <span class="n">n_embeddings</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_distinct</span> <span class="o">=</span> <span class="n">n_distinct</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_energies</span> <span class="o">=</span> <span class="n">all_energies</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">indices</span> <span class="o">=</span> <span class="n">indices</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coordinates</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">mol_of</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""The RDKit molecule with only candidate `index` as its conformer."""</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">rdkit</span><span class="w"> </span><span class="kn">import</span> <span class="n">Chem</span>
+
+        <span class="n">keep</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">Mol</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mol</span><span class="p">)</span>
+        <span class="n">keep</span><span class="o">.</span><span class="n">RemoveAllConformers</span><span class="p">()</span>
+        <span class="n">keep</span><span class="o">.</span><span class="n">AddConformer</span><span class="p">(</span><span class="n">Chem</span><span class="o">.</span><span class="n">Conformer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mol</span><span class="o">.</span><span class="n">GetConformer</span><span class="p">(</span><span class="n">index</span><span class="p">)),</span> <span class="n">assignId</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">keep</span>
+
+
+<span class="c1">#: Two force-field minima are one conformer when their energies differ by less</span>
+<span class="c1">#: than CONFORMER_ENERGY_TOLERANCE (kcal/mol) and their interatomic distances,</span>
+<span class="c1">#: sorted for each pair of elements, by at most CONFORMER_DISTANCE_TOLERANCE (Å).</span>
+<span class="c1">#: Mirror images (gauche+ and gauche-) and structures differing only in which of</span>
+<span class="c1">#: equivalent atoms is where are then one conformer, but rotamers differing only</span>
+<span class="c1">#: in where hydrogens point are not (CREST's moments of inertia cannot tell</span>
+<span class="c1">#: gauche from trans diarsine, 0.05 kcal/mol apart in UFF).</span>
+<span class="n">CONFORMER_ENERGY_TOLERANCE</span> <span class="o">=</span> <span class="mf">0.05</span>
+<span class="n">CONFORMER_DISTANCE_TOLERANCE</span> <span class="o">=</span> <span class="mf">0.05</span>
+<span class="n">KJ_PER_KCAL</span> <span class="o">=</span> <span class="mf">4.184</span>
+
+<span class="c1">#: The force-field conformers within this many kJ/mol of the lowest are the</span>
+<span class="c1">#: candidates for the lowest at a quantum-chemical level. UFF ranks conformers</span>
+<span class="c1">#: less well than MMFF94 (it puts gauche diarsine 0.2 kJ/mol below trans; CCSD(T)</span>
+<span class="c1">#: puts trans 1.4 kJ/mol below gauche), so its window is wider.</span>
+<span class="n">CONFORMER_WINDOW</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"MMFF94"</span><span class="p">:</span> <span class="mf">10.0</span><span class="p">,</span> <span class="s2">"UFF"</span><span class="p">:</span> <span class="mf">15.0</span><span class="p">}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_distance_spectrum</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">cid</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The interatomic distances (Å) of a conformer, sorted for each pair of</span>
+<span class="sd">    elements: unchanged by rotation, mirroring and swapping equivalent atoms."""</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+    <span class="n">symbols</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">GetSymbol</span><span class="p">()</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">mol</span><span class="o">.</span><span class="n">GetAtoms</span><span class="p">()]</span>
+    <span class="n">xyz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">mol</span><span class="o">.</span><span class="n">GetConformer</span><span class="p">(</span><span class="n">cid</span><span class="p">)</span><span class="o">.</span><span class="n">GetPositions</span><span class="p">())</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">xyz</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">:]</span> <span class="o">-</span> <span class="n">xyz</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">groups</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">symbols</span><span class="p">)):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">symbols</span><span class="p">)):</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">((</span><span class="n">symbols</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">symbols</span><span class="p">[</span><span class="n">j</span><span class="p">])))</span>
+            <span class="n">groups</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">])</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">values</span> <span class="ow">in</span> <span class="n">groups</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_same_conformer</span><span class="p">(</span><span class="n">e1</span><span class="p">,</span> <span class="n">s1</span><span class="p">,</span> <span class="n">e2</span><span class="p">,</span> <span class="n">s2</span><span class="p">):</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+    <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">e1</span> <span class="o">-</span> <span class="n">e2</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">CONFORMER_ENERGY_TOLERANCE</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="nb">all</span><span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">s1</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">-</span> <span class="n">s2</span><span class="p">[</span><span class="n">key</span><span class="p">]))</span> <span class="o">&lt;=</span> <span class="n">CONFORMER_DISTANCE_TOLERANCE</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">s1</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">conformer_candidates</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mh">0xF00D</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_candidates</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The distinct low force-field conformers of a species: the candidates for</span>
+<span class="sd">    its lowest conformer at a quantum-chemical level, as CBH-ANL starts every</span>
+<span class="sd">    species from its lowest rotamer.</span>
+
+<span class="sd">    `n` ETKDG embeddings are each minimized with MMFF94 (UFF where MMFF94 has no</span>
+<span class="sd">    parameters: some radicals and ions, As, Se, ...). The embeddings are not</span>
+<span class="sd">    pruned beforehand: pruning compares the heavy atoms only, so it merged</span>
+<span class="sd">    rotamers that differ in where hydrogens point (gauche and trans diarsine,</span>
+<span class="sd">    the OH rotamers of ethanol), leaving one of them. Instead the minima are</span>
+<span class="sd">    merged afterwards, when their energies and principal moments of inertia</span>
+<span class="sd">    agree (CONFORMER_ENERGY_TOLERANCE, CONFORMER_DISTANCE_TOLERANCE).</span>
 
 <span class="sd">    Conformers whose atoms come too close or whose bonds are pulled apart</span>
 <span class="sd">    (geometry_problem) are skipped. A species the force fields cannot build</span>
@@ -1429,10 +1542,24 @@
 <span class="sd">    Al2Cl2 or SF6), or one with no usable conformer, raises ConformerError,</span>
 <span class="sd">    so that the caller starts from another structure.</span>
 
-<span class="sd">    Returns (symbols, coordinates in Å, mmff energies of all embeddings in</span>
-<span class="sd">    kcal/mol, lowest index), or with `return_mol` the RDKit molecule (with</span>
-<span class="sd">    explicit hydrogens and the chosen conformer only) first.</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    smiles : str</span>
+<span class="sd">    n : int</span>
+<span class="sd">        The number of embeddings.</span>
+<span class="sd">    seed : int</span>
+<span class="sd">        RDKit's random seed, for reproducible conformers.</span>
+<span class="sd">    window : float, optional</span>
+<span class="sd">        Keep the conformers within this many kJ/mol of the lowest; by default</span>
+<span class="sd">        CONFORMER_WINDOW for the force field used.</span>
+<span class="sd">    max_candidates : int, optional</span>
+<span class="sd">        Keep at most this many, the lowest; by default all within the window.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Conformers</span>
 <span class="sd">    """</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">rdkit</span><span class="w"> </span><span class="kn">import</span> <span class="n">Chem</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">rdkit.Chem</span><span class="w"> </span><span class="kn">import</span> <span class="n">AllChem</span>
 
@@ -1443,25 +1570,25 @@
     <span class="n">why</span> <span class="o">=</span> <span class="n">force_field_unsuitable</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">why</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">ConformerError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"The force fields cannot build </span><span class="si">{</span><span class="n">smiles</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">why</span><span class="si">}</span><span class="s2">."</span><span class="p">)</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">n</span><span class="p">))</span>
     <span class="n">params</span> <span class="o">=</span> <span class="n">AllChem</span><span class="o">.</span><span class="n">ETKDGv3</span><span class="p">()</span>
     <span class="n">params</span><span class="o">.</span><span class="n">randomSeed</span> <span class="o">=</span> <span class="n">seed</span>
-    <span class="n">params</span><span class="o">.</span><span class="n">pruneRmsThresh</span> <span class="o">=</span> <span class="mf">0.1</span>
-    <span class="n">ids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">AllChem</span><span class="o">.</span><span class="n">EmbedMultipleConfs</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">numConfs</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">n</span><span class="p">)),</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">))</span>
+    <span class="n">ids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">AllChem</span><span class="o">.</span><span class="n">EmbedMultipleConfs</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">numConfs</span><span class="o">=</span><span class="n">n</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">))</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">ids</span><span class="p">:</span>
         <span class="n">params</span><span class="o">.</span><span class="n">useRandomCoords</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="n">ids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
-            <span class="n">AllChem</span><span class="o">.</span><span class="n">EmbedMultipleConfs</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">numConfs</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">n</span><span class="p">)),</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">)</span>
-        <span class="p">)</span>
+        <span class="n">ids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">AllChem</span><span class="o">.</span><span class="n">EmbedMultipleConfs</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">numConfs</span><span class="o">=</span><span class="n">n</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">))</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">ids</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">ConformerError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"RDKit could not embed '</span><span class="si">{</span><span class="n">smiles</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
     <span class="n">energies</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">if</span> <span class="n">AllChem</span><span class="o">.</span><span class="n">MMFFHasAllMoleculeParams</span><span class="p">(</span><span class="n">mol</span><span class="p">):</span>
+        <span class="n">field</span> <span class="o">=</span> <span class="s2">"MMFF94"</span>
         <span class="n">props</span> <span class="o">=</span> <span class="n">AllChem</span><span class="o">.</span><span class="n">MMFFGetMoleculeProperties</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">cid</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">:</span>
             <span class="n">ff</span> <span class="o">=</span> <span class="n">AllChem</span><span class="o">.</span><span class="n">MMFFGetMoleculeForceField</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">props</span><span class="p">,</span> <span class="n">confId</span><span class="o">=</span><span class="n">cid</span><span class="p">)</span>
             <span class="n">ff</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">maxIts</span><span class="o">=</span><span class="mi">2000</span><span class="p">)</span>
             <span class="n">energies</span><span class="p">[</span><span class="n">cid</span><span class="p">]</span> <span class="o">=</span> <span class="n">ff</span><span class="o">.</span><span class="n">CalcEnergy</span><span class="p">()</span>
-    <span class="k">else</span><span class="p">:</span>  <span class="c1"># no MMFF parameters (some radicals, ions): UFF</span>
+    <span class="k">else</span><span class="p">:</span>  <span class="c1"># no MMFF parameters (some radicals, ions, As, Se): UFF</span>
+        <span class="n">field</span> <span class="o">=</span> <span class="s2">"UFF"</span>
         <span class="k">for</span> <span class="n">cid</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">:</span>
             <span class="n">ff</span> <span class="o">=</span> <span class="n">AllChem</span><span class="o">.</span><span class="n">UFFGetMoleculeForceField</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">confId</span><span class="o">=</span><span class="n">cid</span><span class="p">)</span>
             <span class="n">ff</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">maxIts</span><span class="o">=</span><span class="mi">2000</span><span class="p">)</span>
@@ -1484,15 +1611,63 @@
             <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">ids</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="nb">len</span><span class="p">(</span><span class="n">usable</span><span class="p">)</span><span class="si">}</span><span class="s2"> of the </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">ids</span><span class="p">)</span><span class="si">}</span><span class="s2"> force-field conformers of "</span>
             <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">smiles</span><span class="si">}</span><span class="s2"> are broken and not used."</span>
         <span class="p">)</span>
-    <span class="n">best</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">usable</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">energies</span><span class="o">.</span><span class="n">get</span><span class="p">)</span>
-    <span class="n">conf</span> <span class="o">=</span> <span class="n">mol</span><span class="o">.</span><span class="n">GetConformer</span><span class="p">(</span><span class="n">best</span><span class="p">)</span>
-    <span class="n">coordinates</span> <span class="o">=</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">conf</span><span class="o">.</span><span class="n">GetAtomPosition</span><span class="p">(</span><span class="n">i</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">mol</span><span class="o">.</span><span class="n">GetNumAtoms</span><span class="p">())]</span>
-    <span class="k">if</span> <span class="n">return_mol</span><span class="p">:</span>
-        <span class="n">keep</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">Mol</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
-        <span class="n">keep</span><span class="o">.</span><span class="n">RemoveAllConformers</span><span class="p">()</span>
+    <span class="c1"># The distinct minima, lowest first</span>
+    <span class="n">distinct</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># (cid, energy, distances)</span>
+    <span class="k">for</span> <span class="n">cid</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">usable</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">energies</span><span class="o">.</span><span class="n">get</span><span class="p">):</span>
+        <span class="n">spectrum</span> <span class="o">=</span> <span class="n">_distance_spectrum</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">cid</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span>
+            <span class="n">_same_conformer</span><span class="p">(</span><span class="n">energies</span><span class="p">[</span><span class="n">cid</span><span class="p">],</span> <span class="n">spectrum</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">other</span> <span class="ow">in</span> <span class="n">distinct</span>
+        <span class="p">):</span>
+            <span class="n">distinct</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">cid</span><span class="p">,</span> <span class="n">energies</span><span class="p">[</span><span class="n">cid</span><span class="p">],</span> <span class="n">spectrum</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">window</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">window</span> <span class="o">=</span> <span class="n">CONFORMER_WINDOW</span><span class="p">[</span><span class="n">field</span><span class="p">]</span>
+    <span class="n">lowest</span> <span class="o">=</span> <span class="n">distinct</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">kept</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">cid</span> <span class="k">for</span> <span class="n">cid</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">distinct</span> <span class="k">if</span> <span class="p">(</span><span class="n">e</span> <span class="o">-</span> <span class="n">lowest</span><span class="p">)</span> <span class="o">*</span> <span class="n">KJ_PER_KCAL</span> <span class="o">&lt;=</span> <span class="n">window</span> <span class="o">+</span> <span class="mf">1e-9</span>
+    <span class="p">]</span>
+    <span class="k">if</span> <span class="n">max_candidates</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">kept</span> <span class="o">=</span> <span class="n">kept</span><span class="p">[:</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">max_candidates</span><span class="p">))]</span>
+    <span class="n">keep</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">Mol</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+    <span class="n">keep</span><span class="o">.</span><span class="n">RemoveAllConformers</span><span class="p">()</span>
+    <span class="n">coordinates</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">cid</span> <span class="ow">in</span> <span class="n">kept</span><span class="p">:</span>
+        <span class="n">conf</span> <span class="o">=</span> <span class="n">mol</span><span class="o">.</span><span class="n">GetConformer</span><span class="p">(</span><span class="n">cid</span><span class="p">)</span>
         <span class="n">keep</span><span class="o">.</span><span class="n">AddConformer</span><span class="p">(</span><span class="n">Chem</span><span class="o">.</span><span class="n">Conformer</span><span class="p">(</span><span class="n">conf</span><span class="p">),</span> <span class="n">assignId</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">keep</span><span class="p">,</span> <span class="n">symbols</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="p">[</span><span class="n">energies</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">],</span> <span class="n">ids</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">best</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">symbols</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="p">[</span><span class="n">energies</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">],</span> <span class="n">ids</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">best</span><span class="p">)</span>
+        <span class="n">coordinates</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">conf</span><span class="o">.</span><span class="n">GetPositions</span><span class="p">())</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">Conformers</span><span class="p">(</span>
+        <span class="n">keep</span><span class="p">,</span>
+        <span class="n">symbols</span><span class="p">,</span>
+        <span class="n">coordinates</span><span class="p">,</span>
+        <span class="p">[(</span><span class="n">energies</span><span class="p">[</span><span class="n">cid</span><span class="p">]</span> <span class="o">-</span> <span class="n">lowest</span><span class="p">)</span> <span class="o">*</span> <span class="n">KJ_PER_KCAL</span> <span class="k">for</span> <span class="n">cid</span> <span class="ow">in</span> <span class="n">kept</span><span class="p">],</span>
+        <span class="n">field</span><span class="p">,</span>
+        <span class="nb">len</span><span class="p">(</span><span class="n">ids</span><span class="p">),</span>
+        <span class="nb">len</span><span class="p">(</span><span class="n">distinct</span><span class="p">),</span>
+        <span class="p">[</span><span class="n">energies</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">],</span>
+        <span class="p">[</span><span class="n">ids</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">cid</span><span class="p">)</span> <span class="k">for</span> <span class="n">cid</span> <span class="ow">in</span> <span class="n">kept</span><span class="p">],</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">lowest_conformer</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mh">0xF00D</span><span class="p">,</span> <span class="n">return_mol</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The lowest-energy conformer of `n` ETKDG embeddings optimized with</span>
+<span class="sd">    MMFF94 (or UFF): the starting structure for a species whose lowest rotamer</span>
+<span class="sd">    is wanted (all-anti n-alkanes, cis-cis dimethyl carbonate). A single</span>
+<span class="sd">    embedding of a long chain is often gauche. See conformer_candidates, which</span>
+<span class="sd">    gives the other low conformers too: the force fields do not always rank</span>
+<span class="sd">    them right.</span>
+
+<span class="sd">    Returns (symbols, coordinates in Å, force-field energies of all embeddings</span>
+<span class="sd">    in kcal/mol, index of the lowest), or with `return_mol` the RDKit molecule</span>
+<span class="sd">    (with explicit hydrogens and the chosen conformer only) first.</span>
+<span class="sd">    """</span>
+    <span class="n">conformers</span> <span class="o">=</span> <span class="n">conformer_candidates</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span> <span class="n">max_candidates</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">energies</span> <span class="o">=</span> <span class="n">conformers</span><span class="o">.</span><span class="n">all_energies</span>
+    <span class="n">best</span> <span class="o">=</span> <span class="n">conformers</span><span class="o">.</span><span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">symbols</span> <span class="o">=</span> <span class="n">conformers</span><span class="o">.</span><span class="n">symbols</span>
+    <span class="n">coordinates</span> <span class="o">=</span> <span class="n">conformers</span><span class="o">.</span><span class="n">coordinates</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">return_mol</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">conformers</span><span class="o">.</span><span class="n">mol_of</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">symbols</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">energies</span><span class="p">,</span> <span class="n">best</span>
+    <span class="k">return</span> <span class="n">symbols</span><span class="p">,</span> <span class="n">coordinates</span><span class="p">,</span> <span class="n">energies</span><span class="p">,</span> <span class="n">best</span>
 </pre></div>
 
                 </article>
