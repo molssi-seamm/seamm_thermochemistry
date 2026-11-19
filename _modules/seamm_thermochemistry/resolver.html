@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.resolver &#8212; SEAMM thermochemistry Plug-in 2026.11.19 documentation</title>
+    <title>seamm_thermochemistry.resolver &#8212; SEAMM thermochemistry Plug-in 2026.11.19.1 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=a0728fa8"></script>
+    <script src="../../_static/documentation_options.js?v=3a3ba519"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.19" />
+  <meta name="docsearch:version" content="2026.11.19.1" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -430,16 +430,19 @@
 <span class="sd">"""Resolving the reference species of CBH reactions: ATcT first, then the</span>
 <span class="sd">supplementary reference library.</span>
 
-<span class="sd">The order (the reference-library design, §2, and the 2026-11-12 decisions):</span>
+<span class="sd">The order (the reference-library design, §2, the 2026-11-12 decisions, and</span>
+<span class="sd">the atomic-heat hierarchy adopted for the library on 2026-11-19):</span>
 
 <span class="sd">1. ATcT, the version installed. If every reference is in ATcT, nothing else</span>
 <span class="sd">   is used and the result is "ATcT-only".</span>
 <span class="sd">2. The user's own references (the local layer's ``user`` source), when the</span>
 <span class="sd">   job enables them.</span>
-<span class="sd">3. The library's experimental sources by rank: printed JANAF, derived</span>
-<span class="sd">   values, CODATA, the OECD-NEA thermochemical database (NEA-TDB), the NBS</span>
-<span class="sd">   tables of 1982, D0, the WebBook measurements,</span>
-<span class="sd">   measurements from the primary literature.</span>
+<span class="sd">3. The library's experimental sources by rank: CODATA, the OECD-NEA</span>
+<span class="sd">   thermochemical database (NEA-TDB), printed JANAF, values derived from</span>
+<span class="sd">   these, Gurvich's tables (TSIV), the NBS tables of 1982, D0, the WebBook</span>
+<span class="sd">   measurements, measurements from the primary literature. The ranks are</span>
+<span class="sd">   stored in each library file, so a published library keeps the order it</span>
+<span class="sd">   was built with.</span>
 <span class="sd">4. Computed values, when enabled ("compilations and computed"): W4-17 (0 K</span>
 <span class="sd">   only, used only without a 298.15 K value) and the computed layer,</span>
 <span class="sd">   ``references-computed.db``. They always come after every experimental</span>
@@ -449,11 +452,15 @@
 <span class="sd">**One source per element.** For each element that ATcT does not have (its</span>
 <span class="sd">gas-phase atom is not in ATcT), the references containing it are taken from</span>
 <span class="sd">the first source, in rank order, that has all of them, so that the source's</span>
-<span class="sd">shared error cancels in the reaction. A later source still replaces that</span>
+<span class="sd">shared error cancels in the reaction. Another source still replaces that</span>
 <span class="sd">source's value for a species where the replacement rule says so (science,</span>
-<span class="sd">2026-11-12): the element then has several sources, the result is labelled</span>
-<span class="sd">"mixed: several sources" with the sources named, and a one-line note says so.</span>
-<span class="sd">It never blocks. When no single source has them all, each reference takes its</span>
+<span class="sd">2026-11-12): its value agrees within the element source's uncertainty and its</span>
+<span class="sd">uncertainty is below a third of it. Whether that source ranks above or below</span>
+<span class="sd">the element's source does not matter (science, 2026-11-19), so the ranks</span>
+<span class="sd">decide which source an element takes, not which value a species keeps. The</span>
+<span class="sd">element then has several sources, the result is labelled "mixed: several</span>
+<span class="sd">sources" with the sources named, and a one-line note says so. It never</span>
+<span class="sd">blocks. When no single source has them all, each reference takes its</span>
 <span class="sd">own best value, with the same label.</span>
 
 <span class="sd">The values come back in the layout of an ATcT entry (``dfH0_0K``,</span>
@@ -467,7 +474,7 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.atct</span><span class="w"> </span><span class="kn">import</span> <span class="n">AmbiguousEntry</span><span class="p">,</span> <span class="n">MissingEntry</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.cbh</span><span class="w"> </span><span class="kn">import</span> <span class="n">CBHError</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">.references</span><span class="w"> </span><span class="kn">import</span> <span class="n">LayeredReferences</span><span class="p">,</span> <span class="n">is_computed</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.references</span><span class="w"> </span><span class="kn">import</span> <span class="n">LayeredReferences</span><span class="p">,</span> <span class="n">is_computed</span><span class="p">,</span> <span class="n">later_source_wins</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -688,6 +695,38 @@
                 <span class="k">return</span> <span class="n">current</span>
             <span class="n">current</span> <span class="o">=</span> <span class="n">later</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
+    <span class="k">def</span><span class="w"> </span><span class="nf">_replace_upward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">candidates</span><span class="p">,</span> <span class="n">chosen</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""The value of a better-ranked source that replaces `chosen` by the</span>
+<span class="sd">        replacement rule, which does not depend on the order of the two</span>
+<span class="sd">        sources (science, 2026-11-19). The overrides stored in the library</span>
+<span class="sd">        only run from a better-ranked source to a worse one, so a precise,</span>
+<span class="sd">        agreeing value of a better-ranked source would otherwise be lost when</span>
+<span class="sd">        one source per element picks a worse-ranked one. A computed value</span>
+<span class="sd">        never replaces an experimental one."""</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="n">chosen</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"expanded_uncertainty"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">chosen</span><span class="p">[</span><span class="s2">"dfh_298k"</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">u</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">chosen</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">r</span> <span class="ow">is</span> <span class="n">chosen</span> <span class="ow">or</span> <span class="n">r</span><span class="p">[</span><span class="s2">"dfh_298k"</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"expanded_uncertainty"</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">is_computed</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_computed</span><span class="p">(</span><span class="n">chosen</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="s2">"source_rank"</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">chosen</span><span class="p">[</span><span class="s2">"source_rank"</span><span class="p">]:</span>
+                <span class="k">continue</span>  <span class="c1"># downward: the library's own overrides</span>
+            <span class="k">if</span> <span class="n">later_source_wins</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">chosen</span><span class="p">[</span><span class="s2">"dfh_298k"</span><span class="p">],</span> <span class="n">u</span><span class="p">),</span> <span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="s2">"dfh_298k"</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="s2">"expanded_uncertainty"</span><span class="p">])</span>
+            <span class="p">):</span>
+                <span class="n">r</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+                <span class="n">r</span><span class="p">[</span><span class="s2">"override_reason"</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'source_name'</span><span class="p">]</span><span class="si">}</span><span class="s2"> ± </span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'expanded_uncertainty'</span><span class="p">]</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> is below "</span>
+                    <span class="sa">f</span><span class="s2">"a third of </span><span class="si">{</span><span class="n">chosen</span><span class="p">[</span><span class="s1">'source_name'</span><span class="p">]</span><span class="si">}</span><span class="s2">'s ± </span><span class="si">{</span><span class="n">u</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> and agrees "</span>
+                    <span class="sa">f</span><span class="s2">"within it (</span><span class="si">{</span><span class="n">r</span><span class="p">[</span><span class="s1">'dfh_298k'</span><span class="p">]</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">chosen</span><span class="p">[</span><span class="s1">'dfh_298k'</span><span class="p">]</span><span class="si">:</span><span class="s2">+.2f</span><span class="si">}</span><span class="s2"> kJ/mol)"</span>
+                <span class="p">)</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_follow_override</span><span class="p">(</span><span class="n">candidates</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">chosen</span>
+
     <span class="k">def</span><span class="w"> </span><span class="nf">_entry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smiles</span><span class="p">,</span> <span class="n">ref</span><span class="p">):</span>
         <span class="n">u</span> <span class="o">=</span> <span class="n">ref</span><span class="p">[</span><span class="s2">"total_uncertainty"</span><span class="p">]</span>
         <span class="k">return</span> <span class="p">{</span>
@@ -780,6 +819,8 @@
                     <span class="p">):</span>
                         <span class="c1"># a 0 K-only value is used only without a 298 K one</span>
                         <span class="n">chosen</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_best</span><span class="p">(</span><span class="n">cands</span><span class="p">[</span><span class="n">s</span><span class="p">])</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">chosen</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_replace_upward</span><span class="p">(</span><span class="n">cands</span><span class="p">[</span><span class="n">s</span><span class="p">],</span> <span class="n">chosen</span><span class="p">)</span>
                     <span class="n">assigned</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="n">chosen</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">group</span><span class="p">:</span>

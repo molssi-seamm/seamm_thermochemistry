@@ -202,17 +202,22 @@ Reference values ATcT lacks
 Some CBH reference species are not in ATcT, for elements such as Ge, As or Se, or
 for larger organic molecules. The **reference library** holds enthalpies of
 formation for them, experimental ones from evaluated compilations and
-measurements:
+measurements, in this order of preference:
 
-- printed JANAF (NIST SRD 13);
 - CODATA key values;
 - the OECD-NEA thermochemical database (NEA-TDB), e.g. its selenium volume
   (2005);
+- printed JANAF (NIST SRD 13);
+- values derived from these through a reaction with a measured enthalpy;
+- Gurvich's tables (TSIV, *Thermodynamic Properties of Individual
+  Substances*);
 - the NBS tables of 1982;
 - spectroscopic D0 values;
 - NIST WebBook measurements (SRD 69);
 - measurements from the primary literature that the compilations lack;
 
+(the order of the enthalpies of formation of the atoms, so that a library value
+and the atoms it is combined with come from the same evaluation where they can),
 and computed ones:
 
 - W4-17, high-level computed values from the literature (0 K only);

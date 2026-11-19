@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.curated &#8212; SEAMM thermochemistry Plug-in 2026.11.19 documentation</title>
+    <title>seamm_thermochemistry.curated &#8212; SEAMM thermochemistry Plug-in 2026.11.19.1 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=a0728fa8"></script>
+    <script src="../../_static/documentation_options.js?v=3a3ba519"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.19" />
+  <meta name="docsearch:version" content="2026.11.19.1" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -429,10 +429,10 @@
 
 <span class="sd">"""Reading hand-curated reference values into a reference library.</span>
 
-<span class="sd">The curated files (one CSV per source: printed JANAF, CODATA key values,</span>
-<span class="sd">the OECD-NEA thermochemical database (NEA-TDB), the NBS tables of 1982,</span>
-<span class="sd">spectroscopic D0, W4-17, derived values, and measurements from the primary</span>
-<span class="sd">literature) share common columns::</span>
+<span class="sd">The curated files (one CSV per source: CODATA key values, the OECD-NEA</span>
+<span class="sd">thermochemical database (NEA-TDB), printed JANAF, derived values, Gurvich's</span>
+<span class="sd">tables (TSIV), the NBS tables of 1982, spectroscopic D0, W4-17, and</span>
+<span class="sd">measurements from the primary literature) share common columns::</span>
 
 <span class="sd">    smiles, formula, charge, multiplicity, name, phase, dfH0_kJmol,</span>
 <span class="sd">    dfH298_kJmol, unc_kJmol, unc_level, status, citation, notes</span>
@@ -457,6 +457,26 @@
 
 <span class="c1">#: The files, their source and the source's kind, rank and year</span>
 <span class="n">CURATED_SOURCES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># The order of the atomic-heat hierarchy: CODATA and NEA-TDB, then</span>
+    <span class="c1"># printed JANAF, then values derived from them, then Gurvich (TSIV), then</span>
+    <span class="c1"># NBS-82 (Paul, 2026-11-19; derived above TSIV, science)</span>
+    <span class="s2">"codata.csv"</span><span class="p">:</span> <span class="p">(</span>
+        <span class="s2">"CODATA-1989"</span><span class="p">,</span>
+        <span class="s2">"evaluated"</span><span class="p">,</span>
+        <span class="mi">6</span><span class="p">,</span>
+        <span class="mi">1989</span><span class="p">,</span>
+        <span class="s2">"J. D. Cox, D. D. Wagman and V. A. Medvedev, CODATA Key Values for "</span>
+        <span class="s2">"Thermodynamics (Hemisphere, 1989)"</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="s2">"nea.csv"</span><span class="p">:</span> <span class="p">(</span>
+        <span class="s2">"NEA-TDB-2005"</span><span class="p">,</span>
+        <span class="s2">"evaluated"</span><span class="p">,</span>
+        <span class="mi">7</span><span class="p">,</span>
+        <span class="mi">2005</span><span class="p">,</span>
+        <span class="s2">"Å. Olin, B. Noläng, E. G. Osadchii, L.-O. Öhman and E. Rosén, Chemical "</span>
+        <span class="s2">"Thermodynamics of Selenium, Chemical Thermodynamics vol. 7 (OECD Nuclear "</span>
+        <span class="s2">"Energy Agency, Elsevier, 2005)"</span><span class="p">,</span>
+    <span class="p">),</span>
     <span class="s2">"janaf_printed.csv"</span><span class="p">:</span> <span class="p">(</span>
         <span class="s2">"JANAF-1998"</span><span class="p">,</span>
         <span class="s2">"evaluated"</span><span class="p">,</span>
@@ -466,22 +486,13 @@
         <span class="s2">"Ref. Data Monograph 9 (1998)"</span><span class="p">,</span>
     <span class="p">),</span>
     <span class="s2">"derived.csv"</span><span class="p">:</span> <span class="p">(</span><span class="s2">"derived"</span><span class="p">,</span> <span class="s2">"derived"</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">"Values derived from evaluations"</span><span class="p">),</span>
-    <span class="s2">"codata.csv"</span><span class="p">:</span> <span class="p">(</span>
-        <span class="s2">"CODATA-1989"</span><span class="p">,</span>
+    <span class="s2">"gurvich.csv"</span><span class="p">:</span> <span class="p">(</span>
+        <span class="s2">"Gurvich-TSIV"</span><span class="p">,</span>
         <span class="s2">"evaluated"</span><span class="p">,</span>
-        <span class="mi">20</span><span class="p">,</span>
-        <span class="mi">1989</span><span class="p">,</span>
-        <span class="s2">"J. D. Cox, D. D. Wagman and V. A. Medvedev, CODATA Key Values for "</span>
-        <span class="s2">"Thermodynamics (Hemisphere, 1989)"</span><span class="p">,</span>
-    <span class="p">),</span>
-    <span class="s2">"nea.csv"</span><span class="p">:</span> <span class="p">(</span>
-        <span class="s2">"NEA-TDB-2005"</span><span class="p">,</span>
-        <span class="s2">"evaluated"</span><span class="p">,</span>
-        <span class="mi">21</span><span class="p">,</span>
-        <span class="mi">2005</span><span class="p">,</span>
-        <span class="s2">"Å. Olin, B. Noläng, E. G. Osadchii, L.-O. Öhman and E. Rosén, Chemical "</span>
-        <span class="s2">"Thermodynamics of Selenium, Chemical Thermodynamics vol. 7 (OECD Nuclear "</span>
-        <span class="s2">"Energy Agency, Elsevier, 2005)"</span><span class="p">,</span>
+        <span class="mi">15</span><span class="p">,</span>
+        <span class="kc">None</span><span class="p">,</span>  <span class="c1"># each row gives its volume's year</span>
+        <span class="s2">"L. V. Gurvich, I. V. Veyts and C. B. Alcock, Thermodynamic Properties "</span>
+        <span class="s2">"of Individual Substances, 4th ed., vols. 1-3 (Hemisphere, 1989-1994)"</span><span class="p">,</span>
     <span class="p">),</span>
     <span class="s2">"nbs82.csv"</span><span class="p">:</span> <span class="p">(</span>
         <span class="s2">"NBS-82"</span><span class="p">,</span>
