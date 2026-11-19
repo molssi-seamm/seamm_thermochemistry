@@ -340,6 +340,60 @@ def test_broken_conformers_are_skipped(monkeypatch):
         cbh.lowest_conformer("CCCC", n=5)
 
 
+def _h_dihedrals(conformers, index):
+    """The H-X-Y-H dihedrals across the bond of a two-heavy-atom species."""
+    xyz = conformers.coordinates[index]
+    mol = conformers.mol
+    heavy = [a.GetIdx() for a in mol.GetAtoms() if a.GetSymbol() != "H"]
+    a, b = heavy[:2]
+    ha = [n.GetIdx() for n in mol.GetAtomWithIdx(a).GetNeighbors() if n.GetIdx() != b]
+    hb = [n.GetIdx() for n in mol.GetAtomWithIdx(b).GetNeighbors() if n.GetIdx() != a]
+    return sorted(_dihedral(xyz[x], xyz[a], xyz[b], xyz[y]) for x in ha for y in hb)
+
+
+def test_rotamers_of_hydrogens_are_candidates():
+    """Pruning the embeddings by heavy-atom RMSD left one rotamer of diarsine
+    (UFF's gauche), so the CBH step built gauche although trans is the ground
+    state (CCSD(T)/aTZ, 1.4 kJ/mol). Both are candidates now; so are ethanol's
+    two OH rotamers."""
+    c = cbh.conformer_candidates("[AsH2][AsH2]", n=20)
+    assert c.field == "UFF" and len(c) == 2
+    assert c.energies[0] == 0.0 and c.energies[1] < 1.0  # UFF cannot tell them
+    trans = [i for i in range(2) if max(_h_dihedrals(c, i)) > 175.0]
+    assert len(trans) == 1  # one of the two is trans: two H-As-As-H at 180
+    assert c.n_embeddings == 20 and len(c.all_energies) == 20
+    c = cbh.conformer_candidates("CCO", n=20)
+    assert c.field == "MMFF94" and len(c) == 2
+
+
+def test_mirror_images_and_equivalent_atoms_are_one_conformer():
+    """gauche+ and gauche- butane are one candidate; methane has one."""
+    c = cbh.conformer_candidates("CCCC", n=20)
+    assert len(c) == 2 and c.n_distinct == 2
+    carbons = [i for i, s in enumerate(c.symbols) if s == "C"]
+    angles = [_dihedral(*[c.coordinates[i][k] for k in carbons]) for i in range(2)]
+    assert angles[0] > 175.0 and 55.0 < angles[1] < 75.0
+    assert c.energies[1] == pytest.approx(3.27, abs=0.1)  # MMFF94, kJ/mol
+    assert len(cbh.conformer_candidates("C", n=10)) == 1
+
+
+def test_candidate_window_and_limit():
+    c = cbh.conformer_candidates("CCCCC", n=50)
+    assert c.energies == sorted(c.energies) and c.energies[-1] <= 10.0
+    assert len(cbh.conformer_candidates("CCCCC", n=50, window=4.0)) == 2
+    assert len(cbh.conformer_candidates("CCCCC", n=50, max_candidates=1)) == 1
+    # each candidate's molecule has its own coordinates only
+    mol = c.mol_of(1)
+    assert mol.GetNumConformers() == 1
+    assert mol.GetConformer().GetPositions().tolist() == c.coordinates[1]
+
+
+def test_lowest_conformer_is_the_first_candidate():
+    symbols, xyz, energies, best = cbh.lowest_conformer("[AsH2][AsH2]", n=20)
+    c = cbh.conformer_candidates("[AsH2][AsH2]", n=20)
+    assert xyz == c.coordinates[0] and energies[best] == min(energies)
+
+
 def test_ring_closure_cut_twice_is_capped_twice():
     """A cut atom bonded to two kept atoms (a ring closure) must cap both of
     them. It used to cap only the first; the second lost a hydrogen, which

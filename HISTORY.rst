@@ -1,6 +1,21 @@
 =======
 History
 =======
+2026.11.19 -- Bugfix: rotamers of hydrogens were never considered for the lowest conformer
+    * The lowest force-field conformer of a species, the start of each CBH species,
+      came from RDKit embeddings pruned by the RMSD of their heavy atoms, which
+      merged rotamers that differ only in where hydrogens point. Diarsine and
+      ethanol had one conformer each, so diarsine was always built gauche,
+      although trans is its ground state (1.4 kJ/mol lower at CCSD(T)).
+    * The embeddings are now minimized without pruning, and minima with the same
+      energy and interatomic distances are merged, so mirror images count once
+      but hydrogen rotamers do not.
+    * The new ``cbh.conformer_candidates`` gives the distinct low conformers,
+      lowest first with their force-field energies, so that a caller can rank the
+      lowest few at a better level: the force fields do not always rank them
+      right (UFF puts gauche diarsine 0.2 kJ/mol below trans).
+      ``cbh.lowest_conformer`` still gives the lowest by the force field.
+
 2026.11.18.2 -- Bugfix: the installer ignored Zenodo errors
     * When Zenodo answered with an error, which it did often on 2026-11-18, the
       installer printed "Could not install ..." for the fragment store, reference

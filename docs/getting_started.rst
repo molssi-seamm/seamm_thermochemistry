@@ -642,10 +642,28 @@ Ramabhadran and Raghavachari's connectivity-based hierarchy from a SMILES::
         reaction.references             # the species other than the target
         reaction.balanced, reaction.trivial
 
-``cbh.lowest_conformer(smiles, n=20)`` gives the lowest MMFF94 conformer of
-``n`` RDKit embeddings (symbols, coordinates, energies), the right start for a
-species whose lowest rotamer is wanted: a single embedding of a long chain is
-often gauche.
+``cbh.conformer_candidates(smiles, n=50)`` gives the distinct low conformers of
+``n`` RDKit embeddings minimized with MMFF94 (UFF where MMFF94 has no
+parameters), lowest first, with their force-field energies in kJ/mol above the
+lowest: the candidates for a species' lowest conformer, since a single embedding
+of a long chain is often gauche. Those within 10 kJ/mol (15 with UFF, which
+ranks conformers less well) are kept, or ``window=`` kJ/mol, and at most
+``max_candidates=``. Minima with the same energy and the same interatomic
+distances are one conformer, so mirror images count once, but rotamers that
+differ only in where hydrogens point (gauche and trans diarsine, the OH rotamers
+of ethanol) are distinct. The force fields do not always rank such conformers
+right (UFF puts gauche diarsine 0.2 kJ/mol below trans; CCSD(T) puts trans 1.4
+kJ/mol below gauche), so the Thermochemistry step optimizes the lowest few at
+its geometry level and keeps the lowest there. ``cbh.lowest_conformer(smiles,
+n=20)`` gives only the lowest by the force field (symbols, coordinates,
+energies).
+
+::
+
+    conformers = cbh.conformer_candidates("[AsH2][AsH2]")
+    conformers.energies              # [0.0, 0.21]  kJ/mol, UFF
+    conformers.coordinates[1]        # in Å, atoms in conformers.symbols order
+    conformers.mol_of(1)             # RDKit molecule with that conformer
 
 Products have positive coefficients, reactants negative and the target -1.
 Every fragment keeps the bond orders, charges, unpaired electrons and

@@ -965,12 +965,125 @@ def geometry_problem(symbols, xyz, bonds=None):
     return None
 
 
-def lowest_conformer(smiles, n=20, seed=0xF00D, return_mol=False):
-    """The lowest-energy conformer of `n` ETKDG embeddings optimized with
-    MMFF94: the starting structure for a species whose lowest rotamer is
-    wanted (all-anti n-alkanes, anti ethanol, cis-cis dimethyl carbonate), as
-    CBH-ANL starts every species from its lowest rotamer. A single embedding
-    of a long chain is often gauche.
+class Conformers:
+    """The distinct force-field conformers of a species, lowest first: the
+    candidates for its lowest conformer at a quantum-chemical level.
+
+    Attributes
+    ----------
+    mol : rdkit.Chem.Mol
+        The molecule with explicit hydrogens and one conformer per candidate,
+        in the order of the candidates (conformer ids 0, 1, ...).
+    symbols : [str]
+        The elements, in the molecule's atom order.
+    coordinates : [[[float]]]
+        The coordinates (Å) of each candidate.
+    energies : [float]
+        The force-field energy of each candidate, kJ/mol above the lowest.
+    field : str
+        "MMFF94", or "UFF" for species MMFF94 has no parameters for.
+    n_embeddings : int
+        The number of embeddings minimized.
+    n_distinct : int
+        The number of distinct usable minima they gave (all of them, not only
+        the candidates).
+    all_energies : [float]
+        The force-field energy (kcal/mol) of every embedding, in embedding order.
+    indices : [int]
+        The embedding (index into all_energies) of each candidate.
+    """
+
+    def __init__(
+        self,
+        mol,
+        symbols,
+        coordinates,
+        energies,
+        field,
+        n_embeddings,
+        n_distinct,
+        all_energies,
+        indices,
+    ):
+        self.mol = mol
+        self.symbols = symbols
+        self.coordinates = coordinates
+        self.energies = energies
+        self.field = field
+        self.n_embeddings = n_embeddings
+        self.n_distinct = n_distinct
+        self.all_energies = all_energies
+        self.indices = indices
+
+    def __len__(self):
+        return len(self.coordinates)
+
+    def mol_of(self, index):
+        """The RDKit molecule with only candidate `index` as its conformer."""
+        from rdkit import Chem
+
+        keep = Chem.Mol(self.mol)
+        keep.RemoveAllConformers()
+        keep.AddConformer(Chem.Conformer(self.mol.GetConformer(index)), assignId=True)
+        return keep
+
+
+#: Two force-field minima are one conformer when their energies differ by less
+#: than CONFORMER_ENERGY_TOLERANCE (kcal/mol) and their interatomic distances,
+#: sorted for each pair of elements, by at most CONFORMER_DISTANCE_TOLERANCE (Å).
+#: Mirror images (gauche+ and gauche-) and structures differing only in which of
+#: equivalent atoms is where are then one conformer, but rotamers differing only
+#: in where hydrogens point are not (CREST's moments of inertia cannot tell
+#: gauche from trans diarsine, 0.05 kcal/mol apart in UFF).
+CONFORMER_ENERGY_TOLERANCE = 0.05
+CONFORMER_DISTANCE_TOLERANCE = 0.05
+KJ_PER_KCAL = 4.184
+
+#: The force-field conformers within this many kJ/mol of the lowest are the
+#: candidates for the lowest at a quantum-chemical level. UFF ranks conformers
+#: less well than MMFF94 (it puts gauche diarsine 0.2 kJ/mol below trans; CCSD(T)
+#: puts trans 1.4 kJ/mol below gauche), so its window is wider.
+CONFORMER_WINDOW = {"MMFF94": 10.0, "UFF": 15.0}
+
+
+def _distance_spectrum(mol, cid):
+    """The interatomic distances (Å) of a conformer, sorted for each pair of
+    elements: unchanged by rotation, mirroring and swapping equivalent atoms."""
+    import numpy as np
+
+    symbols = [a.GetSymbol() for a in mol.GetAtoms()]
+    xyz = np.asarray(mol.GetConformer(cid).GetPositions())
+    d = np.linalg.norm(xyz[:, None, :] - xyz[None, :, :], axis=-1)
+    groups = {}
+    for i in range(len(symbols)):
+        for j in range(i + 1, len(symbols)):
+            key = tuple(sorted((symbols[i], symbols[j])))
+            groups.setdefault(key, []).append(d[i, j])
+    return {key: np.sort(values) for key, values in groups.items()}
+
+
+def _same_conformer(e1, s1, e2, s2):
+    import numpy as np
+
+    if abs(e1 - e2) >= CONFORMER_ENERGY_TOLERANCE:
+        return False
+    return all(
+        np.max(np.abs(s1[key] - s2[key])) <= CONFORMER_DISTANCE_TOLERANCE for key in s1
+    )
+
+
+def conformer_candidates(smiles, n=50, seed=0xF00D, window=None, max_candidates=None):
+    """The distinct low force-field conformers of a species: the candidates for
+    its lowest conformer at a quantum-chemical level, as CBH-ANL starts every
+    species from its lowest rotamer.
+
+    `n` ETKDG embeddings are each minimized with MMFF94 (UFF where MMFF94 has no
+    parameters: some radicals and ions, As, Se, ...). The embeddings are not
+    pruned beforehand: pruning compares the heavy atoms only, so it merged
+    rotamers that differ in where hydrogens point (gauche and trans diarsine,
+    the OH rotamers of ethanol), leaving one of them. Instead the minima are
+    merged afterwards, when their energies and principal moments of inertia
+    agree (CONFORMER_ENERGY_TOLERANCE, CONFORMER_DISTANCE_TOLERANCE).
 
     Conformers whose atoms come too close or whose bonds are pulled apart
     (geometry_problem) are skipped. A species the force fields cannot build
@@ -978,10 +1091,24 @@ def lowest_conformer(smiles, n=20, seed=0xF00D, return_mol=False):
     Al2Cl2 or SF6), or one with no usable conformer, raises ConformerError,
     so that the caller starts from another structure.
 
-    Returns (symbols, coordinates in Å, mmff energies of all embeddings in
-    kcal/mol, lowest index), or with `return_mol` the RDKit molecule (with
-    explicit hydrogens and the chosen conformer only) first.
+    Parameters
+    ----------
+    smiles : str
+    n : int
+        The number of embeddings.
+    seed : int
+        RDKit's random seed, for reproducible conformers.
+    window : float, optional
+        Keep the conformers within this many kJ/mol of the lowest; by default
+        CONFORMER_WINDOW for the force field used.
+    max_candidates : int, optional
+        Keep at most this many, the lowest; by default all within the window.
+
+    Returns
+    -------
+    Conformers
     """
+    import numpy as np
     from rdkit import Chem
     from rdkit.Chem import AllChem
 
@@ -992,25 +1119,25 @@ def lowest_conformer(smiles, n=20, seed=0xF00D, return_mol=False):
     why = force_field_unsuitable(mol)
     if why is not None:
         raise ConformerError(f"The force fields cannot build {smiles}: {why}.")
+    n = max(1, int(n))
     params = AllChem.ETKDGv3()
     params.randomSeed = seed
-    params.pruneRmsThresh = 0.1
-    ids = list(AllChem.EmbedMultipleConfs(mol, numConfs=max(1, int(n)), params=params))
+    ids = list(AllChem.EmbedMultipleConfs(mol, numConfs=n, params=params))
     if not ids:
         params.useRandomCoords = True
-        ids = list(
-            AllChem.EmbedMultipleConfs(mol, numConfs=max(1, int(n)), params=params)
-        )
+        ids = list(AllChem.EmbedMultipleConfs(mol, numConfs=n, params=params))
     if not ids:
         raise ConformerError(f"RDKit could not embed '{smiles}'")
     energies = {}
     if AllChem.MMFFHasAllMoleculeParams(mol):
+        field = "MMFF94"
         props = AllChem.MMFFGetMoleculeProperties(mol)
         for cid in ids:
             ff = AllChem.MMFFGetMoleculeForceField(mol, props, confId=cid)
             ff.Minimize(maxIts=2000)
             energies[cid] = ff.CalcEnergy()
-    else:  # no MMFF parameters (some radicals, ions): UFF
+    else:  # no MMFF parameters (some radicals, ions, As, Se): UFF
+        field = "UFF"
         for cid in ids:
             ff = AllChem.UFFGetMoleculeForceField(mol, confId=cid)
             ff.Minimize(maxIts=2000)
@@ -1033,12 +1160,60 @@ def lowest_conformer(smiles, n=20, seed=0xF00D, return_mol=False):
             f"{len(ids) - len(usable)} of the {len(ids)} force-field conformers of "
             f"{smiles} are broken and not used."
         )
-    best = min(usable, key=energies.get)
-    conf = mol.GetConformer(best)
-    coordinates = [list(conf.GetAtomPosition(i)) for i in range(mol.GetNumAtoms())]
-    if return_mol:
-        keep = Chem.Mol(mol)
-        keep.RemoveAllConformers()
+    # The distinct minima, lowest first
+    distinct = []  # (cid, energy, distances)
+    for cid in sorted(usable, key=energies.get):
+        spectrum = _distance_spectrum(mol, cid)
+        if not any(
+            _same_conformer(energies[cid], spectrum, e, other)
+            for _, e, other in distinct
+        ):
+            distinct.append((cid, energies[cid], spectrum))
+    if window is None:
+        window = CONFORMER_WINDOW[field]
+    lowest = distinct[0][1]
+    kept = [
+        cid for cid, e, _ in distinct if (e - lowest) * KJ_PER_KCAL <= window + 1e-9
+    ]
+    if max_candidates is not None:
+        kept = kept[: max(1, int(max_candidates))]
+    keep = Chem.Mol(mol)
+    keep.RemoveAllConformers()
+    coordinates = []
+    for cid in kept:
+        conf = mol.GetConformer(cid)
         keep.AddConformer(Chem.Conformer(conf), assignId=True)
-        return keep, symbols, coordinates, [energies[c] for c in ids], ids.index(best)
-    return symbols, coordinates, [energies[c] for c in ids], ids.index(best)
+        coordinates.append(np.asarray(conf.GetPositions()).tolist())
+    return Conformers(
+        keep,
+        symbols,
+        coordinates,
+        [(energies[cid] - lowest) * KJ_PER_KCAL for cid in kept],
+        field,
+        len(ids),
+        len(distinct),
+        [energies[c] for c in ids],
+        [ids.index(cid) for cid in kept],
+    )
+
+
+def lowest_conformer(smiles, n=20, seed=0xF00D, return_mol=False):
+    """The lowest-energy conformer of `n` ETKDG embeddings optimized with
+    MMFF94 (or UFF): the starting structure for a species whose lowest rotamer
+    is wanted (all-anti n-alkanes, cis-cis dimethyl carbonate). A single
+    embedding of a long chain is often gauche. See conformer_candidates, which
+    gives the other low conformers too: the force fields do not always rank
+    them right.
+
+    Returns (symbols, coordinates in Å, force-field energies of all embeddings
+    in kcal/mol, index of the lowest), or with `return_mol` the RDKit molecule
+    (with explicit hydrogens and the chosen conformer only) first.
+    """
+    conformers = conformer_candidates(smiles, n=n, seed=seed, max_candidates=1)
+    energies = conformers.all_energies
+    best = conformers.indices[0]
+    symbols = conformers.symbols
+    coordinates = conformers.coordinates[0]
+    if return_mol:
+        return conformers.mol_of(0), symbols, coordinates, energies, best
+    return symbols, coordinates, energies, best
