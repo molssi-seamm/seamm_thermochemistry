@@ -3,16 +3,19 @@
 """Resolving the reference species of CBH reactions: ATcT first, then the
 supplementary reference library.
 
-The order (the reference-library design, §2, and the 2026-11-12 decisions):
+The order (the reference-library design, §2, the 2026-11-12 decisions, and
+the atomic-heat hierarchy adopted for the library on 2026-11-19):
 
 1. ATcT, the version installed. If every reference is in ATcT, nothing else
    is used and the result is "ATcT-only".
 2. The user's own references (the local layer's ``user`` source), when the
    job enables them.
-3. The library's experimental sources by rank: printed JANAF, derived
-   values, CODATA, the OECD-NEA thermochemical database (NEA-TDB), the NBS
-   tables of 1982, D0, the WebBook measurements,
-   measurements from the primary literature.
+3. The library's experimental sources by rank: CODATA, the OECD-NEA
+   thermochemical database (NEA-TDB), printed JANAF, values derived from
+   these, Gurvich's tables (TSIV), the NBS tables of 1982, D0, the WebBook
+   measurements, measurements from the primary literature. The ranks are
+   stored in each library file, so a published library keeps the order it
+   was built with.
 4. Computed values, when enabled ("compilations and computed"): W4-17 (0 K
    only, used only without a 298.15 K value) and the computed layer,
    ``references-computed.db``. They always come after every experimental
