@@ -3,16 +3,19 @@
 """Resolving the reference species of CBH reactions: ATcT first, then the
 supplementary reference library.
 
-The order (the reference-library design, §2, and the 2026-11-12 decisions):
+The order (the reference-library design, §2, the 2026-11-12 decisions, and
+the atomic-heat hierarchy adopted for the library on 2026-11-19):
 
 1. ATcT, the version installed. If every reference is in ATcT, nothing else
    is used and the result is "ATcT-only".
 2. The user's own references (the local layer's ``user`` source), when the
    job enables them.
-3. The library's experimental sources by rank: printed JANAF, derived
-   values, CODATA, the OECD-NEA thermochemical database (NEA-TDB), the NBS
-   tables of 1982, D0, the WebBook measurements,
-   measurements from the primary literature.
+3. The library's experimental sources by rank: CODATA, the OECD-NEA
+   thermochemical database (NEA-TDB), printed JANAF, values derived from
+   these, Gurvich's tables (TSIV), the NBS tables of 1982, D0, the WebBook
+   measurements, measurements from the primary literature. The ranks are
+   stored in each library file, so a published library keeps the order it
+   was built with.
 4. Computed values, when enabled ("compilations and computed"): W4-17 (0 K
    only, used only without a 298.15 K value) and the computed layer,
    ``references-computed.db``. They always come after every experimental
@@ -22,11 +25,15 @@ The order (the reference-library design, §2, and the 2026-11-12 decisions):
 **One source per element.** For each element that ATcT does not have (its
 gas-phase atom is not in ATcT), the references containing it are taken from
 the first source, in rank order, that has all of them, so that the source's
-shared error cancels in the reaction. A later source still replaces that
+shared error cancels in the reaction. Another source still replaces that
 source's value for a species where the replacement rule says so (science,
-2026-11-12): the element then has several sources, the result is labelled
-"mixed: several sources" with the sources named, and a one-line note says so.
-It never blocks. When no single source has them all, each reference takes its
+2026-11-12): its value agrees within the element source's uncertainty and its
+uncertainty is below a third of it. Whether that source ranks above or below
+the element's source does not matter (science, 2026-11-19), so the ranks
+decide which source an element takes, not which value a species keeps. The
+element then has several sources, the result is labelled "mixed: several
+sources" with the sources named, and a one-line note says so. It never
+blocks. When no single source has them all, each reference takes its
 own best value, with the same label.
 
 The values come back in the layout of an ATcT entry (``dfH0_0K``,
@@ -40,7 +47,7 @@ import re
 
 from .atct import AmbiguousEntry, MissingEntry
 from .cbh import CBHError
-from .references import LayeredReferences, is_computed
+from .references import LayeredReferences, is_computed, later_source_wins
 
 logger = logging.getLogger(__name__)
 
@@ -241,6 +248,38 @@ class ReferenceResolver:
                 return current
             current = later[0]
 
+    def _replace_upward(self, candidates, chosen):
+        """The value of a better-ranked source that replaces `chosen` by the
+        replacement rule, which does not depend on the order of the two
+        sources (science, 2026-11-19). The overrides stored in the library
+        only run from a better-ranked source to a worse one, so a precise,
+        agreeing value of a better-ranked source would otherwise be lost when
+        one source per element picks a worse-ranked one. A computed value
+        never replaces an experimental one."""
+        u = chosen.get("expanded_uncertainty")
+        if chosen["dfh_298k"] is None or u is None:
+            return chosen
+        for r in candidates:
+            if r is chosen or r["dfh_298k"] is None:
+                continue
+            if r.get("expanded_uncertainty") is None:
+                continue
+            if is_computed(r) and not is_computed(chosen):
+                continue
+            if r["source_rank"] >= chosen["source_rank"]:
+                continue  # downward: the library's own overrides
+            if later_source_wins(
+                (chosen["dfh_298k"], u), (r["dfh_298k"], r["expanded_uncertainty"])
+            ):
+                r = dict(r)
+                r["override_reason"] = (
+                    f"{r['source_name']} ± {r['expanded_uncertainty']:.2f} is below "
+                    f"a third of {chosen['source_name']}'s ± {u:.2f} and agrees "
+                    f"within it ({r['dfh_298k'] - chosen['dfh_298k']:+.2f} kJ/mol)"
+                )
+                return self._follow_override(candidates, r)
+        return chosen
+
     def _entry(self, smiles, ref):
         u = ref["total_uncertainty"]
         return {
@@ -331,6 +370,8 @@ class ReferenceResolver:
                     ):
                         # a 0 K-only value is used only without a 298 K one
                         chosen = self._best(cands[s])
+                    else:
+                        chosen = self._replace_upward(cands[s], chosen)
                     assigned[s] = chosen
             else:
                 for s in group:

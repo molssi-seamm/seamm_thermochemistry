@@ -20,8 +20,9 @@ from the command line::
                                       [--calibration FILE]
                                       [--exclude SOURCE:SMILES,...:REASON]
 
-``add-curated`` (maintainers) reads hand-curated CSVs (printed JANAF, CODATA,
-NBS-82, D0, W4-17, derived values, the primary literature) into a library file
+``add-curated`` (maintainers) reads hand-curated CSVs (CODATA, NEA-TDB, printed
+JANAF, derived values, Gurvich's tables (TSIV), NBS-82, D0, W4-17, the primary
+literature) into a library file
 being built for publication; it always names its file. ``add-computed``
 (maintainers) reads values computed with SEAMM's tier-A recipes into the
 computed layer, ``references-computed.db`` (see

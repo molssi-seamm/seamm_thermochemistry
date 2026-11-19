@@ -280,9 +280,9 @@ def test_nea_ranks_ahead_of_nbs82(tmp_path, supplementary):
     )
     report, problems = curated.import_curated(library, tmp_path)
     assert problems == [] and all(r[2] == "added" for r in report)
-    assert library.source("NEA-TDB-2005")["rank"] == 21
-    assert curated.CURATED_SOURCES["codata.csv"][2] < 21
-    assert 21 < library.source("NBS-82")["rank"]
+    assert library.source("NEA-TDB-2005")["rank"] == 7
+    assert curated.CURATED_SOURCES["codata.csv"][2] < 7
+    assert 7 < library.source("NBS-82")["rank"]
     library.close()
     layers = R.LayeredReferences(tmp_path / "local.db", tmp_path / "official.db")
     r = RS.ReferenceResolver(FakeATcT(), supplementary=supplementary, layers=layers)
@@ -292,4 +292,159 @@ def test_nea_ranks_ahead_of_nbs82(tmp_path, supplementary):
     assert entries["[SeH2]"]["dfH0_298K"] == 29.0
     assert entries["F[Se](F)(F)(F)(F)F"]["source"] == "NEA-TDB-2005"
     assert entries["F[Se](F)(F)(F)(F)F"]["uncertainty_298K"] == pytest.approx(0.4)
+    layers.close()
+
+
+def test_curated_ranks_follow_the_atomic_heat_hierarchy():
+    """Paul, 2026-11-19: the library's sources in the order of the atomic
+    heats, CODATA / NEA-TDB > printed JANAF > derived > Gurvich (TSIV) > NBS-82,
+    then D0, the WebBook and the literature, and computed values last."""
+    from seamm_thermochemistry import curated
+    from seamm_thermochemistry import webbook
+
+    rank = {v[0]: v[2] for v in curated.CURATED_SOURCES.values()}
+    order = [
+        "CODATA-1989",
+        "NEA-TDB-2005",
+        "JANAF-1998",
+        "derived",
+        "Gurvich-TSIV",
+        "NBS-82",
+        "D0",
+    ]
+    ranks = [rank[name] for name in order]
+    assert ranks == sorted(ranks) and len(set(ranks)) == len(ranks)
+    assert rank["D0"] < webbook.SOURCE_RANK < rank["Literature"] < R.COMPUTED_RANK
+    assert rank["W4-17"] == R.COMPUTED_RANK
+    assert curated.CURATED_SOURCES["gurvich.csv"][1] == "evaluated"
+
+
+#: The P species of library v6 (ATcT lacks P): P4 in JANAF and CODATA, which
+#: agree, CODATA far more precise; PH3, PCl3, POCl3 and PF5 in JANAF only;
+#: PCl5 derived. Made-up uncertainties where v6's do not matter.
+P4 = "P12P3P1P23"
+P_SPECIES = [P4, "P", "ClP(Cl)Cl", "O=P(Cl)(Cl)Cl", "FP(F)(F)(F)F", "ClP(Cl)(Cl)(Cl)Cl"]
+
+#: The ranks before 2026-11-19
+OLD_RANKS = {
+    "JANAF-1998": ("evaluated", 10),
+    "derived": ("derived", 11),
+    "Gurvich-TSIV": ("evaluated", 15),
+    "CODATA-1989": ("evaluated", 20),
+    "NEA-TDB-2005": ("evaluated", 21),
+    "NBS-82": ("evaluated", 25),
+}
+
+
+def _p_library(path, ranks=OLD_RANKS, *, rerank=False):
+    """A made-up library like v6's P species, plus P2 in JANAF and CODATA,
+    which disagree. With `rerank`, built with the old ranks and then given the
+    curated ones with set_rank, as library v7 is."""
+    from seamm_thermochemistry import curated
+
+    lib = R.ReferenceLibrary(path, create=True, layer="official")
+    for name, (kind, rank) in ranks.items():
+        lib.add_source(name, kind, rank)
+
+    def add(smiles, source, value, u, status="measured"):
+        (sid,) = [s["id"] for s in lib.species(smiles)] or [lib.add_species(smiles)]
+        lib.add_measurement(
+            sid, source, dfh_298k=value, uncertainty=u, unc_level="2 sigma",
+            status=status, citation=f"{source} {smiles}",
+        )  # fmt: skip
+        lib.choose(sid, source)
+
+    add(P4, "JANAF-1998", 58.9, 4.2)
+    add(P4, "CODATA-1989", 58.9, 0.3)
+    add("P", "JANAF-1998", 5.4, 3.4)
+    add("ClP(Cl)Cl", "JANAF-1998", -288.7, 10.8)
+    add("O=P(Cl)(Cl)Cl", "JANAF-1998", -559.8, 3.4)
+    add("FP(F)(F)(F)F", "JANAF-1998", -1594.4, 5.8)
+    add("ClP(Cl)(Cl)(Cl)Cl", "derived", -360.0, 5.0, status="derived")
+    # P2: CODATA precise but 6 kJ/mol from JANAF, outside JANAF's +- 2
+    add("P#P", "JANAF-1998", 144.0, 2.0)
+    add("P#P", "CODATA-1989", 150.0, 0.5)
+    lib.apply_overrides()
+    if rerank:
+        for name, _, rank, *_ in curated.CURATED_SOURCES.values():
+            if name in ranks:
+                lib.set_rank(name, rank)
+        lib.apply_overrides()
+    lib.close()
+
+
+def _resolve_all(path, groups):
+    layers = R.LayeredReferences(path.with_name("local.db"), path, path.with_name("x"))
+    r = RS.ReferenceResolver(FakeATcT(), supplementary="compilations", layers=layers)
+    result = {}
+    for group in groups:
+        entries, missing, label, notes = r.resolve(list(group))
+        result[group] = (
+            {
+                s: (e["source"], e["dfH0_298K"], e["uncertainty_298K"])
+                for s, e in entries.items()
+            },
+            sorted(missing),
+            label,
+            notes,
+        )
+    layers.close()
+    return result
+
+
+def test_reranking_changes_nothing(tmp_path):
+    """The check behind Paul's 2026-11-19 decision to rank CODATA and NEA-TDB
+    above JANAF. In library v6 the one species with both a JANAF and a CODATA
+    value is P4, and they agree. All 16 groups of P4 with up to two other P
+    species resolve exactly as before: the value, source, uncertainty, label
+    and notes. With one source per element, JANAF is P's source beside the
+    JANAF-only species, and CODATA's agreeing, more precise value replaces it
+    whichever ranks higher (science, 2026-11-19)."""
+    import itertools
+
+    _p_library(tmp_path / "old.db")
+    _p_library(tmp_path / "new.db", rerank=True)
+    lib = R.ReferenceLibrary(tmp_path / "new.db", layer="official")
+    assert lib.source("CODATA-1989")["rank"] < lib.source("JANAF-1998")["rank"]
+    assert "rank 20 -> 6" in lib.source("CODATA-1989")["notes"]
+    lib.close()
+
+    others = P_SPECIES[1:]
+    groups = [(P4, *g) for k in (0, 1, 2) for g in itertools.combinations(others, k)]
+    assert len(groups) == 16
+    old = _resolve_all(tmp_path / "old.db", groups)
+    new = _resolve_all(tmp_path / "new.db", groups)
+    assert new == old
+    for group in groups:
+        entries, _, label, _ = new[group]
+        assert entries[P4] == ("CODATA-1989", 58.9, pytest.approx(0.3))
+        if any(s != "ClP(Cl)(Cl)(Cl)Cl" for s in group[1:]):
+            assert label.startswith(
+                "mixed: several sources (P: CODATA-1989, JANAF-1998"
+            )
+
+
+def test_upward_replacement_needs_agreement(tmp_path):
+    """P2: CODATA (better ranked) is precise but disagrees with JANAF, so
+    beside a JANAF-only P species P2 keeps JANAF's value, one source."""
+    _p_library(tmp_path / "new.db", rerank=True)
+    result = _resolve_all(tmp_path / "new.db", [("P#P",), ("P#P", "P")])
+    entries, _, label, _ = result[("P#P",)]
+    assert entries["P#P"][:2] == ("CODATA-1989", 150.0)  # its best: the rank
+    entries, _, label, notes = result[("P#P", "P")]
+    assert entries["P#P"] == ("JANAF-1998", 144.0, pytest.approx(2.0))
+    assert entries["P"][0] == "JANAF-1998"
+    assert label == "mixed" and notes == []
+
+
+def test_upward_replacement_reason(tmp_path):
+    """The replacing value says why."""
+    _p_library(tmp_path / "new.db", rerank=True)
+    layers = R.LayeredReferences(
+        tmp_path / "local.db", tmp_path / "new.db", tmp_path / "x"
+    )
+    r = RS.ReferenceResolver(FakeATcT(), supplementary="compilations", layers=layers)
+    entries, _, _, _ = r.resolve([P4, "P"])
+    assert entries[P4]["source"] == "CODATA-1989"
+    assert "below a third of JANAF-1998" in entries[P4]["override_reason"]
     layers.close()

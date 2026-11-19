@@ -1,6 +1,22 @@
 =======
 History
 =======
+2026.11.19.1 -- Reference sources in the order of the atomic heats; Gurvich (TSIV)
+    * The reference library's sources now rank in the order used for the atomic
+      enthalpies of formation: CODATA and the OECD-NEA thermochemical database
+      (NEA-TDB), then printed JANAF, values derived from these, the new source for
+      Gurvich's tables (TSIV, Thermodynamic Properties of Individual Substances),
+      the NBS tables of 1982, D0, the WebBook and the primary literature. The
+      ranks are stored in each library file, so the installed library keeps its
+      order until the next version is published.
+    * A clarification of the rule that lets one source's value replace another's
+      when it agrees and is far more precise (its uncertainty below a third): with
+      one source per element, it now applies whichever of the two sources ranks
+      higher. Before, a better-ranked source could not replace the value of the
+      source chosen for an element. With the new ranks this keeps every result as
+      it was: checked over the published library's phosphorus species and every
+      pair of species that share an element ATcT lacks.
+
 2026.11.19 -- Bugfix: rotamers of hydrogens were never considered for the lowest conformer
     * The lowest force-field conformer of a species, the start of each CBH species,
       came from RDKit embeddings pruned by the RMSD of their heavy atoms, which

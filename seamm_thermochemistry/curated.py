@@ -2,10 +2,10 @@
 
 """Reading hand-curated reference values into a reference library.
 
-The curated files (one CSV per source: printed JANAF, CODATA key values,
-the OECD-NEA thermochemical database (NEA-TDB), the NBS tables of 1982,
-spectroscopic D0, W4-17, derived values, and measurements from the primary
-literature) share common columns::
+The curated files (one CSV per source: CODATA key values, the OECD-NEA
+thermochemical database (NEA-TDB), printed JANAF, derived values, Gurvich's
+tables (TSIV), the NBS tables of 1982, spectroscopic D0, W4-17, and
+measurements from the primary literature) share common columns::
 
     smiles, formula, charge, multiplicity, name, phase, dfH0_kJmol,
     dfH298_kJmol, unc_kJmol, unc_level, status, citation, notes
@@ -30,6 +30,26 @@ from .references import ReferenceError
 
 #: The files, their source and the source's kind, rank and year
 CURATED_SOURCES = {
+    # The order of the atomic-heat hierarchy: CODATA and NEA-TDB, then
+    # printed JANAF, then values derived from them, then Gurvich (TSIV), then
+    # NBS-82 (Paul, 2026-11-19; derived above TSIV, science)
+    "codata.csv": (
+        "CODATA-1989",
+        "evaluated",
+        6,
+        1989,
+        "J. D. Cox, D. D. Wagman and V. A. Medvedev, CODATA Key Values for "
+        "Thermodynamics (Hemisphere, 1989)",
+    ),
+    "nea.csv": (
+        "NEA-TDB-2005",
+        "evaluated",
+        7,
+        2005,
+        "Å. Olin, B. Noläng, E. G. Osadchii, L.-O. Öhman and E. Rosén, Chemical "
+        "Thermodynamics of Selenium, Chemical Thermodynamics vol. 7 (OECD Nuclear "
+        "Energy Agency, Elsevier, 2005)",
+    ),
     "janaf_printed.csv": (
         "JANAF-1998",
         "evaluated",
@@ -39,22 +59,13 @@ CURATED_SOURCES = {
         "Ref. Data Monograph 9 (1998)",
     ),
     "derived.csv": ("derived", "derived", 11, None, "Values derived from evaluations"),
-    "codata.csv": (
-        "CODATA-1989",
+    "gurvich.csv": (
+        "Gurvich-TSIV",
         "evaluated",
-        20,
-        1989,
-        "J. D. Cox, D. D. Wagman and V. A. Medvedev, CODATA Key Values for "
-        "Thermodynamics (Hemisphere, 1989)",
-    ),
-    "nea.csv": (
-        "NEA-TDB-2005",
-        "evaluated",
-        21,
-        2005,
-        "Å. Olin, B. Noläng, E. G. Osadchii, L.-O. Öhman and E. Rosén, Chemical "
-        "Thermodynamics of Selenium, Chemical Thermodynamics vol. 7 (OECD Nuclear "
-        "Energy Agency, Elsevier, 2005)",
+        15,
+        None,  # each row gives its volume's year
+        "L. V. Gurvich, I. V. Veyts and C. B. Alcock, Thermodynamic Properties "
+        "of Individual Substances, 4th ed., vols. 1-3 (Hemisphere, 1989-1994)",
     ),
     "nbs82.csv": (
         "NBS-82",
