@@ -126,3 +126,9 @@ def harvest_finished_job(job_id=None, wdir=None, state=None, logger=logger, **kw
     except Exception as e:
         logger.warning(f"Job {job_id}: harvesting its fragments failed: {e}")
         return None
+
+
+# The marker is renamed here once harvested, so the JobServer (seamm-jobserver
+# 2026.11.20) does not expect it to match the job's remote copy before removing
+# that copy.
+harvest_finished_job.consumes = (MARKER,)

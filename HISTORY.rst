@@ -1,6 +1,13 @@
 =======
 History
 =======
+2026.11.20 -- Internal: the harvest hook names the file it consumes
+    * The JobServer's ``job_finished`` hook that harvests jobs run on a cluster into
+      the fragment store now lists its marker, ``harvest_fragments.json``, in a
+      ``consumes`` attribute. seamm-jobserver 2026.11.20 removes a finished job's
+      directory on the remote host after checking that its files came back; the
+      marker is renamed here once harvested, so it is left out of that check.
+
 2026.11.19.1 -- Reference sources in the order of the atomic heats; Gurvich (TSIV)
     * The reference library's sources now rank in the order used for the atomic
       enthalpies of formation: CODATA and the OECD-NEA thermochemical database
