@@ -323,3 +323,11 @@ def test_the_hook_never_writes_a_newer_store(returned_job):
     assert hooks.harvest_finished_job(job_id=42, wdir=job, state="finished") is None
     assert (job / hooks.MARKER).exists()
     assert path.read_bytes() == before
+
+
+def test_harvest_hook_declares_the_marker_it_consumes():
+    """The JobServer leaves the marker out of its check before removing a finished
+    job's remote directory: the hook renames it here once harvested."""
+    from seamm_thermochemistry.hooks import MARKER, harvest_finished_job
+
+    assert harvest_finished_job.consumes == (MARKER,)
