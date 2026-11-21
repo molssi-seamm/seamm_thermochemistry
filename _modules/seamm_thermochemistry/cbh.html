@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.cbh &#8212; SEAMM thermochemistry Plug-in 2026.11.20 documentation</title>
+    <title>seamm_thermochemistry.cbh &#8212; SEAMM thermochemistry Plug-in 2026.11.20.1 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=8ac94872"></script>
+    <script src="../../_static/documentation_options.js?v=44ecf524"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.20" />
+  <meta name="docsearch:version" content="2026.11.20.1" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -706,9 +706,10 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_hypervalent_centre</span><span class="p">(</span><span class="n">atom</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""A hypervalent centre: S, Se, Te, P, As, Cl, Br or I with more bonds than</span>
-<span class="sd">    its normal valence, or a halogen cation bonded to two or more heavy atoms</span>
-<span class="sd">    (the [Cl+3] of perchloryl or chlorate written with charge separation)."""</span>
+<span class="w">    </span><span class="sd">"""A hypervalent centre: Si, Ge, Sn, S, Se, Te, P, As, Cl, Br, I or Xe with</span>
+<span class="sd">    more bonds than its normal valence, or a halogen cation bonded to two or more</span>
+<span class="sd">    heavy atoms (the [Cl+3] of perchloryl or chlorate written with charge</span>
+<span class="sd">    separation)."""</span>
     <span class="k">if</span> <span class="n">is_hypervalent</span><span class="p">(</span><span class="n">atom</span><span class="p">):</span>
         <span class="k">return</span> <span class="kc">True</span>
     <span class="n">heavy</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">nb</span> <span class="ow">in</span> <span class="n">atom</span><span class="o">.</span><span class="n">GetNeighbors</span><span class="p">()</span> <span class="k">if</span> <span class="n">nb</span><span class="o">.</span><span class="n">GetAtomicNum</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span>
@@ -763,10 +764,11 @@
                 <span class="n">labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">ring</span><span class="p">)</span><span class="si">}</span><span class="s2">-membered ring"</span><span class="p">)</span>
     <span class="n">phantoms</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">if</span> <span class="s2">"groups"</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
-        <span class="c1"># A hypervalent centre (S, Se, P, Cl, ... with more bonds than its</span>
-        <span class="c1"># normal valence: sulfonyl, phosphoryl, SF4, SF5-R, ClF3, ...) with its</span>
-        <span class="c1"># heavy neighbours, so that CBH-0 gives a real molecule (dimethyl</span>
-        <span class="c1"># sulfone, phosphoric acid) rather than a hydride such as H2SO2 or SH6.</span>
+        <span class="c1"># A hypervalent centre (S, Se, P, Cl, Si, Ge, ... with more bonds than</span>
+        <span class="c1"># its normal valence: sulfonyl, phosphoryl, SF4, SF5-R, ClF3, SiF6 2-,</span>
+        <span class="c1"># GeF5-, ...) with its heavy neighbours, so that CBH-0 gives a real</span>
+        <span class="c1"># molecule (dimethyl sulfone, phosphoric acid) rather than a hydride</span>
+        <span class="c1"># such as H2SO2, SH6 or SiH6 2-.</span>
         <span class="c1"># A neighbour in a protected ring stays with its ring: a phantom.</span>
         <span class="n">in_rings</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">atoms</span> <span class="ow">in</span> <span class="n">groups</span><span class="p">:</span>

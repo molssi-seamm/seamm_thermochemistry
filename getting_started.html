@@ -7,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.11.20 documentation</title>
+    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.11.20.1 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="_static/documentation_options.js?v=8ac94872"></script>
+    <script src="_static/documentation_options.js?v=44ecf524"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -55,7 +55,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.20" />
+  <meta name="docsearch:version" content="2026.11.20.1" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -1096,14 +1096,19 @@ hydrogens. By default aromatic ring systems, three- and four-membered rings and
 charge-separated or hypervalent groups are kept whole (<code class="docutils literal notranslate"><span class="pre">protect=&quot;default&quot;</span></code>;
 <code class="docutils literal notranslate"><span class="pre">protect=&quot;none&quot;</span></code> gives the plain Kekulé hierarchy, and a sequence of
 <code class="docutils literal notranslate"><span class="pre">&quot;aromatic&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;small</span> <span class="pre">rings&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;groups&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;all</span> <span class="pre">rings&quot;</span></code> or SMARTS
-patterns chooses). A hypervalent centre (S, Se or Te with more than two bonds, P
-or As with more than three, Cl, Br or I with more than one: sulfonyl, sulfite,
-phosphoryl, SF<sub>5</sub>-R, ClF<sub>3</sub>, or a halogen cation such as the
+patterns chooses). A hypervalent centre (Si, Ge or Sn with more than four
+bonds, S, Se or Te with more than two, P or As with more than three, Cl, Br or I
+with more than one, Xe with any: sulfonyl, sulfite, phosphoryl,
+SF<sub>5</sub>-R, ClF<sub>3</sub>, SiF<sub>6</sub><sup>2-</sup>,
+GeF<sub>5</sub><sup>-</sup>, XeF<sub>4</sub>, or a halogen cation such as the
 [Cl+3] of FClO<sub>3</sub>) is kept together with its heavy neighbours, so that
 CBH-0 gives real molecules (dimethyl sulfate → sulfuric acid and methane)
-instead of hydrides such as H<sub>2</sub>SO<sub>2</sub> or SH<sub>6</sub>; a
-molecule that is one such group (SF<sub>6</sub>, dimethyl sulfone) is trivial at
-every rung. A neighbour in a protected ring stays with its ring, but is added,
+instead of hydrides such as H<sub>2</sub>SO<sub>2</sub>, SH<sub>6</sub> or
+SiH<sub>6</sub><sup>2-</sup>; a molecule that is one such group (SF<sub>6</sub>,
+dimethyl sulfone, SiF<sub>6</sub><sup>2-</sup>) is trivial at every rung. A
+chelating centre bonded twice to one protected ring (a catecholate) has no
+CBH-1, which is refused as for any group bonded twice to the same protected
+group. A neighbour in a protected ring stays with its ring, but is added,
 capped like a methyl, to every fragment that holds the centre and not the ring:
 methyl phenyl sulfone gives CH<sub>4</sub> + PhSO<sub>2</sub>Me → C<sub>6</sub>H<sub>6</sub>
 + Me<sub>2</sub>SO<sub>2</sub> at CBH-0 (the methane removes the doubly counted
@@ -1111,7 +1116,8 @@ carbon); from CBH-1 up these atoms cancel by themselves. So is every pair of bon
 formal charges (CO written [C-]#[O+], N-oxides, the bridges of
 Al<sub>2</sub>Cl<sub>6</sub>). RDKit’s valence check rejects hypervalent
 halogens (<code class="docutils literal notranslate"><span class="pre">FCl(F)F</span></code>); SMILES are read with <code class="docutils literal notranslate"><span class="pre">seamm_thermochemistry.smiles.</span>
-<span class="pre">mol_from_smiles</span></code>, which skips that check for S, Se, Te, P, As, Cl, Br and I only;
+<span class="pre">mol_from_smiles</span></code>, which skips that check for Si, Ge, Sn, S, Se, Te, P, As, Cl,
+Br, I and Xe only;
 the ATcT index and its lookups read them the same way, so ClF<sub>3</sub>, BrO<sub>2</sub>
 or O=[S-](=O)=O are found like any other species.
 <code class="docutils literal notranslate"><span class="pre">cbh.ground_state_multiplicity(smiles)</span></code> gives the spin multiplicity of a

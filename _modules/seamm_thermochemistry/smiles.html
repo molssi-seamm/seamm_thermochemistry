@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.smiles &#8212; SEAMM thermochemistry Plug-in 2026.11.20 documentation</title>
+    <title>seamm_thermochemistry.smiles &#8212; SEAMM thermochemistry Plug-in 2026.11.20.1 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=8ac94872"></script>
+    <script src="../../_static/documentation_options.js?v=44ecf524"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.20" />
+  <meta name="docsearch:version" content="2026.11.20.1" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -440,9 +440,24 @@
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"mol_from_smiles"</span><span class="p">,</span> <span class="s2">"is_hypervalent"</span><span class="p">,</span> <span class="s2">"NORMAL_VALENCE"</span><span class="p">]</span>
 
 <span class="c1">#: The lowest (normal) valence of the main-group elements whose hypervalent</span>
-<span class="c1">#: compounds are common: sulfur, selenium and tellurium (2), phosphorus and</span>
-<span class="c1">#: arsenic (3), and the halogens chlorine, bromine and iodine (1).</span>
-<span class="n">NORMAL_VALENCE</span> <span class="o">=</span> <span class="p">{</span><span class="mi">16</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">34</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">52</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">15</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">33</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">17</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">35</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">53</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+<span class="c1">#: compounds are common: silicon, germanium and tin (4: SiF6 2-, GeF5 -, the</span>
+<span class="c1">#: germanium catecholates, SnCl6 2-), sulfur, selenium and tellurium (2),</span>
+<span class="c1">#: phosphorus and arsenic (3), the halogens chlorine, bromine and iodine (1),</span>
+<span class="c1">#: and xenon (0: XeF2, XeF4).</span>
+<span class="n">NORMAL_VALENCE</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="mi">14</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+    <span class="mi">32</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+    <span class="mi">50</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+    <span class="mi">16</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="mi">34</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="mi">52</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="mi">15</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+    <span class="mi">33</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+    <span class="mi">17</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="mi">35</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="mi">53</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="mi">54</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+<span class="p">}</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_chem</span><span class="p">():</span>
@@ -460,8 +475,8 @@
 
 <span class="sd">    A SMILES that RDKit reads as it is gives the same molecule as</span>
 <span class="sd">    ``Chem.MolFromSmiles``. One that fails only RDKit's valence check on an</span>
-<span class="sd">    element that is hypervalent in real compounds (S, Se, Te, P, As, Cl, Br, I:</span>
-<span class="sd">    ClF3, BrF5) is read without that check; aromaticity, conjugation and</span>
+<span class="sd">    element that is hypervalent in real compounds (Si, Ge, Sn, S, Se, Te, P, As,</span>
+<span class="sd">    Cl, Br, I, Xe: ClF3, BrF5) is read without that check; aromaticity, conjugation and</span>
 <span class="sd">    hybridization are still perceived. Any other over-valent atom (O=[N]=O)</span>
 <span class="sd">    still makes the SMILES unreadable.</span>
 <span class="sd">    """</span>
@@ -497,9 +512,9 @@
 <div class="viewcode-block" id="is_hypervalent">
 <a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.smiles.is_hypervalent">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">is_hypervalent</span><span class="p">(</span><span class="n">atom</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""Whether an RDKit atom is a neutral or anionic S, Se, Te, P, As, Cl, Br or I</span>
-<span class="sd">    with more bonds than its normal valence (SF4, SF6, sulfonyl, phosphoryl,</span>
-<span class="sd">    ClF3, PF6-, ...)."""</span>
+<span class="w">    </span><span class="sd">"""Whether an RDKit atom is a neutral or anionic Si, Ge, Sn, S, Se, Te, P, As,</span>
+<span class="sd">    Cl, Br, I or Xe with more bonds than its normal valence (SF4, SF6, sulfonyl,</span>
+<span class="sd">    phosphoryl, ClF3, PF6-, SiF6 2-, GeF5-, XeF4, ...)."""</span>
     <span class="n">normal</span> <span class="o">=</span> <span class="n">NORMAL_VALENCE</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">atom</span><span class="o">.</span><span class="n">GetAtomicNum</span><span class="p">())</span>
     <span class="k">if</span> <span class="n">normal</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">atom</span><span class="o">.</span><span class="n">GetFormalCharge</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">False</span>

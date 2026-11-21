@@ -677,14 +677,19 @@ hydrogens. By default aromatic ring systems, three- and four-membered rings and
 charge-separated or hypervalent groups are kept whole (``protect="default"``;
 ``protect="none"`` gives the plain Kekulé hierarchy, and a sequence of
 ``"aromatic"``, ``"small rings"``, ``"groups"``, ``"all rings"`` or SMARTS
-patterns chooses). A hypervalent centre (S, Se or Te with more than two bonds, P
-or As with more than three, Cl, Br or I with more than one: sulfonyl, sulfite,
-phosphoryl, SF\ :sub:`5`-R, ClF\ :sub:`3`, or a halogen cation such as the
+patterns chooses). A hypervalent centre (Si, Ge or Sn with more than four
+bonds, S, Se or Te with more than two, P or As with more than three, Cl, Br or I
+with more than one, Xe with any: sulfonyl, sulfite, phosphoryl,
+SF\ :sub:`5`-R, ClF\ :sub:`3`, SiF\ :sub:`6`\ :sup:`2-`,
+GeF\ :sub:`5`\ :sup:`-`, XeF\ :sub:`4`, or a halogen cation such as the
 [Cl+3] of FClO\ :sub:`3`) is kept together with its heavy neighbours, so that
 CBH-0 gives real molecules (dimethyl sulfate → sulfuric acid and methane)
-instead of hydrides such as H\ :sub:`2`\ SO\ :sub:`2` or SH\ :sub:`6`; a
-molecule that is one such group (SF\ :sub:`6`, dimethyl sulfone) is trivial at
-every rung. A neighbour in a protected ring stays with its ring, but is added,
+instead of hydrides such as H\ :sub:`2`\ SO\ :sub:`2`, SH\ :sub:`6` or
+SiH\ :sub:`6`\ :sup:`2-`; a molecule that is one such group (SF\ :sub:`6`,
+dimethyl sulfone, SiF\ :sub:`6`\ :sup:`2-`) is trivial at every rung. A
+chelating centre bonded twice to one protected ring (a catecholate) has no
+CBH-1, which is refused as for any group bonded twice to the same protected
+group. A neighbour in a protected ring stays with its ring, but is added,
 capped like a methyl, to every fragment that holds the centre and not the ring:
 methyl phenyl sulfone gives CH\ :sub:`4` + PhSO\ :sub:`2`\ Me → C\ :sub:`6`\ H\ :sub:`6`
 + Me\ :sub:`2`\ SO\ :sub:`2` at CBH-0 (the methane removes the doubly counted
@@ -692,7 +697,8 @@ carbon); from CBH-1 up these atoms cancel by themselves. So is every pair of bon
 formal charges (CO written [C-]#[O+], N-oxides, the bridges of
 Al\ :sub:`2`\ Cl\ :sub:`6`). RDKit's valence check rejects hypervalent
 halogens (``FCl(F)F``); SMILES are read with ``seamm_thermochemistry.smiles.
-mol_from_smiles``, which skips that check for S, Se, Te, P, As, Cl, Br and I only;
+mol_from_smiles``, which skips that check for Si, Ge, Sn, S, Se, Te, P, As, Cl,
+Br, I and Xe only;
 the ATcT index and its lookups read them the same way, so ClF\ :sub:`3`, BrO\ :sub:`2`
 or O=[S-](=O)=O are found like any other species.
 ``cbh.ground_state_multiplicity(smiles)`` gives the spin multiplicity of a
