@@ -39,6 +39,7 @@ is imported lazily, so the rest of the package does not depend on it.
 """
 
 from datetime import datetime, timezone
+import decimal
 import hashlib
 import json
 import logging
@@ -925,9 +926,14 @@ class ATcT:
         The rows come back in the API's own order (``species_atctids``), not
         the request order. The square root of each diagonal element must agree
         with the listed 298.15 K uncertainty, which confirms that the matrix is
-        on the 95 % scale; a mismatch is an error. ATcT lists the uncertainties
-        rounded *up* to 0.01 kJ/mol (0.1118 is listed as 0.12), so the listed
-        value may exceed the diagonal by up to 0.01.
+        on the 95 % scale (a 1-sigma matrix would give about half); a mismatch is
+        an error. The agreement expected follows the precision the uncertainty is
+        listed to (see :func:`listed_precision`): most are listed to 0.01 kJ/mol
+        or finer, sometimes rounded up (0.1118 is listed as 0.12), and for those
+        the listed value may exceed the diagonal by up to 0.01 and fall short by
+        0.002. A few are listed to 0.1 (SiH3Cl 1.3, from 1.3034; SiH3Br 1.4,
+        from 1.3677), and are allowed half that step below and a whole step
+        above.
         """
         ids = data.get("species_atctids")
         if ids is None:
@@ -941,7 +947,10 @@ class ATcT:
                 continue
             listed = entry["uncertainty_298K"]
             diagonal = math.sqrt(max(matrix[i][i], 0.0))
-            if not -0.002 <= listed - diagonal <= 0.012 + 0.01 * listed:
+            step = max(listed_precision(listed), 0.01)
+            below = 0.002 if step <= 0.01 else step / 2
+            above = step + 0.002 + 0.01 * listed
+            if not -below <= listed - diagonal <= above:
                 raise ATcTError(
                     f"The covariance diagonal for {_id} gives an uncertainty of "
                     f"{diagonal:.4f} but the table lists {listed}; the matrix "
@@ -958,6 +967,15 @@ class ATcT:
     def _extract(block, ids):
         pos = {_id: i for i, _id in enumerate(block["ids"])}
         return [[block["matrix"][pos[a]][pos[b]] for b in ids] for a in ids]
+
+
+def listed_precision(value):
+    """The step a listed number is given to, from its decimals: 1.4 -> 0.1,
+    0.12 -> 0.01, 0.042 -> 0.001. A value stored as a float has lost trailing
+    zeros (1.30 reads as 1.3), so this can be coarser than the listing, never
+    finer."""
+    exponent = decimal.Decimal(repr(float(value))).normalize().as_tuple().exponent
+    return 10.0 ** min(exponent, 0)
 
 
 def reaction_uncertainty(coefficients, uncertainties, covariance=None):

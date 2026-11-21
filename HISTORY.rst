@@ -1,6 +1,15 @@
 =======
 History
 =======
+2026.11.23 -- Bugfix: ATcT covariances of species listed to 0.1 kJ/mol are accepted
+    * The check that an ATcT covariance block is on the 95 % scale compared the square
+      root of each diagonal element with the listed uncertainty as if every one were
+      listed to 0.01 kJ/mol. A few are listed to 0.1 (SiH3Br 1.4, SiH3Cl 1.3, SiH3OH
+      1.2), so any block containing them was refused, and CBH reactions that needed
+      it fell back to combining the reference uncertainties in quadrature, which
+      overstates them. The check now follows the precision each uncertainty is listed
+      to, and still refuses a matrix on another scale.
+
 2026.11.22 -- Bugfix: rotamers of an acid group are kept apart as conformers
     * The check whether a lower geometry is a new conformer now tells RDKit explicitly
       not to treat the two O atoms of an acid group (and other conjugated terminal
