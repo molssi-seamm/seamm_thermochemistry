@@ -10,6 +10,7 @@ rdkit = pytest.importorskip("rdkit")
 
 from seamm_thermochemistry import cbh  # noqa: E402
 from seamm_thermochemistry.atct import canonical_smiles  # noqa: E402
+from seamm_thermochemistry.smiles import is_hypervalent, mol_from_smiles  # noqa: E402
 
 
 def parse(text):
@@ -437,6 +438,45 @@ def test_hypervalent_group_whole_is_trivial(smiles):
     neighbours) reproduces itself at every rung: no SH6, H2SO2 or ClH4."""
     reactions = cbh.cbh_reactions(smiles, rungs=[0, 1, 2])
     assert all(r.trivial for r in reactions.values())
+
+
+@pytest.mark.parametrize(
+    "smiles",
+    [
+        "F[Si-2](F)(F)(F)(F)F",
+        "F[Ge-](F)(F)(F)F",
+        "F[Ge-2](F)(F)(F)(F)F",
+        "Cl[Sn-2](Cl)(Cl)(Cl)(Cl)Cl",
+        "F[Xe](F)(F)F",
+        "F[Xe]F",
+    ],
+)
+def test_group14_and_xenon_hypervalent_whole_is_trivial(smiles):
+    """SiF6 2-, GeF5-, SnCl6 2- and XeF4 are one hypervalent group: no SiH6 2-,
+    GeH5- or XeH4 (science, SMILES curation 2026-11-20)."""
+    reactions = cbh.cbh_reactions(smiles, rungs=[0, 1, 2])
+    assert all(r.trivial for r in reactions.values())
+
+
+def test_germanium_catecholate_fragments_are_real():
+    """The bis(catecholato)fluorogermanate (BEGLII) keeps the GeO4F centre with
+    its oxygens; CBH-0 has no GeH5- or [OH][GeH4-]."""
+    reaction, terms = rung_terms("F[Ge-]12(Oc3ccccc3O1)Oc1ccccc1O2", 0)
+    assert reaction.balanced
+    for smiles in ("[GeH5-]", "[OH][GeH4-]", "F[GeH4-]"):
+        assert canonical_smiles(smiles) not in terms
+    assert canonical_smiles("F[Ge-](O)(O)(O)O") in terms
+
+
+@pytest.mark.parametrize(
+    "smiles", ["C[Si](C)(C)C", "C[Ge](C)(C)C", "C[Sn](C)(C)C", "[SiH3]O[SiH3]"]
+)
+def test_tetravalent_group14_is_not_hypervalent(smiles):
+    """Ordinary 4-valent Si, Ge and Sn are cut as before: tetramethylsilane gives
+    SiH4 and methane at CBH-0."""
+    mol = mol_from_smiles(smiles)
+    assert not any(is_hypervalent(a) for a in mol.GetAtoms())
+    assert not cbh.cbh_reactions(smiles, rungs=[0])[0].trivial
 
 
 def test_sulfate_fragments_are_real_molecules():
