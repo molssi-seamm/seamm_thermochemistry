@@ -1,6 +1,15 @@
 =======
 History
 =======
+2026.11.20.1 -- Bugfix: hypervalent Si, Ge, Sn and Xe centres are kept whole in CBH
+    * The isodesmic (CBH) fragments now treat Si, Ge and Sn with more than four bonds,
+      and Xe with any, as hypervalent centres, like S, P, As and the halogens. They
+      are kept with their heavy neighbours, so SiF6 2-, GeF5-, SnCl6 2- and XeF4 are
+      trivial at every rung, and germanates such as the bis(catecholato)
+      fluorogermanate give a GeO4F fragment at CBH-0. Before, they were cut into
+      hydrides such as SiH6 2-, GeH5- or XeH4, which are in no reference set.
+    * Ordinary four-valent Si, Ge and Sn compounds are cut as before.
+
 2026.11.20 -- Internal: the harvest hook names the file it consumes
     * The JobServer's ``job_finished`` hook that harvests jobs run on a cluster into
       the fragment store now lists its marker, ``harvest_fragments.json``, in a

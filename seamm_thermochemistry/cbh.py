@@ -267,9 +267,10 @@ class _Graph:
 
 
 def _hypervalent_centre(atom):
-    """A hypervalent centre: S, Se, Te, P, As, Cl, Br or I with more bonds than
-    its normal valence, or a halogen cation bonded to two or more heavy atoms
-    (the [Cl+3] of perchloryl or chlorate written with charge separation)."""
+    """A hypervalent centre: Si, Ge, Sn, S, Se, Te, P, As, Cl, Br, I or Xe with
+    more bonds than its normal valence, or a halogen cation bonded to two or more
+    heavy atoms (the [Cl+3] of perchloryl or chlorate written with charge
+    separation)."""
     if is_hypervalent(atom):
         return True
     heavy = sum(1 for nb in atom.GetNeighbors() if nb.GetAtomicNum() > 1)
@@ -324,10 +325,11 @@ def _protected_groups(mol, protect):
                 labels.append(f"{len(ring)}-membered ring")
     phantoms = []
     if "groups" in options:
-        # A hypervalent centre (S, Se, P, Cl, ... with more bonds than its
-        # normal valence: sulfonyl, phosphoryl, SF4, SF5-R, ClF3, ...) with its
-        # heavy neighbours, so that CBH-0 gives a real molecule (dimethyl
-        # sulfone, phosphoric acid) rather than a hydride such as H2SO2 or SH6.
+        # A hypervalent centre (S, Se, P, Cl, Si, Ge, ... with more bonds than
+        # its normal valence: sulfonyl, phosphoryl, SF4, SF5-R, ClF3, SiF6 2-,
+        # GeF5-, ...) with its heavy neighbours, so that CBH-0 gives a real
+        # molecule (dimethyl sulfone, phosphoric acid) rather than a hydride
+        # such as H2SO2, SH6 or SiH6 2-.
         # A neighbour in a protected ring stays with its ring: a phantom.
         in_rings = set()
         for atoms in groups:

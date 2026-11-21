@@ -13,9 +13,24 @@ function and Open Babel both read correctly.
 __all__ = ["mol_from_smiles", "is_hypervalent", "NORMAL_VALENCE"]
 
 #: The lowest (normal) valence of the main-group elements whose hypervalent
-#: compounds are common: sulfur, selenium and tellurium (2), phosphorus and
-#: arsenic (3), and the halogens chlorine, bromine and iodine (1).
-NORMAL_VALENCE = {16: 2, 34: 2, 52: 2, 15: 3, 33: 3, 17: 1, 35: 1, 53: 1}
+#: compounds are common: silicon, germanium and tin (4: SiF6 2-, GeF5 -, the
+#: germanium catecholates, SnCl6 2-), sulfur, selenium and tellurium (2),
+#: phosphorus and arsenic (3), the halogens chlorine, bromine and iodine (1),
+#: and xenon (0: XeF2, XeF4).
+NORMAL_VALENCE = {
+    14: 4,
+    32: 4,
+    50: 4,
+    16: 2,
+    34: 2,
+    52: 2,
+    15: 3,
+    33: 3,
+    17: 1,
+    35: 1,
+    53: 1,
+    54: 0,
+}
 
 
 def _chem():
@@ -31,8 +46,8 @@ def mol_from_smiles(smiles):
 
     A SMILES that RDKit reads as it is gives the same molecule as
     ``Chem.MolFromSmiles``. One that fails only RDKit's valence check on an
-    element that is hypervalent in real compounds (S, Se, Te, P, As, Cl, Br, I:
-    ClF3, BrF5) is read without that check; aromaticity, conjugation and
+    element that is hypervalent in real compounds (Si, Ge, Sn, S, Se, Te, P, As,
+    Cl, Br, I, Xe: ClF3, BrF5) is read without that check; aromaticity, conjugation and
     hybridization are still perceived. Any other over-valent atom (O=[N]=O)
     still makes the SMILES unreadable.
     """
@@ -65,9 +80,9 @@ def mol_from_smiles(smiles):
 
 
 def is_hypervalent(atom):
-    """Whether an RDKit atom is a neutral or anionic S, Se, Te, P, As, Cl, Br or I
-    with more bonds than its normal valence (SF4, SF6, sulfonyl, phosphoryl,
-    ClF3, PF6-, ...)."""
+    """Whether an RDKit atom is a neutral or anionic Si, Ge, Sn, S, Se, Te, P, As,
+    Cl, Br, I or Xe with more bonds than its normal valence (SF4, SF6, sulfonyl,
+    phosphoryl, ClF3, PF6-, SiF6 2-, GeF5-, XeF4, ...)."""
     normal = NORMAL_VALENCE.get(atom.GetAtomicNum())
     if normal is None or atom.GetFormalCharge() > 0:
         return False
