@@ -414,7 +414,8 @@ Results are checked before they go in, by write-back and by the harvest:
   them instead.
 * **Conformers** (write-back): a geometry lower in E + ZPE than every stored one of
   the species at its level, by more than 0.1 kJ/mol, and structurally distinct
-  from each (RMSD above 0.05 Å after the best, symmetry-aware alignment), is added
+  from each (RMSD above 0.05 Å after the best, symmetry-aware alignment, in which
+  the two O atoms of an acid group are not interchangeable), is added
   as the conformer ``auto:<geometry hash>``; lookups take the lowest. The same
   minimum computed again is only logged.
 

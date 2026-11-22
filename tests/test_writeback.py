@@ -209,6 +209,30 @@ def test_conformer_rmsd_is_symmetry_aware():
     )
 
 
+def test_conformer_rmsd_keeps_acid_rotamers_apart():
+    """Two rotamers of a COOH (turned 180 degrees about the Ca-C bond) are
+    different conformers, not a symmetric flip (Ala-Ala, 2026-11-21)."""
+    import numpy as np
+    from rdkit import Chem
+    from rdkit.Chem import AllChem
+
+    mol = Chem.AddHs(Chem.MolFromSmiles("C[C@H](N)C(=O)N[C@@H](C)C(=O)O"))
+    AllChem.EmbedMolecule(mol, randomSeed=7)
+    AllChem.MMFFOptimizeMolecule(mol)
+    xyz = mol.GetConformer().GetPositions()
+    ca, c, o1, o2, h = mol.GetSubstructMatch(
+        Chem.MolFromSmarts("[CX4][CX3](=O)[OX2][H]")
+    )
+    k = (xyz[c] - xyz[ca]) / np.linalg.norm(xyz[c] - xyz[ca])
+    flipped = xyz.copy()
+    for i in (o1, o2, h):
+        p = xyz[i] - xyz[ca]
+        flipped[i] = xyz[ca] - p + 2 * (p @ k) * k  # 180 degrees about the axis
+    symbols = [a.GetSymbol() for a in mol.GetAtoms()]
+    d = F.conformer_rmsd(symbols, xyz.tolist(), symbols, flipped.tolist())
+    assert d is not None and d > 0.5
+
+
 # -- where the store may be written --------------------------------------------
 
 

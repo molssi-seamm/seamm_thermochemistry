@@ -1725,7 +1725,11 @@ def _contacts(symbols, coordinates, bonds):
 
 def conformer_rmsd(symbols_a, coordinates_a, symbols_b, coordinates_b):
     """The symmetry-aware RMSD (Å) of two geometries of a species after the best
-    alignment, or None if it cannot be found."""
+    alignment, or None if it cannot be found.
+
+    Only atoms equivalent by the molecule's graph are swapped. RDKit's option to
+    treat the terminal atoms of conjugated groups as equivalent (the two O of an
+    acid group) is off, so two rotamers of a COOH are different conformers."""
     try:
         from rdkit.Chem import rdMolAlign
 
@@ -1733,7 +1737,11 @@ def conformer_rmsd(symbols_a, coordinates_a, symbols_b, coordinates_b):
         b = _perceive(symbols_b, coordinates_b)
         if a is None or b is None:
             return None
-        return float(rdMolAlign.GetBestRMS(a, b, maxMatches=10000))
+        return float(
+            rdMolAlign.GetBestRMS(
+                a, b, maxMatches=10000, symmetrizeConjugatedTerminalGroups=False
+            )
+        )
     except Exception:
         return None
 
