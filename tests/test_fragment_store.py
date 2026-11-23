@@ -431,3 +431,85 @@ def test_harvest_keeps_corrected_frequencies_apart(job, store):
     # Species without thermal data are not tagged
     ccf = {r["species"]: r for r in store.records()}["CCF"]
     assert tag not in ccf["frequency_fingerprint"]
+
+
+def _put_c(job, values, model="MOPAC:SQM@PM7"):
+    """Set float (kJ/mol, or dimensionless for a scale factor) and str properties
+    on the CBH:C system of the `job` fixture."""
+    molsystem = pytest.importorskip("molsystem")
+    db = molsystem.SystemDB(filename=f"file:{job / 'seamm.db'}")
+    for system in db.systems:
+        if system.name == "CBH:C":
+            p = system.configuration.properties
+            for base, value in values.items():
+                name = f"{base}#Thermochemistry#{model}"
+                if isinstance(value, str):
+                    p.add(name, "str", units=None, noerror=True)
+                elif base == "ZPE scale factor":
+                    p.add(name, "float", units="", noerror=True)
+                else:
+                    p.add(name, "float", units="kJ/mol", noerror=True)
+                p.put(name, value)
+    db.close()
+
+
+def test_harvest_unscales_a_scaled_zpe(job, store):
+    """A row with a ZPE scale factor holds the ZPE as used (scaled) and H on it;
+    the store keeps the unscaled ZPE and H, as for an old row (Design, thermo
+    2026-11-23): an old and a new row of the same species store the same."""
+    s = 0.9899
+    raw_zpe, raw_h = 115.0, -40.0  # the fixture's (old, unscaled) values
+    _put_c(
+        job,
+        {
+            "ZPE": s * raw_zpe,
+            "H(298.15 K)": raw_h - raw_zpe + s * raw_zpe,
+            "ZPE uncorrected": raw_zpe,
+            "ZPE scale factor": s,
+        },
+    )
+    counts = harvest_job(job, store)
+    assert counts["skipped"] == []
+    c = {r["species"]: r for r in store.records()}["C"]
+    assert c["ZPE"] == pytest.approx(raw_zpe, abs=1e-9)
+    assert c["H"] == pytest.approx(raw_h, abs=1e-9)
+
+
+def test_harvest_old_row_unchanged(job, store):
+    """Without a scale factor the ZPE and H are taken as they are (old rows)."""
+    harvest_job(job, store)
+    c = {r["species"]: r for r in store.records()}["C"]
+    assert c["ZPE"] == 115.0 and c["H"] == -40.0
+
+
+def test_harvest_corrected_frequencies_with_raw_zpe(job, store):
+    """A level with a per-frequency correction (PM7) carries the raw ZPE as
+    ZPE uncorrected next to the corrected ZPE, with s = 1: stored as it is, the
+    correction kept, and not refused although ZPE != ZPE uncorrected."""
+    corrected_zpe, raw_zpe = 115.0, 121.3
+    _put_c(
+        job,
+        {
+            "ZPE uncorrected": raw_zpe,
+            "ZPE scale factor": 1.0,
+            "frequency correction": "fc:PM7-Rozanska2014:v1:full",
+        },
+    )
+    counts = harvest_job(job, store)
+    assert counts["skipped"] == []
+    c = {r["species"]: r for r in store.records()}["C"]
+    assert c["ZPE"] == pytest.approx(corrected_zpe) and c["H"] == pytest.approx(-40.0)
+
+
+def test_harvest_refuses_inconsistent_scaled_zpe(job, store):
+    """ZPE must be s x ZPE uncorrected when no frequency correction applies."""
+    _put_c(job, {"ZPE uncorrected": 115.0, "ZPE scale factor": 0.9899})  # ZPE 115
+    counts = harvest_job(job, store)
+    assert any("not the scale factor" in s for s in counts["skipped"])
+    assert "C" not in {r["species"] for r in store.records()}
+
+
+def test_harvest_refuses_bad_scale_factor(job, store):
+    _put_c(job, {"ZPE scale factor": 0.0})
+    counts = harvest_job(job, store)
+    assert any("not positive" in s for s in counts["skipped"])
