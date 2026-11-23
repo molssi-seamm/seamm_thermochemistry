@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.fragment_store &#8212; SEAMM thermochemistry Plug-in 2026.11.20.1 documentation</title>
+    <title>seamm_thermochemistry.fragment_store &#8212; SEAMM thermochemistry Plug-in 2026.11.22 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=44ecf524"></script>
+    <script src="../../_static/documentation_options.js?v=19494601"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.20.1" />
+  <meta name="docsearch:version" content="2026.11.22" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -2215,7 +2215,11 @@
 
 <span class="k">def</span><span class="w"> </span><span class="nf">conformer_rmsd</span><span class="p">(</span><span class="n">symbols_a</span><span class="p">,</span> <span class="n">coordinates_a</span><span class="p">,</span> <span class="n">symbols_b</span><span class="p">,</span> <span class="n">coordinates_b</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""The symmetry-aware RMSD (Å) of two geometries of a species after the best</span>
-<span class="sd">    alignment, or None if it cannot be found."""</span>
+<span class="sd">    alignment, or None if it cannot be found.</span>
+
+<span class="sd">    Only atoms equivalent by the molecule's graph are swapped. RDKit's option to</span>
+<span class="sd">    treat the terminal atoms of conjugated groups as equivalent (the two O of an</span>
+<span class="sd">    acid group) is off, so two rotamers of a COOH are different conformers."""</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="kn">from</span><span class="w"> </span><span class="nn">rdkit.Chem</span><span class="w"> </span><span class="kn">import</span> <span class="n">rdMolAlign</span>
 
@@ -2223,7 +2227,11 @@
         <span class="n">b</span> <span class="o">=</span> <span class="n">_perceive</span><span class="p">(</span><span class="n">symbols_b</span><span class="p">,</span> <span class="n">coordinates_b</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">a</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">b</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span>
-        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">rdMolAlign</span><span class="o">.</span><span class="n">GetBestRMS</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">maxMatches</span><span class="o">=</span><span class="mi">10000</span><span class="p">))</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span>
+            <span class="n">rdMolAlign</span><span class="o">.</span><span class="n">GetBestRMS</span><span class="p">(</span>
+                <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">maxMatches</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="n">symmetrizeConjugatedTerminalGroups</span><span class="o">=</span><span class="kc">False</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span>
 

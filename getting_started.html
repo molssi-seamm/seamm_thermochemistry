@@ -7,7 +7,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.11.20.1 documentation</title>
+    <title>Getting Started &#8212; SEAMM thermochemistry Plug-in 2026.11.22 documentation</title>
   
   
   
@@ -40,7 +40,7 @@
   <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="_static/documentation_options.js?v=44ecf524"></script>
+    <script src="_static/documentation_options.js?v=19494601"></script>
     <script src="_static/doctools.js?v=fd6eb6e6"></script>
     <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/clipboard.min.js?v=a7894cd8"></script>
@@ -55,7 +55,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.20.1" />
+  <meta name="docsearch:version" content="2026.11.22" />
   
     
     <script src="_static/searchtools.js"></script>
@@ -829,7 +829,8 @@ counts them (“no convergence record”). <code class="docutils literal notrans
 them instead.</p></li>
 <li><p><strong>Conformers</strong> (write-back): a geometry lower in E + ZPE than every stored one of
 the species at its level, by more than 0.1 kJ/mol, and structurally distinct
-from each (RMSD above 0.05 Å after the best, symmetry-aware alignment), is added
+from each (RMSD above 0.05 Å after the best, symmetry-aware alignment, in which
+the two O atoms of an acid group are not interchangeable), is added
 as the conformer <code class="docutils literal notranslate"><span class="pre">auto:&lt;geometry</span> <span class="pre">hash&gt;</span></code>; lookups take the lowest. The same
 minimum computed again is only logged.</p></li>
 </ul>
