@@ -442,6 +442,69 @@ def test_covariance_accepts_rounded_up_uncertainty(tables):
         tables.parse_covariance(block)
 
 
+#: A real block (ATcT API, 2026-11-21, 12 species): sqrt of the diagonal and
+#: the listed 298.15 K uncertainty. The three silyl species are listed to 0.1.
+SILYL_BLOCK = {
+    "13465-73-1*0": (1.3677, 1.4),  # SiH3Br
+    "13465-78-6*0": (1.3034, 1.3),  # SiH3Cl, rounded down
+    "14475-38-8*0": (1.1618, 1.2),  # SiH3OH
+    "50-00-0*2": (0.0776, 0.078),
+    "67-56-1*0": (0.1396, 0.14),
+    "74-82-8*0": (0.0419, 0.042),
+    "74-84-0*0": (0.1056, 0.11),
+    "74-85-1*0": (0.0970, 0.097),
+    "74-87-3*0": (0.1672, 0.17),
+    "7732-18-5*0": (0.0213, 0.022),
+    "7803-62-5*0": (0.5202, 0.52),
+    "992-94-9*0": (0.8294, 0.83),
+}
+
+
+def _silyl(tables, scale=1.0):
+    ids = list(SILYL_BLOCK)
+    for _id in ids:
+        tables.entries[_id] = {"id": _id, "uncertainty_298K": SILYL_BLOCK[_id][1]}
+    n = len(ids)
+    matrix = [[0.0] * n for _ in range(n)]
+    for i, _id in enumerate(ids):
+        matrix[i][i] = (scale * SILYL_BLOCK[_id][0]) ** 2
+    return {"species_atctids": ids, "units": "kJ/mol", "matrix": matrix}
+
+
+def test_listed_precision():
+    assert A.listed_precision(1.4) == pytest.approx(0.1)
+    assert A.listed_precision(0.12) == pytest.approx(0.01)
+    assert A.listed_precision(0.042) == pytest.approx(0.001)
+    assert A.listed_precision(2.0) == pytest.approx(1.0)
+    assert A.listed_precision(1.30) == pytest.approx(0.1)  # trailing zero lost
+
+
+def test_covariance_accepts_uncertainties_listed_to_a_tenth(base):
+    """SiH3Br/SiH3Cl/SiH3OH are listed to 0.1 kJ/mol; their diagonals round to
+    the listed values and the block is accepted (it was refused, so 7
+    production CBH uncertainties fell back to quadrature, 2026-11-21)."""
+    tables = A.ATcT(base=base)  # its own: the entries are changed
+    block = tables.parse_covariance(_silyl(tables))
+    assert len(block["ids"]) == 12
+
+
+def test_covariance_listed_to_a_tenth_still_catches_the_scale(base):
+    tables = A.ATcT(base=base)  # its own: the entries are changed
+    # 1-sigma instead of 95 %: about half, refused whatever the precision
+    with pytest.raises(A.ATcTError, match="95 %"):
+        tables.parse_covariance(_silyl(tables, scale=1 / 1.96))
+    # Beyond rounding at 0.1: SiH3Br's diagonal at 1.46 (listed 1.4)
+    block = _silyl(tables)
+    block["matrix"][0][0] = 1.46**2
+    with pytest.raises(A.ATcTError, match="13465-73-1"):
+        tables.parse_covariance(block)
+    # and a species listed to 0.01 keeps the old tolerance
+    block = _silyl(tables)
+    block["matrix"][4][4] = 0.1450**2  # CH3OH listed 0.14
+    with pytest.raises(A.ATcTError, match="67-56-1"):
+        tables.parse_covariance(block)
+
+
 def test_covariance_import(tables, tmp_path):
     path = tmp_path / "cov.json"
     path.write_text(json.dumps(_block(IDS[:2])))
