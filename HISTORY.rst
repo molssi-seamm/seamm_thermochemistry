@@ -1,6 +1,12 @@
 =======
 History
 =======
+2026.11.22 -- Bugfix: rotamers of an acid group are kept apart as conformers
+    * The check whether a lower geometry is a new conformer now tells RDKit explicitly
+      not to treat the two O atoms of an acid group (and other conjugated terminal
+      groups) as equivalent. Its results don't change today, since the store keeps the
+      hydrogens, but the check no longer depends on that.
+
 2026.11.20.1 -- Bugfix: hypervalent Si, Ge, Sn and Xe centres are kept whole in CBH
     * The isodesmic (CBH) fragments now treat Si, Ge and Sn with more than four bonds,
       and Xe with any, as hypervalent centres, like S, P, As and the halogens. They
