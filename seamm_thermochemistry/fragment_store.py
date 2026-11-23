@@ -77,6 +77,8 @@ __all__ = [
 ]
 
 DUPLICATE_TOLERANCE = 0.1  # kJ/mol
+#: How closely ``ZPE`` must equal the scale factor times ``ZPE uncorrected``, kJ/mol
+ZPE_SCALE_TOLERANCE = 1.0e-6
 UNVERIFIED = "unverified"
 
 # Energy units to kJ/mol
@@ -920,6 +922,57 @@ def _property(properties, pattern):
     return name, _to_kj(value, units)
 
 
+def _float_property(properties, pattern):
+    """The value of the one property matching the glob, as a plain float, or None
+    (for dimensionless numbers such as a scale factor)."""
+    if not pattern:
+        return None
+    values = properties.get(pattern=pattern, match="glob")
+    if not values:
+        return None
+    if len(values) > 1:
+        raise ValueError(f"Several properties match '{pattern}': {sorted(values)}")
+    (name, value), *_ = values.items()
+    if isinstance(value, dict):
+        value = value["value"]
+    return float(value)
+
+
+def _unscale_zpe(properties, suffix, ZPE, H, correction):
+    """The unscaled ZPE and H of a species whose ZPE was scaled, or an error.
+
+    The thermochemistry step stores the ZPE as used: ``ZPE`` is s x 1/2 sum(h nu)
+    (or, for a level with a per-frequency correction, the corrected ZPE with
+    s = 1), and H(T) is built on it; only the ZPE term is scaled. It marks such a
+    row with ``ZPE scale factor``. A row without one is older, and its ZPE and H
+    are unscaled already. The store keeps ZPEs unscaled, so each preset can apply
+    its own factor: ZPE / s, and H - ZPE + ZPE / s. ``ZPE uncorrected`` cannot tell
+    the two kinds apart, because a corrected level carries it in both (the raw
+    frequencies' ZPE).
+
+    Returns ((ZPE, H) as (name, value) or None, problem): problem is None, or why
+    the row cannot be stored.
+    """
+    scale = _float_property(properties, "ZPE scale factor" + suffix if suffix else None)
+    if scale is None:
+        return (ZPE, H), None
+    if not scale > 0:
+        return (ZPE, H), f"its ZPE scale factor {scale} is not positive"
+    if ZPE is None:
+        return (ZPE, H), "it has a ZPE scale factor but no ZPE"
+    if not (isinstance(correction, str) and correction):
+        raw = _property(properties, "ZPE uncorrected" + suffix)
+        if raw is not None and abs(raw[1] * scale - ZPE[1]) > ZPE_SCALE_TOLERANCE:
+            return (ZPE, H), (
+                f"its ZPE {ZPE[1]:.6f} kJ/mol is not the scale factor {scale} times "
+                f"the uncorrected ZPE {raw[1]:.6f} kJ/mol"
+            )
+    unscaled = ZPE[1] / scale
+    if H is not None:
+        H = (H[0], H[1] - ZPE[1] + unscaled)
+    return ((ZPE[0], unscaled), H), None
+
+
 def _text_property(properties, pattern):
     if not pattern:
         return None
@@ -1454,6 +1507,13 @@ def harvest_configuration(
             and not (ffp or "").endswith(f"+{correction}")
         ):
             ffp = f"{ffp or _unverified(model, version, program)}+{correction}"
+        # A scaled ZPE (and the H built on it) is stored unscaled
+        if (ZPE is not None or H is not None) and not from_map:
+            (ZPE, H), problem = _unscale_zpe(properties, suffix, ZPE, H, correction)
+            if problem is not None:
+                counts["skipped"].append(f"{name_for}: refused, {problem}")
+                note(None, "refused", reason=problem)
+                continue
         record = FragmentRecord.make(
             species,
             charge=charge,
