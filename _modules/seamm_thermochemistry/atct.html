@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.atct &#8212; SEAMM thermochemistry Plug-in 2026.11.22 documentation</title>
+    <title>seamm_thermochemistry.atct &#8212; SEAMM thermochemistry Plug-in 2026.11.23 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=19494601"></script>
+    <script src="../../_static/documentation_options.js?v=bd31c218"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.22" />
+  <meta name="docsearch:version" content="2026.11.23" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -466,6 +466,7 @@
 <span class="sd">"""</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timezone</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">decimal</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">hashlib</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
@@ -1404,9 +1405,14 @@
 <span class="sd">        The rows come back in the API's own order (``species_atctids``), not</span>
 <span class="sd">        the request order. The square root of each diagonal element must agree</span>
 <span class="sd">        with the listed 298.15 K uncertainty, which confirms that the matrix is</span>
-<span class="sd">        on the 95 % scale; a mismatch is an error. ATcT lists the uncertainties</span>
-<span class="sd">        rounded *up* to 0.01 kJ/mol (0.1118 is listed as 0.12), so the listed</span>
-<span class="sd">        value may exceed the diagonal by up to 0.01.</span>
+<span class="sd">        on the 95 % scale (a 1-sigma matrix would give about half); a mismatch is</span>
+<span class="sd">        an error. The agreement expected follows the precision the uncertainty is</span>
+<span class="sd">        listed to (see :func:`listed_precision`): most are listed to 0.01 kJ/mol</span>
+<span class="sd">        or finer, sometimes rounded up (0.1118 is listed as 0.12), and for those</span>
+<span class="sd">        the listed value may exceed the diagonal by up to 0.01 and fall short by</span>
+<span class="sd">        0.002. A few are listed to 0.1 (SiH3Cl 1.3, from 1.3034; SiH3Br 1.4,</span>
+<span class="sd">        from 1.3677), and are allowed half that step below and a whole step</span>
+<span class="sd">        above.</span>
 <span class="sd">        """</span>
         <span class="n">ids</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"species_atctids"</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">ids</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1420,7 +1426,10 @@
                 <span class="k">continue</span>
             <span class="n">listed</span> <span class="o">=</span> <span class="n">entry</span><span class="p">[</span><span class="s2">"uncertainty_298K"</span><span class="p">]</span>
             <span class="n">diagonal</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">matrix</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">i</span><span class="p">],</span> <span class="mf">0.0</span><span class="p">))</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="o">-</span><span class="mf">0.002</span> <span class="o">&lt;=</span> <span class="n">listed</span> <span class="o">-</span> <span class="n">diagonal</span> <span class="o">&lt;=</span> <span class="mf">0.012</span> <span class="o">+</span> <span class="mf">0.01</span> <span class="o">*</span> <span class="n">listed</span><span class="p">:</span>
+            <span class="n">step</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">listed_precision</span><span class="p">(</span><span class="n">listed</span><span class="p">),</span> <span class="mf">0.01</span><span class="p">)</span>
+            <span class="n">below</span> <span class="o">=</span> <span class="mf">0.002</span> <span class="k">if</span> <span class="n">step</span> <span class="o">&lt;=</span> <span class="mf">0.01</span> <span class="k">else</span> <span class="n">step</span> <span class="o">/</span> <span class="mi">2</span>
+            <span class="n">above</span> <span class="o">=</span> <span class="n">step</span> <span class="o">+</span> <span class="mf">0.002</span> <span class="o">+</span> <span class="mf">0.01</span> <span class="o">*</span> <span class="n">listed</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="o">-</span><span class="n">below</span> <span class="o">&lt;=</span> <span class="n">listed</span> <span class="o">-</span> <span class="n">diagonal</span> <span class="o">&lt;=</span> <span class="n">above</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">ATcTError</span><span class="p">(</span>
                     <span class="sa">f</span><span class="s2">"The covariance diagonal for </span><span class="si">{</span><span class="n">_id</span><span class="si">}</span><span class="s2"> gives an uncertainty of "</span>
                     <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">diagonal</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> but the table lists </span><span class="si">{</span><span class="n">listed</span><span class="si">}</span><span class="s2">; the matrix "</span>
@@ -1439,6 +1448,15 @@
         <span class="n">pos</span> <span class="o">=</span> <span class="p">{</span><span class="n">_id</span><span class="p">:</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">_id</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">block</span><span class="p">[</span><span class="s2">"ids"</span><span class="p">])}</span>
         <span class="k">return</span> <span class="p">[[</span><span class="n">block</span><span class="p">[</span><span class="s2">"matrix"</span><span class="p">][</span><span class="n">pos</span><span class="p">[</span><span class="n">a</span><span class="p">]][</span><span class="n">pos</span><span class="p">[</span><span class="n">b</span><span class="p">]]</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">]</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">]</span></div>
 
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">listed_precision</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The step a listed number is given to, from its decimals: 1.4 -&gt; 0.1,</span>
+<span class="sd">    0.12 -&gt; 0.01, 0.042 -&gt; 0.001. A value stored as a float has lost trailing</span>
+<span class="sd">    zeros (1.30 reads as 1.3), so this can be coarser than the listing, never</span>
+<span class="sd">    finer."""</span>
+    <span class="n">exponent</span> <span class="o">=</span> <span class="n">decimal</span><span class="o">.</span><span class="n">Decimal</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)))</span><span class="o">.</span><span class="n">normalize</span><span class="p">()</span><span class="o">.</span><span class="n">as_tuple</span><span class="p">()</span><span class="o">.</span><span class="n">exponent</span>
+    <span class="k">return</span> <span class="mf">10.0</span> <span class="o">**</span> <span class="nb">min</span><span class="p">(</span><span class="n">exponent</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="reaction_uncertainty">
