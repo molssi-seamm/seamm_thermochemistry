@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.fragment_store &#8212; SEAMM thermochemistry Plug-in 2026.11.23 documentation</title>
+    <title>seamm_thermochemistry.fragment_store &#8212; SEAMM thermochemistry Plug-in 2026.11.23.1 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=bd31c218"></script>
+    <script src="../../_static/documentation_options.js?v=d6932bcf"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.23" />
+  <meta name="docsearch:version" content="2026.11.23.1" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -504,6 +504,8 @@
 <span class="p">]</span>
 
 <span class="n">DUPLICATE_TOLERANCE</span> <span class="o">=</span> <span class="mf">0.1</span>  <span class="c1"># kJ/mol</span>
+<span class="c1">#: How closely ``ZPE`` must equal the scale factor times ``ZPE uncorrected``, kJ/mol</span>
+<span class="n">ZPE_SCALE_TOLERANCE</span> <span class="o">=</span> <span class="mf">1.0e-6</span>
 <span class="n">UNVERIFIED</span> <span class="o">=</span> <span class="s2">"unverified"</span>
 
 <span class="c1"># Energy units to kJ/mol</span>
@@ -1398,6 +1400,57 @@
     <span class="k">return</span> <span class="n">name</span><span class="p">,</span> <span class="n">_to_kj</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_float_property</span><span class="p">(</span><span class="n">properties</span><span class="p">,</span> <span class="n">pattern</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The value of the one property matching the glob, as a plain float, or None</span>
+<span class="sd">    (for dimensionless numbers such as a scale factor)."""</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">pattern</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">values</span> <span class="o">=</span> <span class="n">properties</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">pattern</span><span class="o">=</span><span class="n">pattern</span><span class="p">,</span> <span class="n">match</span><span class="o">=</span><span class="s2">"glob"</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">values</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Several properties match '</span><span class="si">{</span><span class="n">pattern</span><span class="si">}</span><span class="s2">': </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">values</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">),</span> <span class="o">*</span><span class="n">_</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="s2">"value"</span><span class="p">]</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_unscale_zpe</span><span class="p">(</span><span class="n">properties</span><span class="p">,</span> <span class="n">suffix</span><span class="p">,</span> <span class="n">ZPE</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">correction</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The unscaled ZPE and H of a species whose ZPE was scaled, or an error.</span>
+
+<span class="sd">    The thermochemistry step stores the ZPE as used: ``ZPE`` is s x 1/2 sum(h nu)</span>
+<span class="sd">    (or, for a level with a per-frequency correction, the corrected ZPE with</span>
+<span class="sd">    s = 1), and H(T) is built on it; only the ZPE term is scaled. It marks such a</span>
+<span class="sd">    row with ``ZPE scale factor``. A row without one is older, and its ZPE and H</span>
+<span class="sd">    are unscaled already. The store keeps ZPEs unscaled, so each preset can apply</span>
+<span class="sd">    its own factor: ZPE / s, and H - ZPE + ZPE / s. ``ZPE uncorrected`` cannot tell</span>
+<span class="sd">    the two kinds apart, because a corrected level carries it in both (the raw</span>
+<span class="sd">    frequencies' ZPE).</span>
+
+<span class="sd">    Returns ((ZPE, H) as (name, value) or None, problem): problem is None, or why</span>
+<span class="sd">    the row cannot be stored.</span>
+<span class="sd">    """</span>
+    <span class="n">scale</span> <span class="o">=</span> <span class="n">_float_property</span><span class="p">(</span><span class="n">properties</span><span class="p">,</span> <span class="s2">"ZPE scale factor"</span> <span class="o">+</span> <span class="n">suffix</span> <span class="k">if</span> <span class="n">suffix</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">scale</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">ZPE</span><span class="p">,</span> <span class="n">H</span><span class="p">),</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">scale</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">ZPE</span><span class="p">,</span> <span class="n">H</span><span class="p">),</span> <span class="sa">f</span><span class="s2">"its ZPE scale factor </span><span class="si">{</span><span class="n">scale</span><span class="si">}</span><span class="s2"> is not positive"</span>
+    <span class="k">if</span> <span class="n">ZPE</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">ZPE</span><span class="p">,</span> <span class="n">H</span><span class="p">),</span> <span class="s2">"it has a ZPE scale factor but no ZPE"</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">correction</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">correction</span><span class="p">):</span>
+        <span class="n">raw</span> <span class="o">=</span> <span class="n">_property</span><span class="p">(</span><span class="n">properties</span><span class="p">,</span> <span class="s2">"ZPE uncorrected"</span> <span class="o">+</span> <span class="n">suffix</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">raw</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">raw</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">scale</span> <span class="o">-</span> <span class="n">ZPE</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">&gt;</span> <span class="n">ZPE_SCALE_TOLERANCE</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">ZPE</span><span class="p">,</span> <span class="n">H</span><span class="p">),</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"its ZPE </span><span class="si">{</span><span class="n">ZPE</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2"> kJ/mol is not the scale factor </span><span class="si">{</span><span class="n">scale</span><span class="si">}</span><span class="s2"> times "</span>
+                <span class="sa">f</span><span class="s2">"the uncorrected ZPE </span><span class="si">{</span><span class="n">raw</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2"> kJ/mol"</span>
+            <span class="p">)</span>
+    <span class="n">unscaled</span> <span class="o">=</span> <span class="n">ZPE</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">scale</span>
+    <span class="k">if</span> <span class="n">H</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">H</span> <span class="o">=</span> <span class="p">(</span><span class="n">H</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">H</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">ZPE</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">unscaled</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">((</span><span class="n">ZPE</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">unscaled</span><span class="p">),</span> <span class="n">H</span><span class="p">),</span> <span class="kc">None</span>
+
+
 <span class="k">def</span><span class="w"> </span><span class="nf">_text_property</span><span class="p">(</span><span class="n">properties</span><span class="p">,</span> <span class="n">pattern</span><span class="p">):</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">pattern</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">None</span>
@@ -1940,6 +1993,13 @@
             <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="n">ffp</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="sa">f</span><span class="s2">"+</span><span class="si">{</span><span class="n">correction</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="p">):</span>
             <span class="n">ffp</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ffp</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="n">_unverified</span><span class="p">(</span><span class="n">model</span><span class="p">,</span><span class="w"> </span><span class="n">version</span><span class="p">,</span><span class="w"> </span><span class="n">program</span><span class="p">)</span><span class="si">}</span><span class="s2">+</span><span class="si">{</span><span class="n">correction</span><span class="si">}</span><span class="s2">"</span>
+        <span class="c1"># A scaled ZPE (and the H built on it) is stored unscaled</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">ZPE</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">H</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">from_map</span><span class="p">:</span>
+            <span class="p">(</span><span class="n">ZPE</span><span class="p">,</span> <span class="n">H</span><span class="p">),</span> <span class="n">problem</span> <span class="o">=</span> <span class="n">_unscale_zpe</span><span class="p">(</span><span class="n">properties</span><span class="p">,</span> <span class="n">suffix</span><span class="p">,</span> <span class="n">ZPE</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">correction</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">problem</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">counts</span><span class="p">[</span><span class="s2">"skipped"</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name_for</span><span class="si">}</span><span class="s2">: refused, </span><span class="si">{</span><span class="n">problem</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+                <span class="n">note</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">"refused"</span><span class="p">,</span> <span class="n">reason</span><span class="o">=</span><span class="n">problem</span><span class="p">)</span>
+                <span class="k">continue</span>
         <span class="n">record</span> <span class="o">=</span> <span class="n">FragmentRecord</span><span class="o">.</span><span class="n">make</span><span class="p">(</span>
             <span class="n">species</span><span class="p">,</span>
             <span class="n">charge</span><span class="o">=</span><span class="n">charge</span><span class="p">,</span>

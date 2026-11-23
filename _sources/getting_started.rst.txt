@@ -316,10 +316,15 @@ dispersion correction applied to all species, say), add ``--force`` to
 ``--supersede "REASON"``, or ``force=True`` in Python: every value that differs at
 all is replaced, with the old ones kept in ``superseded`` as before.
 
-The store keeps E, ZPE and H unscaled, as the calculation gave them. A ZPE
-scale factor is applied when the values are used (for example
-``seamm-thermochemistry-ladder build ... --zpe-scale 0.9863``), so changing a
-factor never needs a new harvest.
+The store keeps E, ZPE and H unscaled. A ZPE scale factor is applied when the values
+are used (for example ``seamm-thermochemistry-ladder build ... --zpe-scale 0.9863``),
+so changing a factor never needs a new harvest. Newer Thermochemistry steps store each
+species' ZPE as used, scaled by its factor s and with H(T) built on it, and record the
+factor as ``ZPE scale factor``; the harvest stores such a species' ZPE as ZPE / s and its
+H as H − ZPE + ZPE / s, since only the ZPE term is scaled. Species without the factor,
+from older jobs, are stored as they are. When no frequency correction applies, the
+harvest checks that ZPE = s × ``ZPE uncorrected`` and refuses a species that does not
+agree, or whose factor is not positive.
 
 A per-frequency correction is different (``frequency_correction``: PM7's, from
 Rozanska et al., J. Chem. Eng. Data 59, 3136 (2014), eq 1, is the only one so far).
@@ -328,7 +333,8 @@ applies it before they are computed. The ZPE and H it stores are the corrected o
 and the correction's tag (``fc:<id>:v<version>:<range>``) is added to the
 frequency fingerprint, also by the harvest when the program gave no fingerprint, so
 corrected and uncorrected thermal data never share a key. A level with a correction
-gets no ZPE scale factor. Each correction says which elements it was fitted for,
+is not scaled (a stored ``ZPE scale factor`` is 1), and its ``ZPE uncorrected`` is the
+ZPE of the raw frequencies. Each correction says which elements it was fitted for,
 where it is discontinuous (warnings) and the largest raw frequency it covers:
 PM7's slope-3.99 branch is not extrapolated above 2900 cm\ :sup:`-1`.
 
