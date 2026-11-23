@@ -1,6 +1,16 @@
 =======
 History
 =======
+2026.11.23.1 -- The harvest stores the ZPE unscaled when a job stored it scaled
+    * Newer Thermochemistry steps store each species' ZPE as used, scaled by its factor
+      s and with H(T) built on it, and record the factor as ``ZPE scale factor``. The
+      fragment store keeps ZPEs unscaled, so each preset can apply its own factor: the
+      harvest now stores such a species' ZPE as ZPE / s and its H as H − ZPE + ZPE / s.
+      Species from older jobs, without the factor, are stored as before.
+    * When no frequency correction applies, the harvest checks that ZPE = s × ZPE
+      uncorrected, and refuses a species that does not agree or whose factor is not
+      positive. A level with a per-frequency correction (PM7) keeps its corrected ZPE.
+
 2026.11.23 -- Bugfix: ATcT covariances of species listed to 0.1 kJ/mol are accepted
     * The check that an ATcT covariance block is on the 95 % scale compared the square
       root of each diagonal element with the listed uncertainty as if every one were
