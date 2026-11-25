@@ -664,9 +664,11 @@ class ReferenceLibrary:
         if multiplicity is not None:
             sql += " AND multiplicity = ?"
             args.append(multiplicity)
-        return [
+        found = [
             dict(r) for r in db.execute(sql, args) if same_species(can, r["smiles"])
         ]
+        # Only an unambiguous match: one stored species
+        return found if len({r["smiles"] for r in found}) == 1 else []
 
     def _species_row(self, species_id):
         row = (

@@ -272,6 +272,15 @@ class ATcTEntry(dict):
         return n
 
     @property
+    def is_transition_state(self):
+        """A transition structure ("TS", "singlet C2v TS EE", "2A', cis, TS?"),
+        never a species' reference value."""
+        words = {
+            w.strip("?").lower() for w in self["descriptor"].replace(",", " ").split()
+        }
+        return "ts" in words
+
+    @property
     def is_nuclear_spin_isomer(self):
         """ortho/para entries of small species, also when combined with a spin
         state ("para singlet" formaldehyde). On a bigger species "ortho" and "para"
@@ -673,8 +682,16 @@ class ATcT:
             self._by_connectivity = index
         return index
 
-    def candidates(self, smiles, *, charge=None, gas_only=True):
+    def candidates(self, smiles, *, charge=None, gas_only=True, multiplicity=None):
         """All entries whose canonical SMILES matches, as ATcTEntry objects.
+
+        If none does, the entries of the one species that is the same molecule
+        written as another resonance form (:func:`same_species`). The InChIKey
+        and the connectivity key ignore radicals, so with a `multiplicity` of 3
+        or more such a match needs an entry labelled with that spin state:
+        CBH fragments such as [CH][CH] as a quintet are not acetylene. A singlet
+        or doublet may match a plain entry, since ATcT writes some closed-shell
+        species with radical dots (HNC as [C]=N).
 
         If `smiles` carries no double-bond or tetrahedral stereo but matching
         entries do, those entries are returned too (they come from the
@@ -708,9 +725,21 @@ class ATcT:
             conn = connectivity_key(smiles)
             key = inchikey(smiles)
             if conn is not None and key is not None:
-                for _id in self._connectivity_index().get(conn, []):
-                    if inchikey(self.entries[_id]["smiles"]) == key:
-                        ids.append(_id)
+                found = [
+                    _id
+                    for _id in self._connectivity_index().get(conn, [])
+                    if inchikey(self.entries[_id]["smiles"]) == key
+                ]
+                # Only an unambiguous match: the entries of one species (one
+                # CAS group: its conformers and states)
+                if len({self.entries[_id].casrn_group for _id in found}) == 1:
+                    if multiplicity is not None and multiplicity >= 3:
+                        if not any(
+                            self.entries[_id].multiplicity == multiplicity
+                            for _id in found
+                        ):
+                            found = []
+                    ids.extend(found)
         result = [self.entries[_id] for _id in ids]
         if gas_only:
             result = [e for e in result if e.is_gas]
@@ -809,11 +838,21 @@ class ATcT:
         if smiles is None:
             raise ValueError("Give a SMILES or an ATcT ID")
 
-        candidates = self.candidates(smiles, charge=charge)
+        candidates = self.candidates(smiles, charge=charge, multiplicity=multiplicity)
         if not candidates:
             raise MissingEntry(
                 f"No gas-phase ATcT entry (ver. {self.version}) for '{smiles}' "
                 f"with charge {charge}"
+            )
+
+        # Transition structures are never a species' value (Design 2026-11-25)
+        transition = [e for e in candidates if e.is_transition_state]
+        candidates = [e for e in candidates if not e.is_transition_state]
+        if not candidates:
+            raise MissingEntry(
+                f"ATcT (ver. {self.version}) has only transition structures for "
+                f"'{smiles}', which are not used; give an ATcT ID to use one:\n  "
+                + "\n  ".join(e.label() for e in transition)
             )
 
         # Nuclear-spin isomers are never wanted

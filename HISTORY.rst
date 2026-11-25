@@ -11,6 +11,12 @@ History
       InChIKey and the same hydrogens on the same atoms. The standard InChIKey alone
       would also match tautomers (2-pyridone and 2-hydroxypyridine), which are other
       species with other enthalpies of formation, so the hydrogens are checked too.
+    * Only an unambiguous match counts: the entries of one species (one ATcT CAS
+      group, one library species). The InChIKey and the connectivity key ignore
+      radicals, so a multiplicity of 3 or more matches only an entry labelled with
+      that spin state (a quintet [CH][CH] CBH fragment is not acetylene).
+    * ATcT entries labelled as transition structures ("TS") are never used: the
+      cyclopropyl cation had been given ATcT's transition-structure value.
     * New functions ``connectivity_key``, ``inchikey`` and ``same_species`` in
       ``seamm_thermochemistry.atct``.
 

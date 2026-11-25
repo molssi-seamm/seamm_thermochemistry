@@ -689,3 +689,82 @@ def test_a_resonance_form_finds_the_entry_and_a_tautomer_does_not(tmp_path):
     assert tables.lookup("O=c1cccc[nH]1")["id"] == "142-08-5*0"
     # 2-hydroxypyridine: the same standard InChIKey, another species
     assert tables.candidates("Oc1ccccn1") == []
+
+
+def _tables_with(tmp_path, extra):
+    entries = json.loads(FIXTURE.read_text())
+    version = entries[0]["ATcT_TN_Version"]
+    for atct_id, name, formula, smiles, descriptor in extra:
+        entries.append(
+            {
+                "ATcT_TN_Version": version,
+                "ATcT_ID": atct_id,
+                "Name": name,
+                "Formula": formula + (f" (g, {descriptor})" if descriptor else " (g)"),
+                "Delta_Hf_0K": "1.000",
+                "Delta_Hf_298K": "2.000",
+                "Delta_Hf298K_uncertainty": "0.500",
+                "unit": "kJ/mol",
+                "mass": "43.03",
+                "mass_uncertainty": "0.001",
+                "SMILES": smiles,
+                "CASRN": atct_id.split("*")[0],
+                "charge": "0",
+            }
+        )
+    source = tmp_path / "all.json"
+    source.write_text(json.dumps(entries))
+    A.download_all(tmp_path / "atct", source=source)
+    return A.ATcT(base=tmp_path / "atct")
+
+
+def test_transition_structures_are_refused(tmp_path):
+    """ATcT labels some entries as transition structures ("TS", "singlet C2v TS
+    EE", "cis, TS?"); they are never a species' value."""
+    tables = _tables_with(
+        tmp_path,
+        [
+            ("1724-43-2*200", "Cyclopropylium", "C3H5", "C1C[CH+]1", "TS"),
+            ("12345-67-8*1", "Something", "C2H4O", "C1CO1", "cis, TS?"),
+            ("12345-67-8*2", "Something", "C2H4O", "C1CO1", "trans"),
+        ],
+    )
+    with pytest.raises(A.MissingEntry, match="transition structures"):
+        tables.lookup("C1C[CH+]1")
+    # the TS is dropped, the other labelled entry remains
+    assert tables.lookup("C1CO1")["id"] == "12345-67-8*2"
+
+
+def test_a_resonance_match_must_be_one_species(tmp_path):
+    """Two species (CAS groups) that both match another resonance form: no
+    match, rather than a guess."""
+    tables = _tables_with(
+        tmp_path,
+        [
+            ("7782-79-8*0", "Hydrazoic acid", "HN3", "N=[N+]=[N-]", ""),
+            ("99999-99-9*0", "Hydrazoic acid again", "HN3", "[N-]=[N+]=N", ""),
+        ],
+    )
+    # the exact SMILES still finds both, as before (and the rules decide)
+    assert len(tables.candidates("N=[N+]=[N-]")) == 2
+    # another resonance form: two species, so nothing
+    assert tables.candidates("N#[N+][NH-]") == []
+
+
+def test_a_high_spin_fragment_is_not_matched_to_a_plain_entry(tmp_path):
+    """[CH][CH] as a quintet (a CBH fragment of a carbon chain) shares the
+    InChIKey and connectivity key of acetylene, which ignore radicals; it is not
+    acetylene. A labelled spin state still matches (C4 as a triplet)."""
+    tables = _tables_with(
+        tmp_path,
+        [
+            ("74-86-2*0", "Acetylene", "C2H2", "C#C", ""),
+            ("78015-07-3*1", "1,3-Butadiyne-1,4-diyl", "C4", "[C]#CC#[C]", "triplet"),
+        ],
+    )
+    assert tables.candidates("[CH][CH]", multiplicity=5) == []
+    with pytest.raises(A.MissingEntry):
+        tables.lookup("[CH][CH]", multiplicity=5)
+    assert tables.lookup("[C][C][C][C]", multiplicity=3)["id"] == "78015-07-3*1"
+    # a closed-shell resonance form still matches without a spin label
+    assert tables.lookup("[CH]#[CH]")["id"] == "74-86-2*0"
