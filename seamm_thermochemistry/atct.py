@@ -348,6 +348,69 @@ def canonical_smiles(smiles, *, stereo=True, keep_single_center=False):
     return Chem.MolToSmiles(mol, isomericSmiles=True)
 
 
+def connectivity_key(smiles):
+    """The heavy-atom graph with the number of hydrogens on each atom, ignoring
+    bond orders, formal charges, radicals and stereo; None if RDKit cannot read
+    the SMILES.
+
+    Resonance forms share it (HN3 as N#[N+][NH-] or N=[N+]=[N-], CH2N2, methyl
+    azide); tautomers do not, since a hydrogen moves (2-pyridone and
+    2-hydroxypyridine, acetaldehyde and vinyl alcohol), although the standard
+    InChIKey merges them. Each atom's hydrogen count is written as an isotope
+    label so that the canonical SMILES compares it."""
+    from .smiles import mol_from_smiles
+
+    Chem = _rdkit()
+    mol = mol_from_smiles(smiles)
+    if mol is None:
+        return None
+    hydrogens = [atom.GetTotalNumHs() for atom in mol.GetAtoms()]
+    mol = Chem.RWMol(mol)
+    Chem.RemoveStereochemistry(mol)
+    try:
+        Chem.Kekulize(mol, clearAromaticFlags=True)
+    except Exception:
+        for atom in mol.GetAtoms():
+            atom.SetIsAromatic(False)
+    for atom, n_h in zip(mol.GetAtoms(), hydrogens):
+        atom.SetFormalCharge(0)
+        atom.SetNumRadicalElectrons(0)
+        atom.SetIsotope(n_h + 1)
+        atom.SetNoImplicit(True)
+        atom.SetNumExplicitHs(0)
+    for bond in mol.GetBonds():
+        bond.SetBondType(Chem.BondType.SINGLE)
+        bond.SetIsAromatic(False)
+    return Chem.MolToSmiles(mol, isomericSmiles=True)
+
+
+def inchikey(smiles):
+    """The standard InChIKey of a SMILES, or None."""
+    from .smiles import mol_from_smiles
+
+    Chem = _rdkit()
+    mol = mol_from_smiles(smiles)
+    if mol is None:
+        return None
+    try:
+        return Chem.MolToInchiKey(mol) or None
+    except Exception:
+        return None
+
+
+def same_species(smiles_a, smiles_b):
+    """Whether two SMILES are the same species written as different resonance
+    forms: the same standard InChIKey (which keeps E/Z and the charge) *and* the
+    same :func:`connectivity_key` (which keeps tautomers apart; the InChIKey
+    alone merges them)."""
+    key = inchikey(smiles_a)
+    return (
+        key is not None
+        and key == inchikey(smiles_b)
+        and connectivity_key(smiles_a) == connectivity_key(smiles_b)
+    )
+
+
 def _natural_mass(smiles):
     """The average molecular mass at natural abundance, or None."""
     Chem = _rdkit()
@@ -596,6 +659,20 @@ class ATcT:
 
     # -- lookup -------------------------------------------------------------
 
+    def _connectivity_index(self):
+        """{connectivity key: [ids]} over the entries with a SMILES, built on
+        first use (only when an exact SMILES lookup has failed)."""
+        index = getattr(self, "_by_connectivity", None)
+        if index is None:
+            index = {}
+            for _id, entry in self.entries.items():
+                if entry["smiles"]:
+                    key = connectivity_key(entry["smiles"])
+                    if key is not None:
+                        index.setdefault(key, []).append(_id)
+            self._by_connectivity = index
+        return index
+
     def candidates(self, smiles, *, charge=None, gas_only=True):
         """All entries whose canonical SMILES matches, as ATcTEntry objects.
 
@@ -622,6 +699,18 @@ class ATcT:
                     entry_smiles, stereo=False
                 ):
                     ids.append(_id)
+        if not ids:
+            # Another resonance form of the same species (HN3 written
+            # N#[N+][NH-] against ATcT's N=[N+]=[N-]): the same hydrogens on
+            # the same atoms (so not a tautomer) and the same InChIKey (so not
+            # an E/Z isomer). ATcT's tables carry no InChIKeys, so both keys
+            # are computed from the entries' SMILES.
+            conn = connectivity_key(smiles)
+            key = inchikey(smiles)
+            if conn is not None and key is not None:
+                for _id in self._connectivity_index().get(conn, []):
+                    if inchikey(self.entries[_id]["smiles"]) == key:
+                        ids.append(_id)
         result = [self.entries[_id] for _id in ids]
         if gas_only:
             result = [e for e in result if e.is_gas]

@@ -912,3 +912,17 @@ def test_set_rank(lib, capsys):
     assert lib2.source("W4-17")["rank"] == 80 == R.COMPUTED_RANK
     assert "rank 40 -> 80" in lib2.source("W4-17")["notes"]
     lib2.close()
+
+
+def test_a_resonance_form_finds_the_species_and_a_tautomer_does_not(lib):
+    """The library keys species by canonical SMILES; another resonance form of
+    a stored species is found (the same InChIKey and hydrogens on the same
+    atoms), a tautomer is not (Design 2026-11-25)."""
+    hn3 = lib.add_species("N=[N+]=[N-]", formula="HN3")
+    pyridone = lib.add_species("O=c1cccc[nH]1", formula="C5H5NO")
+    assert [r["id"] for r in lib.species("N=[N+]=[N-]")] == [hn3]
+    assert [r["id"] for r in lib.species("N#[N+][NH-]")] == [hn3]
+    assert [r["id"] for r in lib.species("O=c1cccc[nH]1")] == [pyridone]
+    assert lib.species("Oc1ccccn1") == []
+    # a charge that differs is still another species
+    assert lib.species("N#[N+][NH-]", charge=1) == []

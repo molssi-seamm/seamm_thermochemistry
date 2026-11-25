@@ -651,7 +651,22 @@ class ReferenceLibrary:
         if multiplicity is not None:
             sql += " AND multiplicity = ?"
             args.append(multiplicity)
-        return [dict(r) for r in db.execute(sql, args)]
+        rows = [dict(r) for r in db.execute(sql, args)]
+        if rows or can is None:
+            return rows
+        # Another resonance form of a stored species (HN3 as N#[N+][NH-] or
+        # N=[N+]=[N-]): same formula and charge, then the same InChIKey and the
+        # same hydrogens on the same atoms (not a tautomer)
+        from .atct import same_species
+
+        sql = "SELECT * FROM species WHERE formula = ? AND charge = ?"
+        args = [hill_formula(can), charge]
+        if multiplicity is not None:
+            sql += " AND multiplicity = ?"
+            args.append(multiplicity)
+        return [
+            dict(r) for r in db.execute(sql, args) if same_species(can, r["smiles"])
+        ]
 
     def _species_row(self, species_id):
         row = (

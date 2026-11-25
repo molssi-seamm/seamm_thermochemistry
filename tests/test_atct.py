@@ -623,3 +623,69 @@ def test_small_ortho_para_are_still_nuclear_spin(positional):
     # Only nuclear-spin isomers: a clear MissingEntry, not an empty AmbiguousEntry
     with pytest.raises(A.MissingEntry, match="only nuclear-spin isomers"):
         positional.lookup("O")
+
+
+# -- resonance forms (Design 2026-11-25: methyl azide's HN3 fragment) --------
+
+
+@pytest.mark.parametrize(
+    "a, b, same",
+    [
+        # resonance forms: the same species
+        ("N#[N+][NH-]", "N=[N+]=[N-]", True),
+        ("C=[N+]=[N-]", "[CH2-][N+]#N", True),
+        ("CN=[N+]=[N-]", "C[N-][N+]#N", True),
+        # tautomers share the standard InChIKey but not the hydrogens' atoms
+        ("O=c1cccc[nH]1", "Oc1ccccn1", False),
+        ("CC=O", "C=CO", False),
+        # E/Z isomers share the connectivity key but not the InChIKey
+        ("C/C=C/C", "C/C=C\\C", False),
+    ],
+)
+def test_same_species(a, b, same):
+    assert A.same_species(a, b) is same
+    assert A.same_species(b, a) is same
+
+
+def test_tautomers_share_the_inchikey_not_the_connectivity_key():
+    a, b = "O=c1cccc[nH]1", "Oc1ccccn1"
+    assert A.inchikey(a) == A.inchikey(b)
+    assert A.connectivity_key(a) != A.connectivity_key(b)
+
+
+def test_a_resonance_form_finds_the_entry_and_a_tautomer_does_not(tmp_path):
+    """ATcT writes hydrazoic acid N=[N+]=[N-]; the CBH generator wrote
+    N#[N+][NH-] (T4 methyl azide, 2026-11-25). Both are found; the tautomer of an
+    entry is not, though the standard InChIKey is the same."""
+    entries = json.loads(FIXTURE.read_text())
+    version = entries[0]["ATcT_TN_Version"]
+    for atct_id, name, formula, smiles in (
+        ("7782-79-8*0", "Hydrazoic acid", "HN3 (g)", "N=[N+]=[N-]"),
+        ("142-08-5*0", "2-Pyridone", "C5H5NO (g)", "O=c1cccc[nH]1"),
+    ):
+        entries.append(
+            {
+                "ATcT_TN_Version": version,
+                "ATcT_ID": atct_id,
+                "Name": name,
+                "Formula": formula,
+                "Delta_Hf_0K": "1.000",
+                "Delta_Hf_298K": "2.000",
+                "Delta_Hf298K_uncertainty": "0.500",
+                "unit": "kJ/mol",
+                "mass": "43.03",
+                "mass_uncertainty": "0.001",
+                "SMILES": smiles,
+                "CASRN": atct_id.split("*")[0],
+                "charge": "0",
+            }
+        )
+    source = tmp_path / "all.json"
+    source.write_text(json.dumps(entries))
+    A.download_all(tmp_path / "atct", source=source)
+    tables = A.ATcT(base=tmp_path / "atct")
+    for smiles in ("N=[N+]=[N-]", "N#[N+][NH-]", "[NH-][N+]#N"):
+        assert tables.lookup(smiles)["id"] == "7782-79-8*0"
+    assert tables.lookup("O=c1cccc[nH]1")["id"] == "142-08-5*0"
+    # 2-hydroxypyridine: the same standard InChIKey, another species
+    assert tables.candidates("Oc1ccccn1") == []
