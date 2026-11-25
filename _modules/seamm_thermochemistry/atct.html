@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.atct &#8212; SEAMM thermochemistry Plug-in 2026.11.23.1 documentation</title>
+    <title>seamm_thermochemistry.atct &#8212; SEAMM thermochemistry Plug-in 2026.11.25 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=d6932bcf"></script>
+    <script src="../../_static/documentation_options.js?v=d2c0d6cc"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.23.1" />
+  <meta name="docsearch:version" content="2026.11.25" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -713,6 +713,15 @@
         <span class="k">return</span> <span class="n">n</span>
 
     <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">is_transition_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""A transition structure ("TS", "singlet C2v TS EE", "2A', cis, TS?"),</span>
+<span class="sd">        never a species' reference value."""</span>
+        <span class="n">words</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">w</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">"?"</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">[</span><span class="s2">"descriptor"</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">","</span><span class="p">,</span> <span class="s2">" "</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="s2">"ts"</span> <span class="ow">in</span> <span class="n">words</span>
+
+    <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">is_nuclear_spin_isomer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">"""ortho/para entries of small species, also when combined with a spin</span>
 <span class="sd">        state ("para singlet" formaldehyde). On a bigger species "ortho" and "para"</span>
@@ -794,6 +803,69 @@
             <span class="n">atom</span><span class="o">.</span><span class="n">SetChiralTag</span><span class="p">(</span><span class="n">Chem</span><span class="o">.</span><span class="n">ChiralType</span><span class="o">.</span><span class="n">CHI_UNSPECIFIED</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolToSmiles</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">isomericSmiles</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
 
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">connectivity_key</span><span class="p">(</span><span class="n">smiles</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The heavy-atom graph with the number of hydrogens on each atom, ignoring</span>
+<span class="sd">    bond orders, formal charges, radicals and stereo; None if RDKit cannot read</span>
+<span class="sd">    the SMILES.</span>
+
+<span class="sd">    Resonance forms share it (HN3 as N#[N+][NH-] or N=[N+]=[N-], CH2N2, methyl</span>
+<span class="sd">    azide); tautomers do not, since a hydrogen moves (2-pyridone and</span>
+<span class="sd">    2-hydroxypyridine, acetaldehyde and vinyl alcohol), although the standard</span>
+<span class="sd">    InChIKey merges them. Each atom's hydrogen count is written as an isotope</span>
+<span class="sd">    label so that the canonical SMILES compares it."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.smiles</span><span class="w"> </span><span class="kn">import</span> <span class="n">mol_from_smiles</span>
+
+    <span class="n">Chem</span> <span class="o">=</span> <span class="n">_rdkit</span><span class="p">()</span>
+    <span class="n">mol</span> <span class="o">=</span> <span class="n">mol_from_smiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">mol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="n">hydrogens</span> <span class="o">=</span> <span class="p">[</span><span class="n">atom</span><span class="o">.</span><span class="n">GetTotalNumHs</span><span class="p">()</span> <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">mol</span><span class="o">.</span><span class="n">GetAtoms</span><span class="p">()]</span>
+    <span class="n">mol</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">RWMol</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+    <span class="n">Chem</span><span class="o">.</span><span class="n">RemoveStereochemistry</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">Chem</span><span class="o">.</span><span class="n">Kekulize</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">clearAromaticFlags</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">mol</span><span class="o">.</span><span class="n">GetAtoms</span><span class="p">():</span>
+            <span class="n">atom</span><span class="o">.</span><span class="n">SetIsAromatic</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">atom</span><span class="p">,</span> <span class="n">n_h</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">mol</span><span class="o">.</span><span class="n">GetAtoms</span><span class="p">(),</span> <span class="n">hydrogens</span><span class="p">):</span>
+        <span class="n">atom</span><span class="o">.</span><span class="n">SetFormalCharge</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">atom</span><span class="o">.</span><span class="n">SetNumRadicalElectrons</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">atom</span><span class="o">.</span><span class="n">SetIsotope</span><span class="p">(</span><span class="n">n_h</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">atom</span><span class="o">.</span><span class="n">SetNoImplicit</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">atom</span><span class="o">.</span><span class="n">SetNumExplicitHs</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">bond</span> <span class="ow">in</span> <span class="n">mol</span><span class="o">.</span><span class="n">GetBonds</span><span class="p">():</span>
+        <span class="n">bond</span><span class="o">.</span><span class="n">SetBondType</span><span class="p">(</span><span class="n">Chem</span><span class="o">.</span><span class="n">BondType</span><span class="o">.</span><span class="n">SINGLE</span><span class="p">)</span>
+        <span class="n">bond</span><span class="o">.</span><span class="n">SetIsAromatic</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolToSmiles</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">isomericSmiles</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">inchikey</span><span class="p">(</span><span class="n">smiles</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""The standard InChIKey of a SMILES, or None."""</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">.smiles</span><span class="w"> </span><span class="kn">import</span> <span class="n">mol_from_smiles</span>
+
+    <span class="n">Chem</span> <span class="o">=</span> <span class="n">_rdkit</span><span class="p">()</span>
+    <span class="n">mol</span> <span class="o">=</span> <span class="n">mol_from_smiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">mol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolToInchiKey</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span> <span class="ow">or</span> <span class="kc">None</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">same_species</span><span class="p">(</span><span class="n">smiles_a</span><span class="p">,</span> <span class="n">smiles_b</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Whether two SMILES are the same species written as different resonance</span>
+<span class="sd">    forms: the same standard InChIKey (which keeps E/Z and the charge) *and* the</span>
+<span class="sd">    same :func:`connectivity_key` (which keeps tautomers apart; the InChIKey</span>
+<span class="sd">    alone merges them)."""</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="n">inchikey</span><span class="p">(</span><span class="n">smiles_a</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="n">key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="ow">and</span> <span class="n">key</span> <span class="o">==</span> <span class="n">inchikey</span><span class="p">(</span><span class="n">smiles_b</span><span class="p">)</span>
+        <span class="ow">and</span> <span class="n">connectivity_key</span><span class="p">(</span><span class="n">smiles_a</span><span class="p">)</span> <span class="o">==</span> <span class="n">connectivity_key</span><span class="p">(</span><span class="n">smiles_b</span><span class="p">)</span>
+    <span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_natural_mass</span><span class="p">(</span><span class="n">smiles</span><span class="p">):</span>
@@ -1058,10 +1130,32 @@
 
     <span class="c1"># -- lookup -------------------------------------------------------------</span>
 
+    <span class="k">def</span><span class="w"> </span><span class="nf">_connectivity_index</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""{connectivity key: [ids]} over the entries with a SMILES, built on</span>
+<span class="sd">        first use (only when an exact SMILES lookup has failed)."""</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">"_by_connectivity"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">index</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">_id</span><span class="p">,</span> <span class="n">entry</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">entries</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">entry</span><span class="p">[</span><span class="s2">"smiles"</span><span class="p">]:</span>
+                    <span class="n">key</span> <span class="o">=</span> <span class="n">connectivity_key</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s2">"smiles"</span><span class="p">])</span>
+                    <span class="k">if</span> <span class="n">key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">index</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_id</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_by_connectivity</span> <span class="o">=</span> <span class="n">index</span>
+        <span class="k">return</span> <span class="n">index</span>
+
 <div class="viewcode-block" id="ATcT.candidates">
 <a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.atct.ATcT.candidates">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">candidates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smiles</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">gas_only</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">candidates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smiles</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">gas_only</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">multiplicity</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">"""All entries whose canonical SMILES matches, as ATcTEntry objects.</span>
+
+<span class="sd">        If none does, the entries of the one species that is the same molecule</span>
+<span class="sd">        written as another resonance form (:func:`same_species`). The InChIKey</span>
+<span class="sd">        and the connectivity key ignore radicals, so with a `multiplicity` of 3</span>
+<span class="sd">        or more such a match needs an entry labelled with that spin state:</span>
+<span class="sd">        CBH fragments such as [CH][CH] as a quintet are not acetylene. A singlet</span>
+<span class="sd">        or doublet may match a plain entry, since ATcT writes some closed-shell</span>
+<span class="sd">        species with radical dots (HNC as [C]=N).</span>
 
 <span class="sd">        If `smiles` carries no double-bond or tetrahedral stereo but matching</span>
 <span class="sd">        entries do, those entries are returned too (they come from the</span>
@@ -1086,6 +1180,30 @@
                     <span class="n">entry_smiles</span><span class="p">,</span> <span class="n">stereo</span><span class="o">=</span><span class="kc">False</span>
                 <span class="p">):</span>
                     <span class="n">ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ids</span><span class="p">:</span>
+            <span class="c1"># Another resonance form of the same species (HN3 written</span>
+            <span class="c1"># N#[N+][NH-] against ATcT's N=[N+]=[N-]): the same hydrogens on</span>
+            <span class="c1"># the same atoms (so not a tautomer) and the same InChIKey (so not</span>
+            <span class="c1"># an E/Z isomer). ATcT's tables carry no InChIKeys, so both keys</span>
+            <span class="c1"># are computed from the entries' SMILES.</span>
+            <span class="n">conn</span> <span class="o">=</span> <span class="n">connectivity_key</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="n">inchikey</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">conn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">found</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="n">_id</span>
+                    <span class="k">for</span> <span class="n">_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_connectivity_index</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="p">[])</span>
+                    <span class="k">if</span> <span class="n">inchikey</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">entries</span><span class="p">[</span><span class="n">_id</span><span class="p">][</span><span class="s2">"smiles"</span><span class="p">])</span> <span class="o">==</span> <span class="n">key</span>
+                <span class="p">]</span>
+                <span class="c1"># Only an unambiguous match: the entries of one species (one</span>
+                <span class="c1"># CAS group: its conformers and states)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">({</span><span class="bp">self</span><span class="o">.</span><span class="n">entries</span><span class="p">[</span><span class="n">_id</span><span class="p">]</span><span class="o">.</span><span class="n">casrn_group</span> <span class="k">for</span> <span class="n">_id</span> <span class="ow">in</span> <span class="n">found</span><span class="p">})</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">multiplicity</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">multiplicity</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">entries</span><span class="p">[</span><span class="n">_id</span><span class="p">]</span><span class="o">.</span><span class="n">multiplicity</span> <span class="o">==</span> <span class="n">multiplicity</span>
+                            <span class="k">for</span> <span class="n">_id</span> <span class="ow">in</span> <span class="n">found</span>
+                        <span class="p">):</span>
+                            <span class="n">found</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="n">ids</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">found</span><span class="p">)</span>
         <span class="n">result</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">entries</span><span class="p">[</span><span class="n">_id</span><span class="p">]</span> <span class="k">for</span> <span class="n">_id</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">gas_only</span><span class="p">:</span>
             <span class="n">result</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">result</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">is_gas</span><span class="p">]</span>
@@ -1187,11 +1305,21 @@
         <span class="k">if</span> <span class="n">smiles</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Give a SMILES or an ATcT ID"</span><span class="p">)</span>
 
-        <span class="n">candidates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">candidates</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="n">charge</span><span class="p">)</span>
+        <span class="n">candidates</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">candidates</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="n">charge</span><span class="p">,</span> <span class="n">multiplicity</span><span class="o">=</span><span class="n">multiplicity</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">candidates</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">MissingEntry</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">"No gas-phase ATcT entry (ver. </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s2">) for '</span><span class="si">{</span><span class="n">smiles</span><span class="si">}</span><span class="s2">' "</span>
                 <span class="sa">f</span><span class="s2">"with charge </span><span class="si">{</span><span class="n">charge</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Transition structures are never a species' value (Design 2026-11-25)</span>
+        <span class="n">transition</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">candidates</span> <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">is_transition_state</span><span class="p">]</span>
+        <span class="n">candidates</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">candidates</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">e</span><span class="o">.</span><span class="n">is_transition_state</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">candidates</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">MissingEntry</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"ATcT (ver. </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">version</span><span class="si">}</span><span class="s2">) has only transition structures for "</span>
+                <span class="sa">f</span><span class="s2">"'</span><span class="si">{</span><span class="n">smiles</span><span class="si">}</span><span class="s2">', which are not used; give an ATcT ID to use one:</span><span class="se">\n</span><span class="s2">  "</span>
+                <span class="o">+</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">  "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">label</span><span class="p">()</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">transition</span><span class="p">)</span>
             <span class="p">)</span>
 
         <span class="c1"># Nuclear-spin isomers are never wanted</span>

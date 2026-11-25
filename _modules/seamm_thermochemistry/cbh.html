@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>seamm_thermochemistry.cbh &#8212; SEAMM thermochemistry Plug-in 2026.11.23.1 documentation</title>
+    <title>seamm_thermochemistry.cbh &#8212; SEAMM thermochemistry Plug-in 2026.11.25 documentation</title>
   
   
   
@@ -39,7 +39,7 @@
   <link rel="preload" as="script" href="../../_static/scripts/bootstrap.js?digest=75c7c72ae941e8b558d8" />
 <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=75c7c72ae941e8b558d8" />
 
-    <script src="../../_static/documentation_options.js?v=d6932bcf"></script>
+    <script src="../../_static/documentation_options.js?v=d2c0d6cc"></script>
     <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../_static/clipboard.min.js?v=a7894cd8"></script>
@@ -52,7 +52,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <meta name="color-scheme" content="light dark"/>
   <meta name="docsearch:language" content="en"/>
-  <meta name="docsearch:version" content="2026.11.23.1" />
+  <meta name="docsearch:version" content="2026.11.25" />
   
     
     <script src="../../_static/searchtools.js"></script>
@@ -1036,28 +1036,80 @@
     <span class="s2">"[AlH]"</span><span class="p">,</span>
     <span class="s2">"F[B]"</span><span class="p">,</span>
     <span class="s2">"Cl[B]"</span><span class="p">,</span>
+    <span class="c1"># Written with radical dots by CBH fragments of carbon clusters ([CH][CH] from</span>
+    <span class="c1"># C4), these are closed-shell singlets: acetylene, C2 (X 1Sigma_g+), linear</span>
+    <span class="c1"># C3 (X 1Sigma_g+) and vinylidene (X 1A1), a fragment of C3 (Design 2026-11-25)</span>
+    <span class="s2">"C#C"</span><span class="p">,</span>
+    <span class="s2">"[C]=[C]"</span><span class="p">,</span>
+    <span class="s2">"[C]=C=[C]"</span><span class="p">,</span>
+    <span class="s2">"[C]=C"</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="c1">#: Species that a SMILES writes closed-shell but whose ground state is a triplet:</span>
 <span class="c1">#: O2 and its valence isoelectronic S2 and SO, ethylenedione (OCCO, whose singlet</span>
 <span class="c1">#: is a saddle point) and cyclic C3 (whose singlet opens to linear C3; ATcT's</span>
-<span class="c1">#: plain entry is the triplet).</span>
-<span class="n">TRIPLET_GROUND_STATES</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"O=O"</span><span class="p">,</span> <span class="s2">"S=S"</span><span class="p">,</span> <span class="s2">"O=S"</span><span class="p">,</span> <span class="s2">"O=C=C=O"</span><span class="p">,</span> <span class="s2">"C1=C=C=1"</span><span class="p">)</span>
+<span class="c1">#: plain entry is the triplet); and linear C4 (X 3Sigma_g-), which CBH writes with</span>
+<span class="c1">#: radical dots, and the carbon atom.</span>
+<span class="n">TRIPLET_GROUND_STATES</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">"O=O"</span><span class="p">,</span>
+    <span class="s2">"S=S"</span><span class="p">,</span>
+    <span class="s2">"O=S"</span><span class="p">,</span>
+    <span class="s2">"O=C=C=O"</span><span class="p">,</span>
+    <span class="s2">"C1=C=C=1"</span><span class="p">,</span>
+    <span class="s2">"[C]#CC#[C]"</span><span class="p">,</span>
+    <span class="c1"># the carbon atom (3P): its four radical dots made it a quintet</span>
+    <span class="s2">"[C]"</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="c1">#: Doublets whose SMILES, as CBH fragments write them, puts more unpaired</span>
+<span class="c1">#: electrons on the carbons: CH (X 2Pi), ethynyl (X 2Sigma+) and linear C3H</span>
+<span class="c1">#: (X 2Pi). Counting the radical dots made them quartet, sextet and octet</span>
+<span class="c1">#: (the carbon trimer's CBH fragments, T4 2026-11-25).</span>
+<span class="n">DOUBLET_GROUND_STATES</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"[CH]"</span><span class="p">,</span> <span class="s2">"C#[C]"</span><span class="p">,</span> <span class="s2">"C#C[C]"</span><span class="p">)</span>
+
+<span class="n">_GROUND_STATE_KEYS</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_ground_state_keys</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">"""{(InChIKey, connectivity key): multiplicity} for the tables, once."""</span>
+    <span class="k">global</span> <span class="n">_GROUND_STATE_KEYS</span>
+    <span class="k">if</span> <span class="n">_GROUND_STATE_KEYS</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.atct</span><span class="w"> </span><span class="kn">import</span> <span class="n">connectivity_key</span><span class="p">,</span> <span class="n">inchikey</span>
+
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">table</span><span class="p">,</span> <span class="n">multiplicity</span> <span class="ow">in</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">SINGLET_GROUND_STATES</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">DOUBLET_GROUND_STATES</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">TRIPLET_GROUND_STATES</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+        <span class="p">):</span>
+            <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">table</span><span class="p">:</span>
+                <span class="n">keys</span><span class="p">[(</span><span class="n">inchikey</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">connectivity_key</span><span class="p">(</span><span class="n">x</span><span class="p">))]</span> <span class="o">=</span> <span class="n">multiplicity</span>
+        <span class="n">_GROUND_STATE_KEYS</span> <span class="o">=</span> <span class="n">keys</span>
+    <span class="k">return</span> <span class="n">_GROUND_STATE_KEYS</span>
 
 
 <div class="viewcode-block" id="ground_state_multiplicity">
 <a class="viewcode-back" href="../../api/seamm_thermochemistry.html#seamm_thermochemistry.cbh.ground_state_multiplicity">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">ground_state_multiplicity</span><span class="p">(</span><span class="n">smiles</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">"""The spin multiplicity of a species' ground state: 1 for those in</span>
-<span class="sd">    `SINGLET_GROUND_STATES`, 3 for those in `TRIPLET_GROUND_STATES`, otherwise</span>
-<span class="sd">    its unpaired electrons + 1, as the SMILES implies (a radical centre</span>
-<span class="sd">    ``[CH3]`` is a doublet, ``[CH2]`` a triplet)."""</span>
+<span class="w">    </span><span class="sd">"""The spin multiplicity of a species' ground state: 1, 2 or 3 for those in</span>
+<span class="sd">    `SINGLET_GROUND_STATES`, `DOUBLET_GROUND_STATES` and `TRIPLET_GROUND_STATES`,</span>
+<span class="sd">    however they are written (another resonance form or radical-dot notation of</span>
+<span class="sd">    the same species, by :func:`.atct.same_species`'s keys); otherwise its</span>
+<span class="sd">    unpaired electrons + 1, as the SMILES implies (a radical centre ``[CH3]`` is</span>
+<span class="sd">    a doublet, ``[CH2]`` a triplet)."""</span>
     <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">radicals</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_composition</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
     <span class="n">key</span> <span class="o">=</span> <span class="n">canonical_smiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="n">stereo</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">{</span><span class="n">canonical_smiles</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">stereo</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">SINGLET_GROUND_STATES</span><span class="p">}:</span>
             <span class="k">return</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">{</span><span class="n">canonical_smiles</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">stereo</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">DOUBLET_GROUND_STATES</span><span class="p">}:</span>
+            <span class="k">return</span> <span class="mi">2</span>
         <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">{</span><span class="n">canonical_smiles</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">stereo</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">TRIPLET_GROUND_STATES</span><span class="p">}:</span>
             <span class="k">return</span> <span class="mi">3</span>
+        <span class="c1"># The same species written otherwise ([C][CH] for ethynyl C#[C])</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.atct</span><span class="w"> </span><span class="kn">import</span> <span class="n">connectivity_key</span><span class="p">,</span> <span class="n">inchikey</span>
+
+        <span class="n">found</span> <span class="o">=</span> <span class="n">_ground_state_keys</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="n">inchikey</span><span class="p">(</span><span class="n">smiles</span><span class="p">),</span> <span class="n">connectivity_key</span><span class="p">(</span><span class="n">smiles</span><span class="p">)))</span>
+        <span class="k">if</span> <span class="n">found</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">found</span>
     <span class="k">return</span> <span class="n">radicals</span> <span class="o">+</span> <span class="mi">1</span></div>
 
 
