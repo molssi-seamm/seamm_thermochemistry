@@ -17,6 +17,12 @@ History
       that spin state (a quintet [CH][CH] CBH fragment is not acetylene).
     * ATcT entries labelled as transition structures ("TS") are never used: the
       cyclopropyl cation had been given ATcT's transition-structure value.
+    * CBH species' ground-state multiplicities: CH, ethynyl and linear C3H are
+      doublets; acetylene, C2, linear C3 and vinylidene singlets; linear C4 and the
+      carbon atom triplets. Carbon-cluster CBH fragments write them with radical
+      dots, whose count gave quartet CH (which took ATcT's excited quartet value),
+      sextet ethynyl and octet C3H. The tables of ground states now match a species
+      however it is written.
     * New functions ``connectivity_key``, ``inchikey`` and ``same_species`` in
       ``seamm_thermochemistry.atct``.
 

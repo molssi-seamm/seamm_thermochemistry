@@ -597,26 +597,78 @@ SINGLET_GROUND_STATES = (
     "[AlH]",
     "F[B]",
     "Cl[B]",
+    # Written with radical dots by CBH fragments of carbon clusters ([CH][CH] from
+    # C4), these are closed-shell singlets: acetylene, C2 (X 1Sigma_g+), linear
+    # C3 (X 1Sigma_g+) and vinylidene (X 1A1), a fragment of C3 (Design 2026-11-25)
+    "C#C",
+    "[C]=[C]",
+    "[C]=C=[C]",
+    "[C]=C",
 )
 #: Species that a SMILES writes closed-shell but whose ground state is a triplet:
 #: O2 and its valence isoelectronic S2 and SO, ethylenedione (OCCO, whose singlet
 #: is a saddle point) and cyclic C3 (whose singlet opens to linear C3; ATcT's
-#: plain entry is the triplet).
-TRIPLET_GROUND_STATES = ("O=O", "S=S", "O=S", "O=C=C=O", "C1=C=C=1")
+#: plain entry is the triplet); and linear C4 (X 3Sigma_g-), which CBH writes with
+#: radical dots, and the carbon atom.
+TRIPLET_GROUND_STATES = (
+    "O=O",
+    "S=S",
+    "O=S",
+    "O=C=C=O",
+    "C1=C=C=1",
+    "[C]#CC#[C]",
+    # the carbon atom (3P): its four radical dots made it a quintet
+    "[C]",
+)
+#: Doublets whose SMILES, as CBH fragments write them, puts more unpaired
+#: electrons on the carbons: CH (X 2Pi), ethynyl (X 2Sigma+) and linear C3H
+#: (X 2Pi). Counting the radical dots made them quartet, sextet and octet
+#: (the carbon trimer's CBH fragments, T4 2026-11-25).
+DOUBLET_GROUND_STATES = ("[CH]", "C#[C]", "C#C[C]")
+
+_GROUND_STATE_KEYS = None
+
+
+def _ground_state_keys():
+    """{(InChIKey, connectivity key): multiplicity} for the tables, once."""
+    global _GROUND_STATE_KEYS
+    if _GROUND_STATE_KEYS is None:
+        from .atct import connectivity_key, inchikey
+
+        keys = {}
+        for table, multiplicity in (
+            (SINGLET_GROUND_STATES, 1),
+            (DOUBLET_GROUND_STATES, 2),
+            (TRIPLET_GROUND_STATES, 3),
+        ):
+            for x in table:
+                keys[(inchikey(x), connectivity_key(x))] = multiplicity
+        _GROUND_STATE_KEYS = keys
+    return _GROUND_STATE_KEYS
 
 
 def ground_state_multiplicity(smiles):
-    """The spin multiplicity of a species' ground state: 1 for those in
-    `SINGLET_GROUND_STATES`, 3 for those in `TRIPLET_GROUND_STATES`, otherwise
-    its unpaired electrons + 1, as the SMILES implies (a radical centre
-    ``[CH3]`` is a doublet, ``[CH2]`` a triplet)."""
+    """The spin multiplicity of a species' ground state: 1, 2 or 3 for those in
+    `SINGLET_GROUND_STATES`, `DOUBLET_GROUND_STATES` and `TRIPLET_GROUND_STATES`,
+    however they are written (another resonance form or radical-dot notation of
+    the same species, by :func:`.atct.same_species`'s keys); otherwise its
+    unpaired electrons + 1, as the SMILES implies (a radical centre ``[CH3]`` is
+    a doublet, ``[CH2]`` a triplet)."""
     _, _, radicals, _ = _composition(smiles)
     key = canonical_smiles(smiles, stereo=False)
     if key is not None:
         if key in {canonical_smiles(x, stereo=False) for x in SINGLET_GROUND_STATES}:
             return 1
+        if key in {canonical_smiles(x, stereo=False) for x in DOUBLET_GROUND_STATES}:
+            return 2
         if key in {canonical_smiles(x, stereo=False) for x in TRIPLET_GROUND_STATES}:
             return 3
+        # The same species written otherwise ([C][CH] for ethynyl C#[C])
+        from .atct import connectivity_key, inchikey
+
+        found = _ground_state_keys().get((inchikey(smiles), connectivity_key(smiles)))
+        if found is not None:
+            return found
     return radicals + 1
 
 
