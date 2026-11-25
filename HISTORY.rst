@@ -1,6 +1,31 @@
 =======
 History
 =======
+2026.11.25 -- Bugfix: references are found for any resonance form of a species
+    * ATcT entries and the reference library were matched by canonical SMILES only, so
+      a species written as another resonance form was not found: methyl azide's CBH
+      failed because its HN3 fragment, N#[N+][NH-], did not match ATcT's hydrazoic
+      acid, N=[N+]=[N-]. The same affects azides, diazo compounds, nitrile oxides and
+      isocyanides.
+    * When the SMILES finds nothing, an entry now matches if it has the same standard
+      InChIKey and the same hydrogens on the same atoms. The standard InChIKey alone
+      would also match tautomers (2-pyridone and 2-hydroxypyridine), which are other
+      species with other enthalpies of formation, so the hydrogens are checked too.
+    * Only an unambiguous match counts: the entries of one species (one ATcT CAS
+      group, one library species). The InChIKey and the connectivity key ignore
+      radicals, so a multiplicity of 3 or more matches only an entry labelled with
+      that spin state (a quintet [CH][CH] CBH fragment is not acetylene).
+    * ATcT entries labelled as transition structures ("TS") are never used: the
+      cyclopropyl cation had been given ATcT's transition-structure value.
+    * CBH species' ground-state multiplicities: CH, ethynyl and linear C3H are
+      doublets; acetylene, C2, linear C3 and vinylidene singlets; linear C4 and the
+      carbon atom triplets. Carbon-cluster CBH fragments write them with radical
+      dots, whose count gave quartet CH (which took ATcT's excited quartet value),
+      sextet ethynyl and octet C3H. The tables of ground states now match a species
+      however it is written.
+    * New functions ``connectivity_key``, ``inchikey`` and ``same_species`` in
+      ``seamm_thermochemistry.atct``.
+
 2026.11.23.1 -- The harvest stores the ZPE unscaled when a job stored it scaled
     * Newer Thermochemistry steps store each species' ZPE as used, scaled by its factor
       s and with H(T) built on it, and record the factor as ``ZPE scale factor``. The

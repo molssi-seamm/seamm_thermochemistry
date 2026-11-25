@@ -628,3 +628,37 @@ def test_real_ring_fusion_stereo_is_kept():
         assert cbh._feasible_stereo(mol) == Chem.MolToSmiles(mol)
     tiny = Chem.MolFromSmiles("C1[C@H]2C[C@@H]12")
     assert cbh._feasible_stereo(tiny) == "C1C2CC12"
+
+
+@pytest.mark.parametrize(
+    "smiles, multiplicity",
+    [
+        # carbon-cluster CBH fragments written with radical dots (T4, 2026-11-25)
+        ("[CH]", 2),
+        ("[C][CH]", 2),
+        ("C#[C]", 2),
+        ("[C][C][CH]", 2),
+        ("C#C[C]", 2),
+        ("[CH][CH]", 1),
+        ("C#C", 1),
+        ("[C][C]", 1),
+        ("[C]#[C]", 1),
+        ("[C][C][C]", 1),
+        ("[C]=C=[C]", 1),
+        ("[C]=C", 1),
+        ("[C]=[CH2]", 1),
+        ("[C][C][C][C]", 3),
+        ("[C]#CC#[C]", 3),
+        ("[C]", 3),
+        # the same species however written: O2 as a diradical
+        ("[O][O]", 3),
+        # unchanged: the radical count decides for the rest
+        ("[N]", 4),
+        ("[O]", 3),
+        ("[CH2]", 3),
+        ("[CH3]", 2),
+        ("C1=C=C=1", 3),
+    ],
+)
+def test_ground_states_written_with_radical_dots(smiles, multiplicity):
+    assert cbh.ground_state_multiplicity(smiles) == multiplicity
